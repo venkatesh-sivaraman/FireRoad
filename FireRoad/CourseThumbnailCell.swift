@@ -8,10 +8,26 @@
 
 import UIKit
 
+protocol CourseThumbnailCellDelegate: class {
+    func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell)
+}
+
+extension CourseThumbnailCellDelegate {
+    func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell) {
+        
+    }
+    func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
+        
+    }
+}
+
 class CourseThumbnailCell: UICollectionViewCell {
     
-    @IBOutlet var textLabel: UILabel? = nil
-    @IBOutlet var detailTextLabel: UILabel? = nil
+    weak var delegate: CourseThumbnailCellDelegate?
+    
+    @IBOutlet var textLabel: UILabel?
+    @IBOutlet var detailTextLabel: UILabel?
     
     func generateHighlightView() -> UIView? {
         let view = UIView(frame: self.bounds)
@@ -46,4 +62,11 @@ class CourseThumbnailCell: UICollectionViewCell {
         }
     }
     
+    func viewDetails(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsViewDetails(self)
+    }
+    
+    override func delete(_ sender: Any?) {
+        delegate?.courseThumbnailCellWantsDelete(self)
+    }
 }

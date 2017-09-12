@@ -8,12 +8,15 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseBrowserDelegate, CourseDetailsDelegate {
+class CourseroadViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseBrowserDelegate, CourseDetailsDelegate, CourseThumbnailCellDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? = nil
     var panelView: PanelViewController? = nil
     var courseBrowser: CourseBrowserViewController? = nil
+    
+    let viewMenuItemTitle = "View"
+    let deleteMenuItemTitle = "Delete"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -53,8 +56,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         
         let menu = UIMenuController.shared
         menu.menuItems = [
-            UIMenuItem(title: "View", action: #selector(CourseroadViewController.viewDetailsForSelectedCourse(_:))),
-            UIMenuItem(title: "Delete", action: #selector(CourseroadViewController.deleteSelectedCourse(_:)))
+            UIMenuItem(title: viewMenuItemTitle, action: #selector(CourseThumbnailCell.viewDetails(_:)))
         ]
     }
     
@@ -119,6 +121,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             return cell
         }
         cell.alpha = 1.0
+        cell.delegate = self
         let course = self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!)[indexPath.item]
         cell.textLabel?.text = course.subjectID
         cell.detailTextLabel?.text = course.subjectTitle
@@ -263,8 +266,8 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        if action == #selector(CourseroadViewController.deleteSelectedCourse(_:)) ||
-            action == #selector(CourseroadViewController.viewDetailsForSelectedCourse(_:)) {
+        if action == #selector(CourseThumbnailCell.viewDetails(_:)) ||
+            action == #selector(CourseThumbnailCell.delete(_:)) {
             return true
         }
         return false
@@ -273,19 +276,19 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     func collectionView(_ collectionView: UICollectionView, performAction action: Selector, forItemAt indexPath: IndexPath, withSender sender: Any?) {
         
     }
-    
-    func deleteSelectedCourse(_ sender: UIMenuItem) {
-        
-    }
-    
-    func viewDetailsForSelectedCourse(_ sender: UIMenuItem) {
+
+    func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell) {
         guard let user = currentUser,
-            let indexPath = collectionView.indexPathsForSelectedItems?.first else {
+            let indexPath = collectionView.indexPath(for: cell),
+            let semester = UserSemester(rawValue: indexPath.section) else {
                 return
         }
-        let course = user.courses(forSemester: UserSemester(rawValue: indexPath.section)!)[indexPath.item]
+        let course = user.courses(forSemester: semester)[indexPath.item]
         viewDetails(for: course)
-        collectionView.deselectItem(at: indexPath, animated: true)
+    }
+    
+    func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
+        
     }
     
     func viewDetails(for course: Course) {
