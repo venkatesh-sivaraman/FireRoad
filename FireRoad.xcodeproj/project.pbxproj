@@ -7,13 +7,77 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */; };
+		961E49941EC6938F002BABB9 /* course_processor.py in Resources */ = {isa = PBXBuildFile; fileRef = 961E49931EC6938F002BABB9 /* course_processor.py */; };
+		961E49C81EC6A2B7002BABB9 /* 1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49961EC6A2B7002BABB9 /* 1.txt */; };
+		961E49C91EC6A2B7002BABB9 /* 10.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49971EC6A2B7002BABB9 /* 10.txt */; };
+		961E49CA1EC6A2B7002BABB9 /* 11.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49981EC6A2B7002BABB9 /* 11.txt */; };
+		961E49CB1EC6A2B7002BABB9 /* 12.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49991EC6A2B7002BABB9 /* 12.txt */; };
+		961E49CC1EC6A2B7002BABB9 /* 14.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E499A1EC6A2B7002BABB9 /* 14.txt */; };
+		961E49CD1EC6A2B7002BABB9 /* 15.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E499B1EC6A2B7002BABB9 /* 15.txt */; };
+		961E49CE1EC6A2B7002BABB9 /* 16.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E499C1EC6A2B7002BABB9 /* 16.txt */; };
+		961E49CF1EC6A2B7002BABB9 /* 17.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E499D1EC6A2B7002BABB9 /* 17.txt */; };
+		961E49D01EC6A2B7002BABB9 /* 18.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E499E1EC6A2B7002BABB9 /* 18.txt */; };
+		961E49D11EC6A2B7002BABB9 /* 2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E499F1EC6A2B7002BABB9 /* 2.txt */; };
+		961E49D21EC6A2B7002BABB9 /* 20.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A01EC6A2B7002BABB9 /* 20.txt */; };
+		961E49D31EC6A2B7002BABB9 /* 21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A11EC6A2B7002BABB9 /* 21.txt */; };
+		961E49D41EC6A2B7002BABB9 /* 21A.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A21EC6A2B7002BABB9 /* 21A.txt */; };
+		961E49D51EC6A2B7002BABB9 /* 21G.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A31EC6A2B7002BABB9 /* 21G.txt */; };
+		961E49D61EC6A2B7002BABB9 /* 21H.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A41EC6A2B7002BABB9 /* 21H.txt */; };
+		961E49D71EC6A2B7002BABB9 /* 21L.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A51EC6A2B7002BABB9 /* 21L.txt */; };
+		961E49D81EC6A2B7002BABB9 /* 21M.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A61EC6A2B7002BABB9 /* 21M.txt */; };
+		961E49D91EC6A2B7002BABB9 /* 21W.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A71EC6A2B7002BABB9 /* 21W.txt */; };
+		961E49DA1EC6A2B7002BABB9 /* 22.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A81EC6A2B7002BABB9 /* 22.txt */; };
+		961E49DB1EC6A2B7002BABB9 /* 24.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49A91EC6A2B7002BABB9 /* 24.txt */; };
+		961E49DC1EC6A2B7002BABB9 /* 3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49AA1EC6A2B7002BABB9 /* 3.txt */; };
+		961E49DD1EC6A2B7002BABB9 /* 4.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49AB1EC6A2B7002BABB9 /* 4.txt */; };
+		961E49DE1EC6A2B7002BABB9 /* 5.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49AC1EC6A2B7002BABB9 /* 5.txt */; };
+		961E49DF1EC6A2B7002BABB9 /* 6.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49AD1EC6A2B7002BABB9 /* 6.txt */; };
+		961E49E01EC6A2B7002BABB9 /* 7.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49AE1EC6A2B7002BABB9 /* 7.txt */; };
+		961E49E11EC6A2B7002BABB9 /* 8.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49AF1EC6A2B7002BABB9 /* 8.txt */; };
+		961E49E21EC6A2B7002BABB9 /* 9.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B01EC6A2B7002BABB9 /* 9.txt */; };
+		961E49E31EC6A2B7002BABB9 /* AS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B11EC6A2B7002BABB9 /* AS.txt */; };
+		961E49E41EC6A2B7002BABB9 /* CC.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B21EC6A2B7002BABB9 /* CC.txt */; };
+		961E49E51EC6A2B7002BABB9 /* CDO.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B31EC6A2B7002BABB9 /* CDO.txt */; };
+		961E49E61EC6A2B7002BABB9 /* CMS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B41EC6A2B7002BABB9 /* CMS.txt */; };
+		961E49E71EC6A2B7002BABB9 /* condensed.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B51EC6A2B7002BABB9 /* condensed.txt */; };
+		961E49E81EC6A2B7002BABB9 /* CSB.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B61EC6A2B7002BABB9 /* CSB.txt */; };
+		961E49E91EC6A2B7002BABB9 /* EC.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B71EC6A2B7002BABB9 /* EC.txt */; };
+		961E49EA1EC6A2B7002BABB9 /* EM.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B81EC6A2B7002BABB9 /* EM.txt */; };
+		961E49EB1EC6A2B7002BABB9 /* ES.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49B91EC6A2B7002BABB9 /* ES.txt */; };
+		961E49EC1EC6A2B7002BABB9 /* ESD.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49BA1EC6A2B7002BABB9 /* ESD.txt */; };
+		961E49ED1EC6A2B7002BABB9 /* HST.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49BB1EC6A2B7002BABB9 /* HST.txt */; };
+		961E49EE1EC6A2B7002BABB9 /* IDS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49BC1EC6A2B7002BABB9 /* IDS.txt */; };
+		961E49EF1EC6A2B7002BABB9 /* MAS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49BD1EC6A2B7002BABB9 /* MAS.txt */; };
+		961E49F01EC6A2B7002BABB9 /* MS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49BE1EC6A2B7002BABB9 /* MS.txt */; };
+		961E49F11EC6A2B7002BABB9 /* NS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49BF1EC6A2B7002BABB9 /* NS.txt */; };
+		961E49F21EC6A2B7002BABB9 /* OR.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49C01EC6A2B7002BABB9 /* OR.txt */; };
+		961E49F31EC6A2B7002BABB9 /* RED.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49C11EC6A2B7002BABB9 /* RED.txt */; };
+		961E49F41EC6A2B7002BABB9 /* SCM.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49C21EC6A2B7002BABB9 /* SCM.txt */; };
+		961E49F51EC6A2B7002BABB9 /* SDM.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49C31EC6A2B7002BABB9 /* SDM.txt */; };
+		961E49F61EC6A2B7002BABB9 /* SP.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49C41EC6A2B7002BABB9 /* SP.txt */; };
+		961E49F71EC6A2B7002BABB9 /* STS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49C51EC6A2B7002BABB9 /* STS.txt */; };
+		961E49F81EC6A2B7002BABB9 /* SWE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49C61EC6A2B7002BABB9 /* SWE.txt */; };
+		961E49F91EC6A2B7002BABB9 /* WGS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49C71EC6A2B7002BABB9 /* WGS.txt */; };
+		961E49FD1EC6A8CB002BABB9 /* CourseDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */; };
+		961E49FF1EC7771D002BABB9 /* enrollment.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49FE1EC7771D002BABB9 /* enrollment.txt */; };
+		961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */; };
+		961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
-		9646CFD51EB921FE005F87CB /* FirstViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* FirstViewController.swift */; };
-		9646CFD71EB921FE005F87CB /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD61EB921FE005F87CB /* SecondViewController.swift */; };
+		9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* CatalogViewController.swift */; };
+		9646CFD71EB921FE005F87CB /* CourseroadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */; };
 		9646CFDA1EB921FE005F87CB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9646CFD81EB921FE005F87CB /* Main.storyboard */; };
 		9646CFDC1EB921FE005F87CB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9646CFDB1EB921FE005F87CB /* Assets.xcassets */; };
 		9646CFDF1EB921FE005F87CB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9646CFDD1EB921FE005F87CB /* LaunchScreen.storyboard */; };
 		9646CFEA1EB921FF005F87CB /* FireRoadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFE91EB921FF005F87CB /* FireRoadTests.swift */; };
+		9646CFF51EB922C3005F87CB /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF41EB922C3005F87CB /* Course.swift */; };
+		9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF61EB9251A005F87CB /* CourseManager.swift */; };
+		9646CFF91EB92525005F87CB /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF81EB92525005F87CB /* User.swift */; };
+		965F31BE1EBBDDB10052C659 /* courses.txt in Resources */ = {isa = PBXBuildFile; fileRef = 965F31BD1EBBDDB10052C659 /* courses.txt */; };
+		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
+		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
+		96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */; };
+		96F6C71F1ECCFF3C00E08AF7 /* related.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96F6C71E1ECCFF3C00E08AF7 /* related.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,10 +91,66 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserCell.swift; sourceTree = "<group>"; };
+		961E49931EC6938F002BABB9 /* course_processor.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = course_processor.py; sourceTree = "<group>"; };
+		961E49961EC6A2B7002BABB9 /* 1.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 1.txt; sourceTree = "<group>"; };
+		961E49971EC6A2B7002BABB9 /* 10.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 10.txt; sourceTree = "<group>"; };
+		961E49981EC6A2B7002BABB9 /* 11.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 11.txt; sourceTree = "<group>"; };
+		961E49991EC6A2B7002BABB9 /* 12.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 12.txt; sourceTree = "<group>"; };
+		961E499A1EC6A2B7002BABB9 /* 14.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 14.txt; sourceTree = "<group>"; };
+		961E499B1EC6A2B7002BABB9 /* 15.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 15.txt; sourceTree = "<group>"; };
+		961E499C1EC6A2B7002BABB9 /* 16.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 16.txt; sourceTree = "<group>"; };
+		961E499D1EC6A2B7002BABB9 /* 17.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 17.txt; sourceTree = "<group>"; };
+		961E499E1EC6A2B7002BABB9 /* 18.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 18.txt; sourceTree = "<group>"; };
+		961E499F1EC6A2B7002BABB9 /* 2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 2.txt; sourceTree = "<group>"; };
+		961E49A01EC6A2B7002BABB9 /* 20.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 20.txt; sourceTree = "<group>"; };
+		961E49A11EC6A2B7002BABB9 /* 21.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21.txt; sourceTree = "<group>"; };
+		961E49A21EC6A2B7002BABB9 /* 21A.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21A.txt; sourceTree = "<group>"; };
+		961E49A31EC6A2B7002BABB9 /* 21G.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21G.txt; sourceTree = "<group>"; };
+		961E49A41EC6A2B7002BABB9 /* 21H.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21H.txt; sourceTree = "<group>"; };
+		961E49A51EC6A2B7002BABB9 /* 21L.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21L.txt; sourceTree = "<group>"; };
+		961E49A61EC6A2B7002BABB9 /* 21M.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21M.txt; sourceTree = "<group>"; };
+		961E49A71EC6A2B7002BABB9 /* 21W.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21W.txt; sourceTree = "<group>"; };
+		961E49A81EC6A2B7002BABB9 /* 22.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 22.txt; sourceTree = "<group>"; };
+		961E49A91EC6A2B7002BABB9 /* 24.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 24.txt; sourceTree = "<group>"; };
+		961E49AA1EC6A2B7002BABB9 /* 3.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 3.txt; sourceTree = "<group>"; };
+		961E49AB1EC6A2B7002BABB9 /* 4.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 4.txt; sourceTree = "<group>"; };
+		961E49AC1EC6A2B7002BABB9 /* 5.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 5.txt; sourceTree = "<group>"; };
+		961E49AD1EC6A2B7002BABB9 /* 6.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 6.txt; sourceTree = "<group>"; };
+		961E49AE1EC6A2B7002BABB9 /* 7.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 7.txt; sourceTree = "<group>"; };
+		961E49AF1EC6A2B7002BABB9 /* 8.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 8.txt; sourceTree = "<group>"; };
+		961E49B01EC6A2B7002BABB9 /* 9.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 9.txt; sourceTree = "<group>"; };
+		961E49B11EC6A2B7002BABB9 /* AS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = AS.txt; sourceTree = "<group>"; };
+		961E49B21EC6A2B7002BABB9 /* CC.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CC.txt; sourceTree = "<group>"; };
+		961E49B31EC6A2B7002BABB9 /* CDO.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CDO.txt; sourceTree = "<group>"; };
+		961E49B41EC6A2B7002BABB9 /* CMS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMS.txt; sourceTree = "<group>"; };
+		961E49B51EC6A2B7002BABB9 /* condensed.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed.txt; sourceTree = "<group>"; };
+		961E49B61EC6A2B7002BABB9 /* CSB.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CSB.txt; sourceTree = "<group>"; };
+		961E49B71EC6A2B7002BABB9 /* EC.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = EC.txt; sourceTree = "<group>"; };
+		961E49B81EC6A2B7002BABB9 /* EM.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = EM.txt; sourceTree = "<group>"; };
+		961E49B91EC6A2B7002BABB9 /* ES.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ES.txt; sourceTree = "<group>"; };
+		961E49BA1EC6A2B7002BABB9 /* ESD.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ESD.txt; sourceTree = "<group>"; };
+		961E49BB1EC6A2B7002BABB9 /* HST.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = HST.txt; sourceTree = "<group>"; };
+		961E49BC1EC6A2B7002BABB9 /* IDS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IDS.txt; sourceTree = "<group>"; };
+		961E49BD1EC6A2B7002BABB9 /* MAS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MAS.txt; sourceTree = "<group>"; };
+		961E49BE1EC6A2B7002BABB9 /* MS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MS.txt; sourceTree = "<group>"; };
+		961E49BF1EC6A2B7002BABB9 /* NS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NS.txt; sourceTree = "<group>"; };
+		961E49C01EC6A2B7002BABB9 /* OR.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OR.txt; sourceTree = "<group>"; };
+		961E49C11EC6A2B7002BABB9 /* RED.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = RED.txt; sourceTree = "<group>"; };
+		961E49C21EC6A2B7002BABB9 /* SCM.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SCM.txt; sourceTree = "<group>"; };
+		961E49C31EC6A2B7002BABB9 /* SDM.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SDM.txt; sourceTree = "<group>"; };
+		961E49C41EC6A2B7002BABB9 /* SP.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SP.txt; sourceTree = "<group>"; };
+		961E49C51EC6A2B7002BABB9 /* STS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = STS.txt; sourceTree = "<group>"; };
+		961E49C61EC6A2B7002BABB9 /* SWE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SWE.txt; sourceTree = "<group>"; };
+		961E49C71EC6A2B7002BABB9 /* WGS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WGS.txt; sourceTree = "<group>"; };
+		961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseDetailsViewController.swift; sourceTree = "<group>"; };
+		961E49FE1EC7771D002BABB9 /* enrollment.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = enrollment.txt; sourceTree = "<group>"; };
+		961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PanelViewController.swift; sourceTree = "<group>"; };
+		961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlatPushAnimator.swift; sourceTree = "<group>"; };
 		9646CFCF1EB921FE005F87CB /* FireRoad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireRoad.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9646CFD21EB921FE005F87CB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		9646CFD41EB921FE005F87CB /* FirstViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstViewController.swift; sourceTree = "<group>"; };
-		9646CFD61EB921FE005F87CB /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
+		9646CFD41EB921FE005F87CB /* CatalogViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogViewController.swift; sourceTree = "<group>"; };
+		9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseroadViewController.swift; sourceTree = "<group>"; };
 		9646CFD91EB921FE005F87CB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		9646CFDB1EB921FE005F87CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9646CFDE1EB921FE005F87CB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -38,6 +158,14 @@
 		9646CFE51EB921FF005F87CB /* FireRoadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FireRoadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9646CFE91EB921FF005F87CB /* FireRoadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FireRoadTests.swift; sourceTree = "<group>"; };
 		9646CFEB1EB921FF005F87CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9646CFF41EB922C3005F87CB /* Course.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Course.swift; sourceTree = "<group>"; };
+		9646CFF61EB9251A005F87CB /* CourseManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseManager.swift; sourceTree = "<group>"; };
+		9646CFF81EB92525005F87CB /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		965F31BD1EBBDDB10052C659 /* courses.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = courses.txt; sourceTree = "<group>"; };
+		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
+		96897B171EC8F5500011E572 /* CourseListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseListCell.swift; sourceTree = "<group>"; };
+		96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseThumbnailCell.swift; sourceTree = "<group>"; };
+		96F6C71E1ECCFF3C00E08AF7 /* related.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = related.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +186,64 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		961E49951EC6A2B7002BABB9 /* course_data */ = {
+			isa = PBXGroup;
+			children = (
+				961E49961EC6A2B7002BABB9 /* 1.txt */,
+				961E49971EC6A2B7002BABB9 /* 10.txt */,
+				961E49981EC6A2B7002BABB9 /* 11.txt */,
+				961E49991EC6A2B7002BABB9 /* 12.txt */,
+				961E499A1EC6A2B7002BABB9 /* 14.txt */,
+				961E499B1EC6A2B7002BABB9 /* 15.txt */,
+				961E499C1EC6A2B7002BABB9 /* 16.txt */,
+				961E499D1EC6A2B7002BABB9 /* 17.txt */,
+				961E499E1EC6A2B7002BABB9 /* 18.txt */,
+				961E499F1EC6A2B7002BABB9 /* 2.txt */,
+				961E49A01EC6A2B7002BABB9 /* 20.txt */,
+				961E49A11EC6A2B7002BABB9 /* 21.txt */,
+				961E49A21EC6A2B7002BABB9 /* 21A.txt */,
+				961E49A31EC6A2B7002BABB9 /* 21G.txt */,
+				961E49A41EC6A2B7002BABB9 /* 21H.txt */,
+				961E49A51EC6A2B7002BABB9 /* 21L.txt */,
+				961E49A61EC6A2B7002BABB9 /* 21M.txt */,
+				961E49A71EC6A2B7002BABB9 /* 21W.txt */,
+				961E49A81EC6A2B7002BABB9 /* 22.txt */,
+				961E49A91EC6A2B7002BABB9 /* 24.txt */,
+				961E49AA1EC6A2B7002BABB9 /* 3.txt */,
+				961E49AB1EC6A2B7002BABB9 /* 4.txt */,
+				961E49AC1EC6A2B7002BABB9 /* 5.txt */,
+				961E49AD1EC6A2B7002BABB9 /* 6.txt */,
+				961E49AE1EC6A2B7002BABB9 /* 7.txt */,
+				961E49AF1EC6A2B7002BABB9 /* 8.txt */,
+				961E49B01EC6A2B7002BABB9 /* 9.txt */,
+				961E49B11EC6A2B7002BABB9 /* AS.txt */,
+				961E49B21EC6A2B7002BABB9 /* CC.txt */,
+				961E49B31EC6A2B7002BABB9 /* CDO.txt */,
+				961E49B41EC6A2B7002BABB9 /* CMS.txt */,
+				961E49B51EC6A2B7002BABB9 /* condensed.txt */,
+				96F6C71E1ECCFF3C00E08AF7 /* related.txt */,
+				961E49B61EC6A2B7002BABB9 /* CSB.txt */,
+				961E49B71EC6A2B7002BABB9 /* EC.txt */,
+				961E49B81EC6A2B7002BABB9 /* EM.txt */,
+				961E49B91EC6A2B7002BABB9 /* ES.txt */,
+				961E49BA1EC6A2B7002BABB9 /* ESD.txt */,
+				961E49BB1EC6A2B7002BABB9 /* HST.txt */,
+				961E49BC1EC6A2B7002BABB9 /* IDS.txt */,
+				961E49BD1EC6A2B7002BABB9 /* MAS.txt */,
+				961E49BE1EC6A2B7002BABB9 /* MS.txt */,
+				961E49BF1EC6A2B7002BABB9 /* NS.txt */,
+				961E49C01EC6A2B7002BABB9 /* OR.txt */,
+				961E49C11EC6A2B7002BABB9 /* RED.txt */,
+				961E49C21EC6A2B7002BABB9 /* SCM.txt */,
+				961E49C31EC6A2B7002BABB9 /* SDM.txt */,
+				961E49C41EC6A2B7002BABB9 /* SP.txt */,
+				961E49C51EC6A2B7002BABB9 /* STS.txt */,
+				961E49C61EC6A2B7002BABB9 /* SWE.txt */,
+				961E49C71EC6A2B7002BABB9 /* WGS.txt */,
+			);
+			path = course_data;
+			sourceTree = "<group>";
+		};
 		9646CFC61EB921FE005F87CB = {
 			isa = PBXGroup;
 			children = (
@@ -80,12 +266,26 @@
 			isa = PBXGroup;
 			children = (
 				9646CFD21EB921FE005F87CB /* AppDelegate.swift */,
-				9646CFD41EB921FE005F87CB /* FirstViewController.swift */,
-				9646CFD61EB921FE005F87CB /* SecondViewController.swift */,
+				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
+				9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */,
+				961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */,
+				965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */,
+				961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */,
+				96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */,
+				961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */,
+				961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */,
+				9646CFF61EB9251A005F87CB /* CourseManager.swift */,
+				9646CFF41EB922C3005F87CB /* Course.swift */,
+				9646CFF81EB92525005F87CB /* User.swift */,
+				96897B171EC8F5500011E572 /* CourseListCell.swift */,
 				9646CFD81EB921FE005F87CB /* Main.storyboard */,
 				9646CFDB1EB921FE005F87CB /* Assets.xcassets */,
 				9646CFDD1EB921FE005F87CB /* LaunchScreen.storyboard */,
 				9646CFE01EB921FE005F87CB /* Info.plist */,
+				965F31BD1EBBDDB10052C659 /* courses.txt */,
+				961E49FE1EC7771D002BABB9 /* enrollment.txt */,
+				961E49951EC6A2B7002BABB9 /* course_data */,
+				961E49931EC6938F002BABB9 /* course_processor.py */,
 			);
 			path = FireRoad;
 			sourceTree = "<group>";
@@ -184,9 +384,63 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				961E49ED1EC6A2B7002BABB9 /* HST.txt in Resources */,
+				961E49DE1EC6A2B7002BABB9 /* 5.txt in Resources */,
+				961E49DB1EC6A2B7002BABB9 /* 24.txt in Resources */,
+				961E49DA1EC6A2B7002BABB9 /* 22.txt in Resources */,
+				961E49F91EC6A2B7002BABB9 /* WGS.txt in Resources */,
+				961E49CF1EC6A2B7002BABB9 /* 17.txt in Resources */,
+				961E49EE1EC6A2B7002BABB9 /* IDS.txt in Resources */,
+				961E49F81EC6A2B7002BABB9 /* SWE.txt in Resources */,
+				961E49F51EC6A2B7002BABB9 /* SDM.txt in Resources */,
+				961E49EF1EC6A2B7002BABB9 /* MAS.txt in Resources */,
+				961E49C81EC6A2B7002BABB9 /* 1.txt in Resources */,
+				961E49D31EC6A2B7002BABB9 /* 21.txt in Resources */,
 				9646CFDF1EB921FE005F87CB /* LaunchScreen.storyboard in Resources */,
+				961E49D51EC6A2B7002BABB9 /* 21G.txt in Resources */,
+				961E49941EC6938F002BABB9 /* course_processor.py in Resources */,
+				961E49CD1EC6A2B7002BABB9 /* 15.txt in Resources */,
+				961E49D81EC6A2B7002BABB9 /* 21M.txt in Resources */,
+				965F31BE1EBBDDB10052C659 /* courses.txt in Resources */,
+				961E49E61EC6A2B7002BABB9 /* CMS.txt in Resources */,
+				961E49E81EC6A2B7002BABB9 /* CSB.txt in Resources */,
+				961E49E21EC6A2B7002BABB9 /* 9.txt in Resources */,
+				961E49DF1EC6A2B7002BABB9 /* 6.txt in Resources */,
+				961E49D21EC6A2B7002BABB9 /* 20.txt in Resources */,
 				9646CFDC1EB921FE005F87CB /* Assets.xcassets in Resources */,
+				961E49F21EC6A2B7002BABB9 /* OR.txt in Resources */,
+				961E49F31EC6A2B7002BABB9 /* RED.txt in Resources */,
+				961E49D41EC6A2B7002BABB9 /* 21A.txt in Resources */,
+				961E49CC1EC6A2B7002BABB9 /* 14.txt in Resources */,
+				961E49E31EC6A2B7002BABB9 /* AS.txt in Resources */,
+				961E49F71EC6A2B7002BABB9 /* STS.txt in Resources */,
+				961E49E11EC6A2B7002BABB9 /* 8.txt in Resources */,
+				961E49F11EC6A2B7002BABB9 /* NS.txt in Resources */,
+				961E49DD1EC6A2B7002BABB9 /* 4.txt in Resources */,
+				961E49D61EC6A2B7002BABB9 /* 21H.txt in Resources */,
+				961E49FF1EC7771D002BABB9 /* enrollment.txt in Resources */,
+				961E49E41EC6A2B7002BABB9 /* CC.txt in Resources */,
+				961E49CE1EC6A2B7002BABB9 /* 16.txt in Resources */,
+				96F6C71F1ECCFF3C00E08AF7 /* related.txt in Resources */,
+				961E49E91EC6A2B7002BABB9 /* EC.txt in Resources */,
+				961E49D11EC6A2B7002BABB9 /* 2.txt in Resources */,
+				961E49E71EC6A2B7002BABB9 /* condensed.txt in Resources */,
+				961E49EB1EC6A2B7002BABB9 /* ES.txt in Resources */,
+				961E49D01EC6A2B7002BABB9 /* 18.txt in Resources */,
+				961E49EA1EC6A2B7002BABB9 /* EM.txt in Resources */,
+				961E49F61EC6A2B7002BABB9 /* SP.txt in Resources */,
+				961E49CB1EC6A2B7002BABB9 /* 12.txt in Resources */,
+				961E49C91EC6A2B7002BABB9 /* 10.txt in Resources */,
+				961E49E01EC6A2B7002BABB9 /* 7.txt in Resources */,
+				961E49D71EC6A2B7002BABB9 /* 21L.txt in Resources */,
+				961E49CA1EC6A2B7002BABB9 /* 11.txt in Resources */,
+				961E49D91EC6A2B7002BABB9 /* 21W.txt in Resources */,
+				961E49F41EC6A2B7002BABB9 /* SCM.txt in Resources */,
+				961E49DC1EC6A2B7002BABB9 /* 3.txt in Resources */,
+				961E49F01EC6A2B7002BABB9 /* MS.txt in Resources */,
+				961E49EC1EC6A2B7002BABB9 /* ESD.txt in Resources */,
 				9646CFDA1EB921FE005F87CB /* Main.storyboard in Resources */,
+				961E49E51EC6A2B7002BABB9 /* CDO.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -204,9 +458,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9646CFD71EB921FE005F87CB /* SecondViewController.swift in Sources */,
+				965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */,
+				9646CFF51EB922C3005F87CB /* Course.swift in Sources */,
+				961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */,
+				96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */,
+				9646CFD71EB921FE005F87CB /* CourseroadViewController.swift in Sources */,
+				961E49FD1EC6A8CB002BABB9 /* CourseDetailsViewController.swift in Sources */,
+				9646CFF91EB92525005F87CB /* User.swift in Sources */,
+				9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */,
 				9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */,
-				9646CFD51EB921FE005F87CB /* FirstViewController.swift in Sources */,
+				96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */,
+				9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */,
+				961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */,
+				961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -418,6 +682,7 @@
 				9646CFF01EB921FF005F87CB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		9646CFF11EB921FF005F87CB /* Build configuration list for PBXNativeTarget "FireRoadTests" */ = {
 			isa = XCConfigurationList;
@@ -426,6 +691,7 @@
 				9646CFF31EB921FF005F87CB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
