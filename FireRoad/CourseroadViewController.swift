@@ -125,15 +125,6 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         let course = self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!)[indexPath.item]
         cell.textLabel?.text = course.subjectID
         cell.detailTextLabel?.text = course.subjectTitle
-       /* if self.collectionView.indexPathsForSelectedItems != nil && self.collectionView.indexPathsForSelectedItems!.contains(indexPath) {
-            cell.backgroundColor = UIColor.clear
-            cell.layer.borderColor = CourseManager.shared.color(forCourse: course).cgColor
-            cell.layer.borderWidth = 2.0
-        } else {
-            cell.backgroundColor = CourseManager.shared.color(forCourse: course)
-            cell.layer.borderColor = UIColor.clear.cgColor
-            cell.layer.borderWidth = 0.0
-        }*/
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
         return cell
     }
@@ -144,16 +135,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         } else {
             cell.alpha = 1.0
         }
-        //(self.collectionView.collectionViewLayout as! CustomCollectionViewFlowLayout).addVisibleCell(with: indexPath)
     }
-    
-    /*func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        (self.collectionView.collectionViewLayout as! CustomCollectionViewFlowLayout).removeVisibleCell(with: indexPath)
-    }*/
-    
-    /*func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 116.0, height: 100.0)
-    }*/
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SemesterHeader", for: indexPath)
@@ -219,29 +201,12 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     func courseDetails(added course: Course) {
-        _ = self.courseBrowser(added: course)
+        _ = addCourse(course)
         self.navigationController?.popViewController(animated: true)
     }
     
     func courseBrowser(added course: Course) -> UserSemester? {
-        var selectedSemester: UserSemester? = nil
-        for semester in UserSemester.allEnrolledSemesters {
-            selectedSemester = semester
-            if self.currentUser!.courses(forSemester: semester).count >= 4 {
-                continue
-            }
-            if (semester.isFall() && course.isOfferedFall) ||
-               (semester.isSpring() && course.isOfferedSpring) ||
-                (semester.isIAP() && course.isOfferedIAP) {
-                break
-            }
-        }
-        if selectedSemester != nil {
-            self.currentUser?.add(course, toSemester: selectedSemester!)
-            self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
-        }
-        self.panelView?.collapseView(to: self.panelView!.collapseHeight)
-        return selectedSemester
+        return addCourse(course)
     }
     
     func courseBrowserRequestedDetails(about course: Course) {
@@ -249,7 +214,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     func courseDetailsRequestedDetails(about course: Course) {
-        self.courseBrowserRequestedDetails(about: course)
+        viewDetails(for: course)
     }
     
     // MARK: - Menu Actions
@@ -288,8 +253,16 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
-        
+        guard let user = currentUser,
+            let indexPath = collectionView.indexPath(for: cell),
+            let semester = UserSemester(rawValue: indexPath.section) else {
+                return
+        }
+        let course = user.courses(forSemester: semester)[indexPath.item]
+        deleteCourse(course, from: semester)
     }
+    
+    // MARK: - Model Interaction
     
     func viewDetails(for course: Course) {
         CourseManager.shared.loadCourseDetails(about: course) { (success) in
@@ -310,6 +283,53 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             } else {
                 print("Failed to load course details!")
             }
+        }
+    }
+    
+    func addCourse(_ course: Course) -> UserSemester? {
+        var selectedSemester: UserSemester? = nil
+        for semester in UserSemester.allEnrolledSemesters {
+            selectedSemester = semester
+            if self.currentUser!.courses(forSemester: semester).count >= 4 {
+                continue
+            }
+            if (semester.isFall() && course.isOfferedFall) ||
+                (semester.isSpring() && course.isOfferedSpring) ||
+                (semester.isIAP() && course.isOfferedIAP) {
+                break
+            }
+        }
+        if selectedSemester != nil {
+            self.currentUser?.add(course, toSemester: selectedSemester!)
+            self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
+        }
+        self.panelView?.collapseView(to: self.panelView!.collapseHeight)
+        return selectedSemester
+    }
+    
+    func deleteCourse(_ course: Course, from semester: UserSemester) {
+        guard let user = currentUser,
+            let item = user.courses(forSemester: semester).index(of: course) else {
+                return
+        }
+        let indexPath = IndexPath(item: item, section: semester.rawValue)
+        user.delete(course, fromSemester: semester)
+        if let cell = collectionView.cellForItem(at: indexPath) {
+            let blurView = UIVisualEffectView(frame: cell.convert(cell.bounds, to: collectionView))
+            collectionView.addSubview(blurView)
+            let effect = UIBlurEffect(style: .light)
+            UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseIn, animations: {
+                cell.alpha = 0.0
+                cell.transform = CGAffineTransform(scaleX: 0.001, y: 0.001)
+                blurView.effect = effect
+            }) { (completed) in
+                if completed {
+                    blurView.removeFromSuperview()
+                    self.collectionView.deleteItems(at: [indexPath])
+                }
+            }
+        } else {
+            self.collectionView.deleteItems(at: [indexPath])
         }
     }
 }

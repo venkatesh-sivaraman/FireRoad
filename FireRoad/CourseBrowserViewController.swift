@@ -76,8 +76,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.characters.count > 0 && self.view.frame.size.height < 100.0 {
-            //self.expandView()
+        if searchText.characters.count > 0 && (self.navigationController!.parent as? PanelViewController)?.isExpanded == false {
+            self.expandView()
         }
         self.loadSearchResults(withString: searchText)
     }
@@ -103,6 +103,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                             } else if let range = id.range(of: comp) {
                                 if range.lowerBound == id.startIndex {
                                     relevance += 20.0 * Float(comp.characters.count)
+                                } else {
+                                    relevance += Float(comp.characters.count)
                                 }
                             }
                         }
@@ -121,7 +123,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     }
                 }
                 if relevance > 0.0 {
-                    relevance += Float(course.enrollmentNumber)
+                    relevance *= log(Float(max(2, course.enrollmentNumber)))
                     newResults[course] = relevance
                 }
             }

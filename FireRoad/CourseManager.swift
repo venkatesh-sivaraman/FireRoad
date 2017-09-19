@@ -301,7 +301,6 @@ class CourseManager: NSObject {
         DispatchQueue.global().async {
             self.readSummaryFile(at: path)
             self.loadedDepartments.append(course.subjectCode!)
-            self.csvHeaders = nil
             DispatchQueue.main.async {
                 completion(true)
             }

@@ -155,41 +155,46 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     func collapseView(to height: CGFloat) {
+        guard isExpanded,
+            parent != nil,
+            let container = self.view.superview else {
+            return
+        }
         if self.childNavigationController != nil && self.childNavigationController!.viewControllers.count > 1 {
             self.childNavigationController?.popToRootViewController(animated: true)
         }
         self.collapseHeight = height
-        if self.parent != nil {
-            let container = self.view.superview!
-            for constraint in container.constraints {
-                if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
-                    isExpanded = false
-                    UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
-                        constraint.constant = height
-                        self.parent!.view.setNeedsLayout()
-                        self.parent!.view.layoutIfNeeded()
-                        self.hideDimView()
-                    }, completion: nil)
-                    break
-                }
+        for constraint in container.constraints {
+            if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
+                isExpanded = false
+                UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
+                    constraint.constant = height
+                    self.parent!.view.setNeedsLayout()
+                    self.parent!.view.layoutIfNeeded()
+                    self.hideDimView()
+                }, completion: nil)
+                break
             }
         }
     }
     
     func expandView() {
-        if self.parent != nil {
-            let container = self.view.superview!
-            for constraint in container.constraints {
-                if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
-                    isExpanded = true
-                    UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
-                        constraint.constant = self.expandedHeight
-                        self.parent!.view.setNeedsLayout()
-                        self.parent!.view.layoutIfNeeded()
-                        self.showDimView()
-                    }, completion: nil)
-                    break
-                }
+        guard !isExpanded,
+            parent != nil,
+            let container = self.view.superview else {
+            return
+        }
+
+        for constraint in container.constraints {
+            if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
+                isExpanded = true
+                UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
+                    constraint.constant = self.expandedHeight
+                    self.parent!.view.setNeedsLayout()
+                    self.parent!.view.layoutIfNeeded()
+                    self.showDimView()
+                }, completion: nil)
+                break
             }
         }
     }
