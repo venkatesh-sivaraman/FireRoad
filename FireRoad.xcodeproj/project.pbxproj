@@ -76,6 +76,8 @@
 		965F31BE1EBBDDB10052C659 /* courses.txt in Resources */ = {isa = PBXBuildFile; fileRef = 965F31BD1EBBDDB10052C659 /* courses.txt */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
 		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
+		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
+		968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */; };
 		96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */; };
 		96F6C71F1ECCFF3C00E08AF7 /* related.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96F6C71E1ECCFF3C00E08AF7 /* related.txt */; };
 /* End PBXBuildFile section */
@@ -89,6 +91,18 @@
 			remoteInfo = FireRoad;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		968FE0531F75F86D0098E97F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserCell.swift; sourceTree = "<group>"; };
@@ -164,6 +178,10 @@
 		965F31BD1EBBDDB10052C659 /* courses.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = courses.txt; sourceTree = "<group>"; };
 		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
 		96897B171EC8F5500011E572 /* CourseListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseListCell.swift; sourceTree = "<group>"; };
+		968FE0551F75F86D0098E97F /* CourseCatalogScrubber */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CourseCatalogScrubber; sourceTree = BUILT_PRODUCTS_DIR; };
+		968FE0571F75F86D0098E97F /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLNodeExtractor.swift; sourceTree = "<group>"; };
+		968FE05E1F75FE270098E97F /* test_html.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_html.txt; sourceTree = "<group>"; };
 		96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseThumbnailCell.swift; sourceTree = "<group>"; };
 		96F6C71E1ECCFF3C00E08AF7 /* related.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = related.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -177,6 +195,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		9646CFE21EB921FF005F87CB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		968FE0521F75F86D0098E97F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -249,6 +274,7 @@
 			children = (
 				9646CFD11EB921FE005F87CB /* FireRoad */,
 				9646CFE81EB921FF005F87CB /* FireRoadTests */,
+				968FE0561F75F86D0098E97F /* CourseCatalogScrubber */,
 				9646CFD01EB921FE005F87CB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -258,6 +284,7 @@
 			children = (
 				9646CFCF1EB921FE005F87CB /* FireRoad.app */,
 				9646CFE51EB921FF005F87CB /* FireRoadTests.xctest */,
+				968FE0551F75F86D0098E97F /* CourseCatalogScrubber */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -299,6 +326,16 @@
 			path = FireRoadTests;
 			sourceTree = "<group>";
 		};
+		968FE0561F75F86D0098E97F /* CourseCatalogScrubber */ = {
+			isa = PBXGroup;
+			children = (
+				968FE0571F75F86D0098E97F /* main.swift */,
+				968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */,
+				968FE05E1F75FE270098E97F /* test_html.txt */,
+			);
+			path = CourseCatalogScrubber;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -337,6 +374,23 @@
 			productReference = 9646CFE51EB921FF005F87CB /* FireRoadTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		968FE0541F75F86D0098E97F /* CourseCatalogScrubber */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 968FE05B1F75F86D0098E97F /* Build configuration list for PBXNativeTarget "CourseCatalogScrubber" */;
+			buildPhases = (
+				968FE0511F75F86D0098E97F /* Sources */,
+				968FE0521F75F86D0098E97F /* Frameworks */,
+				968FE0531F75F86D0098E97F /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CourseCatalogScrubber;
+			productName = CourseCatalogScrubber;
+			productReference = 968FE0551F75F86D0098E97F /* CourseCatalogScrubber */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -358,6 +412,11 @@
 						ProvisioningStyle = Automatic;
 						TestTargetID = 9646CFCE1EB921FE005F87CB;
 					};
+					968FE0541F75F86D0098E97F = {
+						CreatedOnToolsVersion = 8.3.3;
+						DevelopmentTeam = PTB6T29SN3;
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = 9646CFCA1EB921FE005F87CB /* Build configuration list for PBXProject "FireRoad" */;
@@ -375,6 +434,7 @@
 			targets = (
 				9646CFCE1EB921FE005F87CB /* FireRoad */,
 				9646CFE41EB921FF005F87CB /* FireRoadTests */,
+				968FE0541F75F86D0098E97F /* CourseCatalogScrubber */,
 			);
 		};
 /* End PBXProject section */
@@ -479,6 +539,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				9646CFEA1EB921FF005F87CB /* FireRoadTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		968FE0511F75F86D0098E97F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				968FE0581F75F86D0098E97F /* main.swift in Sources */,
+				968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -663,6 +732,30 @@
 			};
 			name = Release;
 		};
+		968FE0591F75F86D0098E97F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = PTB6T29SN3;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		968FE05A1F75F86D0098E97F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = PTB6T29SN3;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 3.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -692,6 +785,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		968FE05B1F75F86D0098E97F /* Build configuration list for PBXNativeTarget "CourseCatalogScrubber" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				968FE0591F75F86D0098E97F /* Debug */,
+				968FE05A1F75F86D0098E97F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

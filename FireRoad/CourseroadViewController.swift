@@ -29,14 +29,8 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         }
         
         self.collectionView.collectionViewLayout = UICollectionViewFlowLayout() //CustomCollectionViewFlowLayout() //LeftAlignedCollectionViewFlowLayout()
-        let layout = self.collectionView.collectionViewLayout as! UICollectionViewFlowLayout
-        layout.sectionInset = UIEdgeInsets(top: 10.0, left: 10.0, bottom: 10.0, right: 10.0)
-        layout.minimumInteritemSpacing = 12.0
-        layout.minimumLineSpacing = 12.0
-        layout.itemSize = CGSize(width: 116.0, height: 112.0)// UICollectionViewFlowLayoutAutomaticSize
-        self.collectionView.contentInset = UIEdgeInsets(top: 84.0, left: 0.0, bottom: 0.0, right: 0.0)
-        //layout.estimatedItemSize = CGSize(width: 116.0, height: 94.0)
         self.collectionView.allowsSelection = true
+        updateCollectionViewLayout()
         
         self.collectionView.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(CourseroadViewController.handleLongGesture(gesture:))))
         
@@ -58,6 +52,25 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         menu.menuItems = [
             UIMenuItem(title: viewMenuItemTitle, action: #selector(CourseThumbnailCell.viewDetails(_:)))
         ]
+    }
+    
+    override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+        updateCollectionViewLayout(with: newCollection)
+    }
+    
+    func updateCollectionViewLayout(with traits: UITraitCollection? = nil) {
+        let collection = traits ?? self.traitCollection
+        let layout = self.collectionView.collectionViewLayout as! UICollectionViewFlowLayout
+        layout.sectionInset = UIEdgeInsets(top: 10.0, left: 10.0, bottom: 10.0, right: 10.0)
+        layout.minimumInteritemSpacing = 12.0
+        layout.minimumLineSpacing = 12.0
+        layout.itemSize = CGSize(width: 116.0, height: 112.0)// UICollectionViewFlowLayoutAutomaticSize
+        //layout.estimatedItemSize = CGSize(width: 116.0, height: 94.0)
+        if collection.horizontalSizeClass == .compact {
+            collectionView.contentInset = UIEdgeInsets(top: 84.0, left: 0.0, bottom: 0.0, right: 0.0)
+        } else {
+            collectionView.contentInset = UIEdgeInsets(top: 0.0, left: 0.0, bottom: 0.0, right: 0.0)
+        }
     }
     
     func handleLongGesture(gesture: UILongPressGestureRecognizer) {

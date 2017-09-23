@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="49e-Tb-3d3">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="49e-Tb-3d3">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -128,7 +128,18 @@
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="60" id="lfI-rH-fYw"/>
+                                    <constraint firstAttribute="width" priority="995" constant="380" id="m6L-3R-iTO"/>
                                 </constraints>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="m6L-3R-iTO"/>
+                                    </mask>
+                                </variation>
+                                <variation key="widthClass=regular">
+                                    <mask key="constraints">
+                                        <include reference="m6L-3R-iTO"/>
+                                    </mask>
+                                </variation>
                                 <connections>
                                     <segue destination="Dfz-bt-fZR" kind="embed" id="EfL-Rb-tAe"/>
                                 </connections>
@@ -143,10 +154,30 @@
                             <constraint firstItem="o13-ex-V0G" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" constant="12" id="bZG-he-D6i"/>
                             <constraint firstAttribute="trailing" secondItem="o13-ex-V0G" secondAttribute="trailing" constant="12" id="i85-fW-yoE"/>
                             <constraint firstItem="c2J-fQ-6id" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" id="jwS-4K-6b8"/>
+                            <constraint firstItem="o13-ex-V0G" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="tsR-hK-woN" secondAttribute="leading" constant="12" id="mQG-qs-SEP"/>
                             <constraint firstAttribute="trailing" secondItem="mEg-8F-M2W" secondAttribute="trailing" id="omI-46-TB5"/>
                             <constraint firstAttribute="trailing" secondItem="c2J-fQ-6id" secondAttribute="trailing" id="qqX-tO-KnY"/>
                             <constraint firstItem="mEg-8F-M2W" firstAttribute="top" secondItem="Ia1-K6-d13" secondAttribute="bottom" constant="-20" id="rRw-1Y-h4E"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="bZG-he-D6i"/>
+                                <exclude reference="mQG-qs-SEP"/>
+                            </mask>
+                        </variation>
+                        <variation key="widthClass=compact">
+                            <mask key="constraints">
+                                <include reference="bZG-he-D6i"/>
+                            </mask>
+                        </variation>
+                        <variation key="widthClass=regular">
+                            <mask key="subviews">
+                                <exclude reference="c2J-fQ-6id"/>
+                            </mask>
+                            <mask key="constraints">
+                                <include reference="mQG-qs-SEP"/>
+                            </mask>
+                        </variation>
                     </view>
                     <tabBarItem key="tabBarItem" title="CourseRoad" image="first" id="acW-dT-cKf"/>
                     <navigationItem key="navigationItem" id="uoE-J8-t4q"/>

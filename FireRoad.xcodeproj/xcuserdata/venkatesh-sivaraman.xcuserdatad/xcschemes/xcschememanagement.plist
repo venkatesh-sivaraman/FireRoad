@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>CourseCatalogScrubber.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 		<key>FireRoad.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -18,6 +23,11 @@
 			<true/>
 		</dict>
 		<key>9646CFE41EB921FF005F87CB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>968FE0541F75F86D0098E97F</key>
 		<dict>
 			<key>primary</key>
 			<true/>
