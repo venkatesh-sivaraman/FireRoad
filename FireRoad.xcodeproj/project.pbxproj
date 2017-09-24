@@ -79,6 +79,7 @@
 		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
 		968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */; };
 		96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */; };
+		96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */; };
 		96F6C71F1ECCFF3C00E08AF7 /* related.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96F6C71E1ECCFF3C00E08AF7 /* related.txt */; };
 /* End PBXBuildFile section */
 
@@ -183,6 +184,7 @@
 		968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLNodeExtractor.swift; sourceTree = "<group>"; };
 		968FE05E1F75FE270098E97F /* test_html.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_html.txt; sourceTree = "<group>"; };
 		96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseThumbnailCell.swift; sourceTree = "<group>"; };
+		96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseCatalogParser.swift; sourceTree = "<group>"; };
 		96F6C71E1ECCFF3C00E08AF7 /* related.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = related.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -331,6 +333,7 @@
 			children = (
 				968FE0571F75F86D0098E97F /* main.swift */,
 				968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */,
+				96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */,
 				968FE05E1F75FE270098E97F /* test_html.txt */,
 			);
 			path = CourseCatalogScrubber;
@@ -546,6 +549,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */,
 				968FE0581F75F86D0098E97F /* main.swift in Sources */,
 				968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */,
 			);
@@ -793,6 +797,7 @@
 				968FE05A1F75F86D0098E97F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

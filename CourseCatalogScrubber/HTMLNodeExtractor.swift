@@ -6,7 +6,7 @@
 //  Copyright © 2017 Base 12 Innovations. All rights reserved.
 //
 
-import Foundation
+import Cocoa
 
 class HTMLNode: CustomDebugStringConvertible {
     var tagText: String
@@ -40,6 +40,28 @@ class HTMLNode: CustomDebugStringConvertible {
     }
 }
 
+extension String {
+    
+    init?(htmlEncodedString: String) {
+        
+        guard let data = htmlEncodedString.data(using: .utf8) else {
+            return nil
+        }
+        
+        let options: [String: Any] = [
+            NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
+            NSCharacterEncodingDocumentAttribute: String.Encoding.utf8.rawValue
+        ]
+        
+        guard let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) else {
+            return nil
+        }
+        
+        self.init(attributedString.string)
+    }
+    
+}
+
 class HTMLNodeExtractor: NSObject {
 
     /**
@@ -64,6 +86,14 @@ class HTMLNodeExtractor: NSObject {
         return regex
     }
     
+    class func stripHTMLTags(from text: String, replacementString: String = "") -> String {
+        guard let tagRegex = try? NSRegularExpression(pattern: "<(/?)(\\w+)(.*?)(/?)>", options: .dotMatchesLineSeparators) else {
+            print("Failed to generate tag regex")
+            return text
+        }
+        return tagRegex.stringByReplacingMatches(in: text, options: [], range: NSRange(location: 0, length: text.characters.count), withTemplate: replacementString)
+    }
+    
     /**
      Parses the given HTML text and returns the top-level HTML nodes contained 
      within it. The top-level HTML nodes contain in their `childNodes` property 
@@ -75,15 +105,15 @@ class HTMLNodeExtractor: NSObject {
      
      - Returns: A list of HTML nodes representing the document.
      */
-    class func extractNodes(from text: String) -> [HTMLNode] {
+    class func extractNodes(from text: String, ignoreErrors: Bool = false) -> [HTMLNode]? {
         if text.contains(HTMLTags.htmlTagOpening) {
             guard let startRange = regexForOpeningTag(HTMLTags.bodyTagOpening).firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.characters.count))?.range,
                 let endRange = regexForOpeningTag(HTMLTags.bodyTagClosing).firstMatch(in: text, options: [], range: NSRange(location: startRange.location + startRange.length, length: text.characters.count - (startRange.location + startRange.length)))?.range else {
                     assert(false, "The given HTML text has an HTML tag but no body tag.")
-                    return []
+                    return nil
             }
             let startIndex = startRange.location + startRange.length
-            return extractNodes(from: (text as NSString).substring(with: NSRange(location: startIndex, length: endRange.location - startIndex)))
+            return extractNodes(from: (text as NSString).substring(with: NSRange(location: startIndex, length: endRange.location - startIndex)), ignoreErrors: ignoreErrors)
         }
         
         var nodes: [HTMLNode] = []
@@ -93,14 +123,14 @@ class HTMLNodeExtractor: NSObject {
         // Remove contents
         guard let commentRegex = try? NSRegularExpression(pattern: "<!--(.*?)-->", options: .dotMatchesLineSeparators) else {
             print("Failed to generate comment regex")
-            return nodes
+            return nil
         }
         textString = commentRegex.stringByReplacingMatches(in: textString as String, options: [], range: NSRange(location: 0, length: textString.length), withTemplate: "") as NSString
         
         // Matches tags of the form <xyz ...>, </xyz ...>, <xyz ... />, etc.
         guard let tagRegex = try? NSRegularExpression(pattern: "<(/?)(\\w+)(.*?)(/?)>", options: .dotMatchesLineSeparators) else {
             print("Failed to generate tag regex")
-            return nodes
+            return nil
         }
         let matches = tagRegex.matches(in: textString as String, options: [], range: NSRange(location: 0, length: textString.length))
         for match in matches {
@@ -110,8 +140,11 @@ class HTMLNodeExtractor: NSObject {
             let tagText = textString.substring(with: match.rangeAt(2)).lowercased()
             if closingFragment == "/" {
                 guard let currentNode = nodeStack.last else {
-                    print("No current node for closing tag \(tagText)")
-                    continue
+                    //print("No current node for closing tag \(tagText)")
+                    if ignoreErrors {
+                        continue
+                    }
+                    return nil
                 }
                 currentNode.contentsRange = NSRange(location: currentNode.contentsRange.location, length: match.range.location - currentNode.contentsRange.location)
                 currentNode.enclosingRange = NSRange(location: currentNode.enclosingRange.location, length: match.range.location + match.range.length - currentNode.enclosingRange.location)
@@ -127,7 +160,7 @@ class HTMLNodeExtractor: NSObject {
                 currentNode.strippedContents += textString.substring(with: NSRange(location: lastContentsBound, length: currentNode.contentsRange.location + currentNode.contentsRange.length - lastContentsBound))
 
                 guard tagText == currentNode.tagText else {
-                    print("Tag closing for \(tagText) doesn't match current stack item (\(currentNode.tagText))")
+                    //print("Tag closing for \(tagText) doesn't match current stack item (\(currentNode.tagText))")
                     nodeStack.removeLast()
                     continue
                 }
@@ -195,6 +228,10 @@ class HTMLNodeExtractor: NSObject {
                 let title = titleGenerator(node) {
                 if let region = currentRegion {
                     regions.append(region)
+                    // In case there's an HTML error, get regions from within the collected nodes as well
+                    for collectedNode in region.nodes {
+                        regions += htmlRegions(in: collectedNode.childNodes, demarcatedByTag: tag, withTitles: titleGenerator)
+                    }
                 }
                 currentRegion = HTMLRegion(title: title, nodes: [node])
             } else if currentRegion != nil {
@@ -206,6 +243,9 @@ class HTMLNodeExtractor: NSObject {
         
         if let region = currentRegion {
             regions.append(region)
+            for collectedNode in region.nodes {
+                regions += htmlRegions(in: collectedNode.childNodes, demarcatedByTag: tag, withTitles: titleGenerator)
+            }
         }
         return regions
     }
