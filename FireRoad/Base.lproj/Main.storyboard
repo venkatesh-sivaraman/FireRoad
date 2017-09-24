@@ -123,6 +123,27 @@
                                 </constraints>
                                 <blurEffect style="extraLight"/>
                             </visualEffectView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ahT-Sm-dNV">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="618"/>
+                                <subviews>
+                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="tzf-0p-Kne">
+                                        <rect key="frame" x="177" y="299" width="20" height="20"/>
+                                    </activityIndicatorView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="LOADING…" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="LxQ-OW-PIR">
+                                        <rect key="frame" x="152" y="327" width="71" height="17"/>
+                                        <fontDescription key="fontDescription" type="system" weight="light" pointSize="14"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstItem="LxQ-OW-PIR" firstAttribute="top" secondItem="tzf-0p-Kne" secondAttribute="bottom" constant="8" id="P1D-W3-ER3"/>
+                                    <constraint firstItem="LxQ-OW-PIR" firstAttribute="centerX" secondItem="tzf-0p-Kne" secondAttribute="centerX" id="ULp-1m-9M1"/>
+                                    <constraint firstItem="tzf-0p-Kne" firstAttribute="centerX" secondItem="ahT-Sm-dNV" secondAttribute="centerX" id="a7W-PF-CHd"/>
+                                    <constraint firstItem="tzf-0p-Kne" firstAttribute="centerY" secondItem="ahT-Sm-dNV" secondAttribute="centerY" id="rp4-a4-p8O"/>
+                                </constraints>
+                            </view>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="o13-ex-V0G">
                                 <rect key="frame" x="12" y="26" width="351" height="60"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
@@ -147,10 +168,14 @@
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="ahT-Sm-dNV" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" id="0ag-CZ-2Eg"/>
+                            <constraint firstAttribute="topMargin" secondItem="ahT-Sm-dNV" secondAttribute="top" id="8Rr-cd-Ydf"/>
                             <constraint firstItem="c2J-fQ-6id" firstAttribute="top" secondItem="tsR-hK-woN" secondAttribute="top" id="8hH-CY-LjY"/>
                             <constraint firstItem="4ug-Mw-9AY" firstAttribute="top" secondItem="mEg-8F-M2W" secondAttribute="bottom" id="M0g-IF-Naj"/>
+                            <constraint firstAttribute="bottomMargin" secondItem="ahT-Sm-dNV" secondAttribute="bottom" constant="49" id="Pkb-bS-EjX"/>
                             <constraint firstItem="o13-ex-V0G" firstAttribute="top" secondItem="Ia1-K6-d13" secondAttribute="bottom" constant="6" id="Rhc-A9-vL4"/>
                             <constraint firstItem="mEg-8F-M2W" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" id="Tj3-YM-x4x"/>
+                            <constraint firstAttribute="trailing" secondItem="ahT-Sm-dNV" secondAttribute="trailing" id="YgD-Xz-mOY"/>
                             <constraint firstItem="o13-ex-V0G" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" constant="12" id="bZG-he-D6i"/>
                             <constraint firstAttribute="trailing" secondItem="o13-ex-V0G" secondAttribute="trailing" constant="12" id="i85-fW-yoE"/>
                             <constraint firstItem="c2J-fQ-6id" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" id="jwS-4K-6b8"/>
@@ -183,6 +208,8 @@
                     <navigationItem key="navigationItem" id="uoE-J8-t4q"/>
                     <connections>
                         <outlet property="collectionView" destination="mEg-8F-M2W" id="eOa-NB-ar8"/>
+                        <outlet property="loadingIndicator" destination="tzf-0p-Kne" id="WcE-dl-LXf"/>
+                        <outlet property="loadingView" destination="ahT-Sm-dNV" id="RyN-mn-fTv"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="W5J-7L-Pyd" sceneMemberID="firstResponder"/>
@@ -240,8 +267,8 @@
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                     </tabBar>
                     <connections>
-                        <segue destination="8rJ-Kc-sve" kind="relationship" relationship="viewControllers" id="lzU-1b-eKA"/>
                         <segue destination="26F-sm-OqV" kind="relationship" relationship="viewControllers" id="2UP-5y-Ryt"/>
+                        <segue destination="8rJ-Kc-sve" kind="relationship" relationship="viewControllers" id="lzU-1b-eKA"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="HuB-VB-40B" sceneMemberID="firstResponder"/>
@@ -435,14 +462,14 @@
                                 </tableViewCellContentView>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </tableViewCell>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="CourseListCell" rowHeight="124" id="tS8-JO-QMQ" customClass="CourseListCell" customModule="FireRoad" customModuleProvider="target">
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="CourseListCell" rowHeight="124" id="tS8-JO-QMQ" customClass="CourseListCell" customModule="FireRoad" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="407.5" width="375" height="124"/>
                                 <autoresizingMask key="autoresizingMask"/>
-                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="tS8-JO-QMQ" id="Oyb-hr-24P">
+                                <tableViewCellContentView key="contentView" opaque="NO" multipleTouchEnabled="YES" contentMode="center" tableViewCell="tS8-JO-QMQ" id="Oyb-hr-24P">
                                     <rect key="frame" x="0.0" y="0.0" width="375" height="124"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" showsVerticalScrollIndicator="NO" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="uWK-Yb-LBl">
+                                        <collectionView multipleTouchEnabled="YES" contentMode="scaleToFill" showsVerticalScrollIndicator="NO" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="uWK-Yb-LBl">
                                             <rect key="frame" x="0.0" y="0.0" width="375" height="124"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                             <inset key="scrollIndicatorInsets" minX="6" minY="0.0" maxX="6" maxY="0.0"/>

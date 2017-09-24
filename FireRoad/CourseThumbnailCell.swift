@@ -41,25 +41,68 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     lazy var highlightView: UIView? = self.generateHighlightView()
     
+    private var backgroundColorLayer: CALayer?
+    
+    override var backgroundColor: UIColor? {
+        didSet {
+            if let alpha = backgroundColor?.cgColor.alpha,
+                alpha == 0.0 {
+                return
+            }
+            backgroundColorLayer?.backgroundColor = backgroundColor?.cgColor
+            backgroundColor = UIColor.clear
+        }
+    }
+    
     override func awakeFromNib() {
         self.textLabel = self.viewWithTag(12) as? UILabel
         self.detailTextLabel = self.viewWithTag(34) as? UILabel
-        self.layer.cornerRadius = 6.0
-        self.layer.masksToBounds = true
+        let colorLayer = CALayer()
+        colorLayer.frame = self.layer.bounds
+        colorLayer.backgroundColor = backgroundColor?.cgColor
+        colorLayer.cornerRadius = 6.0
+        self.layer.insertSublayer(colorLayer, at: 0)
+        backgroundColorLayer = colorLayer
+        //self.layer.cornerRadius = 6.0
+        self.layer.shadowColor = UIColor.lightGray.cgColor
+        self.layer.shadowOffset = CGSize(width: 1.0, height: 3.0)
+        self.layer.shadowRadius = 8.0
+        self.layer.shadowOpacity = 0.5
+        self.layer.masksToBounds = false
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        backgroundColorLayer?.frame = self.layer.bounds
     }
     
     override var isHighlighted: Bool {
         didSet {
             if isHighlighted {
-                UIView.animate(withDuration: 0.2, delay: 0.0, options: .beginFromCurrentState, animations: { 
-                    self.highlightView?.alpha = 1.0
+                UIView.animate(withDuration: 0.2, delay: 0.0, options: [.beginFromCurrentState, .curveEaseInOut], animations: {
+                    self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+                    //self.highlightView?.alpha = 1.0
                 }, completion: nil)
             } else {
-                UIView.animate(withDuration: 0.2, delay: 0.0, options: .beginFromCurrentState, animations: {
-                    self.highlightView?.alpha = 0.0
+                UIView.animate(withDuration: 0.2, delay: 0.0, options: [.beginFromCurrentState, .curveEaseInOut], animations: {
+                    self.transform = CGAffineTransform.identity
+                    //self.highlightView?.alpha = 0.0
                 }, completion: nil)
             }
         }
+    }
+    
+    override var canBecomeFirstResponder: Bool {
+        return true
+    }
+    
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if action == #selector(viewDetails(_:)) {
+            return delegate != nil
+        } else if action == #selector(delete(_:)) {
+            return delegate != nil
+        }
+        return false
     }
     
     func viewDetails(_ sender: AnyObject) {

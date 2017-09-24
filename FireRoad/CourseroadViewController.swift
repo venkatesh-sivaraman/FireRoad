@@ -15,17 +15,46 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     var panelView: PanelViewController? = nil
     var courseBrowser: CourseBrowserViewController? = nil
     
+    @IBOutlet var loadingView: UIView?
+    @IBOutlet var loadingIndicator: UIActivityIndicatorView?
+    
     let viewMenuItemTitle = "View"
     let deleteMenuItemTitle = "Delete"
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // TODO: Loading signs and error messages
-        CourseManager.shared.loadCourses { [weak self] (success: Bool) in
-            if success {
-                self?.currentUser = User()
+        if CourseManager.shared.courses.count == 0 {
+            loadingView?.isHidden = false
+            loadingIndicator?.startAnimating()
+            CourseManager.shared.loadCourses { [weak self] (success: Bool) in
+                if success {
+                    self?.currentUser = User()
+                }
+                self?.collectionView.reloadData()
+                if let loadingView = self?.loadingView,
+                    let collectionView = self?.collectionView {
+                    collectionView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                    collectionView.alpha = 0.0
+                    UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
+                        collectionView.alpha = 1.0
+                        collectionView.transform = CGAffineTransform.identity
+                        loadingView.alpha = 0.0
+                        loadingView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+                    }, completion: { (completed) in
+                        if completed {
+                            loadingView.isHidden = true
+                            self?.loadingIndicator?.stopAnimating()
+                        }
+                    })
+                    /*UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseInOut, animations: {
+                    }, completion: { (completed) in
+                        if completed {
+                            loadingView.isHidden = true
+                            self?.loadingIndicator?.stopAnimating()
+                        }
+                    })*/
+                }
             }
-            self?.collectionView.reloadData()
         }
         
         self.collectionView.collectionViewLayout = UICollectionViewFlowLayout() //CustomCollectionViewFlowLayout() //LeftAlignedCollectionViewFlowLayout()
@@ -148,6 +177,14 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         } else {
             cell.alpha = 1.0
         }
+        
+        // Fancy scaling animation
+        cell.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        cell.alpha = 0.5
+        UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseOut, animations: {
+            cell.transform = CGAffineTransform.identity
+            cell.alpha = 1.0
+        }, completion: nil)
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -178,13 +215,18 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count > 0,
-            let semester = UserSemester(rawValue: indexPath.section),
-            let course = currentUser?.courses(forSemester: semester)[indexPath.item] else {
+            //let semester = UserSemester(rawValue: indexPath.section),
+            //let course = currentUser?.courses(forSemester: semester)[indexPath.item] else {
+            let cell = collectionView.cellForItem(at: indexPath) else {
             return
         }
 
         // Selected
-        viewDetails(for: course)
+        //viewDetails(for: course)
+        cell.becomeFirstResponder()
+        let menu = UIMenuController.shared
+        menu.setTargetRect(cell.bounds, in: cell)
+        menu.setMenuVisible(true, animated: true)
     }
     
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
@@ -232,7 +274,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     
     // MARK: - Menu Actions
     
-    func collectionView(_ collectionView: UICollectionView, shouldShowMenuForItemAt indexPath: IndexPath) -> Bool {
+    /*func collectionView(_ collectionView: UICollectionView, shouldShowMenuForItemAt indexPath: IndexPath) -> Bool {
         guard self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count > 0 else {
             return false
         }
@@ -253,7 +295,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     
     func collectionView(_ collectionView: UICollectionView, performAction action: Selector, forItemAt indexPath: IndexPath, withSender sender: Any?) {
         
-    }
+    }*/
 
     func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell) {
         guard let user = currentUser,
@@ -338,11 +380,21 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             }) { (completed) in
                 if completed {
                     blurView.removeFromSuperview()
-                    self.collectionView.deleteItems(at: [indexPath])
+                    if user.courses(forSemester: semester).count == 0 {
+                        // This cell turns into a dummy cell
+                        self.collectionView.reloadItems(at: [indexPath])
+                    } else {
+                        self.collectionView.deleteItems(at: [indexPath])
+                    }
                 }
             }
         } else {
-            self.collectionView.deleteItems(at: [indexPath])
+            if user.courses(forSemester: semester).count == 0 {
+                // This cell turns into a dummy cell
+                self.collectionView.reloadItems(at: [indexPath])
+            } else {
+                self.collectionView.deleteItems(at: [indexPath])
+            }
         }
     }
 }

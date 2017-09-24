@@ -47,6 +47,15 @@ class CourseListCell: UITableViewCell, UICollectionViewDataSource, UICollectionV
 
     }
     
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        cell.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        cell.alpha = 0.5
+        UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseOut, animations: {
+            cell.transform = CGAffineTransform.identity
+            cell.alpha = 1.0
+        }, completion: nil)
+    }
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         self.delegate?.courseListCellSelected(self.courses[indexPath.row])
     }
