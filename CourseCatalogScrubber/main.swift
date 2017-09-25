@@ -101,7 +101,7 @@ for courseCode in courseNumbers {
     departmentCourses = []
     for letter in alphabet.characters {
         let totalCode = courseCode + "\(letter)"
-        let addlCourses = courses(from: totalCode)
+        let addlCourses = courses(from: totalCode).filter({ ($0[.subjectID] as? String)?.contains(courseCode) == true })
         if addlCourses.count == 0 {
             break
         }

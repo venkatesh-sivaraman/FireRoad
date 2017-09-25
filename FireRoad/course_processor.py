@@ -86,39 +86,39 @@ Academic Year,Effective Term Code,Subject Id,Subject Code,Subject Number,Source 
                     keys[comp] = i
                     reverse_keys[i] = comp
             else:
-                dept = line[keys["Subject Code"]]
                 id = line[keys["Subject Id"]]
-                lists = [keys["Prerequisites"], keys["Joint Subjects"], keys["Meets With Subjects"], keys["Equivalent Subjects"]]
+                dept = id[:id.find(".")]
+                '''lists = [keys["Prerequisites"], keys["Joint Subjects"], keys["Meets With Subjects"], keys["Equivalent Subjects"]]
                 for list_item in lists:
                     if list_item < 0: continue
                     if len(line[list_item]) > 0:
-                        line[list_item] = "{}#,#{}".format(line[list_item], process_list_item(line[list_item]))
+                        line[list_item] = "{}#,#{}".format(line[list_item], process_list_item(line[list_item]))'''
 
                 # Use to determine possible values for various attributes
                 #if len(line[keys["Write Req Attribute"]]) > 0:
                 #    print("HASS: ", line[keys["Write Req Attribute"]], "for course ", id)
                 if dept in courses_by_dept:
-                    if id not in courses_by_dept[dept] or int(line[keys["Academic Year"]]) > int(courses_by_dept[dept][id][keys["Academic Year"]]):
+                    if id not in courses_by_dept[dept]:# or int(line[keys["Academic Year"]]) > int(courses_by_dept[dept][id][keys["Academic Year"]]):
                         courses_by_dept[dept][id] = line
                 else:
                     courses_by_dept[dept] = {id : line}
     # Write the contents to file
     if not os.path.exists(dest):
         os.mkdir(dest)
-    for dept, courses in courses_by_dept.items():
-        for id in courses:
-            courses[id] = [(x if x.replace(' ', '').replace(',','') == x else '"' + x + '"') for x in courses[id]]
+    #for dept, courses in courses_by_dept.items():
+    #    for id in courses:
+    #        courses[id] = [(x if x.replace(' ', '').replace(',','') == x else '"' + x + '"') for x in courses[id]]
 
 
-    with open(os.path.join(dest, "condensed.txt"), "w") as file:
+    with open(os.path.join(dest, "auto_condensed.txt"), "w") as file:
         restricted_keys = [
-        "Academic Year", "Subject Id", "Subject Code", "Subject Number", "Print Subject Id", "Subject Short Title", "Subject Title", "Total Units", "Is Offered This Year", "Is Offered Fall Term", "Is Offered Iap", "Is Offered Spring Term", "Is Offered Summer Term"
-        ]
+            "Subject Id", "Subject Title", "Total Units", "Not Offered Year", "Is Offered Fall Term", "Is Offered Iap", "Is Offered Spring Term", "Is Offered Summer Term"
+                           ]
         print("Writing condensed course file...")
         file.write(','.join(restricted_keys) + '\n')
         for dept, courses in courses_by_dept.items():
             for id, course in courses.items():
-                #print(course)
+                print(course)
                 file.write(','.join([x for i, x in enumerate(course) if reverse_keys[i] in restricted_keys]) + '\n')
 
     print("Writing department summaries...")
@@ -156,7 +156,7 @@ Academic Year,Effective Term Code,Subject Id,Subject Code,Subject Number,Source 
                     dept_similarities[(dept2, dept1)] = 0.00001
                     continue
                 sim = max(doc_distance(dept_lists[dept1], dept_lists[dept2]) ** 2 / (doc_distance(dept_lists[dept1], dept_lists[dept1]) * doc_distance(dept_lists[dept2], dept_lists[dept2])), 0.00001)
-                sim = math.log(sim - 1.0) / math.log(2.0)
+                #sim = math.log(sim) / math.log(2.0)
                 dept_similarities[(dept1, dept2)] = sim
                 dept_similarities[(dept2, dept1)] = sim
 
