@@ -57,10 +57,13 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
         }
         self.tableView.contentInset = UIEdgeInsetsMake(8.0, 0.0, 0.0, 0.0)
         self.tableView.estimatedRowHeight = 60.0
-        
+        if #available(iOS 11.0, *) {
+            self.tableView.contentInsetAdjustmentBehavior = .never
+        }
+        self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: tableView.scrollIndicatorInsets.top, left: tableView.scrollIndicatorInsets.left, bottom: tableView.scrollIndicatorInsets.bottom + 12.0, right: tableView.scrollIndicatorInsets.right)
     }
     
-    func addCourseButtonPressed(sender: AnyObject) {
+    @objc func addCourseButtonPressed(sender: AnyObject) {
         self.delegate?.courseDetails(added: self.course!)
     }
     
@@ -93,19 +96,15 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .requirements
             rowIndex += 1
         }
-        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .instructors
+        if course!.instructors.count > 0 {
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .instructors
+            rowIndex += 1
+        }
         rowIndex = 0
         sectionIndex += 1
-        
+
         if course!.prerequisites.count > 0 {
-            var prereqs: [String] = [], coreqs: [String] = []
-            for req in course!.prerequisites {
-                if req.range(of: "[") != nil {
-                    coreqs.append(req)
-                } else {
-                    prereqs.append(req)
-                }
-            }
+            let prereqs: [String] = course!.prerequisites.flatMap({ $0 })
             if prereqs.count > 0 {
                 titles.append("Prerequisites")
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .prerequisites
@@ -113,13 +112,16 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
                 rowIndex = 0
                 sectionIndex += 1
             }
+        }
+        if course!.corequisites.count > 0 {
+            let coreqs: [String] = course!.corequisites.flatMap({ $0 })
             if coreqs.count > 0 {
                 titles.append("Corequisites")
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .corequisites
+                //mapping[IndexPath(row: rowIndex + 1, section: sectionIndex)] = .courseListAccessory
                 rowIndex = 0
                 sectionIndex += 1
             }
-            
         }
         if course!.jointSubjects.count > 0 {
             titles.append("Joint Subjects")
@@ -225,13 +227,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             detailTextLabel?.text = "\(self.course!.totalUnits) total\n(\(self.course!.lectureUnits)-\(self.course!.labUnits)-\(self.course!.preparationUnits))"
         case .instructors:
             textLabel?.text = "Instructors"
-            if course!.isOfferedFall && course!.isOfferedSpring {
-                detailTextLabel?.text = "Fall – \(self.course!.fallInstructors.joined(separator: ", "))\nSpring – \(self.course!.springInstructors.joined(separator: ", "))"
-            } else if course!.isOfferedFall {
-                detailTextLabel?.text = self.course!.fallInstructors.joined(separator: ",")
-            } else if course!.isOfferedSpring {
-                detailTextLabel?.text = self.course!.springInstructors.joined(separator: ",")
-            }
+            detailTextLabel?.text = self.course!.instructors.joined(separator: ",")
         case .requirements:
             textLabel?.text = "Fulfills"
             var reqs: [String] = []
@@ -269,7 +265,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             (cell as! CourseListCell).collectionView.reloadData()
         case .prerequisites:
             (cell as! CourseListCell).courses = []
-            for myID in self.course!.prerequisites {
+            for myID in self.course!.prerequisites.flatMap({ $0 }) {
                 if myID.range(of: "[") != nil || myID.range(of: "{") != nil {
                     continue
                 }
@@ -284,11 +280,8 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             (cell as! CourseListCell).collectionView.reloadData()
         case .corequisites:
             (cell as! CourseListCell).courses = []
-            for id in self.course!.prerequisites {
-                if id.range(of: "[") == nil || id.range(of: "{") != nil {
-                    continue
-                }
-                let myID = id.substring(with: (id.index(id.startIndex, offsetBy: 1))..<(id.index(id.endIndex, offsetBy: -1)))
+            for id in self.course!.corequisites.flatMap({ $0 }) {
+                let myID = String(id[(id.index(id.startIndex, offsetBy: 1))..<(id.index(id.endIndex, offsetBy: -1))])
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
                     (cell as! CourseListCell).courses.append(equivCourse!)
@@ -301,8 +294,10 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
         case .courseListAccessory:
             var list: [String] = []
             switch self.detailMapping[IndexPath(row: indexPath.row - 1, section: indexPath.section)]! {
-            case .prerequisites, .corequisites:
-                list = self.course!.prerequisites
+            case .prerequisites:
+                list = self.course!.prerequisites.flatMap({ $0 })
+            case .corequisites:
+                list = self.course!.corequisites.flatMap({ $0 })
             case .equivalent:
                 list = self.course!.equivalentSubjects
             case .joint:

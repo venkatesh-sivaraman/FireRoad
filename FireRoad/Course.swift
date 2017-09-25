@@ -8,25 +8,29 @@
 
 import UIKit
 
+let GIRDescriptions = [
+    "PHY1": "Physics I GIR",
+    "PHY2": "Physics II GIR",
+    "CHEM": "Chemistry GIR",
+    "BIOL": "Biology GIR",
+    "CAL1": "Calculus I GIR",
+    "CAL2": "Calculus II GIR",
+    "LAB": "Lab GIR",
+    "REST": "REST GIR"
+]
+
 func descriptionForGIR(attribute: String) -> String {
     let mod = attribute.replacingOccurrences(of: "GIR:", with: "")
-    switch mod {
-    case "PHY1": return "Physics I GIR"
-    case "PHY2": return "Physics II GIR"
-    case "CHEM": return "Chemistry GIR"
-    case "BIOL": return "Biology GIR"
-    case "CAL1": return "Calculus I GIR"
-    case "CAL2": return "Calculus II GIR"
-    case "LAB": return "Lab GIR"
-    case "REST": return "REST GIR"
-    default: return ""
+    if let converted = GIRDescriptions[mod] {
+        return converted
     }
+    return attribute
 }
 
 class Course: NSObject {
     
-    var academicYear: String? = nil
-    var communicationRequirement: String? = nil {
+    @objc dynamic var academicYear: String? = nil
+    @objc dynamic var communicationRequirement: String? = nil {
         didSet {
             if self.communicationRequirement != nil {
                 switch self.communicationRequirement! {
@@ -39,14 +43,13 @@ class Course: NSObject {
             }
         }
     }
-    var communicationReqDescription: String? = nil
-    var departmentCode: String? = nil
-    var departmentName: String? = nil
-    var designUnits: Int = 0
-    var effectiveTermCode: String? = nil
-    var equivalentSubjects: [String] = []
-    var fallInstructors: [String] = []
-    var GIRAttribute: String? = nil {
+    @objc dynamic var communicationReqDescription: String? = nil
+    @objc dynamic var departmentCode: String? = nil
+    @objc dynamic var departmentName: String? = nil
+    @objc dynamic var designUnits: Int = 0
+    @objc dynamic var effectiveTermCode: String? = nil
+    @objc dynamic var equivalentSubjects: [String] = []
+    @objc dynamic var GIRAttribute: String? = nil {
         didSet {
             if self.GIRAttribute != nil {
                 self.GIRAttributeDescription = descriptionForGIR(attribute: self.GIRAttribute!)
@@ -55,12 +58,12 @@ class Course: NSObject {
             }
         }
     }
-    var GIRAttributeDescription: String? = nil
-    var gradeRule: String? = nil
-    var gradeRuleDescription: String? = nil
-    var gradeType: String? = nil
-    var gradeTypeDescription: String? = nil
-    var hassAttribute: String? = nil {
+    @objc dynamic var GIRAttributeDescription: String? = nil
+    @objc dynamic var gradeRule: String? = nil
+    @objc dynamic var gradeRuleDescription: String? = nil
+    @objc dynamic var gradeType: String? = nil
+    @objc dynamic var gradeTypeDescription: String? = nil
+    @objc dynamic var hassAttribute: String? = nil {
         didSet {
             if self.hassAttribute != nil {
                 let comps = self.hassAttribute!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).components(separatedBy: ",")
@@ -79,39 +82,47 @@ class Course: NSObject {
             }
         }
     }
-    var hassAttributeDescription: String? = nil
-    var isOfferedFall: Bool = false
-    var isOfferedIAP: Bool = false
-    var isOfferedSpring: Bool = false
-    var isOfferedSummer: Bool = false
-    var isOfferedThisYear: Bool = false
-    var isVariableUnits: Bool = false
-    var jointSubjects: [String] = []
-    var labUnits: Int = 0
-    var lastActivityDate: Date? = nil
-    var lectureUnits: Int = 0
-    var masterSubjectID: String? = nil
-    var meetsWithSubjects: [String] = []
-    var onlinePageNumber: String? = nil
-    var preparationUnits: Int = 0
-    var prerequisites: [String] = []    //Coreqs in brackets
-    var printSubjectID: String? = nil
-    var schoolWideElectives: String? = nil
-    var springInstructors: [String] = []
-    var statusChange: String? = nil
-    var subjectCode: String? = nil
-    var subjectDescription: String? = nil
-    var subjectID: String? = nil
-    var subjectNumber: String? = nil
-    var subjectShortTitle: String? = nil
-    var subjectTitle: String? = nil
-    var termDuration: String? = nil
-    var totalUnits: Int = 0
-    var writingRequirement: String? = nil
-    var writingReqDescription: String? = nil
+    @objc dynamic var hassAttributeDescription: String? = nil
+    @objc dynamic var instructors: [String] = []
+    @objc dynamic var isOfferedFall: Bool = false
+    @objc dynamic var isOfferedIAP: Bool = false
+    @objc dynamic var isOfferedSpring: Bool = false
+    @objc dynamic var isOfferedSummer: Bool = false
+    @objc dynamic var isOfferedThisYear: Bool = false
+    @objc dynamic var isVariableUnits: Bool = false
+    @objc dynamic var jointSubjects: [String] = []
+    @objc dynamic var labUnits: Int = 0
+    @objc dynamic var lastActivityDate: Date? = nil
+    @objc dynamic var lectureUnits: Int = 0
+    @objc dynamic var masterSubjectID: String? = nil
+    @objc dynamic var meetsWithSubjects: [String] = []
+    @objc dynamic var onlinePageNumber: String? = nil
+    @objc dynamic var preparationUnits: Int = 0
+    @objc dynamic var prerequisites: [[String]] = []
+    @objc dynamic var corequisites: [[String]] = []
+    @objc dynamic var printSubjectID: String? = nil
+    @objc dynamic var schoolWideElectives: String? = nil
+    @objc dynamic var statusChange: String? = nil
+    @objc dynamic var subjectCode: String? = nil
+    @objc dynamic var subjectDescription: String? = nil
+    @objc dynamic var subjectID: String? = nil {
+        didSet {
+            if subjectCode == nil, let subject = subjectID,
+                let periodRange = subject.range(of: ".") {
+                subjectCode = String(subject[subject.startIndex..<periodRange.lowerBound])
+            }
+        }
+    }
+    @objc dynamic var subjectNumber: String? = nil
+    @objc dynamic var subjectShortTitle: String? = nil
+    @objc dynamic var subjectTitle: String? = nil
+    @objc dynamic var termDuration: String? = nil
+    @objc dynamic var totalUnits: Int = 0
+    @objc dynamic var writingRequirement: String? = nil
+    @objc dynamic var writingReqDescription: String? = nil
     
     // Supplemental attributes
-    var enrollmentNumber: Int = 0
+    @objc dynamic var enrollmentNumber: Int = 0
     var relatedSubjects: [(String, Float)] = []
 
     override init() {
@@ -142,7 +153,6 @@ class Course: NSObject {
         course.designUnits = designUnits
         course.effectiveTermCode = effectiveTermCode
         course.equivalentSubjects = equivalentSubjects
-        course.fallInstructors = fallInstructors
         course.GIRAttribute = GIRAttribute
         course.GIRAttributeDescription = GIRAttributeDescription
         course.gradeRule = gradeRule
@@ -151,6 +161,7 @@ class Course: NSObject {
         course.gradeTypeDescription = gradeTypeDescription
         course.hassAttribute = hassAttribute
         course.hassAttributeDescription = hassAttributeDescription
+        course.instructors = instructors
         course.isOfferedFall = isOfferedFall
         course.isOfferedIAP = isOfferedIAP
         course.isOfferedSpring = isOfferedSpring
@@ -168,7 +179,6 @@ class Course: NSObject {
         course.prerequisites = prerequisites
         course.printSubjectID = printSubjectID
         course.schoolWideElectives = schoolWideElectives
-        course.springInstructors = springInstructors
         course.statusChange = statusChange
         course.subjectCode = subjectCode
         course.subjectDescription = subjectDescription
@@ -185,7 +195,15 @@ class Course: NSObject {
     
     override func setValue(_ value: Any?, forKey key: String) {
         var modifiedValue = value
-        if self.value(forKey: key) is Int {
+        if type(of: self.value(forKey: key)) == Bool.self {
+            if value != nil {
+                if value is String {
+                    modifiedValue = (value as! String) == "Y"
+                }
+            } else {
+                modifiedValue = false
+            }
+        } else if type(of: self.value(forKey: key)) == Int.self {
             if value != nil {
                 if value is String {
                     modifiedValue = (value as! String).characters.count > 0 ?  Int(Float(value as! String)!) : 0
@@ -193,13 +211,12 @@ class Course: NSObject {
             } else {
                 modifiedValue = 0
             }
-        } else if self.value(forKey: key) is Bool {
-            if value != nil {
-                if value is String {
-                    modifiedValue = (value as! String) == "Y"
-                }
+        } else if key == "prerequisites" || key == "corequisites" { // [[String]] type
+            if value != nil,
+                let listString = value as? String {
+                modifiedValue = [listString.replacingOccurrences(of: ";", with: ",").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.characters.count > 0 })]
             } else {
-                modifiedValue = false
+                modifiedValue = []
             }
         } else if self.value(forKey: key) is [String] {
             if value != nil {

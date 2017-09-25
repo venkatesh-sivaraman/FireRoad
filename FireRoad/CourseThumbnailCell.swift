@@ -54,6 +54,26 @@ class CourseThumbnailCell: UICollectionViewCell {
         }
     }
     
+    override var alpha: CGFloat {
+        didSet {
+            backgroundColorLayer?.opacity = Float(alpha)
+        }
+    }
+    
+    var shadowEnabled: Bool = true {
+        didSet {
+            if shadowEnabled {
+                self.layer.shadowColor = UIColor.lightGray.cgColor
+                self.layer.shadowOffset = CGSize(width: 1.0, height: 3.0)
+                self.layer.shadowRadius = 6.0
+                self.layer.shadowOpacity = 0.6
+                self.layer.masksToBounds = false
+            } else {
+                self.layer.shadowOpacity = 0.0
+            }
+        }
+    }
+    
     override func awakeFromNib() {
         self.textLabel = self.viewWithTag(12) as? UILabel
         self.detailTextLabel = self.viewWithTag(34) as? UILabel
@@ -64,11 +84,7 @@ class CourseThumbnailCell: UICollectionViewCell {
         self.layer.insertSublayer(colorLayer, at: 0)
         backgroundColorLayer = colorLayer
         //self.layer.cornerRadius = 6.0
-        self.layer.shadowColor = UIColor.lightGray.cgColor
-        self.layer.shadowOffset = CGSize(width: 1.0, height: 3.0)
-        self.layer.shadowRadius = 8.0
-        self.layer.shadowOpacity = 0.5
-        self.layer.masksToBounds = false
+        shadowEnabled = true
     }
     
     override func layoutSubviews() {
@@ -92,6 +108,21 @@ class CourseThumbnailCell: UICollectionViewCell {
         }
     }
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        isHighlighted = true
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        isHighlighted = false
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        isHighlighted = false
+    }
+    
     override var canBecomeFirstResponder: Bool {
         return true
     }
@@ -105,7 +136,7 @@ class CourseThumbnailCell: UICollectionViewCell {
         return false
     }
     
-    func viewDetails(_ sender: AnyObject) {
+    @objc func viewDetails(_ sender: AnyObject) {
         delegate?.courseThumbnailCellWantsViewDetails(self)
     }
     

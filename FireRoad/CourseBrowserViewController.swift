@@ -175,6 +175,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func browserCell(added course: Course) -> UserSemester? {
+        self.searchBar.resignFirstResponder()
         return self.delegate?.courseBrowser(added: course)
     }
 }

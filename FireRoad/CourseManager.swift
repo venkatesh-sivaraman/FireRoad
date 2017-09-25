@@ -47,8 +47,8 @@ class CourseManager: NSObject {
         "Meets With Subjects": "meetsWithSubjects",
         "Equivalent Subjects": "equivalentSubjects",
         "Prerequisites": "prerequisites",
-        "Fall Instructors": "fallInstructors",
-        "Spring Instructors": "springInstructors",
+        "Corequisites": "corequisites",
+        "Instructors": "instructors",
         "Gir Attribute": "GIRAttribute",
         "Grade Rule": "gradeRule",
         "Grade Type": "gradeType",
@@ -196,10 +196,11 @@ class CourseManager: NSObject {
     
     
     func getCourse(withID subjectID: String) -> Course? {
-        if subjectID.characters.count == 0 {
+        let processedID = subjectID.replacingOccurrences(of: "[J]", with: "")
+        if processedID.characters.count == 0 {
             return nil
         }
-        if let course = self.coursesByID[subjectID] {
+        if let course = self.coursesByID[processedID] {
             return course
         }
         return nil
@@ -244,7 +245,7 @@ class CourseManager: NSObject {
                         quotedLine = trimmed
                     } else {
                         quotedLine = ""
-                        trimmed = trimmed.characters.first == Character("\"") ? trimmed.substring(with: trimmed.index(trimmed.startIndex, offsetBy: 1)..<trimmed.index(trimmed.endIndex, offsetBy: -1)) : trimmed
+                        trimmed = trimmed.characters.first == Character("\"") ? String(trimmed[trimmed.index(trimmed.startIndex, offsetBy: 1)..<trimmed.index(trimmed.endIndex, offsetBy: -1)]) : trimmed
                         do {
                             let regex = try NSRegularExpression(pattern: "</?\\w*>", options: .caseInsensitive)
                             let mutableString = (trimmed as NSString).mutableCopy() as! NSMutableString

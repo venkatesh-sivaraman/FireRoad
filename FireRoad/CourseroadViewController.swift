@@ -102,7 +102,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         }
     }
     
-    func handleLongGesture(gesture: UILongPressGestureRecognizer) {
+    @objc func handleLongGesture(gesture: UILongPressGestureRecognizer) {
         
         switch(gesture.state)
         {
@@ -159,10 +159,13 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseCell", for: indexPath) as! CourseThumbnailCell
         if self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
             cell.alpha = 0.0
-            cell.backgroundColor = UIColor.clear
+            cell.backgroundColor = UIColor.white
+            cell.shadowEnabled = false
+            cell.textLabel?.text = ""
+            cell.detailTextLabel?.text = ""
             return cell
         }
-        cell.alpha = 1.0
+        cell.shadowEnabled = true
         cell.delegate = self
         let course = self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!)[indexPath.item]
         cell.textLabel?.text = course.subjectID
@@ -174,17 +177,11 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
             cell.alpha = 0.0
+            cell.layer.opacity = 0.0
         } else {
             cell.alpha = 1.0
+            cell.layer.opacity = 1.0
         }
-        
-        // Fancy scaling animation
-        cell.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-        cell.alpha = 0.5
-        UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseOut, animations: {
-            cell.transform = CGAffineTransform.identity
-            cell.alpha = 1.0
-        }, completion: nil)
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -225,8 +222,12 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         //viewDetails(for: course)
         cell.becomeFirstResponder()
         let menu = UIMenuController.shared
-        menu.setTargetRect(cell.bounds, in: cell)
-        menu.setMenuVisible(true, animated: true)
+        if menu.isMenuVisible {
+            menu.setMenuVisible(false, animated: true)
+        } else {
+            menu.setTargetRect(cell.bounds, in: cell)
+            menu.setMenuVisible(true, animated: true)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {

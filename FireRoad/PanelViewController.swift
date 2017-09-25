@@ -10,7 +10,12 @@ import UIKit
 
 class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
 
-    static let designCornerRadius: CGFloat = 8.0
+    static var designCornerRadius: CGFloat {
+        if #available(iOS 11.0, *) {
+            return 12.0
+        }
+        return 8.0
+    }
     
     @IBOutlet var blurView: UIVisualEffectView! = nil
     @IBOutlet var imageView: UIImageView! = nil
@@ -36,12 +41,12 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         //self.view.layer.masksToBounds = true
         self.imageView.image = self.generateShadowImage()
         
-        let handleView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 27.0, height: 3.0))
-        handleView.backgroundColor = UIColor.darkGray.withAlphaComponent(0.3)
+        let handleView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 36.0, height: 3.0))
+        handleView.backgroundColor = UIColor.darkGray.withAlphaComponent(0.4)
         handleView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(handleView)
         self.view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[handleView(3)]-6-|", options: .alignAllCenterX, metrics: nil, views: ["handleView": handleView]))
-        self.view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[handleView(27)]", options: [], metrics: nil, views: ["handleView": handleView]))
+        self.view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[handleView(36)]", options: [], metrics: nil, views: ["handleView": handleView]))
         self.view.addConstraint(NSLayoutConstraint(item: handleView, attribute: .centerX, relatedBy: .equal, toItem: self.view, attribute: .centerX, multiplier: 1.0, constant: 0.0))
         handleView.layer.cornerRadius = 2.0
         /*self.view.layer.shadowRadius = 10.0
@@ -90,7 +95,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     
     private var panAnchor: CGFloat = 0.0
     
-    func handlePanGesture(sender: UIPanGestureRecognizer) {
+    @objc func handlePanGesture(sender: UIPanGestureRecognizer) {
         switch sender.state {
         case .began:
             if self.parent != nil {
@@ -199,7 +204,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
     
-    func keyboardWillChangeFrame(sender: Notification) {
+    @objc func keyboardWillChangeFrame(sender: Notification) {
         if self.parent != nil {
             let deltaY = min((sender.userInfo![UIKeyboardFrameEndUserInfoKey]! as! CGRect).origin.y, self.parent!.view.frame.size.height - self.parent!.bottomLayoutGuide.length) - min((sender.userInfo![UIKeyboardFrameBeginUserInfoKey]! as! CGRect).origin.y, self.parent!.view.frame.size.height - self.parent!.bottomLayoutGuide.length)
             let container = self.view.superview!
