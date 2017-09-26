@@ -70,6 +70,7 @@
 		9646CFF51EB922C3005F87CB /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF41EB922C3005F87CB /* Course.swift */; };
 		9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF61EB9251A005F87CB /* CourseManager.swift */; };
 		9646CFF91EB92525005F87CB /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF81EB92525005F87CB /* User.swift */; };
+		96500EAE1F7A056400872F82 /* RoundedToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
 		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
 		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
@@ -168,6 +169,7 @@
 		9646CFF41EB922C3005F87CB /* Course.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Course.swift; sourceTree = "<group>"; };
 		9646CFF61EB9251A005F87CB /* CourseManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseManager.swift; sourceTree = "<group>"; };
 		9646CFF81EB92525005F87CB /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedToolbarView.swift; sourceTree = "<group>"; };
 		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
 		96897B171EC8F5500011E572 /* CourseListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseListCell.swift; sourceTree = "<group>"; };
 		968FE0551F75F86D0098E97F /* CourseCatalogScrubber */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CourseCatalogScrubber; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -284,6 +286,7 @@
 				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
 				9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */,
 				961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */,
+				96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */,
 				965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */,
 				961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */,
 				96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */,
@@ -513,6 +516,7 @@
 				9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */,
 				9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */,
 				96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */,
+				96500EAE1F7A056400872F82 /* RoundedToolbarView.swift in Sources */,
 				9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */,
 				961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */,
 				961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */,

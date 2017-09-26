@@ -8,8 +8,9 @@
 
 import Foundation
 
-let urlPrefix = "http://student.mit.edu/catalog/m"
+let urlPrefix = "http://student.mit.edu/catalog/"
 let urlSuffix = ".html"
+let urlLastPrefix = "m"
 
 let courseNumbers = [
     "1", "2", "3", "4",
@@ -31,7 +32,7 @@ let alphabet = "abcdefghijklmnopqrstuvwxyz"
 let parser = CourseCatalogParser()
 
 func courses(from courseCode: String) -> [[CourseAttribute: Any]] {
-    if let url = URL(string: "\(urlPrefix)\(courseCode)\(urlSuffix)") {
+    if let url = URL(string: "\(urlPrefix)\(urlLastPrefix)\(courseCode)\(urlSuffix)") {
         parser.catalogURL = url
         let regions = parser.htmlRegions(from: url)
         let courses = regions.map({ parser.extractCourseProperties(from: $0) })
@@ -99,14 +100,21 @@ var allCourses: [[CourseAttribute: Any]] = []
 var departmentCourses: [[CourseAttribute: Any]] = []
 for courseCode in courseNumbers {
     departmentCourses = []
+    var originalHTML: String?
     for letter in alphabet.characters {
         let totalCode = courseCode + "\(letter)"
+        if let html = originalHTML, !html.contains("\(urlLastPrefix)\(totalCode)\(urlSuffix)") {
+            continue
+        }
         let addlCourses = courses(from: totalCode).filter({ ($0[.subjectID] as? String)?.contains(courseCode) == true })
         if addlCourses.count == 0 {
-            break
+            continue
         }
         print("======", totalCode)
         departmentCourses += addlCourses
+        if letter == alphabet.characters.first {
+            originalHTML = parser.htmlContents
+        }
     }
     writeFullCourses(departmentCourses, to: outputDirectory + courseCode + ".txt")
     allCourses += departmentCourses

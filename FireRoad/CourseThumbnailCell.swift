@@ -29,6 +29,9 @@ class CourseThumbnailCell: UICollectionViewCell {
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
     
+    @IBOutlet var bigLayoutConstraints: [NSLayoutConstraint]?
+    @IBOutlet var smallLayoutConstraints: [NSLayoutConstraint]?
+    
     func generateHighlightView() -> UIView? {
         let view = UIView(frame: self.bounds)
         view.backgroundColor = UIColor.black.withAlphaComponent(0.2)
@@ -85,6 +88,7 @@ class CourseThumbnailCell: UICollectionViewCell {
         backgroundColorLayer = colorLayer
         //self.layer.cornerRadius = 6.0
         shadowEnabled = true
+        contentView.clipsToBounds = true
     }
     
     override func layoutSubviews() {

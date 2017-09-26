@@ -118,7 +118,6 @@ Academic Year,Effective Term Code,Subject Id,Subject Code,Subject Number,Source 
         file.write(','.join(restricted_keys) + '\n')
         for dept, courses in courses_by_dept.items():
             for id, course in courses.items():
-                print(course)
                 file.write(','.join([x for i, x in enumerate(course) if reverse_keys[i] in restricted_keys]) + '\n')
 
     print("Writing department summaries...")

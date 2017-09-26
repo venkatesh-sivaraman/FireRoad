@@ -10,15 +10,6 @@ import UIKit
 
 class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
 
-    static var designCornerRadius: CGFloat {
-        if #available(iOS 11.0, *) {
-            return 12.0
-        }
-        return 8.0
-    }
-    
-    @IBOutlet var blurView: UIVisualEffectView! = nil
-    @IBOutlet var imageView: UIImageView! = nil
     var heightConstraint: NSLayoutConstraint? = nil
     var collapseHeight: CGFloat = 0.0
     var expandedHeight: CGFloat {
@@ -35,11 +26,6 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         super.viewDidLoad()
         
         // Do any additional setup after loading the view.
-        self.blurView.layer.cornerRadius = PanelViewController.designCornerRadius
-        self.blurView.layer.masksToBounds = true
-        //self.view.layer.cornerRadius = 15.0
-        //self.view.layer.masksToBounds = true
-        self.imageView.image = self.generateShadowImage()
         
         let handleView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 36.0, height: 3.0))
         handleView.backgroundColor = UIColor.darkGray.withAlphaComponent(0.4)
@@ -69,24 +55,6 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     
     deinit {
         NotificationCenter.default.removeObserver(self)
-    }
-    
-    func generateShadowImage() -> UIImage {
-        UIGraphicsBeginImageContextWithOptions(CGSize(width: 60.0, height: 60.0), false, 0.0)
-        let ctx = UIGraphicsGetCurrentContext()
-        ctx?.saveGState()
-        ctx?.setShadow(offset: CGSize(width: 0.0, height: 0.5), blur: 6.0, color: UIColor.black.withAlphaComponent(0.2).cgColor)
-        let bezierPath = UIBezierPath(roundedRect: CGRect(x: 15.0, y: 15.0, width: 30.0, height: 30.0), cornerRadius: PanelViewController.designCornerRadius)
-        bezierPath.lineWidth = 2.0
-        UIColor.white.setFill()
-        bezierPath.fill()
-        ctx?.restoreGState()
-        UIColor.lightGray.withAlphaComponent(0.2).setStroke()
-        bezierPath.stroke()
-        bezierPath.fill(with: .clear, alpha: 1.0)
-        let img = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return img!.resizableImage(withCapInsets: UIEdgeInsets(top: 29.0, left: 29.0, bottom: 29.0, right: 29.0), resizingMode: .stretch)
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {

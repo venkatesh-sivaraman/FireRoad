@@ -27,6 +27,12 @@ func descriptionForGIR(attribute: String) -> String {
     return attribute
 }
 
+enum CourseOfferingPattern: String {
+    case everyYear = "Every year"
+    case alternateYears = "Alternate years"
+    case never = "Never"
+}
+
 class Course: NSObject {
     
     @objc dynamic var academicYear: String? = nil
@@ -70,9 +76,9 @@ class Course: NSObject {
                 var descriptions: [String] = []
                 for comp in comps {
                     switch comp {
-                    case "HH": descriptions.append("HASS-H")
-                    case "HA": descriptions.append("HASS-A")
-                    case "HS": descriptions.append("HASS-S")
+                    case "HH", "HASS Humanities": descriptions.append("HASS-H")
+                    case "HA", "HASS Arts": descriptions.append("HASS-A")
+                    case "HS", "HASS Social Sciences": descriptions.append("HASS-S")
                     default: break
                     }
                 }
@@ -88,7 +94,11 @@ class Course: NSObject {
     @objc dynamic var isOfferedIAP: Bool = false
     @objc dynamic var isOfferedSpring: Bool = false
     @objc dynamic var isOfferedSummer: Bool = false
-    @objc dynamic var isOfferedThisYear: Bool = false
+    @objc dynamic var isOfferedThisYear: Bool = true {
+        didSet {
+            updateOfferingPattern()
+        }
+    }
     @objc dynamic var isVariableUnits: Bool = false
     @objc dynamic var jointSubjects: [String] = []
     @objc dynamic var labUnits: Int = 0
@@ -96,6 +106,11 @@ class Course: NSObject {
     @objc dynamic var lectureUnits: Int = 0
     @objc dynamic var masterSubjectID: String? = nil
     @objc dynamic var meetsWithSubjects: [String] = []
+    @objc dynamic var notOfferedYear: String? {
+        didSet {
+            updateOfferingPattern()
+        }
+    }
     @objc dynamic var onlinePageNumber: String? = nil
     @objc dynamic var preparationUnits: Int = 0
     @objc dynamic var prerequisites: [[String]] = []
@@ -120,6 +135,16 @@ class Course: NSObject {
     @objc dynamic var totalUnits: Int = 0
     @objc dynamic var writingRequirement: String? = nil
     @objc dynamic var writingReqDescription: String? = nil
+    
+    var offeringPattern: CourseOfferingPattern = .everyYear
+    
+    func updateOfferingPattern() {
+        if notOfferedYear != nil {
+            offeringPattern = .alternateYears
+        } else {
+            offeringPattern = isOfferedThisYear ? .everyYear : .never
+        }
+    }
     
     // Supplemental attributes
     @objc dynamic var enrollmentNumber: Int = 0

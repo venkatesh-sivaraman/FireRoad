@@ -63,24 +63,44 @@ enum UserSemester: Int {
 
 class User: NSObject {
     
-    private var selectedCourses: [UserSemester: [Course]]? = nil
+    private var selectedSubjects: [UserSemester: [Course]] = [:]
+    
+    var name: String = "No Name"
+    var coursesOfStudy: [CourseOfStudy] = []
+    
+    var filePath: String? {
+        didSet {
+            if saveTimer?.isValid == true {
+                saveTimer?.invalidate()
+            }
+            saveTimer = Timer.scheduledTimer(withTimeInterval: saveInterval, repeats: true, block: { _ in
+                self.autosave()
+            })
+        }
+    }
+    var needsSave: Bool = false
+    private var saveInterval = 2.0
+    private var saveTimer: Timer?
+    
+    init(contentsOfFile path: String) throws {
+        super.init()
+        self.filePath = path
+        try readUserCourses(from: path)
+    }
+    
+    deinit {
+        if saveTimer?.isValid == true {
+            saveTimer?.invalidate()
+        }
+    }
     
     override init() {
-        self.selectedCourses = [
-            .FreshmanFall: [CourseManager.shared.getCourse(withID: "8.02")!,
-            CourseManager.shared.getCourse(withID: "5.112")!,
-            CourseManager.shared.getCourse(withID: "6.006")!,
-            CourseManager.shared.getCourse(withID: "17.55")!],
-            .FreshmanSpring: [CourseManager.shared.getCourse(withID: "18.03")!,
-            CourseManager.shared.getCourse(withID: "7.013")!,
-            CourseManager.shared.getCourse(withID: "21M.284")!,
-            CourseManager.shared.getCourse(withID: "6.046")!]
-        ]
+        super.init()
     }
     
     func courses(forSemester semester: UserSemester) -> [Course] {
-        if selectedCourses != nil && selectedCourses!.contains(where: { $0.0 == semester }) {
-            return selectedCourses![semester]!
+        if selectedSubjects.contains(where: { $0.0 == semester }) {
+            return selectedSubjects[semester]!
         }
         return []
     }
@@ -90,7 +110,8 @@ class User: NSObject {
         if let delIdx = semesterCourses.index(of: course) {
             semesterCourses.remove(at: delIdx)
         }
-        self.selectedCourses?[semester] = semesterCourses
+        self.selectedSubjects[semester] = semesterCourses
+        needsSave = true
     }
     
     func add(_ course: Course, toSemester destSemester: UserSemester) {
@@ -98,7 +119,8 @@ class User: NSObject {
         if !semesterCourses.contains(course) {
             semesterCourses.append(course)
         }
-        self.selectedCourses?[destSemester] = semesterCourses
+        self.selectedSubjects[destSemester] = semesterCourses
+        needsSave = true
     }
     
     func insert(_ course: Course, toSemester destSemester: UserSemester, atIndex idx: Int) {
@@ -106,11 +128,117 @@ class User: NSObject {
         if !semesterCourses.contains(course) {
             semesterCourses.insert(course, at: min(idx, semesterCourses.count))
         }
-        self.selectedCourses?[destSemester] = semesterCourses
+        self.selectedSubjects[destSemester] = semesterCourses
+        needsSave = true
     }
     
     func move(_ course: Course, fromSemester semester: UserSemester, toSemester destSemester: UserSemester, atIndex idx: Int) {
         self.delete(course, fromSemester: semester)
         self.insert(course, toSemester: destSemester, atIndex: idx)
+        needsSave = true
+    }
+    
+    // MARK: - File Handling
+    
+    var subjectComponentSeparator = "#,#"
+    
+    func readUserCourses(from file: String) throws {
+        let contents = try String(contentsOfFile: file)
+        var lines = contents.components(separatedBy: "\n")
+        guard lines.count >= 2 else {
+            print("No information in this file to read")
+            return
+        }
+        
+        // First line, header information
+        let firstLine = lines.removeFirst()
+        let firstLineComps = firstLine.components(separatedBy: ";")
+        guard firstLineComps.count >= 2 else {
+            print("First line doesn't have enough information")
+            return
+        }
+        name = firstLineComps[0].trimmingCharacters(in: .whitespacesAndNewlines)
+        coursesOfStudy = firstLineComps[1].components(separatedBy: ",").flatMap({ CourseOfStudy(rawValue: $0) })
+        
+        // Do nothing with the second line for now
+        lines.removeFirst()
+        
+        selectedSubjects = [:]
+        for subjectLine in lines where subjectLine.characters.count > 0 {
+            let comps = subjectLine.components(separatedBy: subjectComponentSeparator)
+            guard comps.count >= 4 else {
+                print("Not enough components in subject line \(subjectLine)")
+                continue
+            }
+            guard let semesterRaw = Int(comps[0]),
+                let semester = UserSemester(rawValue: semesterRaw),
+                let units = Int(comps[3]) else {
+                    print("Invalid integer format in subject line \(subjectLine)")
+                    continue
+            }
+            let subjectID = comps[1]
+            
+            if CourseManager.shared.getCourse(withID: subjectID) == nil {
+                CourseManager.shared.addCourse(withID: subjectID, title: comps[2], units: units)
+            }
+            guard let course = CourseManager.shared.getCourse(withID: subjectID) else {
+                print("Unable to add course with ID \(subjectID) to course manager")
+                continue
+            }
+            
+            add(course, toSemester: semester)
+        }
+    }
+    
+    private var currentlyWriting = false
+    
+    func writeUserCourses(to file: String) throws {
+        currentlyWriting = true
+        
+        var contentsString = ""
+        // First line, header information
+        contentsString += "\(name);\(coursesOfStudy.map({ $0.rawValue }).joined(separator: ","))\n"
+        // Second line, future header information
+        contentsString += "\n"
+        // Subsequent lines, selected subjects
+        for (semester, subjects) in selectedSubjects.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+            for subject in subjects {
+                guard let id = subject.subjectID,
+                    let title = subject.subjectTitle else {
+                        print("No information to write for \(subject)")
+                        continue
+                }
+                let units = subject.totalUnits
+                contentsString += ["\(semester.rawValue)", id, title, "\(units)"].joined(separator: subjectComponentSeparator) + "\n"
+            }
+        }
+        
+        if !FileManager.default.fileExists(atPath: file) {
+            let success = FileManager.default.createFile(atPath: file, contents: nil, attributes: nil)
+            if !success {
+                print("Failed to create file at \(file)")
+            }
+        }
+        try contentsString.write(toFile: file, atomically: true, encoding: .utf8)
+        currentlyWriting = false
+    }
+    
+    func autosave() {
+        guard needsSave, let path = filePath else {
+            return
+        }
+        
+        DispatchQueue.global().async { [weak self] in
+            guard let `self` = self,
+                !self.currentlyWriting else {
+                return
+            }
+            do {
+                try self.writeUserCourses(to: path)
+            } catch {
+                print("Error writing file: \(error)")
+            }
+            self.needsSave = false
+        }
     }
 }

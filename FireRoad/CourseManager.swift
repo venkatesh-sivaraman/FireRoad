@@ -8,6 +8,14 @@
 
 import UIKit
 
+/// Enumerates the different majors and minors.
+enum CourseOfStudy: String {
+    
+    case major67 = "Major in Computational Biology"
+    case minor9 = "Minor in Brain and Cog Sci"
+    case minor21M = "Minor in Music and Theater Arts"
+}
+
 class CourseManager: NSObject {
     
     var courses: [Course] = []
@@ -15,6 +23,8 @@ class CourseManager: NSObject {
     var coursesByTitle: [String: Course] = [:]
     static let shared: CourseManager = CourseManager()
     var loadedDepartments: [String] = []
+    
+    var isLoaded = false
     
     private var loadingCompletionBlock: ((Bool) -> Void)? = nil
 
@@ -37,6 +47,7 @@ class CourseManager: NSObject {
         "Is Offered Spring Term": "isOfferedSpring",
         "Is Offered Summer Term": "isOfferedSummer",
         "Is Offered This Year": "isOfferedThisYear",
+        "Not Offered Year": "notOfferedYear",
         "Total Units": "totalUnits",
         "Design Units": "designUnits",
         "Lecture Units": "lectureUnits",
@@ -121,11 +132,13 @@ class CourseManager: NSObject {
                     completionCount += 1
                     if completionCount == 2 {
                         DispatchQueue.main.async {
+                            self.isLoaded = success
                             completion(success)
                         }
                     }
                 } else {
                     DispatchQueue.main.async {
+                        self.isLoaded = success
                         completion(success)
                     }
                 }
@@ -216,6 +229,27 @@ class CourseManager: NSObject {
         return nil
     }
     
+    func addCourse(_ course: Course) {
+        guard let processedID = course.subjectID?.replacingOccurrences(of: "[J]", with: "") else {
+            print("Tried to add course \(course) with no ID")
+            return
+        }
+        coursesByID[processedID] = course
+        if let title = course.subjectTitle {
+            coursesByTitle[title] = course
+        }
+        courses.append(course)
+    }
+    
+    func addCourse(withID subjectID: String, title: String, units: Int) {
+        let processedID = subjectID.replacingOccurrences(of: "[J]", with: "")
+        let newCourse = Course()
+        newCourse.subjectID = processedID
+        newCourse.subjectTitle = title
+        newCourse.totalUnits = units
+        addCourse(newCourse)
+    }
+    
     func color(forCourse course: Course) -> UIColor {
         if course.subjectCode != nil {
             if let color = CourseManager.colorMapping[course.subjectCode!] {
@@ -246,14 +280,7 @@ class CourseManager: NSObject {
                     } else {
                         quotedLine = ""
                         trimmed = trimmed.characters.first == Character("\"") ? String(trimmed[trimmed.index(trimmed.startIndex, offsetBy: 1)..<trimmed.index(trimmed.endIndex, offsetBy: -1)]) : trimmed
-                        do {
-                            let regex = try NSRegularExpression(pattern: "</?\\w*>", options: .caseInsensitive)
-                            let mutableString = (trimmed as NSString).mutableCopy() as! NSMutableString
-                            regex.replaceMatches(in: mutableString, options: [], range: NSMakeRange(0, trimmed.characters.count), withTemplate: "")
-                            trimmed = mutableString as String
-                        } catch {
-                            print("Error with regex: \(error)")
-                        }
+                        trimmed = trimmed.trimmingCharacters(in: .whitespacesAndNewlines)
                         if i >= self.csvHeaders!.count {
                             //print("Beyond bounds")
                         } else if self.textKeyMapping.contains(where: { $0.0 == self.csvHeaders![i] }) {

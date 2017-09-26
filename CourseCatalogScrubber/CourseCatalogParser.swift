@@ -93,6 +93,8 @@ class CourseCatalogParser: NSObject {
     
     var catalogURL: URL?
     
+    var htmlContents: String?
+    
     /**
      Finds the regions in the HTML source of the given URL that correspond to MIT
      courses. The courses are delimited by tags of the form <a name="course#">.
@@ -100,6 +102,7 @@ class CourseCatalogParser: NSObject {
     func htmlRegions(from url: URL) -> [HTMLNodeExtractor.HTMLRegion] {
         do {
             let text = try String(contentsOf: url)
+            htmlContents = text
             guard let topLevelNodes = HTMLNodeExtractor.extractNodes(from: text, ignoreErrors: true) else {
                 return []
             }
@@ -262,17 +265,36 @@ class CourseCatalogParser: NSObject {
         } else if let coreqRange = item.range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) {
             attributes[.corequisites] = filterCourseListString(item.substring(from: coreqRange.upperBound))
             
-        } else if let meetsWithRange = item.range(of: CourseCatalogConstants.meetsWithPrefix, options: .caseInsensitive),
-            item.distance(from: item.startIndex, to: meetsWithRange.lowerBound) < 3 {
-            attributes[.meetsWithSubjects] = filterCourseListString(item.substring(from: meetsWithRange.upperBound)).flatMap({ $0 })
+        } else if item.range(of: CourseCatalogConstants.meetsWithPrefix, options: .caseInsensitive) != nil ||
+            item.range(of: CourseCatalogConstants.equivalentSubjectsPrefix, options: .caseInsensitive) != nil ||
+            item.range(of: CourseCatalogConstants.jointSubjectsPrefix, options: .caseInsensitive) != nil {
             
-        } else if let equivalentRange = item.range(of: CourseCatalogConstants.equivalentSubjectsPrefix, options: .caseInsensitive),
-            item.distance(from: item.startIndex, to: equivalentRange.lowerBound) < 3 {
-            attributes[.equivalentSubjects] = filterCourseListString(item.substring(from: equivalentRange.upperBound)).flatMap({ $0 })
-            
-        } else if let jointSubjectsRange = item.range(of: CourseCatalogConstants.jointSubjectsPrefix, options: .caseInsensitive),
-            item.distance(from: item.startIndex, to: jointSubjectsRange.lowerBound) < 3 {
-            attributes[.jointSubjects] = filterCourseListString(item.substring(from: jointSubjectsRange.upperBound)).flatMap({ $0 })
+            let prefixes = [CourseCatalogConstants.meetsWithPrefix, CourseCatalogConstants.equivalentSubjectsPrefix, CourseCatalogConstants.jointSubjectsPrefix].map({ NSRegularExpression.escapedPattern(for: $0) }).joined(separator: "|")
+            guard let prefixRegex = try? NSRegularExpression(pattern: "(\(prefixes))(.+?)(?=\\z|\(prefixes))", options: [.dotMatchesLineSeparators, .caseInsensitive]) else {
+                print("Failed to load prefix regex")
+                return
+            }
+            for (i, match) in prefixRegex.matches(in: item, options: [], range: NSRange(location: 0, length: item.characters.count)).enumerated() {
+                guard let prefixRange = Range(match.rangeAt(1), in: item),
+                    let contentsRange = Range(match.rangeAt(2), in: item) else {
+                    continue
+                }
+                guard i > 0 || match.range.location <= 3 else {
+                    continue
+                }
+                let prefix = item[prefixRange]
+                let contents = item[contentsRange]
+                switch prefix.lowercased() {
+                case CourseCatalogConstants.meetsWithPrefix:
+                    attributes[.meetsWithSubjects] = filterCourseListString(contents).flatMap({ $0 })
+                case CourseCatalogConstants.equivalentSubjectsPrefix:
+                    attributes[.equivalentSubjects] = filterCourseListString(contents).flatMap({ $0 })
+                case CourseCatalogConstants.jointSubjectsPrefix:
+                    attributes[.jointSubjects] = filterCourseListString(contents).flatMap({ $0 })
+                default:
+                    print("Unrecognized prefix \(prefix)")
+                }
+            }
             
         } else if let notOfferedRange = item.range(of: CourseCatalogConstants.notOfferedPrefix, options: .caseInsensitive) {
             attributes[.notOfferedYear] = item.substring(from: notOfferedRange.upperBound).trimmingCharacters(in: .whitespacesAndNewlines)

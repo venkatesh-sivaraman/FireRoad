@@ -19,6 +19,7 @@ enum CourseDetailItem {
     case units
     case instructors
     case requirements
+    case offered
     case related
     case equivalent
     case joint
@@ -100,6 +101,9 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .instructors
             rowIndex += 1
         }
+        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
+        rowIndex += 1
+        
         rowIndex = 0
         sectionIndex += 1
 
@@ -155,7 +159,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             id = "TitleCell"
         case .description:
             id = "DescriptionCell"
-        case .units, .instructors, .requirements:
+        case .units, .instructors, .requirements, .offered:
             id = "MetadataCell"
         case .related, .equivalent, .joint, .prerequisites, .corequisites:
             id = "CourseListCell"
@@ -244,6 +248,26 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
                 reqs.append(self.course!.writingReqDescription!)
             }
             detailTextLabel?.text = reqs.joined(separator: ", ")
+        case .offered:
+            textLabel?.text = "Offered"
+            var seasons: [String] = []
+            if self.course!.isOfferedFall {
+                seasons.append("fall")
+            }
+            if self.course!.isOfferedIAP {
+                seasons.append("IAP")
+            }
+            if self.course!.isOfferedSpring {
+                seasons.append("spring")
+            }
+            if self.course!.isOfferedSummer {
+                seasons.append("summer")
+            }
+            var offeredString = self.course!.offeringPattern.rawValue
+            if self.course!.offeringPattern == .alternateYears, let notOffered = self.course?.notOfferedYear {
+                offeredString += " (not offered \(notOffered))"
+            }
+            detailTextLabel?.text = offeredString + "\n" + seasons.joined(separator: ", ").capitalized
         case .related:
             (cell as! CourseListCell).courses = []
             for (myID, _) in self.course!.relatedSubjects {

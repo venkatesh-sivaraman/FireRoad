@@ -11,49 +11,29 @@ import UIKit
 class CourseroadViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseBrowserDelegate, CourseDetailsDelegate, CourseThumbnailCellDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
-    var currentUser: User? = nil
+    var currentUser: User? {
+        didSet {
+            collectionView.reloadData()
+        }
+    }
     var panelView: PanelViewController? = nil
     var courseBrowser: CourseBrowserViewController? = nil
     
     @IBOutlet var loadingView: UIView?
     @IBOutlet var loadingIndicator: UIActivityIndicatorView?
     
+    @IBOutlet var bigLayoutConstraints: [NSLayoutConstraint]!
+    @IBOutlet var smallLayoutConstraints: [NSLayoutConstraint]!
+    var isSmallLayoutMode = false
+    
     let viewMenuItemTitle = "View"
     let deleteMenuItemTitle = "Delete"
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if CourseManager.shared.courses.count == 0 {
-            loadingView?.isHidden = false
-            loadingIndicator?.startAnimating()
-            CourseManager.shared.loadCourses { [weak self] (success: Bool) in
-                if success {
-                    self?.currentUser = User()
-                }
-                self?.collectionView.reloadData()
-                if let loadingView = self?.loadingView,
-                    let collectionView = self?.collectionView {
-                    collectionView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                    collectionView.alpha = 0.0
-                    UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
-                        collectionView.alpha = 1.0
-                        collectionView.transform = CGAffineTransform.identity
-                        loadingView.alpha = 0.0
-                        loadingView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
-                    }, completion: { (completed) in
-                        if completed {
-                            loadingView.isHidden = true
-                            self?.loadingIndicator?.stopAnimating()
-                        }
-                    })
-                    /*UIView.animate(withDuration: 0.3, delay: 0.0, options: .curveEaseInOut, animations: {
-                    }, completion: { (completed) in
-                        if completed {
-                            loadingView.isHidden = true
-                            self?.loadingIndicator?.stopAnimating()
-                        }
-                    })*/
-                }
+        if !CourseManager.shared.isLoaded {
+            CourseManager.shared.loadCourses { (success: Bool) in
+                print("Success: \(success)")
             }
         }
         
@@ -81,6 +61,72 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         menu.menuItems = [
             UIMenuItem(title: viewMenuItemTitle, action: #selector(CourseThumbnailCell.viewDetails(_:)))
         ]
+        
+        loadRecentCourseroad()
+    }
+    
+    let recentCourseroadPathDefaultsKey = "recent-courseroad-filepath"
+    
+    func loadRecentCourseroad() {
+        var loaded = false
+        if let recentPath = UserDefaults.standard.string(forKey: recentCourseroadPathDefaultsKey),
+            let dirPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first {
+            let url = URL(fileURLWithPath: dirPath)
+            do {
+                currentUser = try User(contentsOfFile: url.appendingPathComponent(recentPath).path)
+                loaded = true
+            } catch {
+                print("Error loading user: \(error)")
+            }
+        }
+        if !loaded {
+            if !CourseManager.shared.isLoaded {
+                loadingView?.isHidden = false
+                loadingIndicator?.startAnimating()
+            }
+            DispatchQueue.global().async {
+                while !CourseManager.shared.isLoaded {
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    self.currentUser = User()
+                    if let dirPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first {
+                        let url = URL(fileURLWithPath: dirPath)
+                        self.currentUser?.filePath = url.appendingPathComponent("first_steps.road").path
+                    }
+                    self.currentUser?.coursesOfStudy = [ .major67, .minor9, .minor21M ]
+                    self.currentUser?.add(CourseManager.shared.getCourse(withID: "8.02")!, toSemester: .FreshmanFall)
+                    self.currentUser?.add(CourseManager.shared.getCourse(withID: "5.112")!, toSemester: .FreshmanFall)
+                    self.currentUser?.add(CourseManager.shared.getCourse(withID: "6.006")!, toSemester: .FreshmanFall)
+                    self.currentUser?.add(CourseManager.shared.getCourse(withID: "17.55")!, toSemester: .FreshmanFall)
+                    self.currentUser?.add(CourseManager.shared.getCourse(withID: "18.03")!, toSemester: .FreshmanSpring)
+                    self.currentUser?.add(CourseManager.shared.getCourse(withID: "7.013")!, toSemester: .FreshmanSpring)
+                    self.currentUser?.add(CourseManager.shared.getCourse(withID: "21M.284")!, toSemester: .FreshmanSpring)
+                    self.currentUser?.add(CourseManager.shared.getCourse(withID: "6.046")!, toSemester: .FreshmanSpring)
+                    self.currentUser?.autosave()
+                    if let path = self.currentUser?.filePath {
+                        UserDefaults.standard.set((path as NSString).lastPathComponent, forKey: self.recentCourseroadPathDefaultsKey)
+                    }
+                    if let loadingView = self.loadingView,
+                        let collectionView = self.collectionView {
+                        collectionView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                        collectionView.alpha = 0.0
+                        UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
+                            collectionView.alpha = 1.0
+                            collectionView.transform = CGAffineTransform.identity
+                            loadingView.alpha = 0.0
+                            loadingView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+                        }, completion: { (completed) in
+                            if completed {
+                                loadingView.isHidden = true
+                                self.loadingIndicator?.stopAnimating()
+                            }
+                        })
+                    }
+                }
+            }
+        }
+
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -174,6 +220,9 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         return cell
     }
     
+    /// Used to prevent a ghost cell from appearing beneath the destination of the moving cell.
+    var indexPathOfMovedCell: IndexPath?
+    
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
             cell.alpha = 0.0
@@ -182,6 +231,30 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             cell.alpha = 1.0
             cell.layer.opacity = 1.0
         }
+        
+        updateCellForLayoutSizeMode(cell)
+        
+        if indexPath == indexPathOfMovedCell {
+            cell.isHidden = true
+            indexPathOfMovedCell = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                cell.isHidden = false
+            }
+        }
+    }
+    
+    func updateCellForLayoutSizeMode(_ cell: UICollectionViewCell) {
+        if let smallLayout = (cell as? CourseThumbnailCell)?.smallLayoutConstraints,
+        let bigLayout = (cell as? CourseThumbnailCell)?.bigLayoutConstraints {
+            if !isSmallLayoutMode {
+                NSLayoutConstraint.deactivate(smallLayout)
+                NSLayoutConstraint.activate(bigLayout)
+            } else {
+                NSLayoutConstraint.deactivate(bigLayout)
+                NSLayoutConstraint.activate(smallLayout)
+            }
+        }
+        (cell as? CourseThumbnailCell)?.detailTextLabel?.isHidden = isSmallLayoutMode
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -207,6 +280,9 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if isSmallLayoutMode {
+            return CGSize(width: 116.0, height: 48.0)
+        }
         return CGSize(width: 116.0, height: 112.0)
     }
     
@@ -245,7 +321,10 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         let originalSemester = UserSemester(rawValue: sourceIndexPath.section)!
         let destSemester = UserSemester(rawValue: destinationIndexPath.section)!
         let course = self.currentUser!.courses(forSemester: originalSemester)[sourceIndexPath.item]
-        self.collectionView.performBatchUpdates({ 
+        if destinationIndexPath != sourceIndexPath {
+            indexPathOfMovedCell = destinationIndexPath
+        }
+        self.collectionView.performBatchUpdates({
             if self.currentUser!.courses(forSemester: UserSemester(rawValue: destinationIndexPath.section)!).count == 0 {
                 self.collectionView.deleteItems(at: [IndexPath(item: destinationIndexPath.item == 0 ? 1 : 0, section: destinationIndexPath.section)])
             }
@@ -397,6 +476,16 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
                 self.collectionView.deleteItems(at: [indexPath])
             }
         }
+    }
+    
+    // MARK: - View
+    
+    @IBAction func toggleViewLayoutMode(_ sender: AnyObject) {
+        isSmallLayoutMode = !isSmallLayoutMode
+        for cell in collectionView.visibleCells {
+            updateCellForLayoutSizeMode(cell)
+        }
+        collectionView.collectionViewLayout.invalidateLayout()
     }
 }
 
