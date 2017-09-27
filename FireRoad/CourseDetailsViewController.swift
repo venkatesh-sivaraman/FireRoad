@@ -263,11 +263,11 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             if self.course!.isOfferedSummer {
                 seasons.append("summer")
             }
-            var offeredString = self.course!.offeringPattern.rawValue
+            var offeredString = ""
             if self.course!.offeringPattern == .alternateYears, let notOffered = self.course?.notOfferedYear {
-                offeredString += " (not offered \(notOffered))"
+                offeredString = "\nNot offered \(notOffered)"
             }
-            detailTextLabel?.text = offeredString + "\n" + seasons.joined(separator: ", ").capitalized
+            detailTextLabel?.text = seasons.joined(separator: ", ").capitalized + offeredString
         case .related:
             (cell as! CourseListCell).courses = []
             for (myID, _) in self.course!.relatedSubjects {

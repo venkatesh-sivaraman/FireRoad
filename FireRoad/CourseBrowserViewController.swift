@@ -94,32 +94,23 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             var newResults: [Course: Float] = [:]
             for course in CourseManager.shared.courses {
                 var relevance: Float = 0.0
+                let courseComps = [String?]([course.subjectID, course.subjectID, course.subjectID, course.subjectTitle, course.communicationRequirement, course.communicationReqDescription, course.hassAttribute, course.hassAttributeDescription, course.GIRAttribute, course.GIRAttributeDescription])
+                let courseText = (courseComps.flatMap({ $0 }) + course.instructors).joined(separator: "\n").lowercased()
+                if course.instructors.contains(where: { $0.contains("Demaine") }) || course.communicationReqDescription?.contains("CI-H") == true {
+                    print("Found")
+                }
                 for comp in comps {
-                    if course.subjectID != nil {
-                        let id = course.subjectID!.lowercased()
-                        if id.contains(comp) {
-                            if id == comp.lowercased() {
-                                relevance += 30.0 * Float(comp.characters.count)
-                            } else if let range = id.range(of: comp) {
-                                if range.lowerBound == id.startIndex {
-                                    relevance += 20.0 * Float(comp.characters.count)
-                                } else {
-                                    relevance += Float(comp.characters.count)
-                                }
+                    if courseText.contains(comp) {
+                        let separated = courseText.components(separatedBy: comp)
+                        var multiplier: Float = 1.0
+                        for sepComp in separated {
+                            if sepComp.trimmingCharacters(in: .whitespacesAndNewlines).characters.count < sepComp.characters.count {
+                                multiplier += 10.0
+                            } else {
+                                multiplier += 1.0
                             }
                         }
-                    }
-                    if course.subjectTitle != nil {
-                        let id = course.subjectTitle!.lowercased()
-                        if id.contains(comp) {
-                            if id == comp.lowercased() {
-                                relevance += 10.0 * Float(comp.characters.count)
-                            } else if let range = id.range(of: comp) {
-                                if range.lowerBound == id.startIndex || id.characters[id.index(range.lowerBound, offsetBy: -1, limitedBy: id.startIndex)!] == Character(" ") {
-                                    relevance += Float(comp.characters.count)
-                                }
-                            }
-                        }
+                        relevance += multiplier * Float(comp.characters.count)
                     }
                 }
                 if relevance > 0.0 {

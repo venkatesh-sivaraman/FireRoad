@@ -374,7 +374,7 @@ class CourseCatalogParser: NSObject {
                     break
                 }
                 
-                let contents = node.contents.replacingOccurrences(of: "<br>", with: "", options: .caseInsensitive)
+                let contents = node.contents.replacingOccurrences(of: "<br>", with: "\n", options: .caseInsensitive)
                 let lines = contents.components(separatedBy: .newlines)
                 for line in lines {
                     guard unnecessaryLinesIdentifyingText.first(where: { line.lowercased().contains($0) }) == nil else {

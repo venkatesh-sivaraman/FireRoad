@@ -139,7 +139,7 @@ class Course: NSObject {
     var offeringPattern: CourseOfferingPattern = .everyYear
     
     func updateOfferingPattern() {
-        if notOfferedYear != nil {
+        if let notOffered = notOfferedYear, notOffered.characters.count > 0 {
             offeringPattern = .alternateYears
         } else {
             offeringPattern = isOfferedThisYear ? .everyYear : .never

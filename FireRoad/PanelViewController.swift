@@ -10,7 +10,23 @@ import UIKit
 
 class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
 
-    var heightConstraint: NSLayoutConstraint? = nil
+    private var _heightConstraint: NSLayoutConstraint?
+    private var heightConstraint: NSLayoutConstraint? {
+        get {
+            if _heightConstraint == nil {
+                if self.parent != nil {
+                    let container = self.view.superview!
+                    for constraint in container.constraints {
+                        if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
+                            _heightConstraint = constraint
+                            break
+                        }
+                    }
+                }
+            }
+            return _heightConstraint
+        }
+    }
     var collapseHeight: CGFloat = 0.0
     var expandedHeight: CGFloat {
         get {
@@ -19,6 +35,8 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     public private(set) var isExpanded: Bool = false
+    
+    private var bottomConstraint: NSLayoutConstraint?
     
     private var childNavigationController: UINavigationController? = nil
 
@@ -52,7 +70,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
             }
         }
     }
-    
+        
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -66,15 +84,6 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     @objc func handlePanGesture(sender: UIPanGestureRecognizer) {
         switch sender.state {
         case .began:
-            if self.parent != nil {
-                let container = self.view.superview!
-                for constraint in container.constraints {
-                    if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
-                        self.heightConstraint = constraint
-                        break
-                    }
-                }
-            }
             panAnchor = self.view.frame.size.height - sender.location(in: self.view).y
         case .changed:
             if self.heightConstraint != nil {
@@ -105,9 +114,15 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     var dimView: UIView? {
         get {
             if _dimView == nil {
-                _dimView = UIView(frame: self.view.convert(self.view.superview!.superview!.bounds, from: self.view.superview!.superview!))
+                let vcForBounds = self.parent ?? self
+                _dimView = UIView(frame: self.view.convert(vcForBounds.view.bounds, from: vcForBounds.view))
+                _dimView?.translatesAutoresizingMaskIntoConstraints = false
                 _dimView?.backgroundColor = UIColor.black.withAlphaComponent(0.5)
                 self.view.insertSubview(_dimView!, at: 0)
+                _dimView?.leftAnchor.constraint(equalTo: vcForBounds.view.leftAnchor).isActive = true
+                _dimView?.rightAnchor.constraint(equalTo: vcForBounds.view.rightAnchor).isActive = true
+                _dimView?.topAnchor.constraint(equalTo: vcForBounds.view.topAnchor).isActive = true
+                _dimView?.bottomAnchor.constraint(equalTo: vcForBounds.view.bottomAnchor).isActive = true
                 _dimView?.alpha = 0.0
             }
             return _dimView
@@ -137,8 +152,10 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
             self.childNavigationController?.popToRootViewController(animated: true)
         }
         self.collapseHeight = height
+        bottomConstraint?.constant = 12.0
         for constraint in container.constraints {
             if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
+                constraint.isActive = true
                 isExpanded = false
                 UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
                     constraint.constant = height
@@ -162,7 +179,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
             if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
                 isExpanded = true
                 UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
-                    constraint.constant = self.expandedHeight
+                    constraint.constant = 10000.0
                     self.parent!.view.setNeedsLayout()
                     self.parent!.view.layoutIfNeeded()
                     self.showDimView()
@@ -174,30 +191,38 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @objc func keyboardWillChangeFrame(sender: Notification) {
         if self.parent != nil {
-            let deltaY = min((sender.userInfo![UIKeyboardFrameEndUserInfoKey]! as! CGRect).origin.y, self.parent!.view.frame.size.height - self.parent!.bottomLayoutGuide.length) - min((sender.userInfo![UIKeyboardFrameBeginUserInfoKey]! as! CGRect).origin.y, self.parent!.view.frame.size.height - self.parent!.bottomLayoutGuide.length)
-            let container = self.view.superview!
-            for constraint in container.constraints {
-                if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
-                    var newConstant: CGFloat = constraint.constant
-                    var isExpanding: Bool = false
-                    if !isExpanded {
-                        isExpanding = true
-                        newConstant = self.parent!.view.frame.size.height - self.parent!.bottomLayoutGuide.length - container.convert(CGPoint.zero, to: self.parent!.view).y - 12.0
-                        isExpanded = true
+            let deltaY = (sender.userInfo![UIKeyboardFrameBeginUserInfoKey]! as! CGRect).origin.y - (sender.userInfo![UIKeyboardFrameEndUserInfoKey]! as! CGRect).origin.y
+            if bottomConstraint == nil, let container = self.view.superview, let sview = container.superview {
+                for constraint in sview.constraints {
+                    if (constraint.firstItem as? UIView == container && constraint.firstAttribute == .bottom && constraint.secondItem as? UIView == sview) ||
+                        (constraint.firstItem as? UIView == sview && constraint.secondAttribute == .bottom && constraint.secondItem as? UIView == container) {
+                        bottomConstraint = constraint
+                        break
                     }
-                    newConstant += deltaY
-                    
-                    let curve: UIViewAnimationOptions = UIViewAnimationOptions(rawValue: (sender.userInfo![UIKeyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
-                    UIView.animate(withDuration: sender.userInfo![UIKeyboardAnimationDurationUserInfoKey] as! TimeInterval, delay: 0.0, options: [curve, .beginFromCurrentState], animations: {
-                        constraint.constant = newConstant
-                        self.parent!.view.setNeedsLayout()
-                        self.parent!.view.layoutIfNeeded()
-                        if isExpanding {
-                            self.showDimView()
-                        }
-                    }, completion: nil)
-                    break
                 }
+            }
+            if let bottomConstraint = bottomConstraint {
+                let newConstant: CGFloat = bottomConstraint.constant + deltaY
+                if newConstant < 12.0 {
+                    // A junk update value
+                    return
+                }
+                var isExpanding: Bool = false
+                if !isExpanded {
+                    isExpanding = true
+                    heightConstraint?.constant = 10000.0
+                    isExpanded = true
+                }
+                
+                let curve: UIViewAnimationOptions = UIViewAnimationOptions(rawValue: (sender.userInfo![UIKeyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
+                UIView.animate(withDuration: sender.userInfo![UIKeyboardAnimationDurationUserInfoKey] as! TimeInterval, delay: 0.0, options: [curve, .beginFromCurrentState], animations: {
+                    bottomConstraint.constant = newConstant
+                    self.parent!.view.setNeedsLayout()
+                    self.parent!.view.layoutIfNeeded()
+                    if isExpanding {
+                        self.showDimView()
+                    }
+                }, completion: nil)
             }
         }
     }

@@ -128,7 +128,7 @@ class HTMLNodeExtractor: NSObject {
         textString = commentRegex.stringByReplacingMatches(in: textString as String, options: [], range: NSRange(location: 0, length: textString.length), withTemplate: "") as NSString
         
         // Matches tags of the form <xyz ...>, </xyz ...>, <xyz ... />, etc.
-        guard let tagRegex = try? NSRegularExpression(pattern: "<(/?)(\\w+)(.*?)(/?)>", options: .dotMatchesLineSeparators) else {
+        guard let tagRegex = try? NSRegularExpression(pattern: "<(/?)(\\w+)(.*?)(/?)>", options: [.dotMatchesLineSeparators, .caseInsensitive]) else {
             print("Failed to generate tag regex")
             return nil
         }
@@ -178,6 +178,8 @@ class HTMLNodeExtractor: NSObject {
                     // Update the last node's stripped contents
                     var lastContentsBound = lastNode.contentsRange.location
                     if let lastNodesLastNode = lastNode.childNodes.last {
+                        lastNode.strippedContents += textString.substring(with: NSRange(location: lastContentsBound, length: lastNodesLastNode.enclosingRange.location - lastContentsBound))
+                        lastNode.strippedContents += lastNodesLastNode.strippedContents
                         lastContentsBound = lastNodesLastNode.enclosingRange.location + lastNodesLastNode.enclosingRange.length
                     } else {
                         lastNode.strippedContents = ""

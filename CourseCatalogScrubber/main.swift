@@ -50,12 +50,15 @@ func writeCondensedCourses(_ courses: [[CourseAttribute: Any]], to file: String)
         try parser.writeCourses(courses, to: file, attributes: [
             .subjectID,
             .title,
-            .totalUnits,
             .notOfferedYear,
             .offeredFall,
             .offeredIAP,
             .offeredSpring,
-            .offeredSummer
+            .offeredSummer,
+            .instructors,
+            .communicationRequirement,
+            .hassRequirement,
+            .GIR
             ])
     } catch {
         print("Error writing condensed course file: \(error)")

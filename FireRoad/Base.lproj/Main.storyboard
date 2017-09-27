@@ -230,7 +230,7 @@
                                 <rect key="frame" x="12" y="26" width="351" height="60"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="60" id="lfI-rH-fYw"/>
+                                    <constraint firstAttribute="height" priority="995" constant="60" id="lfI-rH-fYw"/>
                                     <constraint firstAttribute="width" priority="995" constant="380" id="m6L-3R-iTO"/>
                                 </constraints>
                                 <variation key="default">
@@ -262,7 +262,9 @@
                             </constraint>
                             <constraint firstItem="mEg-8F-M2W" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" id="Tj3-YM-x4x"/>
                             <constraint firstAttribute="trailing" secondItem="ahT-Sm-dNV" secondAttribute="trailing" id="YgD-Xz-mOY"/>
+                            <constraint firstItem="4ug-Mw-9AY" firstAttribute="top" relation="greaterThanOrEqual" secondItem="o13-ex-V0G" secondAttribute="bottom" constant="12" id="bAm-xm-CEk"/>
                             <constraint firstItem="o13-ex-V0G" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" constant="12" id="bZG-he-D6i"/>
+                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="o13-ex-V0G" secondAttribute="bottom" constant="12" id="bnz-Xe-FpZ"/>
                             <constraint firstItem="mEg-8F-M2W" firstAttribute="top" secondItem="tsR-hK-woN" secondAttribute="top" id="fDw-Lr-OlS"/>
                             <constraint firstAttribute="trailing" secondItem="o13-ex-V0G" secondAttribute="trailing" constant="12" id="i85-fW-yoE"/>
                             <constraint firstItem="c2J-fQ-6id" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" id="jwS-4K-6b8"/>
