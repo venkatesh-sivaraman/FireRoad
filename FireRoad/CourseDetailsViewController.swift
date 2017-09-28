@@ -230,7 +230,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             textLabel?.text = "Units"
             detailTextLabel?.text = "\(self.course!.totalUnits) total\n(\(self.course!.lectureUnits)-\(self.course!.labUnits)-\(self.course!.preparationUnits))"
         case .instructors:
-            textLabel?.text = "Instructors"
+            textLabel?.text = "Instructor\(self.course!.instructors.count != 1 ? "s" : "")"
             detailTextLabel?.text = self.course!.instructors.joined(separator: ",")
         case .requirements:
             textLabel?.text = "Fulfills"
