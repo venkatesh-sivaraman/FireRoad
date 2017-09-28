@@ -7,6 +7,8 @@
 //
 
 import UIKit
+import CoreSpotlight
+import MobileCoreServices
 
 /// Enumerates the different majors and minors.
 enum CourseOfStudy: String {
@@ -70,7 +72,41 @@ class CourseManager: NSObject {
     ]
     private var csvHeaders: [String]? = nil
     
-    static let colorMapping: [String: UIColor] = [
+    static let departmentNumbers = [
+        /*"3", "1", "4", "2", "22",
+        "16", "8", "18", "14", "17",
+        "24", "21", "21A", "21W", "CMS",
+        "MAS", "21G", "21H", "21L", "21M",
+        "WGS", "CC", "EC", "EM", "ES",
+        "IDS", "STS", "SWE", "SP", "SCM",
+        "15", "11", "12", "10", "5",
+        "20", "6", "7", "CSB", "HST", "9"*/
+        "1", "2", "3", "4",
+        "5", "6", "7", "8",
+        "9", "10", "11", "12",
+        "14", "15", "16", "17",
+        "18", "20", "21", "21A",
+        "21W", "CMS", "21G", "21H",
+        "21L", "21M", "WGS", "22",
+        "24", "CC", "CSB", "EC",
+        "EM", "ES", "HST", "IDS",
+        "MAS", "SCM", "STS", "SWE", "SP"
+    ]
+    static let colorMapping: [String: UIColor] = {
+        let saturation = CGFloat(0.7)
+        let brightness = CGFloat(0.87)
+        let stepSize = CGFloat(4.0)  // (Department numbers % step size) should be non-zero
+        let startPoint = 1.0 / CGFloat(CourseManager.departmentNumbers.count)
+        
+        var ret: [String: UIColor] = [:]
+        var currentHue = startPoint
+        for number in CourseManager.departmentNumbers {
+            ret[number] = UIColor(hue: currentHue, saturation: saturation, brightness: brightness, alpha: 1.0)
+            currentHue += fmod(stepSize / CGFloat(CourseManager.departmentNumbers.count), 1.0)
+        }
+        return ret
+    }()
+        /*[
         "1": UIColor(hue: 3.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
         "2": UIColor(hue: 6.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
         "3": UIColor(hue: 9.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
@@ -110,7 +146,7 @@ class CourseManager: NSObject {
         "SCM": UIColor(hue: 26.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
         "STS": UIColor(hue: 29.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
         "SWE": UIColor(hue: 32.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-    ]
+    ]*/
     
     func loadCourses(completion: @escaping ((Bool) -> Void)) {
         
@@ -131,6 +167,7 @@ class CourseManager: NSObject {
                 if success {
                     completionCount += 1
                     if completionCount == 2 {
+                        self.indexSearchableItemsInBackground()
                         DispatchQueue.main.async {
                             self.isLoaded = success
                             completion(success)
@@ -334,5 +371,47 @@ class CourseManager: NSObject {
             }
         }
         
+    }
+    
+    // MARK: - Spotlight
+    
+    static let spotlightDomainIdentifier = (Bundle.main.bundleIdentifier ?? "FireRoadNoBundleID") + ".course"
+    
+    private func indexSearchableItems() {
+        var allItems: [CSSearchableItem] = []
+        let separatorSet = CharacterSet.whitespacesAndNewlines.union(.punctuationCharacters)
+        for course in courses {
+            guard let id = course.subjectID, let title = course.subjectTitle else {
+                continue
+            }
+            let attributeSet = CSSearchableItemAttributeSet()
+            attributeSet.title = id + " – " + title
+            
+            let infoItems: [String] = [course.GIRAttributeDescription, course.hassAttributeDescription, course.communicationReqDescription].flatMap({ $0 }).filter({ $0.characters.count > 0 })
+            var infoString = infoItems.joined(separator: ", ")
+            if course.instructors.count > 0 {
+                infoString += "\nTaught by \(course.instructors.joined(separator: ", "))"
+            }
+            attributeSet.contentDescription = infoString
+            
+            attributeSet.keywords = (id + title + infoString).components(separatedBy: separatorSet).filter { (word) -> Bool in
+                (word.characters.count >= 4) || word == id
+                
+                } as [String]
+            let item = CSSearchableItem(uniqueIdentifier: id, domainIdentifier: CourseManager.spotlightDomainIdentifier, attributeSet: attributeSet)
+            allItems.append(item)
+        }
+        
+        CSSearchableIndex.default().indexSearchableItems(allItems) { (error) -> Void in
+            if error != nil {
+                print("An error occurred: \(String(describing: error))")
+            }
+        }
+    }
+    
+    func indexSearchableItemsInBackground() {
+        DispatchQueue.global(qos: .utility).async {
+            self.indexSearchableItems()
+        }
     }
 }

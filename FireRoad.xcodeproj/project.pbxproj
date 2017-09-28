@@ -71,6 +71,8 @@
 		9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF61EB9251A005F87CB /* CourseManager.swift */; };
 		9646CFF91EB92525005F87CB /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF81EB92525005F87CB /* User.swift */; };
 		96500EAE1F7A056400872F82 /* RoundedToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */; };
+		96500EB11F7C91C500872F82 /* CoreSpotlight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB01F7C91C400872F82 /* CoreSpotlight.framework */; };
+		96500EB31F7C91CA00872F82 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
 		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
 		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
@@ -170,6 +172,8 @@
 		9646CFF61EB9251A005F87CB /* CourseManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseManager.swift; sourceTree = "<group>"; };
 		9646CFF81EB92525005F87CB /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedToolbarView.swift; sourceTree = "<group>"; };
+		96500EB01F7C91C400872F82 /* CoreSpotlight.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreSpotlight.framework; path = System/Library/Frameworks/CoreSpotlight.framework; sourceTree = SDKROOT; };
+		96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
 		96897B171EC8F5500011E572 /* CourseListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseListCell.swift; sourceTree = "<group>"; };
 		968FE0551F75F86D0098E97F /* CourseCatalogScrubber */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CourseCatalogScrubber; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -185,6 +189,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				96500EB31F7C91CA00872F82 /* MobileCoreServices.framework in Frameworks */,
+				96500EB11F7C91C500872F82 /* CoreSpotlight.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,6 +272,7 @@
 				9646CFE81EB921FF005F87CB /* FireRoadTests */,
 				968FE0561F75F86D0098E97F /* CourseCatalogScrubber */,
 				9646CFD01EB921FE005F87CB /* Products */,
+				96500EAF1F7C91C400872F82 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -314,6 +321,15 @@
 				9646CFEB1EB921FF005F87CB /* Info.plist */,
 			);
 			path = FireRoadTests;
+			sourceTree = "<group>";
+		};
+		96500EAF1F7C91C400872F82 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */,
+				96500EB01F7C91C400872F82 /* CoreSpotlight.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		968FE0561F75F86D0098E97F /* CourseCatalogScrubber */ = {

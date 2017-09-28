@@ -289,13 +289,16 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             (cell as! CourseListCell).collectionView.reloadData()
         case .prerequisites:
             (cell as! CourseListCell).courses = []
-            for myID in self.course!.prerequisites.flatMap({ $0 }) {
+            let prereqs = self.course!.prerequisites.flatMap({ $0 })
+            for myID in prereqs {
                 if myID.range(of: "[") != nil || myID.range(of: "{") != nil {
                     continue
                 }
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
                     (cell as! CourseListCell).courses.append(equivCourse!)
+                } else if prereqs.count == 1, myID.lowercased().contains("permission of instructor") {
+                    (cell as! CourseListCell).courses.append(Course(courseID: "None", courseTitle: "(Permission of instructor)", courseDescription: ""))
                 } else if myID.contains("GIR") {
                     (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: descriptionForGIR(attribute: myID).replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: ""))
                 }
@@ -304,8 +307,9 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             (cell as! CourseListCell).collectionView.reloadData()
         case .corequisites:
             (cell as! CourseListCell).courses = []
-            for id in self.course!.corequisites.flatMap({ $0 }) {
-                let myID = String(id[(id.index(id.startIndex, offsetBy: 1))..<(id.index(id.endIndex, offsetBy: -1))])
+            for myID in self.course!.corequisites.flatMap({ $0 }) {
+                // Useful when the corequisites were notated in brackets, but not anymore
+                //let myID = String(id[(id.index(id.startIndex, offsetBy: 1))..<(id.index(id.endIndex, offsetBy: -1))])
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
                     (cell as! CourseListCell).courses.append(equivCourse!)

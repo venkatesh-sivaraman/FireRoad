@@ -35,6 +35,9 @@ enum CourseOfferingPattern: String {
 
 class Course: NSObject {
     
+    /*
+     Be sure to add the new properties to the transferInformation(to:) method!!
+     */
     @objc dynamic var academicYear: String? = nil
     @objc dynamic var communicationRequirement: String? = nil {
         didSet {
@@ -202,6 +205,7 @@ class Course: NSObject {
         course.onlinePageNumber = onlinePageNumber
         course.preparationUnits = preparationUnits
         course.prerequisites = prerequisites
+        course.corequisites = corequisites
         course.printSubjectID = printSubjectID
         course.schoolWideElectives = schoolWideElectives
         course.statusChange = statusChange
@@ -216,6 +220,7 @@ class Course: NSObject {
         course.writingRequirement = writingRequirement
         course.writingReqDescription = writingReqDescription
         course.enrollmentNumber = enrollmentNumber
+        course.relatedSubjects = relatedSubjects
     }
     
     override func setValue(_ value: Any?, forKey key: String) {

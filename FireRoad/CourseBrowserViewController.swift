@@ -96,16 +96,18 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                 var relevance: Float = 0.0
                 let courseComps = [String?]([course.subjectID, course.subjectID, course.subjectID, course.subjectTitle, course.communicationRequirement, course.communicationReqDescription, course.hassAttribute, course.hassAttributeDescription, course.GIRAttribute, course.GIRAttributeDescription])
                 let courseText = (courseComps.flatMap({ $0 }) + course.instructors).joined(separator: "\n").lowercased()
-                if course.instructors.contains(where: { $0.contains("Demaine") }) || course.communicationReqDescription?.contains("CI-H") == true {
-                    print("Found")
-                }
                 for comp in comps {
                     if courseText.contains(comp) {
                         let separated = courseText.components(separatedBy: comp)
                         var multiplier: Float = 1.0
-                        for sepComp in separated {
-                            if sepComp.trimmingCharacters(in: .whitespacesAndNewlines).characters.count < sepComp.characters.count {
-                                multiplier += 10.0
+                        for (i, sepComp) in separated.enumerated() {
+                            if sepComp.characters.count > 0, i < separated.count - 1 {
+                                let lastCharacter = sepComp[sepComp.index(before: sepComp.endIndex)..<sepComp.endIndex]
+                                if lastCharacter.trimmingCharacters(in: .newlines).characters.count == 0 {
+                                    multiplier += 20.0
+                                } else if lastCharacter.trimmingCharacters(in: .whitespaces).characters.count == 0 {
+                                    multiplier += 10.0
+                                }
                             } else {
                                 multiplier += 1.0
                             }

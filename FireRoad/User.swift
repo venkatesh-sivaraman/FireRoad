@@ -84,7 +84,6 @@ class User: NSObject {
     
     init(contentsOfFile path: String) throws {
         super.init()
-        self.filePath = path
         try readUserCourses(from: path)
     }
     
@@ -143,6 +142,7 @@ class User: NSObject {
     var subjectComponentSeparator = "#,#"
     
     func readUserCourses(from file: String) throws {
+        self.filePath = file
         let contents = try String(contentsOfFile: file)
         var lines = contents.components(separatedBy: "\n")
         guard lines.count >= 2 else {
