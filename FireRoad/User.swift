@@ -120,6 +120,11 @@ class User: NSObject {
         }
         self.selectedSubjects[destSemester] = semesterCourses
         needsSave = true
+        
+        // Index the new department for Spotlight
+        if let code = course.subjectCode {
+            CourseManager.shared.indexSearchableItems(forDepartment: code)
+        }
     }
     
     func insert(_ course: Course, toSemester destSemester: UserSemester, atIndex idx: Int) {
@@ -129,6 +134,11 @@ class User: NSObject {
         }
         self.selectedSubjects[destSemester] = semesterCourses
         needsSave = true
+        
+        // Index the new department for Spotlight
+        if let code = course.subjectCode {
+            CourseManager.shared.indexSearchableItems(forDepartment: code)
+        }
     }
     
     func move(_ course: Course, fromSemester semester: UserSemester, toSemester destSemester: UserSemester, atIndex idx: Int) {

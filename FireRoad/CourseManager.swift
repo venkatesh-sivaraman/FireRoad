@@ -167,7 +167,7 @@ class CourseManager: NSObject {
                 if success {
                     completionCount += 1
                     if completionCount == 2 {
-                        self.indexSearchableItemsInBackground()
+                        //self.indexSearchableItemsInBackground()
                         DispatchQueue.main.async {
                             self.isLoaded = success
                             completion(success)
@@ -377,11 +377,16 @@ class CourseManager: NSObject {
     
     static let spotlightDomainIdentifier = (Bundle.main.bundleIdentifier ?? "FireRoadNoBundleID") + ".course"
     
-    private func indexSearchableItems() {
+    var indexedDepartments: [String] = []
+    
+    private func indexSearchableItems(for department: String? = nil) {
         var allItems: [CSSearchableItem] = []
         let separatorSet = CharacterSet.whitespacesAndNewlines.union(.punctuationCharacters)
         for course in courses {
             guard let id = course.subjectID, let title = course.subjectTitle else {
+                continue
+            }
+            guard department == nil || course.subjectCode == department else {
                 continue
             }
             let attributeSet = CSSearchableItemAttributeSet()
@@ -394,17 +399,19 @@ class CourseManager: NSObject {
             }
             attributeSet.contentDescription = infoString
             
-            attributeSet.keywords = (id + title + infoString).components(separatedBy: separatorSet).filter { (word) -> Bool in
-                (word.characters.count >= 4) || word == id
+            attributeSet.keywords = [id] + [title, infoString].joined(separator: "\n").components(separatedBy: separatorSet).filter { (word) -> Bool in
+                ((word.characters.count >= 4) || word == id) && word != "Taught"
                 
                 } as [String]
-            let item = CSSearchableItem(uniqueIdentifier: id, domainIdentifier: CourseManager.spotlightDomainIdentifier, attributeSet: attributeSet)
+            let item = CSSearchableItem(uniqueIdentifier: CourseManager.spotlightDomainIdentifier + "." + id, domainIdentifier: CourseManager.spotlightDomainIdentifier, attributeSet: attributeSet)
             allItems.append(item)
         }
         
         CSSearchableIndex.default().indexSearchableItems(allItems) { (error) -> Void in
             if error != nil {
                 print("An error occurred: \(String(describing: error))")
+            } else if let dept = department {
+                self.indexedDepartments.append(dept)
             }
         }
     }
@@ -412,6 +419,15 @@ class CourseManager: NSObject {
     func indexSearchableItemsInBackground() {
         DispatchQueue.global(qos: .utility).async {
             self.indexSearchableItems()
+        }
+    }
+    
+    func indexSearchableItems(forDepartment department: String) {
+        guard !indexedDepartments.contains(department) else {
+            return
+        }
+        DispatchQueue.global(qos: .utility).async {
+            self.indexSearchableItems(for: department)
         }
     }
 }
