@@ -8,6 +8,11 @@
 
 import UIKit
 
+extension Notification.Name {
+    static let PanelViewControllerWillExpand = Notification.Name("PanelViewControllerWillExpandNotification")
+    static let PanelViewControllerWillCollapse = Notification.Name("PanelViewControllerWillCollapseNotification")
+}
+
 class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private var _heightConstraint: NSLayoutConstraint?
@@ -94,7 +99,8 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
                 }, completion: nil)
             }
         case .ended, .cancelled:
-            if self.heightConstraint != nil && fabs(self.heightConstraint!.constant - self.expandedHeight) < fabs(self.heightConstraint!.constant - self.collapseHeight) {
+            let yVelocity = sender.velocity(in: self.view).y
+            if yVelocity > 5.0 || (fabs(yVelocity) < 5.0 && self.heightConstraint != nil && fabs(self.heightConstraint!.constant - self.expandedHeight) < fabs(self.heightConstraint!.constant - self.collapseHeight)) {
                 self.expandView()
             } else {
                 self.collapseView(to: self.collapseHeight)
@@ -116,14 +122,20 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
             if _dimView == nil {
                 let vcForBounds = self.parent ?? self
                 _dimView = UIView(frame: self.view.convert(vcForBounds.view.bounds, from: vcForBounds.view))
+                _dimView?.isUserInteractionEnabled = true
                 _dimView?.translatesAutoresizingMaskIntoConstraints = false
-                _dimView?.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-                self.view.insertSubview(_dimView!, at: 0)
+                _dimView?.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+                if let containingSubview = vcForBounds.view.subviews.first(where: { self.view.isDescendant(of: $0) }) {
+                    vcForBounds.view.insertSubview(_dimView!, belowSubview: containingSubview)
+                }
                 _dimView?.leftAnchor.constraint(equalTo: vcForBounds.view.leftAnchor).isActive = true
                 _dimView?.rightAnchor.constraint(equalTo: vcForBounds.view.rightAnchor).isActive = true
                 _dimView?.topAnchor.constraint(equalTo: vcForBounds.view.topAnchor).isActive = true
                 _dimView?.bottomAnchor.constraint(equalTo: vcForBounds.view.bottomAnchor).isActive = true
                 _dimView?.alpha = 0.0
+                
+                let tapper = UITapGestureRecognizer(target: self, action: #selector(PanelViewController.collapseViewFromDimViewTap(_:)))
+                _dimView?.addGestureRecognizer(tapper)
             }
             return _dimView
         }
@@ -142,23 +154,32 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         dimView?.isUserInteractionEnabled = true
     }
     
-    func collapseView(to height: CGFloat) {
-        guard isExpanded,
-            parent != nil,
+    @objc func collapseViewFromDimViewTap(_ sender: UITapGestureRecognizer) {
+        collapseView()
+    }
+    
+    func collapseView(to height: CGFloat? = nil) {
+        let newHeight = height ?? self.collapseHeight
+        guard parent != nil,
             let container = self.view.superview else {
             return
         }
+        guard newHeight != 0.0 else {
+            print("Can't collapse PanelViewController to height zero. Did you forget to set the collapse height by calling collapseView(to:) with a height value initially?")
+            return
+        }
+        NotificationCenter.default.post(name: .PanelViewControllerWillCollapse, object: self)
         if self.childNavigationController != nil && self.childNavigationController!.viewControllers.count > 1 {
             self.childNavigationController?.popToRootViewController(animated: true)
         }
-        self.collapseHeight = height
+        self.collapseHeight = newHeight
         bottomConstraint?.constant = 12.0
         for constraint in container.constraints {
             if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
                 constraint.isActive = true
                 isExpanded = false
                 UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseInOut, animations: {
-                    constraint.constant = height
+                    constraint.constant = newHeight
                     self.parent!.view.setNeedsLayout()
                     self.parent!.view.layoutIfNeeded()
                     self.hideDimView()
@@ -174,7 +195,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
             let container = self.view.superview else {
             return
         }
-
+        NotificationCenter.default.post(name: .PanelViewControllerWillExpand, object: self)
         for constraint in container.constraints {
             if constraint.firstItem as! NSObject == container && constraint.firstAttribute == .height {
                 isExpanded = true
@@ -212,6 +233,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
                     isExpanding = true
                     heightConstraint?.constant = 10000.0
                     isExpanded = true
+                    NotificationCenter.default.post(name: .PanelViewControllerWillExpand, object: self)
                 }
                 
                 let curve: UIViewAnimationOptions = UIViewAnimationOptions(rawValue: (sender.userInfo![UIKeyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
@@ -226,6 +248,4 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
             }
         }
     }
-    
-
 }

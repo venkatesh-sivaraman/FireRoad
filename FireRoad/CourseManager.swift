@@ -68,9 +68,10 @@ class CourseManager: NSObject {
         "Hass Attribute": "hassAttribute",
         "Term Duration": "termDuration",
         "Write Req Attribute": "writingRequirement",
-        "On Line Page Number": "onlinePageNumber"
+        "On Line Page Number": "onlinePageNumber",
+        "Schedule": "schedule",
+        "Quarter Information": "quarterInformation"
     ]
-    private var csvHeaders: [String]? = nil
     
     static let departmentNumbers = [
         /*"3", "1", "4", "2", "22",
@@ -161,7 +162,6 @@ class CourseManager: NSObject {
             self.loadedDepartments = []
 
             self.readSummaryFile(at: path)
-            self.csvHeaders = nil
             var completionCount: Int = 0
             let groupCompletionBlock: ((Bool) -> Void) = { (success) in
                 if success {
@@ -188,6 +188,7 @@ class CourseManager: NSObject {
                         return
                 }
                 let lines = text.components(separatedBy: .newlines)
+                var csvHeaders: [String]? = nil
                 for line in lines {
                     guard let `self` = self else {
                         groupCompletionBlock(false)
@@ -195,13 +196,13 @@ class CourseManager: NSObject {
                     }
                     let comps = line.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).components(separatedBy: ",")
                     if comps.contains("Subject Id") {
-                        self.csvHeaders = comps
-                    } else if self.csvHeaders != nil {
+                        csvHeaders = comps
+                    } else if csvHeaders != nil {
                         var course: Course? = nil
                         for (i, comp) in comps.enumerated() {
-                            if self.csvHeaders![i] == "Subject Id" {
+                            if csvHeaders![i] == "Subject Id" {
                                 course = self.coursesByID[comp]
-                            } else if self.csvHeaders![i] == "Subject Enrollment Number" {
+                            } else if csvHeaders![i] == "Subject Enrollment Number" {
                                 course?.enrollmentNumber = max(course!.enrollmentNumber, Int(Float(comp)!))
                             }
                         }
@@ -302,12 +303,14 @@ class CourseManager: NSObject {
             return
         }
         let lines = text.components(separatedBy: .newlines)
+        var csvHeaders: [String]? = nil
+        
         for line in lines {
             let course = Course()
             let comps = line.components(separatedBy: ",")
             if comps.contains("Subject Id") {
-                self.csvHeaders = comps
-            } else if self.csvHeaders != nil {
+                csvHeaders = comps
+            } else if csvHeaders != nil {
                 var i = 0
                 var quotedLine: String = ""
                 for comp in comps {
@@ -318,10 +321,10 @@ class CourseManager: NSObject {
                         quotedLine = ""
                         trimmed = trimmed.characters.first == Character("\"") ? String(trimmed[trimmed.index(trimmed.startIndex, offsetBy: 1)..<trimmed.index(trimmed.endIndex, offsetBy: -1)]) : trimmed
                         trimmed = trimmed.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if i >= self.csvHeaders!.count {
+                        if i >= csvHeaders!.count {
                             //print("Beyond bounds")
-                        } else if self.textKeyMapping.contains(where: { $0.0 == self.csvHeaders![i] }) {
-                            course.setValue(trimmed, forKey: self.textKeyMapping[self.csvHeaders![i]]!)
+                        } else if self.textKeyMapping.contains(where: { $0.0 == csvHeaders![i] }) {
+                            course.setValue(trimmed, forKey: self.textKeyMapping[csvHeaders![i]]!)
                         }
                         i += 1
                     }
@@ -371,6 +374,32 @@ class CourseManager: NSObject {
             }
         }
         
+    }
+    
+    // MARK: - Centralized Recents List
+    
+    let recentlyViewedCoursesDefaultsKey = "RecentlyViewedCourses"
+    
+    var _recentlyViewedCourses: [Course]?
+    private(set) var recentlyViewedCourses: [Course] {
+        get {
+            if _recentlyViewedCourses == nil {
+                _recentlyViewedCourses = (UserDefaults.standard.array(forKey: recentlyViewedCoursesDefaultsKey) as? [String])?.flatMap({
+                    getCourse(withID: $0)
+                }) ?? []
+            }
+            return _recentlyViewedCourses!
+        } set {
+            _recentlyViewedCourses = newValue
+            UserDefaults.standard.set(_recentlyViewedCourses?.flatMap({ $0.subjectID }), forKey: recentlyViewedCoursesDefaultsKey)
+        }
+    }
+    
+    func markCourseAsRecentlyViewed(_ course: Course) {
+        if let index = recentlyViewedCourses.index(of: course) {
+            recentlyViewedCourses.remove(at: index)
+        }
+        recentlyViewedCourses.insert(course, at: 0)
     }
     
     // MARK: - Spotlight

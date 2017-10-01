@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611BE331F7EE43C0090137E /* ArrayExtension.swift */; };
 		961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */; };
 		961E49941EC6938F002BABB9 /* course_processor.py in Resources */ = {isa = PBXBuildFile; fileRef = 961E49931EC6938F002BABB9 /* course_processor.py */; };
 		961E49FD1EC6A8CB002BABB9 /* CourseDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */; };
 		961E49FF1EC7771D002BABB9 /* enrollment.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49FE1EC7771D002BABB9 /* enrollment.txt */; };
 		961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */; };
 		961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */; };
+		9626B6E11F8070EB009F6F96 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E01F8070EB009F6F96 /* StringExtension.swift */; };
 		9636DDE11F7894F300117A82 /* 1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB21F7894F300117A82 /* 1.txt */; };
 		9636DDE21F7894F300117A82 /* 10.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB31F7894F300117A82 /* 10.txt */; };
 		9636DDE31F7894F300117A82 /* 11.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB41F7894F300117A82 /* 11.txt */; };
@@ -104,12 +106,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9611BE331F7EE43C0090137E /* ArrayExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtension.swift; sourceTree = "<group>"; };
 		961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserCell.swift; sourceTree = "<group>"; };
 		961E49931EC6938F002BABB9 /* course_processor.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = course_processor.py; sourceTree = "<group>"; };
 		961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseDetailsViewController.swift; sourceTree = "<group>"; };
 		961E49FE1EC7771D002BABB9 /* enrollment.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = enrollment.txt; sourceTree = "<group>"; };
 		961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PanelViewController.swift; sourceTree = "<group>"; };
 		961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlatPushAnimator.swift; sourceTree = "<group>"; };
+		9626B6E01F8070EB009F6F96 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		9636DDB21F7894F300117A82 /* 1.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 1.txt; sourceTree = "<group>"; };
 		9636DDB31F7894F300117A82 /* 10.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 10.txt; sourceTree = "<group>"; };
 		9636DDB41F7894F300117A82 /* 11.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 11.txt; sourceTree = "<group>"; };
@@ -303,6 +307,8 @@
 				9646CFF41EB922C3005F87CB /* Course.swift */,
 				9646CFF81EB92525005F87CB /* User.swift */,
 				96897B171EC8F5500011E572 /* CourseListCell.swift */,
+				9611BE331F7EE43C0090137E /* ArrayExtension.swift */,
+				9626B6E01F8070EB009F6F96 /* StringExtension.swift */,
 				9646CFD81EB921FE005F87CB /* Main.storyboard */,
 				9646CFDB1EB921FE005F87CB /* Assets.xcassets */,
 				9646CFDD1EB921FE005F87CB /* LaunchScreen.storyboard */,
@@ -522,9 +528,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */,
 				965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */,
 				9646CFF51EB922C3005F87CB /* Course.swift in Sources */,
 				961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */,
+				9626B6E11F8070EB009F6F96 /* StringExtension.swift in Sources */,
 				96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */,
 				9646CFD71EB921FE005F87CB /* CourseroadViewController.swift in Sources */,
 				961E49FD1EC6A8CB002BABB9 /* CourseDetailsViewController.swift in Sources */,

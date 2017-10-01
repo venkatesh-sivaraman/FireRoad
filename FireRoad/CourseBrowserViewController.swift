@@ -17,8 +17,14 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     @IBOutlet var searchBar: UISearchBar! = nil
     @IBOutlet var tableView: UITableView! = nil
+    @IBOutlet var loadingView: UIView?
+    @IBOutlet var loadingIndicator: UIActivityIndicatorView?
     
     weak var delegate: CourseBrowserDelegate? = nil
+    
+    var panelViewController: PanelViewController? {
+        return (self.navigationController?.parent as? PanelViewController)
+    }
     
     var results: [Course] = []
     
@@ -27,11 +33,62 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
 
         self.searchBar.tintColor = self.view.tintColor
         self.navigationController?.delegate = self
+        
+        if let panel = panelViewController {
+            NotificationCenter.default.addObserver(self, selector: #selector(panelViewControllerWillCollapse(_:)), name: .PanelViewControllerWillCollapse, object: panel)
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.navigationController?.setNavigationBarHidden(true, animated: true)
+        
+        if searchBar.text?.characters.count == 0 {
+            showRecentlyViewedCourses()
+        }
+        
+        // Show the loading view if necessary
+        if !CourseManager.shared.isLoaded {
+            if let loadingView = self.loadingView {
+                loadingView.alpha = 0.0
+                loadingView.isHidden = false
+                self.loadingIndicator?.startAnimating()
+                UIView.animate(withDuration: 0.2, animations: {
+                    self.tableView.alpha = 0.0
+                    loadingView.alpha = 1.0
+                }, completion: { (completed) in
+                    if completed {
+                        self.tableView.isHidden = true
+                    }
+                })
+            }
+            loadingIndicator?.startAnimating()
+        }
+        DispatchQueue.global().async {
+            while !CourseManager.shared.isLoaded {
+                usleep(100)
+            }
+            DispatchQueue.main.async {
+                self.tableView.isHidden = false
+                if let loadingView = self.loadingView {
+                    UIView.animate(withDuration: 0.2, animations: {
+                        self.tableView.alpha = 1.0
+                        loadingView.alpha = 0.0
+                    }, completion: { (completed) in
+                        if completed {
+                            loadingView.isHidden = true
+                            self.loadingIndicator?.stopAnimating()
+                        }
+                    })
+                }
+                
+                if let searchText = self.searchBar.text, searchText.characters.count > 0 {
+                    self.loadSearchResults(withString: searchText)
+                } else {
+                    self.showRecentlyViewedCourses()
+                }
+            }
+        }
     }
     
     func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationControllerOperation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
@@ -54,12 +111,26 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         // Dispose of any resources that can be recreated.
     }
     
+    @objc func panelViewControllerWillCollapse(_ note: Notification) {
+        searchBar.resignFirstResponder()
+        searchBar.setShowsCancelButton(false, animated: true)
+    }
+    
     func collapseView() {
-        (self.navigationController!.parent as? PanelViewController)?.collapseView(to: self.searchBar.frame.size.height + 12.0)
+        panelViewController?.collapseView(to: self.searchBar.frame.size.height + 12.0)
     }
     
     func expandView() {
-        (self.navigationController!.parent as? PanelViewController)?.expandView()
+        panelViewController?.expandView()
+    }
+    
+    func showRecentlyViewedCourses() {
+        guard CourseManager.shared.isLoaded else {
+            return
+        }
+        var recentlyViewed = CourseManager.shared.recentlyViewedCourses
+        results = [Course](recentlyViewed[0..<min(recentlyViewed.count, 15)])
+        tableView.reloadData()
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
@@ -76,10 +147,14 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.characters.count > 0 && (self.navigationController!.parent as? PanelViewController)?.isExpanded == false {
+        if searchText.characters.count > 0 && panelViewController?.isExpanded == false {
             self.expandView()
         }
-        self.loadSearchResults(withString: searchText)
+        guard searchText.characters.count > 0 else {
+            showRecentlyViewedCourses()
+            return
+        }
+        loadSearchResults(withString: searchText)
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -88,6 +163,9 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func loadSearchResults(withString searchTerm: String) {
+        guard CourseManager.shared.isLoaded else {
+            return
+        }
         DispatchQueue.global(qos: .userInitiated).async {
             let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
             
@@ -144,6 +222,13 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return results.count
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if searchBar.text?.characters.count == 0, results.count > 0 {
+            return "Recents"
+        }
+        return nil
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

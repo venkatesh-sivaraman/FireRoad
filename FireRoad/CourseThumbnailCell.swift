@@ -99,12 +99,12 @@ class CourseThumbnailCell: UICollectionViewCell {
     override var isHighlighted: Bool {
         didSet {
             if isHighlighted {
-                UIView.animate(withDuration: 0.2, delay: 0.0, options: [.beginFromCurrentState, .curveEaseInOut], animations: {
+                UIView.animate(withDuration: 0.2, delay: 0.0, options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut], animations: {
                     self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
                     //self.highlightView?.alpha = 1.0
                 }, completion: nil)
             } else {
-                UIView.animate(withDuration: 0.2, delay: 0.0, options: [.beginFromCurrentState, .curveEaseInOut], animations: {
+                UIView.animate(withDuration: 0.2, delay: 0.0, options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut], animations: {
                     self.transform = CGAffineTransform.identity
                     //self.highlightView?.alpha = 0.0
                 }, completion: nil)

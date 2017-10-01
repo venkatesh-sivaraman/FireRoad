@@ -82,6 +82,7 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
     case GIR
     case URL
     case hasFinal
+    case quarterInformation
     
     var debugDescription: String {
         return rawValue
@@ -195,10 +196,27 @@ class CourseCatalogParser: NSObject {
         return trimmedList.replacingOccurrences(of: " or", with: "").replacingOccurrences(of: " and", with: "").components(separatedBy: informationSeparator).map({ [$0.trimmingCharacters(in: .whitespacesAndNewlines)] }).filter({ $0[0].characters.count > 0 && !$0[0].lowercased().contains(CourseCatalogConstants.none) })
     }
     
-    func parseScheduleString(_ schedule: String) -> String {
+    func parseScheduleString(_ schedule: String, quarterInformation: UnsafeMutablePointer<String>?) -> String {
         guard schedule.trimmingCharacters(in: .whitespacesAndNewlines).characters.count > 0 else {
             return schedule.trimmingCharacters(in: .whitespacesAndNewlines)
         }
+        
+        // Remove quarter information first
+        guard let quarterInfoRegex = try? NSRegularExpression(pattern: "\\((begins|ends)\\s+(.+?)\\)", options: .caseInsensitive) else {
+            print("Failed to load quarter info regex")
+            return schedule
+        }
+        if let quarterInfoMatch = quarterInfoRegex.firstMatch(in: schedule, options: [], range: NSRange(location: 0, length: schedule.characters.count)) {
+            if let typeRange = Range(quarterInfoMatch.rangeAt(1), in: schedule),
+                let dateRange = Range(quarterInfoMatch.rangeAt(2), in: schedule),
+                let scheduleType = String(schedule[typeRange]),
+                let date = String(schedule[dateRange]){
+                quarterInformation?.pointee = "\(scheduleType.lowercased() == "begins" ? 1 : 0),\(date.lowercased())"
+            }
+        }
+        
+        let trimmedSchedule = quarterInfoRegex.stringByReplacingMatches(in: schedule, options: [], range: NSRange(location: 0, length: schedule.characters.count), withTemplate: "")
+        
         // Class type regex matches "Lecture:abc XX:"
         // Time regex matches "MTWRF9-11 ( 1-123 )" or "MTWRF EVE (8-10) ( 1-234 )".
         guard let classTypeRegex = try? NSRegularExpression(pattern: "(\\w+):(.+?)(?=\\z|\\w+:)", options: .dotMatchesLineSeparators),
@@ -208,11 +226,11 @@ class CourseCatalogParser: NSObject {
             return schedule
         }
         var scheduleComponents: [String] = []
-        for match in classTypeRegex.matches(in: schedule, options: [], range: NSRange(location: 0, length: schedule.characters.count)) {
-            guard let typeRange = Range(match.rangeAt(1), in: schedule),
-                let contentsRange = Range(match.rangeAt(2), in: schedule),
-                let scheduleType = String(schedule[typeRange]),
-                let contents = String(schedule[contentsRange]) else {
+        for match in classTypeRegex.matches(in: trimmedSchedule, options: [], range: NSRange(location: 0, length: trimmedSchedule.characters.count)) {
+            guard let typeRange = Range(match.rangeAt(1), in: trimmedSchedule),
+                let contentsRange = Range(match.rangeAt(2), in: trimmedSchedule),
+                let scheduleType = String(trimmedSchedule[typeRange]),
+                let contents = String(trimmedSchedule[contentsRange]) else {
                     continue
             }
             var typeComps = [scheduleType]
@@ -317,7 +335,11 @@ class CourseCatalogParser: NSObject {
                 attributes[.hasFinal] = true
                 trimmedItem = trimmedItem.replacingOccurrences(of: CourseCatalogConstants.finalFlag, with: "")
             }
-            attributes[.schedule] = parseScheduleString(trimmedItem.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: ""))
+            var quarterInformation = ""
+            attributes[.schedule] = parseScheduleString(trimmedItem.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: ""), quarterInformation: &quarterInformation)
+            if quarterInformation.count > 0 {
+                attributes[.quarterInformation] = quarterInformation
+            }
             
         } else if let subjectID = attributes[.subjectID] as? String,
             let idRange = item.range(of: subjectID),
@@ -450,7 +472,8 @@ class CourseCatalogParser: NSObject {
         .meetsWithSubjects: "Meets With Subjects",
         .jointSubjects: "Joint Subjects",
         .equivalentSubjects: "Equivalent Subjects",
-        .URL: "URL"
+        .URL: "URL",
+        .quarterInformation: "Quarter Information"
     ]
     
     func headingForAttribute(_ attribute: CourseAttribute) -> String {

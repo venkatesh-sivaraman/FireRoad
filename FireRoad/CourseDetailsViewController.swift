@@ -25,6 +25,7 @@ enum CourseDetailItem {
     case joint
     case prerequisites
     case corequisites
+    case schedule
     case courseListAccessory
 }
 
@@ -32,8 +33,9 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
 
     var course: Course? = nil {
         didSet {
-            if self.course != nil {
+            if let newCourse = course {
                 (self.sectionTitles, self.detailMapping) = self.generateMapping()
+                CourseManager.shared.markCourseAsRecentlyViewed(newCourse)
             } else {
                 self.detailMapping = [:]
                 self.sectionTitles = []
@@ -145,6 +147,15 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             rowIndex = 0
             sectionIndex += 1
         }
+        if let schedule = course?.schedule, schedule.count > 0 {
+            titles.append("Schedule")
+            for _ in 0..<schedule.count {
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .schedule
+                rowIndex += 1
+            }
+            rowIndex = 0
+            sectionIndex += 1
+        }
         
         if rowIndex == 0 {
             sectionIndex -= 1
@@ -159,7 +170,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             id = "TitleCell"
         case .description:
             id = "DescriptionCell"
-        case .units, .instructors, .requirements, .offered:
+        case .units, .instructors, .requirements, .offered, .schedule:
             id = "MetadataCell"
         case .related, .equivalent, .joint, .prerequisites, .corequisites:
             id = "CourseListCell"
@@ -267,7 +278,48 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             if self.course!.offeringPattern == .alternateYears, let notOffered = self.course?.notOfferedYear {
                 offeredString = "\nNot offered \(notOffered)"
             }
-            detailTextLabel?.text = seasons.joined(separator: ", ").capitalized + offeredString
+            var quarterString = ""
+            if self.course!.quarterOffered != .wholeSemester {
+                var attachmentWord = ""
+                if self.course!.quarterOffered == .beginningOnly {
+                    quarterString = "\n1st half"
+                    attachmentWord = "ends"
+                } else if self.course!.quarterOffered == .endOnly {
+                    quarterString = "\n2nd half"
+                    attachmentWord = "starts"
+                }
+                if let date = self.course?.quarterBoundaryDate {
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "MMM d"
+                    quarterString += " – \(attachmentWord) \(formatter.string(from: date))"
+                }
+            }
+            detailTextLabel?.text = seasons.joined(separator: ", ").capitalized + quarterString + offeredString
+        case .schedule:
+            guard let schedule = course?.schedule else {
+                break
+            }
+            let order = CourseScheduleType.ordering.filter({ schedule[$0] != nil })
+            var scheduleType = ""
+            if order.count > indexPath.row {
+                scheduleType = order[indexPath.row]
+            } else {
+                print("Unknown schedule type in this schedule: \(schedule.keys)")
+                break
+            }
+            
+            textLabel?.text = scheduleType
+            guard let items = schedule[scheduleType] else {
+                break
+            }
+            if items.count == 0 {
+                detailTextLabel?.text = "TBA"
+            } else {
+                let itemDescriptions = items.map({ (itemSet) -> String in
+                    return itemSet.map({ "\($0.days)\($0.startTime)-\($0.endTime)\($0.isEvening ? "pm" : "")" }).joined(separator: ", ") + (itemSet.first?.location != nil ? " (\(itemSet.first!.location!))" : "")
+                }).joined(separator: "\n")
+                detailTextLabel?.text = itemDescriptions
+            }
         case .related:
             (cell as! CourseListCell).courses = []
             for (myID, _) in self.course!.relatedSubjects {

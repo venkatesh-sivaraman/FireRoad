@@ -82,9 +82,9 @@ class CourseBrowserCell: UITableViewCell {
         
     }
     
-    override func layoutSubviews() {
+    /*override func layoutSubviews() {
         super.layoutSubviews()
         self.descriptionLabel.preferredMaxLayoutWidth = self.descriptionLabel.frame.size.width
         self.layoutIfNeeded()
-    }
+    }*/
 }

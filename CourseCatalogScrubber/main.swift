@@ -89,6 +89,7 @@ func writeFullCourses(_ courses: [[CourseAttribute: Any]], to file: String) {
             .offeredIAP,
             .offeredSpring,
             .offeredSummer,
+            .quarterInformation,
             .instructors,
             .schedule
             ])

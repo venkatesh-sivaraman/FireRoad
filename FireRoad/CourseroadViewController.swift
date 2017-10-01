@@ -437,6 +437,9 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         if selectedSemester != nil {
             self.currentUser?.add(course, toSemester: selectedSemester!)
             self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
+            if let courseItem = self.currentUser?.courses(forSemester: selectedSemester!).index(of: course) {
+                self.collectionView.scrollToItem(at: IndexPath(item: courseItem, section: selectedSemester!.rawValue), at: .centeredVertically, animated: true)
+            }
         }
         self.panelView?.collapseView(to: self.panelView!.collapseHeight)
         return selectedSemester
@@ -487,135 +490,4 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         }
         collectionView.collectionViewLayout.invalidateLayout()
     }
-}
-
-// MARK: - Flow Layout -
-
-class CustomCollectionViewFlowLayout: UICollectionViewFlowLayout {
-    
-    var animator: UIDynamicAnimator? = nil
-    var visibleIPs: [IndexPath] = []
-    
-    func addVisibleCell(with indexPath: IndexPath) {
-        self.visibleIPs.append(indexPath)
-        let attribs = self.layoutAttributesForItem(at: indexPath)!
-        let attachment = UIAttachmentBehavior(item: attribs, attachedToAnchor: attribs.center)
-        attachment.length = 0.0
-        attachment.damping = 0.8
-        attachment.frequency = 1.0
-        self.animator?.addBehavior(attachment)
-    }
-    
-    func removeVisibleCell(with indexPath: IndexPath) {
-        if let idx = self.visibleIPs.index(of: indexPath) {
-            self.visibleIPs.remove(at: idx)
-            
-            if let bIdx = (self.animator!.behaviors as! [UIAttachmentBehavior]).index(where: { ($0.items.first! as! UICollectionViewLayoutAttributes).indexPath == indexPath }) {
-                self.animator?.removeBehavior(self.animator!.behaviors[bIdx])
-            }
-        }
-    }
-    
-    override init() {
-        super.init()
-        self.animator = UIDynamicAnimator(collectionViewLayout: self)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        self.animator = UIDynamicAnimator(collectionViewLayout: self)
-    }
-    
-    override func prepare() {
-        super.prepare()
-        if self.animator != nil && self.animator!.behaviors.count == 0 {
-            self.visibleIPs = []
-            self.animator?.removeAllBehaviors()
-            for ip in self.collectionView!.indexPathsForVisibleItems {
-                self.addVisibleCell(with: ip)
-            }
-            
-        }
-    }
-    
-    /*override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        return self.animator!.items(in: rect) as? [UICollectionViewLayoutAttributes]
-    }*/
-    
-    override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        if let attribs = self.animator!.layoutAttributesForCell(at: indexPath) {
-            return attribs
-        }
-        return super.layoutAttributesForItem(at: indexPath)
-    }
-    
-    override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
-        let delta = newBounds.origin.y - self.collectionView!.bounds.origin.y
-        let loc = self.collectionView!.panGestureRecognizer.location(in: self.collectionView!)
-        self.animator!.behaviors.forEach { (beh) in
-            let behavior = beh as! UIAttachmentBehavior
-            let yDist: CGFloat = CGFloat(fabs(loc.y - behavior.anchorPoint.y)),
-            xDist: CGFloat = CGFloat(fabs(loc.x - behavior.anchorPoint.x))
-            let scrollResistance: CGFloat = (yDist + xDist) / 150.0
-            let item = behavior.items.first!
-            var center = item.center
-            center.y += delta * 10.0 //max(delta, delta * scrollResistance)
-            item.center = center
-            self.animator?.updateItem(usingCurrentState: item)
-        }
-        
-        return false
-    }
-    
-    
-    
-    /*override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        let attributes = super.layoutAttributesForElements(in: rect)?.map({ $0.copy() as! UICollectionViewLayoutAttributes })
-        if attributes != nil && attributes!.count > 0 && (attributes![0].representedElementCategory != UICollectionElementCategory.cell || attributes![0].indexPath.item != 0) {
-            attributes?.forEach { layoutAttribute in
-                layoutAttribute.frame.origin.x -= sectionInset.left
-            }
-            return attributes
-        }
-        
-        var leftMargin = sectionInset.left
-        var maxY: CGFloat = -1.0
-        attributes?.forEach { layoutAttribute in
-            if layoutAttribute.representedElementCategory == UICollectionElementCategory.cell {
-                if layoutAttribute.frame.origin.y >= maxY {
-                    leftMargin = sectionInset.left
-                }
-                layoutAttribute.frame.origin.x = leftMargin
-                
-                leftMargin += layoutAttribute.frame.width + minimumInteritemSpacing
-                maxY = max(layoutAttribute.frame.maxY, maxY)
-            }
-        }
-        if attributes != nil {
-            var row: [UICollectionViewLayoutAttributes] = []
-            var x: CGFloat = 10000.0
-            var minY: CGFloat = 10000.0
-            for layoutAttribute in attributes! {
-                if layoutAttribute.representedElementCategory != UICollectionElementCategory.cell {
-                    continue
-                }
-                if layoutAttribute.frame.origin.x < x {
-                    for attrib in row {
-                        attrib.frame.origin.y = minY
-                    }
-                    x = layoutAttribute.frame.origin.x
-                    row = []
-                    minY = 10000.0
-                }
-                row.append(layoutAttribute)
-                if layoutAttribute.frame.origin.y < minY {
-                    minY = layoutAttribute.frame.origin.y
-                }
-                x = layoutAttribute.frame.origin.x + layoutAttribute.frame.size.width
-            }
-        }
-        
-        return attributes
-    }*/
-    
 }

@@ -33,6 +33,40 @@ enum CourseOfferingPattern: String {
     case never = "Never"
 }
 
+class CourseScheduleItem: NSObject {
+    var days: String
+    var startTime: String
+    var endTime: String
+    var isEvening: Bool
+    var location: String?
+    
+    init(days: String, startTime: String, endTime: String, isEvening: Bool = false, location: String? = nil) {
+        self.days = days
+        self.startTime = startTime
+        self.endTime = endTime
+        self.isEvening = isEvening
+        self.location = location
+    }
+}
+
+enum CourseScheduleType {
+    static let lecture = "Lecture"
+    static let recitation = "Recitation"
+    static let lab = "Lab"
+    static let design = "Design"
+    
+    static let ordering = [CourseScheduleType.lecture,
+                           CourseScheduleType.recitation,
+                           CourseScheduleType.design,
+                           CourseScheduleType.lab]
+}
+
+enum CourseQuarter {
+    case wholeSemester
+    case beginningOnly
+    case endOnly
+}
+
 class Course: NSObject {
     
     /*
@@ -139,6 +173,28 @@ class Course: NSObject {
     @objc dynamic var writingRequirement: String? = nil
     @objc dynamic var writingReqDescription: String? = nil
     
+    @objc dynamic var quarterInformation: String? {
+        didSet {
+            guard let comps = quarterInformation?.components(separatedBy: ","),
+                comps.count == 2 else {
+                    quarterOffered = .wholeSemester
+                    quarterBoundaryDate = nil
+                    return
+            }
+            switch comps[0] {
+            case "1":
+                quarterOffered = .endOnly
+            case "0":
+                quarterOffered = .beginningOnly
+            default:
+                quarterOffered = .wholeSemester
+            }
+            quarterBoundaryDate = comps[1].dates?.first
+        }
+    }
+    var quarterOffered: CourseQuarter = .wholeSemester
+    var quarterBoundaryDate: Date?
+    
     var offeringPattern: CourseOfferingPattern = .everyYear
     
     func updateOfferingPattern() {
@@ -152,6 +208,8 @@ class Course: NSObject {
     // Supplemental attributes
     @objc dynamic var enrollmentNumber: Int = 0
     var relatedSubjects: [(String, Float)] = []
+    
+    @objc dynamic var schedule: [String: [[CourseScheduleItem]]]?
 
     override init() {
         
@@ -220,9 +278,60 @@ class Course: NSObject {
         course.writingRequirement = writingRequirement
         course.writingReqDescription = writingReqDescription
         course.enrollmentNumber = enrollmentNumber
-        course.relatedSubjects = relatedSubjects
+        course.quarterInformation = quarterInformation
+        if course.relatedSubjects.count < relatedSubjects.count {
+            course.relatedSubjects = relatedSubjects
+        }
+        course.schedule = schedule
     }
     
+    func parseScheduleString(_ scheduleString: String) -> [String: [[CourseScheduleItem]]] {
+        var ret: [String: [[CourseScheduleItem]]] = [:]
+        // Semicolons separate lecture, recitation, lab options
+        let scheduleGroups = scheduleString.components(separatedBy: ";")
+        for group in scheduleGroups {
+            var commaComponents = group.components(separatedBy: ",")
+            guard commaComponents.count > 0 else {
+                continue
+            }
+            let groupType = commaComponents.removeFirst()
+            var items: [[CourseScheduleItem]] = []
+            for scheduleOption in commaComponents {
+                var slashComponents = scheduleOption.components(separatedBy: "/")
+                guard slashComponents.count > 1 else {
+                    continue
+                }
+                let location = slashComponents.removeFirst()
+                items.append([])
+                let chunks = slashComponents.chunked(by: 3)
+                for chunk in chunks {
+                    guard chunk.count == 3,
+                        let integerEvening = Int(chunk[1]) else {
+                        continue
+                    }
+                    var startTime = "", endTime = ""
+                    let timeString = chunk[2].lowercased().replacingOccurrences(of: "am", with: "").replacingOccurrences(of: "pm", with: "").trimmingCharacters(in: .whitespaces)
+                    if timeString.contains("-") {
+                        let comps = timeString.components(separatedBy: "-")
+                        startTime = comps[0]
+                        endTime = comps[1]
+                    } else {
+                        startTime = timeString
+                        if let integerTime = Int(startTime) {
+                            endTime = "\((integerTime % 12) + 1)"
+                        } else {
+                            print("Start time can't be represented as an integer: \(startTime)")
+                        }
+                    }
+                    items[items.count - 1].append(CourseScheduleItem(days: chunk[0], startTime: startTime, endTime: endTime, isEvening: (integerEvening != 0), location: location))
+                }
+            }
+            ret[groupType] = items
+        }
+        
+        return ret
+    }
+ 
     override func setValue(_ value: Any?, forKey key: String) {
         var modifiedValue = value
         if type(of: self.value(forKey: key)) == Bool.self {
@@ -247,6 +356,13 @@ class Course: NSObject {
                 modifiedValue = [listString.replacingOccurrences(of: ";", with: ",").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.characters.count > 0 })]
             } else {
                 modifiedValue = []
+            }
+        } else if key == "schedule" {
+            if value != nil,
+                let valueString = value as? String {
+                modifiedValue = parseScheduleString(valueString)
+            } else {
+                modifiedValue = (value != nil) ? [:] : nil
             }
         } else if self.value(forKey: key) is [String] {
             if value != nil {
