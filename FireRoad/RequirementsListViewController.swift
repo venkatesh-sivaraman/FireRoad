@@ -6,7 +6,7 @@
 //  Copyright © 2017 Base 12 Innovations. All rights reserved.
 //
 
-import Cocoa
+import UIKit
 
 class RequirementsListViewController: UIViewController {
 

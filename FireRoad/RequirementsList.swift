@@ -1,0 +1,305 @@
+//
+//  RequirementsList.swift
+//  FireRoad
+//
+//  Created by Venkatesh Sivaraman on 10/1/17.
+//  Copyright © 2017 Base 12 Innovations. All rights reserved.
+//
+
+import UIKit
+
+enum SyntaxConstants {
+    static let allSeparator = ","
+    static let anySeparator = "/"
+    static let commentCharacter = "%%"
+    static let declarationCharacter = ":="
+    static let variableDeclarationSeparator = ","
+    static let headerSeparator = "#,#"
+}
+
+class RequirementsListStatement: NSObject {
+    
+    var title: String?
+    var contentDescription: String?
+    
+    enum ConnectionType {
+        case all
+        case any
+    }
+    
+    enum ThresholdType {
+        case lessThanOrEqual
+        case lessThan
+        case greaterThanOrEqual
+        case greaterThan
+    }
+    
+    var connectionType: ConnectionType = .all
+    
+    var requirements: [RequirementsListStatement]?
+    var requirement: String?
+    
+    var thresholdType: ThresholdType = .greaterThanOrEqual
+    var threshold = 0
+    
+    var thresholdDescription: String {
+        if threshold != 0 {
+            switch thresholdType {
+            case .lessThanOrEqual:
+                return "at most \(threshold)"
+            case .lessThan:
+                return "less than \(threshold)"
+            case .greaterThanOrEqual:
+                return "at least \(threshold)"
+            case .greaterThan:
+                return "greater than \(threshold)"
+            }
+        }
+        return ""
+    }
+    
+    override var debugDescription: String {
+        if let req = requirement {
+            return "<\(title != nil ? title! + ": " : "")\(req)\(thresholdDescription.characters.count > 0 ? " (" + thresholdDescription + ")" : "")>"
+        } else if let reqList = requirements {
+            var connectionString = "\(connectionType)"
+            if thresholdDescription.characters.count > 0 {
+                connectionString += " (\(thresholdDescription))"
+            }
+            return "<\(title != nil ? title! + ": " : "")\(connectionString) of \n\(reqList.map({ String(reflecting: $0) }).joined(separator: "\n"))>"
+        }
+        return "<\(title ?? "No title")>"
+    }
+    
+    override init() {
+        super.init()
+    }
+    
+    init(connectionType: ConnectionType, items: [RequirementsListStatement], title: String? = nil) {
+        self.title = title
+        self.connectionType = connectionType
+        if connectionType == .all {
+            self.threshold = items.count
+        } else {
+            self.threshold = 1
+        }
+        self.requirements = items
+    }
+    
+    init(requirement: String, title: String? = nil) {
+        self.title = title
+        self.requirement = requirement
+    }
+    
+    init(statement: String, title: String? = nil) {
+        self.title = title
+        super.init()
+        parseStatement(statement)
+    }
+    
+    fileprivate func topLevelSeparatorRegex(for separator: String) -> NSRegularExpression {
+        let sepPattern = NSRegularExpression.escapedPattern(for: separator)
+        guard let regex = try? NSRegularExpression(pattern: "\(sepPattern)(?![^\\(]*\\))", options: []) else {
+            fatalError("Couldn't initialize top level separator regex")
+        }
+        return regex
+    }
+    
+    fileprivate lazy var modifierRegex: NSRegularExpression = {
+        guard let regex = try? NSRegularExpression(pattern: "\\{(.*?)\\}(?![^\\(]*\\))", options: []) else {
+            fatalError("Couldn't initialize modifier regex")
+        }
+        return regex
+    }()
+    
+    static var decorationCharacterSet = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "\"'"))
+    fileprivate func undecoratedComponent(_ component: String) -> String {
+        return component.trimmingCharacters(in: RequirementsListStatement.decorationCharacterSet)
+    }
+    
+    static var parenthesisCharacterSet = CharacterSet(charactersIn: "()")
+    fileprivate func unwrappedComponent(_ component: String) -> String {
+        return component.trimmingCharacters(in: RequirementsListStatement.parenthesisCharacterSet)
+    }
+    
+    fileprivate func components(in string: String, separatedBy regex: NSRegularExpression) -> [String] {
+        var components: [String] = []
+        var matchLocation = string.startIndex
+        for match in regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.characters.count)) {
+            if let range = Range(match.range, in: string) {
+                components.append(String(string[matchLocation..<range.lowerBound]))
+                matchLocation = range.upperBound
+            }
+        }
+        components.append(String(string[matchLocation..<string.endIndex]))
+        return components.map({ undecoratedComponent($0) })
+    }
+    
+    func parseModifier(_ modifier: String) {
+        // Of the form >=x, <=x, >x, or <x
+        if modifier.contains(">=") {
+            thresholdType = .greaterThanOrEqual
+        } else if modifier.contains("<=") {
+            thresholdType = .lessThanOrEqual
+        } else if modifier.contains(">") {
+            thresholdType = .greaterThan
+        } else if modifier.contains("<") {
+            thresholdType = .lessThan
+        }
+        guard let number = Int(modifier.replacingOccurrences(of: ">", with: "").replacingOccurrences(of: "<", with: "").replacingOccurrences(of: "=", with: "")) else {
+            print("Couldn't get number out of modifier string \(modifier)")
+            return
+        }
+        threshold = number
+    }
+    
+    fileprivate func parseStatement(_ statement: String) {
+        let allRegex = topLevelSeparatorRegex(for: SyntaxConstants.allSeparator)
+        let anyRegex = topLevelSeparatorRegex(for: SyntaxConstants.anySeparator)
+        var filteredStatement = statement
+        if let match = modifierRegex.firstMatch(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.characters.count)) {
+            if let range = Range(match.range(at: 1), in: filteredStatement) {
+                parseModifier(String(filteredStatement[range]))
+            }
+            filteredStatement = modifierRegex.stringByReplacingMatches(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.characters.count), withTemplate: "")
+        }
+        
+        var components: [String] = []
+        if anyRegex.firstMatch(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.characters.count)) != nil {
+            components = self.components(in: filteredStatement, separatedBy: anyRegex)
+            connectionType = .any
+        } else {
+            components = self.components(in: filteredStatement, separatedBy: allRegex)
+            connectionType = .all
+        }
+        
+        if components.count == 1 {
+            requirement = components[0]
+        } else {
+            requirements = components.map({ RequirementsListStatement(statement: unwrappedComponent($0)) })
+        }
+    }
+    
+    fileprivate func substituteVariableDefinitions(from dictionary: [String: RequirementsListStatement]) {
+        if let req = requirement {
+            if dictionary[req] != nil {
+                print("Should have substituted variable \(self) earlier")
+            }
+        } else if let reqList = requirements {
+            for (i, statement) in reqList.enumerated() {
+                if let statementReq = statement.requirement,
+                    let subReq = dictionary[statementReq] {
+                    requirements?[i] = subReq
+                }
+                requirements?[i].substituteVariableDefinitions(from: dictionary)
+            }
+        }
+    }
+}
+
+class RequirementsList: RequirementsListStatement {
+
+    var shortTitle: String?
+    var mediumTitle: String?
+    
+    init(contentsOf file: String) throws {
+        let fileText = try String(contentsOfFile: file)
+        super.init()
+        self.parseRequirementsList(from: fileText)
+    }
+    
+    func parseRequirementsList(from string: String) {
+        var lines = string.components(separatedBy: "\n").flatMap { (line) -> String? in
+            if let range = line.range(of: SyntaxConstants.commentCharacter) {
+                if range.lowerBound == line.startIndex {
+                    return nil
+                }
+                return String(line[line.startIndex..<range.lowerBound])
+            }
+            return line
+        }
+        
+        // Parse the first two lines
+        let headerLine = lines.removeFirst()
+        let headerComps = headerLine.components(separatedBy: SyntaxConstants.headerSeparator).map( { undecoratedComponent($0) })
+        if headerComps.count > 0 {
+            shortTitle = headerComps[0]
+            if headerComps.count > 1 {
+                mediumTitle = headerComps[1]
+            }
+            if headerComps.count > 2 {
+                title = headerComps[2]
+            }
+        }
+        // Unused second line
+        lines.removeFirst()
+        
+        guard lines.count > 0 else {
+            print("Reached end of file early!")
+            return
+        }
+        guard lines[0].characters.count == 0 else {
+            print("Third line isn't empty")
+            return
+        }
+        lines.removeFirst()
+        
+        // Parse top-level list
+        var topLevelSections: [(varName: String, description: String)] = []
+        while lines.count > 0, lines[0].characters.count > 0 {
+            guard lines.count > 2 else {
+                print("Not enough lines for top-level sections - need variable names and descriptions on two separate lines.")
+                return
+            }
+            let varName = undecoratedComponent(lines.removeFirst())
+            let description = undecoratedComponent(lines.removeFirst())
+            topLevelSections.append((varName, description))
+        }
+        guard lines.count > 0 else {
+            return
+        }
+        lines.removeFirst()
+        
+        // Parse variable declarations
+        let variableRegex = topLevelSeparatorRegex(for: SyntaxConstants.variableDeclarationSeparator)
+        var variables: [String: RequirementsListStatement] = [:]
+        while lines.count > 0 {
+            let currentLine = lines.removeFirst()
+            guard currentLine.characters.count > 0 else {
+                continue
+            }
+            guard currentLine.contains(SyntaxConstants.declarationCharacter) else {
+                print("Unexpected line: \(currentLine)")
+                continue
+            }
+            let comps = currentLine.components(separatedBy: SyntaxConstants.declarationCharacter)
+            guard comps.count == 2 else {
+                print("Can't have more than one occurrence of \"\(SyntaxConstants.declarationCharacter)\" on a line")
+                continue
+            }
+            
+            let declarationComps = self.components(in: comps[0], separatedBy: variableRegex)
+            var statementTitle: String?
+            var variableName = undecoratedComponent(comps[0])
+            if declarationComps.count > 1 {
+                variableName = declarationComps[0]
+                statementTitle = declarationComps[1]
+            }
+            let statement = RequirementsListStatement(statement: comps[1], title: statementTitle)
+            variables[variableName] = statement
+        }
+        
+        var reqs: [RequirementsListStatement] = []
+        for (name, description) in topLevelSections {
+            guard let req = variables[name] else {
+                print("Undefined variable: \(name)")
+                return
+            }
+            req.contentDescription = description
+            reqs.append(req)
+        }
+        
+        requirements = reqs
+        substituteVariableDefinitions(from: variables)
+    }
+}

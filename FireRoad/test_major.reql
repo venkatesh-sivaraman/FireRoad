@@ -1,4 +1,4 @@
-6-7,"6-7 Major","Bachelor of Science in Computer Science and Molecular Biology"
+6-7#,#6-7 Major#,#Bachelor of Science in Computer Science and Molecular Biology
 
 
 girs
@@ -15,10 +15,10 @@ hass_gir, "Humanities, Arts, and Social Sciences (HASS) Requirement" := hass_req
 rest_gir, "REST Requirement" := GIR:REST{>=2}
 lab_gir, "Lab Requirement" := GIR:LAB
 
-girs, "General Institute Requirements (GIRs)" = science_gir, hass_gir
+girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir
 
 %% Departmental Program
-math_intro, "Mathematics and Introductory" := 6.00/6.031, 6.042
+math_intro, "Mathematics and Introductory" := (6.00/6.031), 6.042
 chem, "Chemistry" := 5.12,(5.60/20.110)
 intro_lab, "Introductory Laboratory" := 7.02/20.109
 foundational_subjects, "Foundational Subjects" := 6.006, 6.009, 6.046, 7.03, 7.05, 7.06
@@ -26,9 +26,8 @@ reqd_subjects := math_intro, chem, intro_lab, foundational_subjects
 
 comp_bio_rest, "Computational Biology" := 6.046/6.503/6.802
 bio_rest, "Biology" := 7.08/7.20/7.21/7.22/7.23/7.26/7.27/7.28/7.29/(7.30A,7.30B)/7.31/7.32/7.33/7.37/7.371/7.41/7.45/7.49
-restricted_elecs
-rest_electives, "Restricted Electives" = comp_bio_rest, bio_rest
+rest_electives, "Restricted Electives" := comp_bio_rest, bio_rest
 
 aup, "Advanced Undergraduate Project" := 6.UAT/6.UAR
 
-dept_program, "Departmental Program" = reqd_subjects, rest_electives, aup
+dept_program, "Departmental Program" := reqd_subjects, rest_electives, aup

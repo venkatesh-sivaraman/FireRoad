@@ -4,7 +4,7 @@
 Use the `%%` symbol for comments.
 
 ## Overall Document Format
-1. The first line of the document is devoted to metadata about the major, minor, or set of course requirements.
+1. The first line of the document is devoted to metadata about the major, minor, or set of course requirements. The metadata should be separated by the special `#,#` delimiter for easy parsing.
 2. The second line of the document is reserved for future use.
 3. The third line of the document must be empty.
 4. Subsequent lines should contain the top-level sections of the course requirements list. Each section should consist of the following:
