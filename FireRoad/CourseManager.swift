@@ -297,6 +297,10 @@ class CourseManager: NSObject {
                 return color
             }
         }
+        if let id = course.subjectID,
+            let color = CourseManager.colorMapping[id] {
+            return color
+        }
         return UIColor.lightGray
     }
     

@@ -18,7 +18,7 @@ lab_gir, "Lab Requirement" := GIR:LAB
 girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir, rest_gir, lab_gir
 
 %% Departmental Program
-math_intro, "Mathematics and Introductory" := (6.00/6.031), 6.042
+math_intro, "Mathematics and Introductory" := ((6.00/(6.0001,6.0002))/6.031), 6.042
 chem, "Chemistry" := 5.12,(5.60/20.110)
 intro_lab, "Introductory Laboratory" := 7.02/20.109
 foundational_subjects, "Foundational Subjects" := 6.006, 6.009, 6.046, 7.03, 7.05, 7.06

@@ -423,7 +423,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
         return cell
     }
     
-    func courseListCellSelected(_ course: Course) {
+    func courseListCell(_ cell: CourseListCell, selected course: Course) {
         self.delegate?.courseDetailsRequestedDetails(about: course)
     }
     

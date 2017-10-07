@@ -100,6 +100,14 @@ class RequirementsListStatement: NSObject {
         return 0
     }
     
+    /// Gives the maximum number of steps needed to traverse the tree down to a leaf (an individual course).
+    var maximumNestDepth: Int {
+        if let reqs = requirements {
+            return (reqs.map({ $0.maximumNestDepth }).max() ?? -1) + 1
+        }
+        return 0
+    }
+    
     override init() {
         super.init()
     }
@@ -134,6 +142,35 @@ class RequirementsListStatement: NSObject {
         return regex
     }
     
+    fileprivate func separateTopLevelItems(in text: String) -> ([String], ConnectionType) {
+        var components: [String] = []
+        var connectionType = ConnectionType.all
+        var currentIndentLevel = 0
+        for characterIndex in text.characters.indices {
+            let character = text.characters[characterIndex]
+            if String(character) == SyntaxConstants.allSeparator,
+                currentIndentLevel == 0 {
+                connectionType = .all
+                components.append("")
+            } else if String(character) == SyntaxConstants.anySeparator,
+                currentIndentLevel == 0 {
+                connectionType = .any
+                components.append("")
+            } else {
+                if character == "(" {
+                    currentIndentLevel += 1
+                } else if character == ")" {
+                    currentIndentLevel -= 1
+                }
+                if components.count == 0 {
+                    components.append("")
+                }
+                components[components.count - 1] += String(character)
+            }
+        }
+        return (components.map({ undecoratedComponent($0) }), connectionType)
+    }
+    
     fileprivate lazy var modifierRegex: NSRegularExpression = {
         guard let regex = try? NSRegularExpression(pattern: "\\{(.*?)\\}(?![^\\(]*\\))", options: []) else {
             fatalError("Couldn't initialize modifier regex")
@@ -146,9 +183,13 @@ class RequirementsListStatement: NSObject {
         return component.trimmingCharacters(in: RequirementsListStatement.decorationCharacterSet)
     }
     
-    static var parenthesisCharacterSet = CharacterSet(charactersIn: "()")
     fileprivate func unwrappedComponent(_ component: String) -> String {
-        return component.trimmingCharacters(in: RequirementsListStatement.parenthesisCharacterSet)
+        var unwrapping = component.trimmingCharacters(in: .whitespacesAndNewlines)
+        while unwrapping.first == Character("("),
+            unwrapping.last == Character(")") {
+            unwrapping = String(unwrapping[unwrapping.index(after: unwrapping.startIndex)..<unwrapping.index(before: unwrapping.endIndex)])
+        }
+        return unwrapping
     }
     
     fileprivate func components(in string: String, separatedBy regex: NSRegularExpression) -> [String] {
@@ -183,8 +224,6 @@ class RequirementsListStatement: NSObject {
     }
     
     fileprivate func parseStatement(_ statement: String) {
-        let allRegex = topLevelSeparatorRegex(for: SyntaxConstants.allSeparator)
-        let anyRegex = topLevelSeparatorRegex(for: SyntaxConstants.anySeparator)
         var filteredStatement = statement
         if let match = modifierRegex.firstMatch(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.characters.count)) {
             if let range = Range(match.range(at: 1), in: filteredStatement) {
@@ -193,13 +232,12 @@ class RequirementsListStatement: NSObject {
             filteredStatement = modifierRegex.stringByReplacingMatches(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.characters.count), withTemplate: "")
         }
         
-        var components: [String] = []
-        if anyRegex.firstMatch(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.characters.count)) != nil {
-            components = self.components(in: filteredStatement, separatedBy: anyRegex)
-            connectionType = .any
+        let (components, cType) = separateTopLevelItems(in: filteredStatement)
+        connectionType = cType
+        if connectionType == .any {
+            print("Or statement: \(filteredStatement)")
         } else {
-            components = self.components(in: filteredStatement, separatedBy: allRegex)
-            connectionType = .all
+            print("And statement: \(filteredStatement)")
         }
         
         if components.count == 1 {

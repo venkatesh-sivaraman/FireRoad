@@ -20,7 +20,7 @@ let GIRDescriptions = [
 ]
 
 func descriptionForGIR(attribute: String) -> String {
-    let mod = attribute.replacingOccurrences(of: "GIR:", with: "")
+    let mod = attribute.replacingOccurrences(of: "GIR:", with: "").trimmingCharacters(in: .whitespaces)
     if let converted = GIRDescriptions[mod] {
         return converted
     }

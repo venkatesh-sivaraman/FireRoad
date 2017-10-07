@@ -29,7 +29,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     var presentationItems: [(title: String, items: [PresentationItem])] = []
     
     let courseCellIdentifier = "CourseCell"
-    
+    let listVCIdentifier = "RequirementsList"
+
     func recursivelyExtractCourses(from statement: RequirementsListStatement) -> [Course] {
         if let req = statement.requirement,
             let course = CourseManager.shared.getCourse(withID: req) {
@@ -54,7 +55,11 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             items.append(PresentationItem(cellType: .description, statement: nil, text: description))
         }
         
-        if requirement.minimumNestDepth <= 1 {
+        if level == 0,
+            requirement.title == nil, requirement.thresholdDescription.characters.count > 0 {
+            items.append(PresentationItem(cellType: .title2, statement: nil, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
+        }
+        if requirement.minimumNestDepth <= 1, (requirement.maximumNestDepth <= 2 || level > 0) {
             items.append(PresentationItem(cellType: .courseList, statement: requirement, text: nil))
             if requirement.thresholdDescription.characters.count > 0 {
                 //items.append(PresentationItem(cellType: .courseListAccessory, statement: nil, text: requirement.thresholdDescription))
@@ -69,24 +74,28 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         return items
     }
     
-    func buildPresentationItems(from list: RequirementsList) -> [(title: String, items: [PresentationItem])] {
+    func buildPresentationItems(from list: RequirementsListStatement) -> [(title: String, items: [PresentationItem])] {
         guard let requirements = list.requirements else {
             return []
         }
         
         var ret: [(title: String, items: [PresentationItem])] = []
-        for topLevelRequirement in requirements {
-            var rows: [PresentationItem] = []
-            if let reqs = topLevelRequirement.requirements {
-                for req in reqs {
-                    rows += presentationItems(for: req)
+        if list.minimumNestDepth <= 1 {
+            ret.append(("", presentationItems(for: list)))
+        } else {
+            for topLevelRequirement in requirements {
+                var rows: [PresentationItem] = []
+                if let reqs = topLevelRequirement.requirements {
+                    for req in reqs {
+                        rows += presentationItems(for: req)
+                    }
+                } else {
+                    rows = presentationItems(for: topLevelRequirement)
+                    // Remove the title
+                    rows.removeFirst()
                 }
-            } else {
-                rows = presentationItems(for: topLevelRequirement)
-                // Remove the title
-                rows.removeFirst()
+                ret.append((topLevelRequirement.title ?? "", rows))
             }
-            ret.append((topLevelRequirement.title ?? "", rows))
         }
         
         return ret
@@ -94,10 +103,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if let path = Bundle.main.path(forResource: "test_major", ofType: "reql"),
-            let reqsList = try? RequirementsList(contentsOf: path) {
-            requirementsList = reqsList
+        if let reqsList = requirementsList {
             presentationItems = buildPresentationItems(from: reqsList)
+        } else {
+            presentationItems = []
         }
         if let list = requirementsList as? RequirementsList {
             navigationItem.title = list.mediumTitle
@@ -179,8 +188,26 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         return cell
     }
     
-    func courseListCellSelected(_ course: Course) {
-        viewDetails(for: course)
+    func courseListCell(_ cell: CourseListCell, selected course: Course) {
+        if let id = course.subjectID,
+            let actualCourse = CourseManager.shared.getCourse(withID: id),
+            actualCourse == course {
+            viewDetails(for: course)
+        } else if let ip = tableView.indexPath(for: cell) {
+            guard let item = presentationItems[ip.section].items[ip.row].statement,
+                let requirements = item.requirements,
+                let courseIndex = cell.courses.index(of: course) else {
+                return
+            }
+            
+            if let reqString = requirements[courseIndex].requirement {
+                print(reqString)
+            } else {
+                let listVC = self.storyboard!.instantiateViewController(withIdentifier: listVCIdentifier) as! RequirementsListViewController
+                listVC.requirementsList = requirements[courseIndex]
+                self.navigationController?.pushViewController(listVC, animated: true)
+            }
+        }
     }
     
     func courseDetails(added course: Course) {
@@ -192,19 +219,15 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func viewDetails(for course: Course) {
-        if let id = course.subjectID,
-            let actualCourse = CourseManager.shared.getCourse(withID: id),
-            actualCourse == course {
-            CourseManager.shared.loadCourseDetails(about: actualCourse) { (success) in
-                if success {
-                    let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
-                    details.course = actualCourse
-                    details.delegate = self
-                    details.displayStandardMode = true
-                    self.navigationController?.pushViewController(details, animated: true)
-                } else {
-                    print("Failed to load course details!")
-                }
+        CourseManager.shared.loadCourseDetails(about: course) { (success) in
+            if success {
+                let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
+                details.course = course
+                details.delegate = self
+                details.displayStandardMode = true
+                self.navigationController?.pushViewController(details, animated: true)
+            } else {
+                print("Failed to load course details!")
             }
         }
     }

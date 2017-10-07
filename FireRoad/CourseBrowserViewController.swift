@@ -15,7 +15,7 @@ protocol CourseBrowserDelegate: class {
 
 class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITableViewDataSource, UITableViewDelegate, CourseBrowserCellDelegate, UINavigationControllerDelegate {
     
-    @IBOutlet var searchBar: UISearchBar! = nil
+    @IBOutlet var searchBar: UISearchBar?
     @IBOutlet var tableView: UITableView! = nil
     @IBOutlet var loadingView: UIView?
     @IBOutlet var loadingIndicator: UIActivityIndicatorView?
@@ -31,7 +31,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.searchBar.tintColor = self.view.tintColor
+        self.searchBar?.tintColor = self.view.tintColor
         self.navigationController?.delegate = self
         
         if let panel = panelViewController {
@@ -43,7 +43,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         super.viewWillAppear(animated)
         self.navigationController?.setNavigationBarHidden(true, animated: true)
         
-        if searchBar.text?.characters.count == 0 {
+        if searchBar?.text?.characters.count == 0 {
             showRecentlyViewedCourses()
         }
         
@@ -82,7 +82,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     })
                 }
                 
-                if let searchText = self.searchBar.text, searchText.characters.count > 0 {
+                if let searchText = self.searchBar?.text, searchText.characters.count > 0 {
                     self.loadSearchResults(withString: searchText)
                 } else {
                     self.showRecentlyViewedCourses()
@@ -112,12 +112,15 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     @objc func panelViewControllerWillCollapse(_ note: Notification) {
-        searchBar.resignFirstResponder()
-        searchBar.setShowsCancelButton(false, animated: true)
+        searchBar?.resignFirstResponder()
+        searchBar?.setShowsCancelButton(false, animated: true)
     }
     
     func collapseView() {
-        panelViewController?.collapseView(to: self.searchBar.frame.size.height + 12.0)
+        guard let searchBar = searchBar else {
+            return
+        }
+        panelViewController?.collapseView(to: searchBar.frame.size.height + 12.0)
     }
     
     func expandView() {
@@ -225,7 +228,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if searchBar.text?.characters.count == 0, results.count > 0 {
+        if let searchBar = searchBar,
+            searchBar.text?.characters.count == 0, results.count > 0 {
             return "Recents"
         }
         return nil
@@ -240,7 +244,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        self.searchBar.resignFirstResponder()
+        self.searchBar?.resignFirstResponder()
         self.delegate?.courseBrowserRequestedDetails(about: results[indexPath.row])
         self.tableView.deselectRow(at: indexPath, animated: false)
     }
@@ -253,7 +257,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func browserCell(added course: Course) -> UserSemester? {
-        self.searchBar.resignFirstResponder()
+        self.searchBar?.resignFirstResponder()
         return self.delegate?.courseBrowser(added: course)
     }
 }
