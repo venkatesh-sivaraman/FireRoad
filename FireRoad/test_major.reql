@@ -15,7 +15,7 @@ hass_gir, "Humanities, Arts, and Social Sciences (HASS) Requirement" := hass_req
 rest_gir, "REST Requirement" := GIR:REST{>=2}
 lab_gir, "Lab Requirement" := GIR:LAB
 
-girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir
+girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir, rest_gir, lab_gir
 
 %% Departmental Program
 math_intro, "Mathematics and Introductory" := (6.00/6.031), 6.042

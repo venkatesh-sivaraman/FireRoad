@@ -14,7 +14,11 @@ protocol CourseListCellDelegate: class {
 
 class CourseListCell: UITableViewCell, UICollectionViewDataSource, UICollectionViewDelegate {
 
-    var courses: [Course] = []
+    var courses: [Course] = [] {
+        didSet {
+            collectionView.reloadData()
+        }
+    }
     @IBOutlet var collectionView: UICollectionView! = nil
     weak var delegate: CourseListCellDelegate? = nil
     

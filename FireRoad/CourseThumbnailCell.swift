@@ -52,7 +52,10 @@ class CourseThumbnailCell: UICollectionViewCell {
                 alpha == 0.0 {
                 return
             }
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
             backgroundColorLayer?.backgroundColor = backgroundColor?.cgColor
+            CATransaction.commit()
             backgroundColor = UIColor.clear
         }
     }

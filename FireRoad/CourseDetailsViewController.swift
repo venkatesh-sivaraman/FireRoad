@@ -46,6 +46,33 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
     var sectionTitles: [String] = []
     var detailMapping: [IndexPath: CourseDetailItem] = [:]
     
+    var displayStandardMode = false {
+        didSet {
+            updateScrollViewForDisplayMode()
+        }
+    }
+    
+    func updateScrollViewForDisplayMode() {
+        self.tableView.contentInset = UIEdgeInsetsMake(8.0, 0.0, 0.0, 0.0)
+        if !displayStandardMode {
+            self.tableView.backgroundColor = UIColor.clear
+            self.tableView.estimatedRowHeight = 60.0
+            if #available(iOS 11.0, *) {
+                self.tableView.contentInsetAdjustmentBehavior = .automatic
+            }
+            self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: tableView.scrollIndicatorInsets.top, left: tableView.scrollIndicatorInsets.left, bottom: tableView.scrollIndicatorInsets.bottom + 12.0, right: tableView.scrollIndicatorInsets.right)
+            self.navigationController?.navigationBar.shadowImage = UIImage()
+            self.navigationController?.navigationBar.isTranslucent = true
+        } else {
+            self.tableView.backgroundColor = UIColor.white
+            self.tableView.estimatedRowHeight = 60.0
+            if #available(iOS 11.0, *) {
+                self.tableView.contentInsetAdjustmentBehavior = .automatic
+            }
+            self.navigationController?.navigationBar.shadowImage = nil
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -58,27 +85,18 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             self.navigationItem.title = self.course!.subjectID
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(CourseDetailsViewController.addCourseButtonPressed(sender:)))
         }
-        self.tableView.contentInset = UIEdgeInsetsMake(8.0, 0.0, 0.0, 0.0)
-        self.tableView.estimatedRowHeight = 60.0
-        if #available(iOS 11.0, *) {
-            self.tableView.contentInsetAdjustmentBehavior = .never
-        }
-        self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: tableView.scrollIndicatorInsets.top, left: tableView.scrollIndicatorInsets.left, bottom: tableView.scrollIndicatorInsets.bottom + 12.0, right: tableView.scrollIndicatorInsets.right)
+        updateScrollViewForDisplayMode()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.setNavigationBarHidden(false, animated: true)
     }
     
     @objc func addCourseButtonPressed(sender: AnyObject) {
         self.delegate?.courseDetails(added: self.course!)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        if self.navigationController != nil {
-            self.navigationController?.setNavigationBarHidden(false, animated: true)
-            self.navigationController?.navigationBar.shadowImage = UIImage()
-            self.navigationController?.navigationBar.isTranslucent = true
-        }
-    }
-
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.

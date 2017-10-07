@@ -46,14 +46,20 @@ class RequirementsListStatement: NSObject {
         if threshold != 0 {
             switch thresholdType {
             case .lessThanOrEqual:
-                return "at most \(threshold)"
+                return "select at most \(threshold)"
             case .lessThan:
-                return "less than \(threshold)"
+                return "select at most \(threshold - 1)"
             case .greaterThanOrEqual:
-                return "at least \(threshold)"
+                return "select any \(threshold)"
             case .greaterThan:
-                return "greater than \(threshold)"
+                return "select any \(threshold + 1)"
             }
+        }
+        if connectionType == .any {
+            if let reqs = requirements, reqs.count == 2 {
+                return "select either"
+            }
+            return "select any"
         }
         return ""
     }
@@ -69,6 +75,29 @@ class RequirementsListStatement: NSObject {
             return "<\(title != nil ? title! + ": " : "")\(connectionString) of \n\(reqList.map({ String(reflecting: $0) }).joined(separator: "\n"))>"
         }
         return "<\(title ?? "No title")>"
+    }
+    
+    var shortDescription: String {
+        var baseString: String = ""
+        if let req = requirement {
+            baseString = req
+        } else if let reqs = requirements {
+            let connectionWord = connectionType == .all ? "and" : "or"
+            if reqs.count == 2 {
+                baseString = "\(reqs[0].shortDescription) \(connectionWord) \(reqs[1].shortDescription)"
+            } else {
+                baseString = "\(reqs[0].shortDescription) \(connectionWord) \(reqs.count - 1) others"
+            }
+        }
+        return baseString
+    }
+    
+    /// Gives the minimum number of steps needed to traverse the tree down to a leaf (an individual course).
+    var minimumNestDepth: Int {
+        if let reqs = requirements {
+            return (reqs.map({ $0.minimumNestDepth }).min() ?? -1) + 1
+        }
+        return 0
     }
     
     override init() {

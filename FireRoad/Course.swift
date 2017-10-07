@@ -216,12 +216,15 @@ class Course: NSObject {
     }
     
     init(courseID: String, courseTitle: String, courseDescription: String, totalUnits: Int = 12) {
-        self.subjectID = courseID
-        self.masterSubjectID = courseID
-        self.subjectTitle = courseTitle
-        self.subjectShortTitle = courseTitle
-        self.subjectDescription = courseDescription
-        self.totalUnits = totalUnits
+        super.init()
+        defer {
+            self.subjectID = courseID
+            self.masterSubjectID = courseID
+            self.subjectTitle = courseTitle
+            self.subjectShortTitle = courseTitle
+            self.subjectDescription = courseDescription
+            self.totalUnits = totalUnits
+        }
     }
     
     override var debugDescription: String {
