@@ -67,6 +67,7 @@
 		9636DE0D1F7894F300117A82 /* STS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDE1F7894F300117A82 /* STS.txt */; };
 		9636DE0E1F7894F400117A82 /* SWE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDF1F7894F300117A82 /* SWE.txt */; };
 		9636DE0F1F7894F400117A82 /* WGS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDE01F7894F300117A82 /* WGS.txt */; };
+		963BE43B1F8AAA58008905AE /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 963BE4391F8AAA57008905AE /* MBProgressHUD.m */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
 		9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* CatalogViewController.swift */; };
 		9646CFD71EB921FE005F87CB /* CourseroadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */; };
@@ -175,6 +176,9 @@
 		9636DDDE1F7894F300117A82 /* STS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = STS.txt; sourceTree = "<group>"; };
 		9636DDDF1F7894F300117A82 /* SWE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SWE.txt; sourceTree = "<group>"; };
 		9636DDE01F7894F300117A82 /* WGS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WGS.txt; sourceTree = "<group>"; };
+		963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FireRoad-Bridging-Header.h"; sourceTree = "<group>"; };
+		963BE4391F8AAA57008905AE /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MBProgressHUD.m; path = "../../../../Downloads/MBProgressHUD-master/MBProgressHUD.m"; sourceTree = "<group>"; };
+		963BE43A1F8AAA57008905AE /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MBProgressHUD.h; path = "../../../../Downloads/MBProgressHUD-master/MBProgressHUD.h"; sourceTree = "<group>"; };
 		9646CFCF1EB921FE005F87CB /* FireRoad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireRoad.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9646CFD21EB921FE005F87CB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9646CFD41EB921FE005F87CB /* CatalogViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogViewController.swift; sourceTree = "<group>"; };
@@ -336,10 +340,13 @@
 				9646CFDD1EB921FE005F87CB /* LaunchScreen.storyboard */,
 				9646CFE01EB921FE005F87CB /* Info.plist */,
 				961E49FE1EC7771D002BABB9 /* enrollment.txt */,
+				963BE43A1F8AAA57008905AE /* MBProgressHUD.h */,
+				963BE4391F8AAA57008905AE /* MBProgressHUD.m */,
 				9659E3901F89C24600E55FA2 /* Requirements Lists */,
 				9626B6E41F80AF1F009F6F96 /* course_requirements_spec.md */,
 				9636DDB11F7894F300117A82 /* scraped_course_data */,
 				961E49931EC6938F002BABB9 /* course_processor.py */,
+				963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */,
 			);
 			path = FireRoad;
 			sourceTree = "<group>";
@@ -580,6 +587,7 @@
 				9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */,
 				9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */,
 				96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */,
+				963BE43B1F8AAA58008905AE /* MBProgressHUD.m in Sources */,
 				96500EAE1F7A056400872F82 /* RoundedToolbarView.swift in Sources */,
 				9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */,
 				9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */,
@@ -748,11 +756,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				DEVELOPMENT_TEAM = PTB6T29SN3;
 				INFOPLIST_FILE = FireRoad/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.FireRoad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "FireRoad/FireRoad-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
 			};
@@ -762,11 +773,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				DEVELOPMENT_TEAM = PTB6T29SN3;
 				INFOPLIST_FILE = FireRoad/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.FireRoad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "FireRoad/FireRoad-Bridging-Header.h";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
 			};
