@@ -82,6 +82,14 @@ class User: NSObject {
     private var saveInterval = 2.0
     private var saveTimer: Timer?
     
+    var allCourses: [Course] {
+        var ret: [Course] = []
+        for (_, subjects) in selectedSubjects.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+            ret += subjects
+        }
+        return ret
+    }
+    
     init(contentsOfFile path: String) throws {
         super.init()
         try readUserCourses(from: path)

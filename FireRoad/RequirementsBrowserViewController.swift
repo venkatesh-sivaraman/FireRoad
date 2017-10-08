@@ -27,9 +27,20 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
             for pathName in contents where pathName.contains(".reql") {
                 let fullPath = URL(fileURLWithPath: resourcePath).appendingPathComponent(pathName).path
                 if let reqList = try? RequirementsList(contentsOf: fullPath) {
+                    if let tabVC = rootParent as? RootTabViewController,
+                        let currentUser = tabVC.currentUser {
+                        reqList.computeRequirementStatus(with: currentUser.allCourses)
+                    }
                     requirementsLists.append(reqList)
                 }
             }
+        }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if let ip = tableView.indexPathForSelectedRow {
+            tableView.deselectRow(at: ip, animated: true)
         }
     }
     
@@ -70,6 +81,6 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         
         listVC.requirementsList = reqList
         splitViewController?.showDetailViewController(nav, sender: self)
-        tableView.deselectRow(at: indexPath, animated: true)
+       // tableView.deselectRow(at: indexPath, animated: true)
     }
 }

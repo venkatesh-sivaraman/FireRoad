@@ -1,15 +1,20 @@
 6-7#,#6-7 Major#,#Bachelor of Science in Computer Science and Molecular Biology
+The Bachelor of Science in Computer Science and Molecular Biology prepares students for careers that leverage computational biology (e.g., pharmaceuticals, bioinformatics, medicine, etc.) as well as further graduate study in biology, in computer science, and in emerging programs at the interface. Students in this program who have a strong academic record will be offered an opportunity to continue through the five-year master's program, leading to the Master of Engineering in Computer Science and Molecular Biology.
 
+reqd_subjects
+
+rest_electives
+
+aup
 
 girs
-Description of GIRs
-dept_program
-Description of Departmental Program
+
 
 %% GIRs
 
 science_gir, "Science Requirement" := GIR:PHY1, GIR:PHY2, GIR:CAL1, GIR:CAL2, GIR:CHEM, GIR:BIOL
-hass_req := HASS{>=8}
+hass_gen_req := HASS{>=8}
+hass_req := hass_gen_req, HASS-A, HASS-S, HASS-H
 ci_req := "CI-H"/"CI-HW"{>=2} %% at least two subjects must be designated as CI-H or CI-HW
 hass_gir, "Humanities, Arts, and Social Sciences (HASS) Requirement" := hass_req, ci_req
 rest_gir, "REST Requirement" := GIR:REST{>=2}
@@ -18,11 +23,11 @@ lab_gir, "Lab Requirement" := GIR:LAB
 girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir, rest_gir, lab_gir
 
 %% Departmental Program
-math_intro, "Mathematics and Introductory" := ((6.00/(6.0001,6.0002))/6.031), 6.042
+math_intro, "Mathematics and Introductory" := (6.00/(6.0001,6.0002)/6.031), 6.042
 chem, "Chemistry" := 5.12,(5.60/20.110)
 intro_lab, "Introductory Laboratory" := 7.02/20.109
 foundational_subjects, "Foundational Subjects" := 6.006, 6.009, 6.046, 7.03, 7.05, 7.06
-reqd_subjects := math_intro, chem, intro_lab, foundational_subjects
+reqd_subjects, "Required Subjects" := math_intro, chem, intro_lab, foundational_subjects
 
 comp_bio_rest, "Computational Biology" := 6.046/6.503/6.802
 bio_rest, "Biology" := 7.08/7.20/7.21/7.22/7.23/7.26/7.27/7.28/7.29/(7.30A,7.30B)/7.31/7.32/7.33/7.37/7.371/7.41/7.45/7.49

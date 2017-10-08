@@ -43,7 +43,7 @@ class RequirementsListStatement: NSObject {
     var threshold = 0
     
     var thresholdDescription: String {
-        if threshold != 0 {
+        if threshold > 1 {
             switch thresholdType {
             case .lessThanOrEqual:
                 return "select at most \(threshold)"
@@ -65,16 +65,17 @@ class RequirementsListStatement: NSObject {
     }
     
     override var debugDescription: String {
+        let fulfillmentString = fulfillmentProgress > 0 ? "(\(fulfillmentProgress)) " : ""
         if let req = requirement {
-            return "<\(title != nil ? title! + ": " : "")\(req)\(thresholdDescription.characters.count > 0 ? " (" + thresholdDescription + ")" : "")>"
+            return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title != nil ? title! + ": " : "")\(req)\(thresholdDescription.characters.count > 0 ? " (" + thresholdDescription + ")" : "")>"
         } else if let reqList = requirements {
             var connectionString = "\(connectionType)"
             if thresholdDescription.characters.count > 0 {
                 connectionString += " (\(thresholdDescription))"
             }
-            return "<\(title != nil ? title! + ": " : "")\(connectionString) of \n\(reqList.map({ String(reflecting: $0) }).joined(separator: "\n"))>"
+            return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title != nil ? title! + ": " : "")\(connectionString) of \n\(reqList.map({ String(reflecting: $0) }).joined(separator: "\n"))>"
         }
-        return "<\(title ?? "No title")>"
+        return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title ?? "No title")>"
     }
     
     var shortDescription: String {
@@ -262,6 +263,57 @@ class RequirementsListStatement: NSObject {
             }
         }
     }
+    
+    // MARK: - Requirement Status
+    
+    var isFulfilled = false
+    var fulfillmentProgress: Int = 0
+    
+    func coursesSatisfyingRequirement(in courses: [Course]) -> [Course] {
+        var satisfying: [Course] = []
+        if let req = requirement?.replacingOccurrences(of: "GIR:", with: "") {
+            for course in courses {
+                if course.subjectID == req || course.jointSubjects.contains(req) || course.equivalentSubjects.contains(req) || course.GIRAttribute?.contains(req) == true || course.hassAttribute?.contains(req) == true || course.hassAttributeDescription?.contains(req) == true || course.communicationRequirement?.replacingOccurrences(of: "-", with: "").contains(req) == true {
+                    satisfying.append(course)
+                }
+            }
+        }
+        return satisfying
+    }
+    
+    func computeRequirementStatus(with courses: [Course]) {
+        var numSatisfying = 0
+        if requirement != nil {
+            numSatisfying += coursesSatisfyingRequirement(in: courses).count
+        } else if let reqs = requirements {
+            for req in reqs {
+                req.computeRequirementStatus(with: courses)
+                if req.isFulfilled {
+                    if connectionType == .any, threshold > 1 {
+                        numSatisfying += req.coursesSatisfyingRequirement(in: courses).count
+                    } else {
+                        numSatisfying += 1
+                    }
+                }
+            }
+        }
+        
+        if connectionType == .any || threshold > 1 {
+            switch thresholdType {
+            case .greaterThan:
+                isFulfilled = (numSatisfying > max(threshold, 1))
+            case .greaterThanOrEqual:
+                isFulfilled = (numSatisfying >= max(threshold, 1))
+            case .lessThan:
+                isFulfilled = (numSatisfying < max(threshold, 1))
+            case .lessThanOrEqual:
+                isFulfilled = (numSatisfying <= max(threshold, 1))
+            }
+        } else {
+            isFulfilled = (numSatisfying >= (requirements?.count ?? 1))
+        }
+        fulfillmentProgress = numSatisfying
+    }
 }
 
 class RequirementsList: RequirementsListStatement {
@@ -298,8 +350,11 @@ class RequirementsList: RequirementsListStatement {
                 title = headerComps[2]
             }
         }
-        // Unused second line
-        lines.removeFirst()
+        // Second line is the description of the course
+        let descriptionLine = lines.removeFirst().trimmingCharacters(in: .whitespaces)
+        if descriptionLine.characters.count > 0 {
+            contentDescription = descriptionLine.replacingOccurrences(of: "\\n", with: "\n")
+        }
         
         guard lines.count > 0 else {
             print("Reached end of file early!")

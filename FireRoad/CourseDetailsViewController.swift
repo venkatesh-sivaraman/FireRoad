@@ -314,6 +314,8 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             }
             detailTextLabel?.text = seasons.joined(separator: ", ").capitalized + quarterString + offeredString
         case .schedule:
+            textLabel?.text = ""
+            detailTextLabel?.text = ""
             guard let schedule = course?.schedule else {
                 break
             }
@@ -370,7 +372,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
                 } else if prereqs.count == 1, myID.lowercased().contains("permission of instructor") {
                     (cell as! CourseListCell).courses.append(Course(courseID: "None", courseTitle: "(Permission of instructor)", courseDescription: ""))
                 } else if myID.contains("GIR") {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: descriptionForGIR(attribute: myID).replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: ""))
+                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: descriptionForGIR(attribute: myID).replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 }
             }
             (cell as! CourseListCell).delegate = self
@@ -384,7 +386,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
                 if equivCourse != nil {
                     (cell as! CourseListCell).courses.append(equivCourse!)
                 } else if myID.contains("GIR") {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: descriptionForGIR(attribute: myID).replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: ""))
+                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: descriptionForGIR(attribute: myID).replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 }
             }
             (cell as! CourseListCell).delegate = self

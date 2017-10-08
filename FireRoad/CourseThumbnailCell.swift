@@ -60,11 +60,11 @@ class CourseThumbnailCell: UICollectionViewCell {
         }
     }
     
-    override var alpha: CGFloat {
+    /*override var alpha: CGFloat {
         didSet {
             backgroundColorLayer?.opacity = Float(alpha)
         }
-    }
+    }*/
     
     var shadowEnabled: Bool = true {
         didSet {
@@ -97,6 +97,7 @@ class CourseThumbnailCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         backgroundColorLayer?.frame = self.layer.bounds
+        repositionFulfillmentIndicators()
     }
     
     override var isHighlighted: Bool {
@@ -149,5 +150,84 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     override func delete(_ sender: Any?) {
         delegate?.courseThumbnailCellWantsDelete(self)
+    }
+    
+    // MARK: - Requirement Fulfillment
+    
+    private var fulfillmentIndicators: [CALayer] = []
+    
+    var fulfilledColor: UIColor?
+    var unfulfilledColor: UIColor?
+    
+    var fulfillmentThreshold = 0 {
+        didSet {
+            updateFulfillmentIndicators()
+        }
+    }
+    var fulfillmentLevel = 0 {
+        didSet {
+            updateFulfillmentIndicators()
+        }
+    }
+    
+    func updateFulfillmentIndicators() {
+        for indicator in fulfillmentIndicators {
+            indicator.removeFromSuperlayer()
+        }
+        fulfillmentIndicators = []
+        if fulfillmentLevel < fulfillmentThreshold || fulfillmentThreshold == 0 {
+            backgroundColorLayer?.opacity = 1.0
+        } else {
+            backgroundColorLayer?.opacity = 0.4
+        }
+        if fulfillmentThreshold > 1 || fulfillmentLevel > 1 {
+            let rect = CGRect(x: 0.0, y: 0.0, width: 8.0, height: 8.0)
+            let bezierPath = UIBezierPath(ovalIn: rect)
+            for i in 0..<max(fulfillmentThreshold, fulfillmentLevel) {
+                let indicator = CAShapeLayer()
+                indicator.path = bezierPath.cgPath
+                indicator.frame = rect
+                var fillColor: CGColor?
+                if i < fulfillmentLevel {
+                    fillColor = fulfilledColor?.cgColor
+                    if fillColor == nil, let bgColor = backgroundColorLayer?.backgroundColor {
+                        let fillUIColor = UIColor(cgColor: bgColor)
+                        var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0
+                        fillUIColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
+                        fillColor = UIColor(hue: hue, saturation: saturation, brightness: brightness / 3.0, alpha: 0.7).cgColor
+                    }
+                } else {
+                    fillColor = unfulfilledColor?.cgColor
+                    if fillColor == nil, let bgColor = backgroundColorLayer?.backgroundColor {
+                        let fillUIColor = UIColor(cgColor: bgColor)
+                        var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0
+                        fillUIColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
+                        fillColor = UIColor(hue: hue, saturation: saturation, brightness: (2.0 + brightness) / 3.0, alpha: 0.6).cgColor
+                    }
+                }
+                indicator.fillColor = fillColor
+                layer.addSublayer(indicator)
+                fulfillmentIndicators.append(indicator)
+            }
+        }
+        repositionFulfillmentIndicators()
+    }
+    
+    func repositionFulfillmentIndicators() {
+        var topThreshold = CGFloat(0.0)
+        if let detail = detailTextLabel,
+            detail.text?.characters.count != 0 {
+            topThreshold = detail.frame.maxY
+        } else {
+            topThreshold = frame.size.height / 2.0
+        }
+        let centerY = max((topThreshold + frame.size.height) / 2.0, frame.size.height - 8.0)
+        let totalWidth = fulfillmentIndicators.reduce(CGFloat(0.0), { $0 + $1.frame.size.width })
+        let margin = min((frame.size.width - totalWidth) / CGFloat(fulfillmentIndicators.count + 1), 4.0)
+        var x = frame.size.width / 2.0 - (totalWidth + margin * CGFloat(fulfillmentIndicators.count - 1)) / 2.0
+        for indicator in fulfillmentIndicators {
+            indicator.frame = CGRect(x: x, y: centerY - indicator.frame.size.height / 2.0, width: indicator.frame.size.width, height: indicator.frame.size.height)
+            x += indicator.frame.size.width + margin
+        }
     }
 }

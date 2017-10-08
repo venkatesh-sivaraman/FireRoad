@@ -27,6 +27,13 @@ func descriptionForGIR(attribute: String) -> String {
     return attribute
 }
 
+func GIRForDescription(_ attribute: String) -> String {
+    if let converted = GIRDescriptions.sorted(by: { $1.value.characters.count > $0.value.characters.count }).first(where: { $1.lowercased().contains(attribute.lowercased()) })?.key {
+        return converted
+    }
+    return attribute
+}
+
 enum CourseOfferingPattern: String {
     case everyYear = "Every year"
     case alternateYears = "Alternate years"
@@ -280,12 +287,16 @@ class Course: NSObject {
         course.totalUnits = totalUnits
         course.writingRequirement = writingRequirement
         course.writingReqDescription = writingReqDescription
-        course.enrollmentNumber = enrollmentNumber
+        if course.enrollmentNumber < enrollmentNumber {
+            course.enrollmentNumber = enrollmentNumber
+        }
         course.quarterInformation = quarterInformation
         if course.relatedSubjects.count < relatedSubjects.count {
             course.relatedSubjects = relatedSubjects
         }
-        course.schedule = schedule
+        if course.schedule == nil || (schedule != nil && course.schedule!.count < schedule!.count) {
+            course.schedule = schedule
+        }
     }
     
     func parseScheduleString(_ scheduleString: String) -> [String: [[CourseScheduleItem]]] {
@@ -323,7 +334,13 @@ class Course: NSObject {
                         if let integerTime = Int(startTime) {
                             endTime = "\((integerTime % 12) + 1)"
                         } else {
-                            print("Start time can't be represented as an integer: \(startTime)")
+                            // It may be a time like 7.30
+                            if let dotRange = startTime.range(of: "."),
+                                let hour = Int(String(startTime[startTime.startIndex..<dotRange.lowerBound])) {
+                                endTime = "\((hour % 12) + 1)\(startTime[dotRange.upperBound..<startTime.endIndex])"
+                            } else {
+                                print("Start time can't be represented as an integer: \(startTime)")
+                            }
                         }
                     }
                     items[items.count - 1].append(CourseScheduleItem(days: chunk[0], startTime: startTime, endTime: endTime, isEvening: (integerEvening != 0), location: location))

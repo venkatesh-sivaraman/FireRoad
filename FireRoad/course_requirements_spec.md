@@ -5,7 +5,7 @@ Use the `%%` symbol for comments.
 
 ## Overall Document Format
 1. The first line of the document is devoted to metadata about the major, minor, or set of course requirements. The metadata should be separated by the special `#,#` delimiter for easy parsing.
-2. The second line of the document is reserved for future use.
+2. The second line of the document may contain a description of the course requirements list (newlines may be specified by typing `\n`).
 3. The third line of the document must be empty.
 4. Subsequent lines should contain the top-level sections of the course requirements list. Each section should consist of the following:
     * One line for the statement that corresponds to that requirement (should be defined further down in the document).
@@ -23,7 +23,7 @@ Items in a statement may be parenthesized to nest lists together. For instance, 
 ## List Modifications
 A list of courses succeeded by `{>=x}`, where x is an integer, denotes that the given criterion must apply to at least x courses. A similar rule holds true for `{>x}`, `{<=x}`, and `{<x}`.
 
-A list of course characteristics *preceded* by one of these macros signifies that at least (or at most, etc.) *x* courses in a finite set must satisfy the list of characteristics. If no preceding quantifier is found for an ANY statement, it will be defaulted to `{>=1}`.
+List modifications may only be applied to the top level of an expression. For example, the modifier in `variable_name := req1, req2 {>=3}` applies to the entire variable declaration; the modifier in `variable_name := (req1{>=3}), req2` would *still* be parsed as belonging to the entire variable declaration.
 
 ## Variables
 Variables can be assigned using the syntax `variable_name := statement` or `variable_name, "title" := statement`. The title of the statement, if provided, must be human-readable and wrapped in double quotes.

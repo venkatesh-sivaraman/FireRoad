@@ -22,17 +22,26 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     weak var delegate: CourseBrowserDelegate? = nil
     
+    /// An initial search to perform in the browser.
+    var searchTerm: String?
+    
+    var searchOptions: SearchOptions = .all
+    
     var panelViewController: PanelViewController? {
         return (self.navigationController?.parent as? PanelViewController)
     }
     
     var results: [Course] = []
+    var managesNavigation: Bool = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         self.searchBar?.tintColor = self.view.tintColor
-        self.navigationController?.delegate = self
+        if managesNavigation {
+            self.navigationController?.delegate = self
+        }
+        navigationItem.title = searchTerm ?? ""
         
         if let panel = panelViewController {
             NotificationCenter.default.addObserver(self, selector: #selector(panelViewControllerWillCollapse(_:)), name: .PanelViewControllerWillCollapse, object: panel)
@@ -41,10 +50,15 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController?.setNavigationBarHidden(true, animated: true)
+        if managesNavigation {
+            self.navigationController?.setNavigationBarHidden(true, animated: true)
+        }
         
-        if searchBar?.text?.characters.count == 0 {
+        if let searchBar = searchBar,
+            searchBar.text?.characters.count == 0 {
             showRecentlyViewedCourses()
+        } else if let initialSearch = searchTerm {
+            loadSearchResults(withString: initialSearch, options: searchOptions)
         }
         
         // Show the loading view if necessary
@@ -82,10 +96,14 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     })
                 }
                 
-                if let searchText = self.searchBar?.text, searchText.characters.count > 0 {
-                    self.loadSearchResults(withString: searchText)
-                } else {
-                    self.showRecentlyViewedCourses()
+                if let searchText = self.searchBar?.text {
+                    if searchText.characters.count > 0 {
+                        self.loadSearchResults(withString: searchText, options: self.searchOptions)
+                    } else {
+                        self.showRecentlyViewedCourses()
+                    }
+                } else if let initialSearch = self.searchTerm {
+                    self.loadSearchResults(withString: initialSearch, options: self.searchOptions)
                 }
             }
         }
@@ -157,15 +175,24 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             showRecentlyViewedCourses()
             return
         }
-        loadSearchResults(withString: searchText)
+        loadSearchResults(withString: searchText, options: searchOptions)
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
-        self.loadSearchResults(withString: searchBar.text!)
+        self.loadSearchResults(withString: searchBar.text!, options: searchOptions)
     }
     
-    func loadSearchResults(withString searchTerm: String) {
+    struct SearchOptions: OptionSet {
+        var rawValue: Int
+        
+        static let all = SearchOptions(rawValue: 1 << 0)
+        static let GIR = SearchOptions(rawValue: 1 << 1)
+        static let HASS = SearchOptions(rawValue: 1 << 2)
+        static let CI = SearchOptions(rawValue: 1 << 3)
+    }
+    
+    func loadSearchResults(withString searchTerm: String, options: SearchOptions = .all) {
         guard CourseManager.shared.isLoaded else {
             return
         }
@@ -175,8 +202,21 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             var newResults: [Course: Float] = [:]
             for course in CourseManager.shared.courses {
                 var relevance: Float = 0.0
-                let courseComps = [String?]([course.subjectID, course.subjectID, course.subjectID, course.subjectTitle, course.communicationRequirement, course.communicationReqDescription, course.hassAttribute, course.hassAttributeDescription, course.GIRAttribute, course.GIRAttributeDescription])
-                let courseText = (courseComps.flatMap({ $0 }) + course.instructors).joined(separator: "\n").lowercased()
+                var courseComps: [String?] = []
+                if options.contains(.GIR) {
+                    courseComps += [course.GIRAttribute, course.GIRAttributeDescription]
+                }
+                if options.contains(.HASS) {
+                    courseComps += [course.hassAttribute, course.hassAttributeDescription]
+                }
+                if options.contains(.CI) {
+                    courseComps += [course.communicationRequirement, course.communicationReqDescription]
+                }
+                if options.contains(.all) {
+                    courseComps = [String?]([course.subjectID, course.subjectID, course.subjectID, course.subjectTitle, course.communicationRequirement, course.communicationReqDescription, course.hassAttribute, course.hassAttributeDescription, course.GIRAttribute, course.GIRAttributeDescription])
+                }
+                
+                let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.all) ? course.instructors : [])).joined(separator: "\n").lowercased()
                 for comp in comps {
                     if courseText.contains(comp) {
                         let separated = courseText.components(separatedBy: comp)
@@ -198,6 +238,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                 }
                 if relevance > 0.0 {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
+                    print(course.subjectID!, courseText, relevance)
                     newResults[course] = relevance
                 }
             }

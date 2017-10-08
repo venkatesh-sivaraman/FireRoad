@@ -16,7 +16,7 @@ enum RequirementsListCellType: String {
     case courseListAccessory = "CourseListAccessoryCell"
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, UIPopoverPresentationControllerDelegate {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -30,6 +30,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     let courseCellIdentifier = "CourseCell"
     let listVCIdentifier = "RequirementsList"
+    let courseListVCIdentifier = "CourseListVC"
 
     func recursivelyExtractCourses(from statement: RequirementsListStatement) -> [Course] {
         if let req = statement.requirement,
@@ -51,7 +52,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
             items.append(PresentationItem(cellType: cellType, statement: nil, text: titleText))
         }
-        if let description = requirement.contentDescription {
+        if let description = requirement.contentDescription, description.characters.count > 0 {
             items.append(PresentationItem(cellType: .description, statement: nil, text: description))
         }
         
@@ -59,7 +60,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             requirement.title == nil, requirement.thresholdDescription.characters.count > 0 {
             items.append(PresentationItem(cellType: .title2, statement: nil, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
         }
-        if requirement.minimumNestDepth <= 1, (requirement.maximumNestDepth <= 2 || level > 0) {
+        if requirement.minimumNestDepth <= 1, (requirement.maximumNestDepth <= 1 || level > 0) {
             items.append(PresentationItem(cellType: .courseList, statement: requirement, text: nil))
             if requirement.thresholdDescription.characters.count > 0 {
                 //items.append(PresentationItem(cellType: .courseListAccessory, statement: nil, text: requirement.thresholdDescription))
@@ -83,17 +84,18 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         if list.minimumNestDepth <= 1 {
             ret.append(("", presentationItems(for: list)))
         } else {
-            for topLevelRequirement in requirements {
+            if let description = list.contentDescription, description.characters.count > 0 {
                 var rows: [PresentationItem] = []
-                if let reqs = topLevelRequirement.requirements {
-                    for req in reqs {
-                        rows += presentationItems(for: req)
-                    }
-                } else {
-                    rows = presentationItems(for: topLevelRequirement)
-                    // Remove the title
-                    rows.removeFirst()
+                if let title = list.title, title.characters.count > 0 {
+                    rows.append(PresentationItem(cellType: .title, statement: nil, text: title))
                 }
+                rows.append(PresentationItem(cellType: .description, statement: nil, text: description))
+                ret.append(("", rows))
+            }
+            for topLevelRequirement in requirements {
+                var rows: [PresentationItem] = presentationItems(for: topLevelRequirement)
+                // Remove the title
+                rows.removeFirst()
                 ret.append((topLevelRequirement.title ?? "", rows))
             }
         }
@@ -112,6 +114,15 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             navigationItem.title = list.mediumTitle
         } else {
             navigationItem.title = requirementsList?.shortDescription
+        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if let tabVC = rootParent as? RootTabViewController,
+            let currentUser = tabVC.currentUser {
+            requirementsList?.computeRequirementStatus(with: currentUser.allCourses)
+            tableView.reloadData()
         }
     }
     
@@ -179,6 +190,13 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 }
                 return Course(courseID: $0, courseTitle: "", courseDescription: "")
             }
+            if let reqs = statement.requirements {
+                courseListCell.fulfillmentIndications = reqs.map {
+                    ($0.fulfillmentProgress, max($0.threshold, 1))
+                }
+            } else {
+                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress, max(statement.threshold, 1))]
+            }
             
             courseListCell.delegate = self
             
@@ -189,19 +207,27 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func courseListCell(_ cell: CourseListCell, selected course: Course) {
+        guard let courseIndex = cell.courses.index(of: course),
+            let selectedCell = cell.collectionView.cellForItem(at: IndexPath(item: courseIndex, section: 0)) else {
+                return
+        }
         if let id = course.subjectID,
             let actualCourse = CourseManager.shared.getCourse(withID: id),
             actualCourse == course {
-            viewDetails(for: course)
+            viewDetails(for: course, from: selectedCell.convert(selectedCell.bounds, to: self.view))
         } else if let ip = tableView.indexPath(for: cell) {
-            guard let item = presentationItems[ip.section].items[ip.row].statement,
-                let requirements = item.requirements,
-                let courseIndex = cell.courses.index(of: course) else {
+            guard let item = presentationItems[ip.section].items[ip.row].statement else {
                 return
             }
+            let requirements = item.requirements ?? [item]
             
-            if let reqString = requirements[courseIndex].requirement {
-                print(reqString)
+            if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
+                let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
+                listVC.searchTerm = reqString
+                listVC.searchOptions = [.GIR, .HASS, .CI]
+                listVC.delegate = self
+                listVC.managesNavigation = false
+                showInformationalViewController(listVC, from: selectedCell.convert(selectedCell.bounds, to: self.view))
             } else {
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: listVCIdentifier) as! RequirementsListViewController
                 listVC.requirementsList = requirements[courseIndex]
@@ -211,24 +237,86 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func courseDetails(added course: Course) {
-        
+        _ = addCourse(course)
+    }
+    
+    func courseBrowser(added course: Course) -> UserSemester? {
+        return addCourse(course)
     }
     
     func courseDetailsRequestedDetails(about course: Course) {
         viewDetails(for: course)
     }
     
-    func viewDetails(for course: Course) {
-        CourseManager.shared.loadCourseDetails(about: course) { (success) in
-            if success {
-                let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
-                details.course = course
-                details.delegate = self
-                details.displayStandardMode = true
-                self.navigationController?.pushViewController(details, animated: true)
-            } else {
-                print("Failed to load course details!")
-            }
+    func courseBrowserRequestedDetails(about course: Course) {
+        viewDetails(for: course)
+    }
+    
+    func addCourse(_ course: Course) -> UserSemester? {
+        guard let tabVC = rootParent as? RootTabViewController else {
+            print("Root isn't a tab bar controller!")
+            return nil
         }
+        if presentedViewController != nil {
+            dismiss(animated: true, completion: nil)
+        }
+        return tabVC.addCourse(course)
+    }
+    
+    var popoverNavigationController: UINavigationController?
+    
+    /// Shows the view controller in a popover on iPad, and pushes it on iPhone.
+    func showInformationalViewController(_ vc: UIViewController, from rect: CGRect = CGRect.zero) {
+        if traitCollection.horizontalSizeClass == .regular,
+            traitCollection.userInterfaceIdiom == .pad {
+            if let nav = popoverNavigationController {
+                nav.pushViewController(vc, animated: true)
+            } else {
+                let nav = UINavigationController(rootViewController: vc)
+                nav.modalPresentationStyle = .popover
+                nav.popoverPresentationController?.sourceRect = rect
+                nav.popoverPresentationController?.sourceView = self.view
+                nav.popoverPresentationController?.delegate = self
+                present(nav, animated: true)
+                popoverNavigationController = nav
+            }
+        } else {
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    
+    override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+        if popoverNavigationController != nil {
+            dismiss(animated: true, completion: nil)
+            popoverNavigationController = nil
+        }
+    }
+    
+    func viewDetails(for course: Course, from rect: CGRect? = nil) {
+        if let id = course.subjectID,
+            CourseManager.shared.getCourse(withID: id) != nil {
+            CourseManager.shared.loadCourseDetails(about: course) { (success) in
+                if success {
+                    let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
+                    details.course = course
+                    details.delegate = self
+                    details.displayStandardMode = true
+                    self.showInformationalViewController(details, from: rect ?? CGRect.zero)
+                } else {
+                    print("Failed to load course details!")
+                }
+            }
+        } else if course.subjectID == "GIR" {
+            let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
+            listVC.searchTerm = GIRForDescription(course.subjectDescription ?? (course.subjectTitle ?? ""))
+            listVC.searchOptions = [.GIR, .HASS, .CI]
+            listVC.delegate = self
+            listVC.managesNavigation = false
+            self.showInformationalViewController(listVC, from: rect ?? CGRect.zero)
+        }
+    }
+    
+    func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
+        popoverNavigationController = nil
     }
 }

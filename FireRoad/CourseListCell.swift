@@ -19,6 +19,9 @@ class CourseListCell: UITableViewCell, UICollectionViewDataSource, UICollectionV
             collectionView.reloadData()
         }
     }
+    /// Array of (current fulfillment, max fulfillment) tuples corresponding to courses.
+    var fulfillmentIndications: [(Int, Int)] = []
+    
     @IBOutlet var collectionView: UICollectionView! = nil
     weak var delegate: CourseListCellDelegate? = nil
     
@@ -45,8 +48,17 @@ class CourseListCell: UITableViewCell, UICollectionViewDataSource, UICollectionV
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseListItem", for: indexPath) as! CourseThumbnailCell
         let course = self.courses[indexPath.item]
         cell.textLabel?.text = course.subjectID
-        cell.detailTextLabel?.text = course.subjectTitle
+        let paraStyle = NSMutableParagraphStyle()
+        paraStyle.hyphenationFactor = 0.7
+        paraStyle.alignment = .center
+        if let title = course.subjectTitle {
+            cell.detailTextLabel?.attributedText = NSAttributedString(string: title, attributes: [.paragraphStyle: paraStyle])
+        }
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
+        if indexPath.item < fulfillmentIndications.count {
+            cell.fulfillmentLevel = fulfillmentIndications[indexPath.item].0
+            cell.fulfillmentThreshold = fulfillmentIndications[indexPath.item].1
+        }
         return cell
 
     }

@@ -215,7 +215,12 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         cell.delegate = self
         let course = self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!)[indexPath.item]
         cell.textLabel?.text = course.subjectID
-        cell.detailTextLabel?.text = course.subjectTitle
+        let paraStyle = NSMutableParagraphStyle()
+        paraStyle.hyphenationFactor = 0.7
+        paraStyle.alignment = .center
+        if let title = course.subjectTitle {
+            cell.detailTextLabel?.attributedText = NSAttributedString(string: title, attributes: [.paragraphStyle: paraStyle])
+        }
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
         return cell
     }
@@ -400,43 +405,70 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     // MARK: - Model Interaction
     
     func viewDetails(for course: Course) {
-        CourseManager.shared.loadCourseDetails(about: course) { (success) in
-            if success {
-                guard let panel = self.panelView,
-                    let browser = self.courseBrowser else {
-                        return
+        if let id = course.subjectID,
+            CourseManager.shared.getCourse(withID: id) != nil {
+            CourseManager.shared.loadCourseDetails(about: course) { (success) in
+                if success {
+                    guard let panel = self.panelView,
+                        let browser = self.courseBrowser else {
+                            return
+                    }
+                    if !panel.isExpanded {
+                        panel.expandView()
+                    }
+                    
+                    let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
+                    details.course = course
+                    details.delegate = self
+                    browser.navigationController?.pushViewController(details, animated: true)
+                    browser.navigationController?.view.setNeedsLayout()
+                } else {
+                    print("Failed to load course details!")
                 }
-                if !panel.isExpanded {
-                    panel.expandView()
-                }
-                
-                let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
-                details.course = course
-                details.delegate = self
-                browser.navigationController?.pushViewController(details, animated: true)
-                browser.navigationController?.view.setNeedsLayout()
-            } else {
-                print("Failed to load course details!")
             }
+        } else if course.subjectID == "GIR" {
+            guard let panel = self.panelView,
+                let browser = self.courseBrowser else {
+                    return
+            }
+            if !panel.isExpanded {
+                panel.expandView()
+            }
+            
+            let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
+            listVC.searchTerm = GIRForDescription(course.subjectDescription ?? (course.subjectTitle ?? ""))
+            listVC.searchOptions = [.GIR, .HASS, .CI]
+            listVC.delegate = self
+            listVC.managesNavigation = false
+            listVC.view.backgroundColor = UIColor.clear
+            browser.navigationController?.pushViewController(listVC, animated: true)
+            browser.navigationController?.view.setNeedsLayout()
         }
     }
     
-    func addCourse(_ course: Course) -> UserSemester? {
-        var selectedSemester: UserSemester? = nil
-        for semester in UserSemester.allEnrolledSemesters {
-            selectedSemester = semester
-            if self.currentUser!.courses(forSemester: semester).count >= 4 {
-                continue
-            }
-            if (semester.isFall() && course.isOfferedFall) ||
-                (semester.isSpring() && course.isOfferedSpring) ||
-                (semester.isIAP() && course.isOfferedIAP) {
-                break
+    func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
+        var selectedSemester: UserSemester? = semester
+        if selectedSemester == nil {
+            for sem in UserSemester.allEnrolledSemesters {
+                selectedSemester = sem
+                if self.currentUser!.courses(forSemester: sem).contains(course) {
+                    break
+                }
+                if self.currentUser!.courses(forSemester: sem).count >= 4 {
+                    continue
+                }
+                if (sem.isFall() && course.isOfferedFall) ||
+                    (sem.isSpring() && course.isOfferedSpring) ||
+                    (sem.isIAP() && course.isOfferedIAP) {
+                    break
+                }
             }
         }
         if selectedSemester != nil {
-            self.currentUser?.add(course, toSemester: selectedSemester!)
-            self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
+            if !self.currentUser!.courses(forSemester: selectedSemester!).contains(course) {
+                self.currentUser?.add(course, toSemester: selectedSemester!)
+                self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
+            }
             if let courseItem = self.currentUser?.courses(forSemester: selectedSemester!).index(of: course) {
                 self.collectionView.scrollToItem(at: IndexPath(item: courseItem, section: selectedSemester!.rawValue), at: .centeredVertically, animated: true)
             }
