@@ -180,8 +180,8 @@ class CourseThumbnailCell: UICollectionViewCell {
         } else {
             backgroundColorLayer?.opacity = 0.4
         }
-        if fulfillmentThreshold > 1 || fulfillmentLevel > 1 {
-            let rect = CGRect(x: 0.0, y: 0.0, width: 8.0, height: 8.0)
+        if fulfillmentThreshold > 1 {
+            let rect = CGRect(x: 0.0, y: 0.0, width: 6.0, height: 6.0)
             let bezierPath = UIBezierPath(ovalIn: rect)
             for i in 0..<max(fulfillmentThreshold, fulfillmentLevel) {
                 let indicator = CAShapeLayer()

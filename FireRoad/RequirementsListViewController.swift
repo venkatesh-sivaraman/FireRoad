@@ -119,6 +119,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        updateRequirementsStatus()
+    }
+    
+    func updateRequirementsStatus() {
         if let tabVC = rootParent as? RootTabViewController,
             let currentUser = tabVC.currentUser {
             requirementsList?.computeRequirementStatus(with: currentUser.allCourses)
@@ -191,8 +195,14 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 return Course(courseID: $0, courseTitle: "", courseDescription: "")
             }
             if let reqs = statement.requirements {
-                courseListCell.fulfillmentIndications = reqs.map {
-                    ($0.fulfillmentProgress, max($0.threshold, 1))
+                if statement.isFulfilled {
+                    courseListCell.fulfillmentIndications = reqs.map {
+                        (max($0.fulfillmentProgress, 1), max($0.threshold, 1))
+                    }
+                } else {
+                    courseListCell.fulfillmentIndications = reqs.map {
+                        ($0.fulfillmentProgress, max($0.threshold, 1))
+                    }
                 }
             } else {
                 courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress, max(statement.threshold, 1))]
@@ -259,8 +269,11 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
         if presentedViewController != nil {
             dismiss(animated: true, completion: nil)
+            popoverNavigationController = nil
         }
-        return tabVC.addCourse(course)
+        let ret = tabVC.addCourse(course)
+        updateRequirementsStatus()
+        return ret
     }
     
     var popoverNavigationController: UINavigationController?

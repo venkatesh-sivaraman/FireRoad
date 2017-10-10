@@ -27,13 +27,21 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
             for pathName in contents where pathName.contains(".reql") {
                 let fullPath = URL(fileURLWithPath: resourcePath).appendingPathComponent(pathName).path
                 if let reqList = try? RequirementsList(contentsOf: fullPath) {
-                    if let tabVC = rootParent as? RootTabViewController,
-                        let currentUser = tabVC.currentUser {
-                        reqList.computeRequirementStatus(with: currentUser.allCourses)
-                    }
                     requirementsLists.append(reqList)
                 }
             }
+        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if let tabVC = rootParent as? RootTabViewController,
+            let currentUser = tabVC.currentUser {
+            let courses = currentUser.allCourses
+            for reqList in requirementsLists {
+                reqList.computeRequirementStatus(with: courses)
+            }
+            tableView.reloadData()
         }
     }
     
@@ -68,7 +76,13 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: listCellIdentifier, for: indexPath)
         cell.textLabel?.text = requirementsLists[indexPath.row].mediumTitle ?? "No title"
-        
+        let progress = requirementsLists[indexPath.row].percentageFulfilled
+        if progress > 0.0 {
+            cell.detailTextLabel?.text = "\(round(progress))%"
+            cell.detailTextLabel?.textColor = UIColor(hue: 0.005 * CGFloat(progress), saturation: 0.9, brightness: 0.7, alpha: 1.0)
+        } else {
+            cell.detailTextLabel?.text = ""
+        }
         return cell
     }
     

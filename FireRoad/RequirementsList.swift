@@ -65,7 +65,7 @@ class RequirementsListStatement: NSObject {
     }
     
     override var debugDescription: String {
-        let fulfillmentString = fulfillmentProgress > 0 ? "(\(fulfillmentProgress)) " : ""
+        let fulfillmentString = fulfillmentProgress > 0 ? "(\(fulfillmentProgress) - \(percentageFulfilled)%) " : ""
         if let req = requirement {
             return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title != nil ? title! + ": " : "")\(req)\(thresholdDescription.characters.count > 0 ? " (" + thresholdDescription + ")" : "")>"
         } else if let reqList = requirements {
@@ -273,7 +273,7 @@ class RequirementsListStatement: NSObject {
         var satisfying: [Course] = []
         if let req = requirement?.replacingOccurrences(of: "GIR:", with: "") {
             for course in courses {
-                if course.subjectID == req || course.jointSubjects.contains(req) || course.equivalentSubjects.contains(req) || course.GIRAttribute?.contains(req) == true || course.hassAttribute?.contains(req) == true || course.hassAttributeDescription?.contains(req) == true || course.communicationRequirement?.replacingOccurrences(of: "-", with: "").contains(req) == true {
+                if course.subjectID == req || course.jointSubjects.contains(req) || course.equivalentSubjects.contains(req) || course.GIRAttribute?.contains(req) == true || course.hassAttribute?.contains(req) == true || course.hassAttributeDescription?.contains(req) == true || course.communicationRequirement?.contains(req.replacingOccurrences(of: "-", with: "")) == true {
                     satisfying.append(course)
                 }
             }
@@ -313,6 +313,23 @@ class RequirementsListStatement: NSObject {
             isFulfilled = (numSatisfying >= (requirements?.count ?? 1))
         }
         fulfillmentProgress = numSatisfying
+    }
+    
+    private var fulfilledFraction: (Int, Int) {
+        if let reqs = requirements {
+            let progresses = reqs.map({ $0.fulfilledFraction })
+            if connectionType == .all {
+                return progresses.reduce((0, 0), { ($0.0 + min($1.0, $1.1), $0.1 + $1.1) })
+            }
+            let sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled }).map({ $0.fulfilledFraction })
+            let result = sortedProgresses[0..<min(max(threshold, 1), sortedProgresses.count)].reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
+            return result
+        }
+        return (fulfillmentProgress, max(threshold, 1))
+    }
+    
+    var percentageFulfilled: Float {
+        return min(1.0, Float(fulfilledFraction.0) / Float(fulfilledFraction.1)) * 100.0
     }
 }
 
@@ -374,7 +391,7 @@ class RequirementsList: RequirementsListStatement {
                 return
             }
             let varName = undecoratedComponent(lines.removeFirst())
-            let description = undecoratedComponent(lines.removeFirst())
+            let description = undecoratedComponent(lines.removeFirst().replacingOccurrences(of: "\\n", with: "\n"))
             topLevelSections.append((varName, description))
         }
         guard lines.count > 0 else {
