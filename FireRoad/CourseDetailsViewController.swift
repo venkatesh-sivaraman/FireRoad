@@ -14,6 +14,7 @@ protocol CourseDetailsDelegate: class {
 }
 
 enum CourseDetailItem {
+    case header
     case title
     case description
     case units
@@ -60,8 +61,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             if #available(iOS 11.0, *) {
                 self.tableView.contentInsetAdjustmentBehavior = .automatic
             }
-            self.tableView.scrollIndicatorInsets = UIEdgeInsets(top: tableView.scrollIndicatorInsets.top, left: tableView.scrollIndicatorInsets.left, bottom: tableView.scrollIndicatorInsets.bottom + 12.0, right: tableView.scrollIndicatorInsets.right)
-            self.navigationController?.navigationBar.shadowImage = UIImage()
+            //self.navigationController?.navigationBar.shadowImage = UIImage()
             self.navigationController?.navigationBar.isTranslucent = true
         } else {
             self.tableView.backgroundColor = UIColor.white
@@ -131,6 +131,8 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             let prereqs: [String] = course!.prerequisites.flatMap({ $0 })
             if prereqs.count > 0 {
                 titles.append("Prerequisites")
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+                rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .prerequisites
                 //mapping[IndexPath(row: rowIndex + 1, section: sectionIndex)] = .courseListAccessory
                 rowIndex = 0
@@ -141,6 +143,8 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             let coreqs: [String] = course!.corequisites.flatMap({ $0 })
             if coreqs.count > 0 {
                 titles.append("Corequisites")
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+                rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .corequisites
                 //mapping[IndexPath(row: rowIndex + 1, section: sectionIndex)] = .courseListAccessory
                 rowIndex = 0
@@ -149,24 +153,32 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
         }
         if course!.jointSubjects.count > 0 {
             titles.append("Joint Subjects")
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+            rowIndex += 1
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .joint
             rowIndex = 0
             sectionIndex += 1
         }
         if course!.equivalentSubjects.count > 0 {
             titles.append("Equivalent Subjects")
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+            rowIndex += 1
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .equivalent
             rowIndex = 0
             sectionIndex += 1
         }
         if course!.relatedSubjects.count > 0 {
             titles.append("Related")
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+            rowIndex += 1
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .related
             rowIndex = 0
             sectionIndex += 1
         }
         if let schedule = course?.schedule, schedule.count > 0 {
             titles.append("Schedule")
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+            rowIndex += 1
             for _ in 0..<schedule.count {
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .schedule
                 rowIndex += 1
@@ -184,6 +196,8 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
     func cellType(for detailItemType: CourseDetailItem) -> String {
         var id: String = ""
         switch detailItemType {
+        case .header:
+            id = "HeaderView"
         case .title:
             id = "TitleCell"
         case .description:
@@ -220,19 +234,10 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
     }
     
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if self.sectionTitles[section].characters.count > 0 {
-            return 44.0
-        }
-        return 0.0
+        return -CGFloat.greatestFiniteMagnitude
     }
-
+    
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if self.sectionTitles[section].characters.count > 0 {
-            if let cell = tableView.dequeueReusableCell(withIdentifier: "HeaderView") {
-                cell.textLabel?.text = self.sectionTitles[section]
-                return cell
-            }
-        }
         return nil
     }
     
@@ -251,6 +256,8 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
         }
         
         switch detailItemType {
+        case .header:
+            textLabel?.text = self.sectionTitles[indexPath.section]
         case .title:
             textLabel?.text = self.course!.subjectTitle
         case .description:
@@ -321,8 +328,11 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             }
             let order = CourseScheduleType.ordering.filter({ schedule[$0] != nil })
             var scheduleType = ""
-            if order.count > indexPath.row {
-                scheduleType = order[indexPath.row]
+            let scheduleRows = detailMapping.filter({ $0.key.section == indexPath.section && $0.value == .schedule })
+            let sortedRows = scheduleRows.sorted(by: { $0.key.item < $1.key.item })
+            if let indexOfRow = sortedRows.index(where: { $0.key.item == indexPath.row }),
+                order.count > indexOfRow {
+                scheduleType = order[indexOfRow]
             } else {
                 print("Unknown schedule type in this schedule: \(schedule.keys)")
                 break
