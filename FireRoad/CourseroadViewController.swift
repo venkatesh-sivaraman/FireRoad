@@ -436,7 +436,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             }
             
             let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
-            listVC.searchTerm = GIRForDescription(course.subjectDescription ?? (course.subjectTitle ?? ""))
+            listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
             listVC.searchOptions = [.GIR, .HASS, .CI]
             listVC.delegate = self
             listVC.managesNavigation = false

@@ -8,31 +8,117 @@
 
 import UIKit
 
-let GIRDescriptions = [
-    "PHY1": "Physics I GIR",
-    "PHY2": "Physics II GIR",
-    "CHEM": "Chemistry GIR",
-    "BIOL": "Biology GIR",
-    "CAL1": "Calculus I GIR",
-    "CAL2": "Calculus II GIR",
-    "LAB": "Lab GIR",
-    "REST": "REST GIR"
-]
+// MARK: Attribute Enums
 
-func descriptionForGIR(attribute: String) -> String {
-    let mod = attribute.replacingOccurrences(of: "GIR:", with: "").trimmingCharacters(in: .whitespaces)
-    if let converted = GIRDescriptions[mod] {
-        return converted
-    }
-    return attribute
+protocol AttributeEnum {
+    func descriptionText() -> String
+    func satisfies(_ attribute: Self?) -> Bool
 }
 
-func GIRForDescription(_ attribute: String) -> String {
-    if let converted = GIRDescriptions.sorted(by: { $1.value.characters.count > $0.value.characters.count }).first(where: { $1.lowercased().contains(attribute.lowercased()) })?.key {
-        return converted
+enum GIRAttribute: String, AttributeEnum {
+    case physics1 = "PHY1"
+    case physics2 = "PHY2"
+    case chemistry = "CHEM"
+    case biology = "BIOL"
+    case calculus1 = "CAL1"
+    case calculus2 = "CAL2"
+    case lab = "LAB"
+    case rest = "REST"
+    
+    static let allValues: [GIRAttribute] = [
+        .physics1,
+        .physics2,
+        .chemistry,
+        .biology,
+        .calculus1,
+        .calculus2,
+        .lab,
+        .rest
+    ]
+    
+    static let descriptions: [GIRAttribute: String] = [
+        .physics1: "Physics I GIR",
+        .physics2: "Physics II GIR",
+        .chemistry: "Chemistry GIR",
+        .biology: "Biology GIR",
+        .calculus1: "Calculus I GIR",
+        .calculus2: "Calculus II GIR",
+        .lab: "Lab GIR",
+        .rest: "REST GIR"
+    ]
+
+    func descriptionText() -> String {
+        return GIRAttribute.descriptions[self] ?? self.rawValue
     }
-    return attribute
+    
+    func satisfies(_ attribute: GIRAttribute?) -> Bool {
+        return attribute != nil && attribute == self
+    }
+    
+    init?(rawValue: String) {
+        let trimmedRawValue = rawValue.lowercased().replacingOccurrences(of: "gir:", with: "").trimmingCharacters(in: .whitespaces)
+        if let value = GIRAttribute.allValues.first(where: { $0.rawValue.lowercased() == trimmedRawValue }) {
+            self = value
+        } else if let converted = GIRAttribute.descriptions.sorted(by: { $1.value.characters.count > $0.value.characters.count }).first(where: { $1.lowercased().contains(trimmedRawValue) })?.key {
+            self = converted
+        } else {
+            return nil
+        }
+    }
 }
+
+enum CommunicationAttribute: String, AttributeEnum {
+    case ciH = "CI-H"
+    case ciHW = "CI-HW"
+    
+    static let descriptions: [CommunicationAttribute: String] = [
+        .ciH: "Communication Intensive",
+        .ciHW: "Communication Intensive with Writing"
+    ]
+    
+    func descriptionText() -> String {
+        return CommunicationAttribute.descriptions[self] ?? self.rawValue
+    }
+    
+    func satisfies(_ attribute: CommunicationAttribute?) -> Bool {
+        return attribute != nil && attribute == self
+    }
+}
+
+enum HASSAttribute: String, AttributeEnum {
+    case any = "HASS"
+    case humanities = "HASS-H"
+    case arts = "HASS-A"
+    case socialSciences = "HASS-S"
+    
+    static let descriptions: [HASSAttribute: String] = [
+        .any: "HASS",
+        .humanities: "HASS Humanities",
+        .arts: "HASS Arts",
+        .socialSciences: "HASS Social Sciences"
+    ]
+    
+    func descriptionText() -> String {
+        return HASSAttribute.descriptions[self] ?? self.rawValue
+    }
+    
+    /**
+     Returns whether the HASS attribute satisfies the requirement delineated
+     by another attribute object. If the given attribute is "any", then any value
+     will return true. Otherwise, the two attributes must be equal.
+     */
+    func satisfies(_ attribute: HASSAttribute?) -> Bool {
+        if let attrib = attribute {
+            if attrib == .any {
+                return true
+            }
+            return attrib == self
+        }
+        return false
+    }
+}
+
+// MARK: - Scheduling Attributes
 
 enum CourseOfferingPattern: String {
     case everyYear = "Every year"
@@ -74,65 +160,127 @@ enum CourseQuarter {
     case endOnly
 }
 
+// MARK: - Course Attributes
+
+enum CourseAttribute: String {
+    case subjectID
+    case subjectTitle
+    case subjectShortTitle
+    case subjectDescription
+    case subjectCode
+    case department
+    case equivalentSubjects
+    case jointSubjects
+    case meetsWithSubjects
+    case prerequisites
+    case corequisites
+    case girAttribute
+    case communicationRequirement
+    case hassAttribute
+    case gradeRule
+    case gradeType
+    case instructors
+    case isOfferedFall
+    case isOfferedIAP
+    case isOfferedSpring
+    case isOfferedSummer
+    case isOfferedThisYear
+    case totalUnits
+    case isVariableUnits
+    case labUnits
+    case lectureUnits
+    case designUnits
+    case preparationUnits
+    case notOfferedYear
+    case onlinePageNumber
+    case schoolWideElectives
+    case quarterInformation
+    case offeringPattern
+    case enrollmentNumber
+    case relatedSubjects
+    case schedule
+
+    static let csvHeaders: [String: CourseAttribute] = [
+        "Subject Id": .subjectID,
+        "Subject Title": .subjectTitle,
+        "Subject Short Title": .subjectShortTitle,
+        "Subject Description": .subjectDescription,
+        "Subject Code": .subjectCode,
+        "Department Name": .department,
+        "Equivalent Subjects": .equivalentSubjects,
+        "Joint Subjects": .jointSubjects,
+        "Meets With Subjects": .meetsWithSubjects,
+        "Prerequisites": .prerequisites,
+        "Corequisites": .corequisites,
+        "Gir Attribute": .girAttribute,
+        "Comm Req Attribute": .communicationRequirement,
+        "Hass Attribute": .hassAttribute,
+        "Grade Rule": .gradeRule,
+        "Grade Type": .gradeType,
+        "Instructors": .instructors,
+        "Is Offered Fall Term": .isOfferedFall,
+        "Is Offered Iap": .isOfferedIAP,
+        "Is Offered Spring Term": .isOfferedSpring,
+        "Is Offered Summer Term": .isOfferedSummer,
+        "Is Offered This Year": .isOfferedThisYear,
+        "Total Units": .totalUnits,
+        "Is Variable Units": .isVariableUnits,
+        "Lab Units": .labUnits,
+        "Lecture Units": .lectureUnits,
+        "Design Units": .designUnits,
+        "Preparation Units": .preparationUnits,
+        "Not Offered Year": .notOfferedYear,
+        "On Line Page Number": .onlinePageNumber,
+        "School Wide Electives": .schoolWideElectives,
+        "Quarter Information": .quarterInformation,
+        "Offering Pattern": .offeringPattern,
+        "Enrollment Number": .enrollmentNumber,
+        "Related Subjects": .relatedSubjects,
+        "Schedule": .schedule,
+    ]
+    
+    init?(csvHeader: String) {
+        if let val = CourseAttribute.csvHeaders[csvHeader] {
+            self = val
+        } else {
+            return nil
+        }
+    }
+}
+
+// MARK: - Course Model Object
+
 class Course: NSObject {
     
     /*
      Be sure to add the new properties to the transferInformation(to:) method!!
      */
-    @objc dynamic var academicYear: String? = nil
-    @objc dynamic var communicationRequirement: String? = nil {
-        didSet {
-            if self.communicationRequirement != nil {
-                switch self.communicationRequirement! {
-                case "CIH": self.communicationReqDescription = "CI-H"
-                case "CIHW": self.communicationReqDescription = "CI-HW"
-                default: break
-                }
-            } else {
-                self.communicationReqDescription = nil
-            }
+    @objc dynamic var subjectID: String? = nil
+    @objc dynamic var subjectTitle: String? = nil
+    @objc dynamic var subjectShortTitle: String? = nil
+    @objc dynamic var subjectDescription: String? = nil
+    var subjectCode: String? {
+        if let subject = subjectID,
+            let periodRange = subject.range(of: ".") {
+            return String(subject[subject.startIndex..<periodRange.lowerBound])
         }
+        return nil
     }
-    @objc dynamic var communicationReqDescription: String? = nil
-    @objc dynamic var departmentCode: String? = nil
-    @objc dynamic var departmentName: String? = nil
-    @objc dynamic var designUnits: Int = 0
-    @objc dynamic var effectiveTermCode: String? = nil
+    @objc dynamic var department: String?
+    
     @objc dynamic var equivalentSubjects: [String] = []
-    @objc dynamic var GIRAttribute: String? = nil {
-        didSet {
-            if self.GIRAttribute != nil {
-                self.GIRAttributeDescription = descriptionForGIR(attribute: self.GIRAttribute!)
-            } else {
-                self.GIRAttributeDescription = nil
-            }
-        }
-    }
-    @objc dynamic var GIRAttributeDescription: String? = nil
-    @objc dynamic var gradeRule: String? = nil
-    @objc dynamic var gradeRuleDescription: String? = nil
-    @objc dynamic var gradeType: String? = nil
-    @objc dynamic var gradeTypeDescription: String? = nil
-    @objc dynamic var hassAttribute: String? = nil {
-        didSet {
-            if self.hassAttribute != nil {
-                let comps = self.hassAttribute!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).components(separatedBy: ",")
-                var descriptions: [String] = []
-                for comp in comps {
-                    switch comp {
-                    case "HH", "HASS Humanities": descriptions.append("HASS-H")
-                    case "HA", "HASS Arts": descriptions.append("HASS-A")
-                    case "HS", "HASS Social Sciences": descriptions.append("HASS-S")
-                    default: break
-                    }
-                }
-                self.hassAttributeDescription = descriptions.joined(separator: ", ")
-            } else {
-                self.hassAttributeDescription = nil
-            }
-        }
-    }
-    @objc dynamic var hassAttributeDescription: String? = nil
+    @objc dynamic var jointSubjects: [String] = []
+    @objc dynamic var meetsWithSubjects: [String] = []
+    @objc dynamic var prerequisites: [[String]] = []
+    @objc dynamic var corequisites: [[String]] = []
+
+    var girAttribute: GIRAttribute?
+    var communicationRequirement: CommunicationAttribute?
+    var hassAttribute: HASSAttribute?
+
+    @objc dynamic var gradeRule: String?
+    @objc dynamic var gradeType: String?
+    
     @objc dynamic var instructors: [String] = []
     @objc dynamic var isOfferedFall: Bool = false
     @objc dynamic var isOfferedIAP: Bool = false
@@ -143,42 +291,21 @@ class Course: NSObject {
             updateOfferingPattern()
         }
     }
+    
+    @objc dynamic var totalUnits: Int = 0
     @objc dynamic var isVariableUnits: Bool = false
-    @objc dynamic var jointSubjects: [String] = []
     @objc dynamic var labUnits: Int = 0
-    @objc dynamic var lastActivityDate: Date? = nil
     @objc dynamic var lectureUnits: Int = 0
-    @objc dynamic var masterSubjectID: String? = nil
-    @objc dynamic var meetsWithSubjects: [String] = []
+    @objc dynamic var designUnits: Int = 0
+    @objc dynamic var preparationUnits: Int = 0
     @objc dynamic var notOfferedYear: String? {
         didSet {
             updateOfferingPattern()
         }
     }
+
     @objc dynamic var onlinePageNumber: String? = nil
-    @objc dynamic var preparationUnits: Int = 0
-    @objc dynamic var prerequisites: [[String]] = []
-    @objc dynamic var corequisites: [[String]] = []
-    @objc dynamic var printSubjectID: String? = nil
     @objc dynamic var schoolWideElectives: String? = nil
-    @objc dynamic var statusChange: String? = nil
-    @objc dynamic var subjectCode: String? = nil
-    @objc dynamic var subjectDescription: String? = nil
-    @objc dynamic var subjectID: String? = nil {
-        didSet {
-            if subjectCode == nil, let subject = subjectID,
-                let periodRange = subject.range(of: ".") {
-                subjectCode = String(subject[subject.startIndex..<periodRange.lowerBound])
-            }
-        }
-    }
-    @objc dynamic var subjectNumber: String? = nil
-    @objc dynamic var subjectShortTitle: String? = nil
-    @objc dynamic var subjectTitle: String? = nil
-    @objc dynamic var termDuration: String? = nil
-    @objc dynamic var totalUnits: Int = 0
-    @objc dynamic var writingRequirement: String? = nil
-    @objc dynamic var writingReqDescription: String? = nil
     
     @objc dynamic var quarterInformation: String? {
         didSet {
@@ -216,7 +343,7 @@ class Course: NSObject {
     @objc dynamic var enrollmentNumber: Int = 0
     var relatedSubjects: [(String, Float)] = []
     
-    @objc dynamic var schedule: [String: [[CourseScheduleItem]]]?
+    var schedule: [String: [[CourseScheduleItem]]]?
 
     override init() {
         
@@ -226,7 +353,6 @@ class Course: NSObject {
         super.init()
         defer {
             self.subjectID = courseID
-            self.masterSubjectID = courseID
             self.subjectTitle = courseTitle
             self.subjectShortTitle = courseTitle
             self.subjectDescription = courseDescription
@@ -240,62 +366,60 @@ class Course: NSObject {
         }
     }
     
-    func transferInformation(to course: Course) {
-        course.academicYear = academicYear
-        course.communicationRequirement = communicationRequirement
-        course.communicationReqDescription = communicationReqDescription
-        course.departmentCode = departmentCode
-        course.departmentName = departmentName
-        course.designUnits = designUnits
-        course.effectiveTermCode = effectiveTermCode
-        course.equivalentSubjects = equivalentSubjects
-        course.GIRAttribute = GIRAttribute
-        course.GIRAttributeDescription = GIRAttributeDescription
-        course.gradeRule = gradeRule
-        course.gradeRuleDescription = gradeRuleDescription
-        course.gradeType = gradeType
-        course.gradeTypeDescription = gradeTypeDescription
-        course.hassAttribute = hassAttribute
-        course.hassAttributeDescription = hassAttributeDescription
-        course.instructors = instructors
-        course.isOfferedFall = isOfferedFall
-        course.isOfferedIAP = isOfferedIAP
-        course.isOfferedSpring = isOfferedSpring
-        course.isOfferedSummer = isOfferedSummer
-        course.isOfferedThisYear = isOfferedThisYear
-        course.isVariableUnits = isVariableUnits
-        course.jointSubjects = jointSubjects
-        course.labUnits = labUnits
-        course.lastActivityDate = lastActivityDate
-        course.lectureUnits = lectureUnits
-        course.masterSubjectID = masterSubjectID
-        course.meetsWithSubjects = meetsWithSubjects
-        course.onlinePageNumber = onlinePageNumber
-        course.preparationUnits = preparationUnits
-        course.prerequisites = prerequisites
-        course.corequisites = corequisites
-        course.printSubjectID = printSubjectID
-        course.schoolWideElectives = schoolWideElectives
-        course.statusChange = statusChange
-        course.subjectCode = subjectCode
-        course.subjectDescription = subjectDescription
-        course.subjectID = subjectID
-        course.subjectNumber = subjectNumber
-        course.subjectShortTitle = subjectShortTitle
-        course.subjectTitle = subjectTitle
-        course.termDuration = termDuration
-        course.totalUnits = totalUnits
-        course.writingRequirement = writingRequirement
-        course.writingReqDescription = writingReqDescription
-        if course.enrollmentNumber < enrollmentNumber {
-            course.enrollmentNumber = enrollmentNumber
-        }
-        course.quarterInformation = quarterInformation
-        if course.relatedSubjects.count < relatedSubjects.count {
-            course.relatedSubjects = relatedSubjects
-        }
-        if course.schedule == nil || (schedule != nil && course.schedule!.count < schedule!.count) {
-            course.schedule = schedule
+    override func setValue(_ value: Any?, forKey key: String) {
+        if let attribute = CourseAttribute(rawValue: key) {
+            switch attribute {
+            case .prerequisites, .corequisites:
+                if (value as? [[String]]) != nil {
+                    super.setValue(value, forKey: key)
+                } else {
+                    super.setValue(extractCourseListString(value as? String), forKey: key)
+                }
+            case .equivalentSubjects, .jointSubjects, .meetsWithSubjects, .instructors:
+                if (value as? [String]) != nil {
+                    super.setValue(value, forKey: key)
+                } else {
+                    super.setValue(extractListString(value as? String), forKey: key)
+                }
+            case .isOfferedFall, .isOfferedIAP, .isOfferedSpring, .isOfferedSummer, .isOfferedThisYear,
+                 .isVariableUnits:
+                if (value as? Bool) != nil {
+                    super.setValue(value, forKey: key)
+                } else {
+                    super.setValue(extractBooleanString(value as? String), forKey: key)
+                }
+            case .totalUnits, .labUnits, .lectureUnits, .designUnits, .preparationUnits,
+                 .enrollmentNumber:
+                if (value as? Int) != nil {
+                    super.setValue(value, forKey: key)
+                } else {
+                    super.setValue(extractIntegerString(value as? String), forKey: key)
+                }
+            case .offeringPattern:
+                if let pattern = CourseOfferingPattern(rawValue: ((value as? String) ?? "")) {
+                    self.offeringPattern = pattern
+                } else {
+                    print("Unidentified offering pattern: \(String(reflecting: value))")
+                }
+            case .girAttribute:
+                self.girAttribute = GIRAttribute(rawValue: ((value as? String) ?? ""))
+            case .communicationRequirement:
+                self.communicationRequirement = CommunicationAttribute(rawValue: ((value as? String) ?? ""))
+            case .hassAttribute:
+                self.hassAttribute = HASSAttribute(rawValue: (value as? String) ?? "")
+            case .schedule:
+                if let formattedSched = value as? [String: [[CourseScheduleItem]]] {
+                    self.schedule = formattedSched
+                } else if let text = value as? String {
+                    self.schedule = parseScheduleString(text)
+                } else if value == nil {
+                    self.schedule = nil
+                }
+            default:
+                super.setValue(value, forKey: key)
+            }
+        } else {
+            super.setValue(value, forKey: key)
         }
     }
     
@@ -351,61 +475,46 @@ class Course: NSObject {
         
         return ret
     }
- 
-    override func setValue(_ value: Any?, forKey key: String) {
-        var modifiedValue = value
-        if type(of: self.value(forKey: key)) == Bool.self {
-            if value != nil {
-                if value is String {
-                    modifiedValue = (value as! String) == "Y"
+    
+    func extractBooleanString(_ string: String?) -> Bool {
+        if string != nil {
+            return string == "Y"
+        }
+        return false
+    }
+    
+    func extractIntegerString(_ string: String?) -> Int {
+        if let text = string {
+            return text.characters.count > 0 ?  Int(Float(text)!) : 0
+        }
+        return 0
+    }
+    
+    func extractCourseListString(_ string: String?) -> [[String]] {
+        if let listString = string {
+            return [listString.replacingOccurrences(of: ";", with: ",").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.characters.count > 0 })]
+        }
+        return []
+    }
+    
+    func extractListString(_ string: String?) -> [String] {
+        if let value = string {
+            var modifiedValue: String = value
+            if value.contains("#,#") {
+                modifiedValue = modifiedValue.replacingOccurrences(of: " ", with: "")
+            }
+            modifiedValue = modifiedValue.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ";", with: ",")
+            if modifiedValue.characters.count > 0 {
+                if value.contains("#,#") {
+                    let subValues = modifiedValue.components(separatedBy: "#,#")
+                    return ["{" + subValues[0] + "}"] + subValues[1].components(separatedBy: ",")
+                } else {
+                    return modifiedValue.components(separatedBy: ",")
                 }
             } else {
-                modifiedValue = false
-            }
-        } else if type(of: self.value(forKey: key)) == Int.self {
-            if value != nil {
-                if value is String {
-                    modifiedValue = (value as! String).characters.count > 0 ?  Int(Float(value as! String)!) : 0
-                }
-            } else {
-                modifiedValue = 0
-            }
-        } else if key == "prerequisites" || key == "corequisites" { // [[String]] type
-            if value != nil,
-                let listString = value as? String {
-                modifiedValue = [listString.replacingOccurrences(of: ";", with: ",").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.characters.count > 0 })]
-            } else {
-                modifiedValue = []
-            }
-        } else if key == "schedule" {
-            if value != nil,
-                let valueString = value as? String {
-                modifiedValue = parseScheduleString(valueString)
-            } else {
-                modifiedValue = (value != nil) ? [:] : nil
-            }
-        } else if self.value(forKey: key) is [String] {
-            if value != nil {
-                if value is String {
-                    if (value as! String).contains("#,#") {
-                        modifiedValue = (modifiedValue as! String).replacingOccurrences(of: " ", with: "")
-                    }
-                    modifiedValue = (modifiedValue as! String).trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ";", with: ",")
-                    if (modifiedValue as! String).characters.count > 0 {
-                        if (value as! String).contains("#,#") {
-                            let subValues = (modifiedValue as! String).components(separatedBy: "#,#")
-                            modifiedValue = ["{" + subValues[0] + "}"] + subValues[1].components(separatedBy: ",")
-                        } else {
-                            modifiedValue = (modifiedValue as! String).components(separatedBy: ",")
-                        }
-                    } else {
-                        modifiedValue = []
-                    }
-                }
-            } else {
-                modifiedValue = []
+                return []
             }
         }
-        super.setValue(modifiedValue, forKey: key)
+        return []
     }
 }

@@ -33,45 +33,6 @@ class CourseManager: NSObject {
     /*
  Academic Year,Effective Term Code,Subject Id,Subject Code,Subject Number,Source Subject Id,Print Subject Id,Department Code,Department Name,Subject Short Title,Subject Title,Is Variable Units,Lecture Units,Lab Units,Preparation Units,Total Units,Gir Attribute,Gir Attribute Desc,Comm Req Attribute,Comm Req Attribute Desc,Write Req Attribute,Write Req Attribute Desc,Supervisor Attribute Desc,Prerequisites,Subject Description,Joint Subjects,School Wide Electives,Meets With Subjects,Equivalent Subjects,Is Offered This Year,Is Offered Fall Term,Is Offered Iap,Is Offered Spring Term,Is Offered Summer Term,Fall Instructors,Spring Instructors,Status Change,Last Activity Date,Warehouse Load Date,Master Subject Id,Hass Attribute,Hass Attribute Desc,Term Duration,On Line Page Number
 */
-    private let textKeyMapping: [String: String] = [
-        "Academic Year": "academicYear",
-        "Comm Req Attribute": "communicationRequirement",
-        "Department Name": "departmentName",
-        "Subject Id": "subjectID",
-        "Print Subject Id": "printSubjectID",
-        "Subject Code": "subjectCode",
-        "Subject Number": "subjectNumber",
-        "Subject Title": "subjectTitle",
-        "Subject Description": "subjectDescription",
-        "Subject Short Title": "subjectShortTitle",
-        "Is Offered Fall Term": "isOfferedFall",
-        "Is Offered Iap": "isOfferedIAP",
-        "Is Offered Spring Term": "isOfferedSpring",
-        "Is Offered Summer Term": "isOfferedSummer",
-        "Is Offered This Year": "isOfferedThisYear",
-        "Not Offered Year": "notOfferedYear",
-        "Total Units": "totalUnits",
-        "Design Units": "designUnits",
-        "Lecture Units": "lectureUnits",
-        "Lab Units": "labUnits",
-        "Is Variable Units": "isVariableUnits",
-        "Preparation Units": "preparationUnits",
-        "Joint Subjects": "jointSubjects",
-        "Meets With Subjects": "meetsWithSubjects",
-        "Equivalent Subjects": "equivalentSubjects",
-        "Prerequisites": "prerequisites",
-        "Corequisites": "corequisites",
-        "Instructors": "instructors",
-        "Gir Attribute": "GIRAttribute",
-        "Grade Rule": "gradeRule",
-        "Grade Type": "gradeType",
-        "Hass Attribute": "hassAttribute",
-        "Term Duration": "termDuration",
-        "Write Req Attribute": "writingRequirement",
-        "On Line Page Number": "onlinePageNumber",
-        "Schedule": "schedule",
-        "Quarter Information": "quarterInformation"
-    ]
     
     static let departmentNumbers = [
         /*"3", "1", "4", "2", "22",
@@ -205,12 +166,14 @@ class CourseManager: NSObject {
                     if comps.contains("Subject Id") {
                         csvHeaders = comps
                     } else if csvHeaders != nil {
-                        var course: Course? = nil
+                        var currentID: String?
                         for (i, comp) in comps.enumerated() {
                             if csvHeaders![i] == "Subject Id" {
-                                course = self.coursesByID[comp]
-                            } else if csvHeaders![i] == "Subject Enrollment Number" {
-                                course?.enrollmentNumber = max(course!.enrollmentNumber, Int(Float(comp)!))
+                                currentID = comp
+                            } else if csvHeaders![i] == "Subject Enrollment Number",
+                                let id = currentID {
+                                let course = self.getOrInitializeCourse(withID: id)
+                                course.enrollmentNumber = max(course.enrollmentNumber, Int(Float(comp)!))
                             }
                         }
                     } else {
@@ -236,15 +199,12 @@ class CourseManager: NSObject {
                         return
                     }
                     let comps = line.components(separatedBy: ",")
-                    if let course = self.getCourse(withID: comps[0].trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)) {
-                        var related: [(String, Float)] = []
-                        for compIdx in stride(from: 1, to: comps.count, by: 2) {
-                            related.append((comps[compIdx], Float(comps[compIdx + 1])!))
-                        }
-                        course.relatedSubjects = related.sorted(by: { $0.1 > $1.1 })
-                    } else {
-                        print("No course")
+                    var related: [(String, Float)] = []
+                    for compIdx in stride(from: 1, to: comps.count, by: 2) {
+                        related.append((comps[compIdx], Float(comps[compIdx + 1])!))
                     }
+                    let course = self.getOrInitializeCourse(withID: comps[0].trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
+                    course.relatedSubjects = related.sorted(by: { $0.1 > $1.1 })
                 }
                 groupCompletionBlock(true)
             }
@@ -252,6 +212,107 @@ class CourseManager: NSObject {
         
     }
     
+    func readSummaryFile(at path: String) {
+        guard let text = try? String(contentsOfFile: path) else {
+            print("Error loading summary file")
+            return
+        }
+        let lines = text.components(separatedBy: .newlines)
+        var csvHeaders: [String]? = nil
+        
+        for line in lines {
+            let comps = line.components(separatedBy: ",")
+            if comps.contains("Subject Id") {
+                csvHeaders = comps
+            } else if csvHeaders != nil {
+                var i = 0
+                var quotedLine = ""
+                var currentID: String?
+                for comp in comps {
+                    var trimmed: String = quotedLine + (quotedLine.characters.count > 0 ? "," : "") + comp
+                    if (trimmed.characters.count - trimmed.replacingOccurrences(of: "\"", with: "").characters.count) % 2 == 1 {
+                        quotedLine = trimmed
+                    } else {
+                        quotedLine = ""
+                        trimmed = trimmed.characters.first == Character("\"") ? String(trimmed[trimmed.index(trimmed.startIndex, offsetBy: 1)..<trimmed.index(trimmed.endIndex, offsetBy: -1)]) : trimmed
+                        trimmed = trimmed.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if i >= csvHeaders!.count {
+                            print("Beyond bounds")
+                        } else if let key = CourseAttribute(csvHeader: csvHeaders![i]) {
+                            if key == .subjectID {
+                                currentID = trimmed
+                            }
+                            if let id = currentID {
+                                let course = getOrInitializeCourse(withID: id)
+                                if key == .subjectTitle {
+                                    updateSubjectTitle(for: course, to: trimmed)
+                                } else {
+                                    course.setValue(trimmed, forKey: key.rawValue)
+                                }
+                            } else {
+                                print("No subject ID for line \(line)!")
+                            }
+                        }
+                        i += 1
+                    }
+                }
+            } else {
+                print("No CSV headers found, so this file can't be read.")
+                return
+            }
+        }
+    }
+    
+    func loadCourseDetails(about course: Course, _ completion: @escaping ((Bool) -> Void)) {
+        if self.getCourse(withID: course.subjectID!) == nil {
+            completion(false)
+            return
+        }
+        if self.loadedDepartments.contains(course.subjectCode!) {
+            completion(true)
+            return
+        }
+        guard let path = Bundle.main.path(forResource: course.subjectCode!, ofType: "txt") else {
+            print("Failed")
+            completion(false)
+            return
+        }
+        DispatchQueue.global().async {
+            self.readSummaryFile(at: path)
+            self.loadedDepartments.append(course.subjectCode!)
+            DispatchQueue.main.async {
+                completion(true)
+            }
+        }
+    }
+    
+    // MARK: - Course Object Management
+    
+    private func getOrInitializeCourse(withID subjectID: String) -> Course {
+        if let course = getCourse(withID: subjectID) {
+            return course
+        }
+        let newCourse = Course()
+        courses.append(newCourse)
+        updateSubjectID(for: newCourse, to: subjectID)
+        return newCourse
+    }
+    
+    private func updateSubjectID(for course: Course, to newValue: String) {
+        if let oldID = course.subjectID, coursesByID[oldID] == course {
+            coursesByID[oldID] = nil
+        }
+        course.subjectID = newValue
+        coursesByID[newValue] = course
+    }
+    
+    private func updateSubjectTitle(for course: Course, to newValue: String) {
+        if let oldTitle = course.subjectTitle, coursesByTitle[oldTitle] == course {
+            coursesByTitle[oldTitle] = nil
+        }
+        course.subjectTitle = newValue
+        coursesByTitle[newValue] = course
+    }
     
     func getCourse(withID subjectID: String) -> Course? {
         let processedID = subjectID.replacingOccurrences(of: "[J]", with: "")
@@ -308,85 +369,6 @@ class CourseManager: NSObject {
         return UIColor.lightGray
     }
     
-    func readSummaryFile(at path: String) {
-        guard let text = try? String(contentsOfFile: path) else {
-            print("Error loading summary file")
-            return
-        }
-        let lines = text.components(separatedBy: .newlines)
-        var csvHeaders: [String]? = nil
-        
-        for line in lines {
-            let course = Course()
-            let comps = line.components(separatedBy: ",")
-            if comps.contains("Subject Id") {
-                csvHeaders = comps
-            } else if csvHeaders != nil {
-                var i = 0
-                var quotedLine: String = ""
-                for comp in comps {
-                    var trimmed: String = quotedLine + (quotedLine.characters.count > 0 ? "," : "") + comp
-                    if (trimmed.characters.count - trimmed.replacingOccurrences(of: "\"", with: "").characters.count) % 2 == 1 {
-                        quotedLine = trimmed
-                    } else {
-                        quotedLine = ""
-                        trimmed = trimmed.characters.first == Character("\"") ? String(trimmed[trimmed.index(trimmed.startIndex, offsetBy: 1)..<trimmed.index(trimmed.endIndex, offsetBy: -1)]) : trimmed
-                        trimmed = trimmed.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if i >= csvHeaders!.count {
-                            //print("Beyond bounds")
-                        } else if self.textKeyMapping.contains(where: { $0.0 == csvHeaders![i] }) {
-                            course.setValue(trimmed, forKey: self.textKeyMapping[csvHeaders![i]]!)
-                        }
-                        i += 1
-                    }
-                }
-            } else {
-                print("No CSV headers found, so this file can't be read.")
-                return
-            }
-            if course.subjectID == nil || (self.coursesByID[course.subjectID!] == nil && (course.printSubjectID == nil || self.coursesByID[course.printSubjectID!] == nil)) {
-                self.courses.append(course)
-            } else if self.coursesByID[course.subjectID!] != nil {
-                course.transferInformation(to: self.coursesByID[course.subjectID!]!)
-            } else if course.printSubjectID != nil && self.coursesByID[course.printSubjectID!] != nil {
-                course.transferInformation(to: self.coursesByID[course.printSubjectID!]!)
-            }
-            if course.subjectID != nil && self.coursesByID[course.subjectID!] == nil {
-                self.coursesByID[course.subjectID!] = course
-            }
-            if course.printSubjectID != nil && self.coursesByID[course.printSubjectID!] == nil {
-                self.coursesByID[course.printSubjectID!] = course
-            }
-            if course.subjectTitle != nil && self.coursesByTitle[course.subjectTitle!] == nil {
-                self.coursesByTitle[course.subjectTitle!] = course
-            }
-        }
-    }
-
-    func loadCourseDetails(about course: Course, _ completion: @escaping ((Bool) -> Void)) {
-        if self.getCourse(withID: course.subjectID!) == nil {
-            completion(false)
-            return
-        }
-        if self.loadedDepartments.contains(course.subjectCode!) {
-            completion(true)
-            return
-        }
-        guard let path = Bundle.main.path(forResource: course.subjectCode!, ofType: "txt") else {
-            print("Failed")
-            completion(false)
-            return
-        }
-        DispatchQueue.global().async {
-            self.readSummaryFile(at: path)
-            self.loadedDepartments.append(course.subjectCode!)
-            DispatchQueue.main.async {
-                completion(true)
-            }
-        }
-        
-    }
-    
     // MARK: - Centralized Recents List
     
     let recentlyViewedCoursesDefaultsKey = "RecentlyViewedCourses"
@@ -432,7 +414,7 @@ class CourseManager: NSObject {
             let attributeSet = CSSearchableItemAttributeSet()
             attributeSet.title = id + " – " + title
             
-            let infoItems: [String] = [course.GIRAttributeDescription, course.hassAttributeDescription, course.communicationReqDescription].flatMap({ $0 }).filter({ $0.characters.count > 0 })
+            let infoItems: [String] = [course.girAttribute?.rawValue, course.hassAttribute?.rawValue, course.communicationRequirement?.rawValue].flatMap({ $0 }).filter({ $0.characters.count > 0 })
             var infoString = infoItems.joined(separator: ", ")
             if course.instructors.count > 0 {
                 infoString += "\nTaught by \(course.instructors.joined(separator: ", "))"

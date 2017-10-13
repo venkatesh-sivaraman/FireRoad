@@ -48,9 +48,9 @@ extension String {
             return nil
         }
         
-        let options: [String: Any] = [
-            NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
-            NSCharacterEncodingDocumentAttribute: String.Encoding.utf8.rawValue
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
         ]
         
         guard let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) else {
@@ -134,10 +134,10 @@ class HTMLNodeExtractor: NSObject {
         }
         let matches = tagRegex.matches(in: textString as String, options: [], range: NSRange(location: 0, length: textString.length))
         for match in matches {
-            let closingFragment = textString.substring(with: match.rangeAt(1))
-            let attributeText = textString.substring(with: match.rangeAt(3))
-            let selfClosingFragment = textString.substring(with: match.rangeAt(4))
-            let tagText = textString.substring(with: match.rangeAt(2)).lowercased()
+            let closingFragment = textString.substring(with: match.range(at: 1))
+            let attributeText = textString.substring(with: match.range(at: 3))
+            let selfClosingFragment = textString.substring(with: match.range(at: 4))
+            let tagText = textString.substring(with: match.range(at: 2)).lowercased()
             if closingFragment == "/" {
                 guard let currentNode = nodeStack.last else {
                     //print("No current node for closing tag \(tagText)")

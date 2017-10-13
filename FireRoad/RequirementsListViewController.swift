@@ -184,8 +184,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             courseListCell.courses = requirementStrings.map {
                 if let course = CourseManager.shared.getCourse(withID: $0) {
                     return course
-                } else if $0.contains("GIR") {
-                    return Course(courseID: "GIR", courseTitle: descriptionForGIR(attribute: $0).replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: "")
+                } else if let gir = GIRAttribute(rawValue: $0) {
+                    return Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: "")
                 }
                 if let whitespaceRange = $0.rangeOfCharacter(from: .whitespaces) {
                     return Course(courseID: String($0[$0.startIndex..<whitespaceRange.lowerBound]), courseTitle: String($0[whitespaceRange.upperBound..<$0.endIndex]), courseDescription: "")
@@ -321,7 +321,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
         } else if course.subjectID == "GIR" {
             let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
-            listVC.searchTerm = GIRForDescription(course.subjectDescription ?? (course.subjectTitle ?? ""))
+            listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
             listVC.searchOptions = [.GIR, .HASS, .CI]
             listVC.delegate = self
             listVC.managesNavigation = false

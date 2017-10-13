@@ -192,11 +192,15 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         static let CI = SearchOptions(rawValue: 1 << 3)
     }
     
+    var isSearching = false
+    
     func loadSearchResults(withString searchTerm: String, options: SearchOptions = .all) {
-        guard CourseManager.shared.isLoaded else {
+        guard CourseManager.shared.isLoaded, !isSearching else {
             return
         }
         DispatchQueue.global(qos: .userInitiated).async {
+            self.isSearching = true
+            let cacheText = self.searchBar?.text
             let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
             
             var newResults: [Course: Float] = [:]
@@ -204,16 +208,16 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                 var relevance: Float = 0.0
                 var courseComps: [String?] = []
                 if options.contains(.GIR) {
-                    courseComps += [course.GIRAttribute, course.GIRAttributeDescription]
+                    courseComps += [course.girAttribute?.rawValue, course.girAttribute?.descriptionText()]
                 }
                 if options.contains(.HASS) {
-                    courseComps += [course.hassAttribute, course.hassAttributeDescription]
+                    courseComps += [course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText()]
                 }
                 if options.contains(.CI) {
-                    courseComps += [course.communicationRequirement, course.communicationReqDescription]
+                    courseComps += [course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText()]
                 }
                 if options.contains(.all) {
-                    courseComps = [String?]([course.subjectID, course.subjectID, course.subjectID, course.subjectTitle, course.communicationRequirement, course.communicationReqDescription, course.hassAttribute, course.hassAttributeDescription, course.GIRAttribute, course.GIRAttributeDescription])
+                    courseComps = [String?]([course.subjectID, course.subjectID, course.subjectID, course.subjectTitle, course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText(), course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText(), course.girAttribute?.rawValue, course.girAttribute?.descriptionText()])
                 }
                 
                 let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.all) ? course.instructors : [])).joined(separator: "\n").lowercased()
@@ -242,10 +246,17 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     newResults[course] = relevance
                 }
             }
-            self.results = newResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
-            DispatchQueue.main.async {
-                print("Reloading with \(self.results.count) results")
-                self.tableView.reloadData()
+            let sortedResults = newResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+            self.isSearching = false
+            if cacheText == self.searchBar?.text {
+                DispatchQueue.main.async {
+                    self.results = sortedResults
+                    print("Reloading with \(self.results.count) results")
+                    self.tableView.reloadData()
+                }
+            } else {
+                print("Searching again")
+                self.loadSearchResults(withString: self.searchBar?.text ?? searchTerm, options: options)
             }
         }
     }

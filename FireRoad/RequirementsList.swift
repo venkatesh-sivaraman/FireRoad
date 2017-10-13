@@ -272,8 +272,16 @@ class RequirementsListStatement: NSObject {
     func coursesSatisfyingRequirement(in courses: [Course]) -> [Course] {
         var satisfying: [Course] = []
         if let req = requirement?.replacingOccurrences(of: "GIR:", with: "") {
+            let gir = GIRAttribute(rawValue: req)
+            let hass = HASSAttribute(rawValue: req)
+            let comm = CommunicationAttribute(rawValue: req)
             for course in courses {
-                if course.subjectID == req || course.jointSubjects.contains(req) || course.equivalentSubjects.contains(req) || course.GIRAttribute?.contains(req) == true || course.hassAttribute?.contains(req) == true || course.hassAttributeDescription?.contains(req) == true || course.communicationRequirement?.contains(req.replacingOccurrences(of: "-", with: "")) == true {
+                if course.subjectID == req ||
+                    course.jointSubjects.contains(req) ||
+                    course.equivalentSubjects.contains(req) ||
+                    course.girAttribute?.satisfies(gir) == true ||
+                    course.hassAttribute?.satisfies(hass) == true ||
+                    course.communicationRequirement?.satisfies(comm) == true {
                     satisfying.append(course)
                 }
             }

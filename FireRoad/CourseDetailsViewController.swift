@@ -110,10 +110,9 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             ]
         var titles: [String] = [""]
         var rowIndex: Int = 3, sectionIndex: Int = 0
-        if (course!.writingRequirement != nil && course!.writingRequirement!.characters.count > 0) ||
-            (course!.communicationRequirement != nil && course!.communicationRequirement!.characters.count > 0) ||
-            (course!.GIRAttribute != nil && course!.GIRAttribute!.characters.count > 0) ||
-            (course!.hassAttribute != nil && course!.hassAttribute!.characters.count > 0) {
+        if course!.communicationRequirement != nil ||
+            course!.girAttribute != nil ||
+            course?.hassAttribute != nil {
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .requirements
             rowIndex += 1
         }
@@ -271,17 +270,14 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
         case .requirements:
             textLabel?.text = "Fulfills"
             var reqs: [String] = []
-            if self.course!.GIRAttributeDescription != nil && self.course!.GIRAttributeDescription!.characters.count > 0 {
-                reqs.append(self.course!.GIRAttributeDescription!)
+            if let gir = self.course?.girAttribute {
+                reqs.append(gir.descriptionText())
             }
-            if self.course!.communicationReqDescription != nil && self.course!.communicationReqDescription!.characters.count > 0 {
-                reqs.append(self.course!.communicationReqDescription!)
+            if let comm = self.course?.communicationRequirement {
+                reqs.append(comm.rawValue)
             }
-            if self.course!.hassAttributeDescription != nil && self.course!.hassAttributeDescription!.characters.count > 0 {
-                reqs.append(self.course!.hassAttributeDescription!)
-            }
-            if self.course!.writingReqDescription != nil && self.course!.writingReqDescription!.characters.count > 0 {
-                reqs.append(self.course!.writingReqDescription!)
+            if let hass = self.course?.hassAttribute {
+                reqs.append(hass.rawValue)
             }
             detailTextLabel?.text = reqs.joined(separator: ", ")
         case .offered:
@@ -381,8 +377,8 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
                     (cell as! CourseListCell).courses.append(equivCourse!)
                 } else if prereqs.count == 1, myID.lowercased().contains("permission of instructor") {
                     (cell as! CourseListCell).courses.append(Course(courseID: "None", courseTitle: "(Permission of instructor)", courseDescription: ""))
-                } else if myID.contains("GIR") {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: descriptionForGIR(attribute: myID).replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
+                } else if let gir = GIRAttribute(rawValue: myID) {
+                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 }
             }
             (cell as! CourseListCell).delegate = self
@@ -395,8 +391,8 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
                     (cell as! CourseListCell).courses.append(equivCourse!)
-                } else if myID.contains("GIR") {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: descriptionForGIR(attribute: myID).replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
+                } else if let gir = GIRAttribute(rawValue: myID) {
+                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 }
             }
             (cell as! CourseListCell).delegate = self
