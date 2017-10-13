@@ -40,7 +40,7 @@ class RequirementsListStatement: NSObject {
     var requirement: String?
     
     var thresholdType: ThresholdType = .greaterThanOrEqual
-    var threshold = 0
+    var threshold = 1
     
     var thresholdDescription: String {
         if threshold > 1 {
@@ -297,8 +297,8 @@ class RequirementsListStatement: NSObject {
             for req in reqs {
                 req.computeRequirementStatus(with: courses)
                 if req.isFulfilled {
-                    if connectionType == .any, threshold > 1 {
-                        numSatisfying += req.coursesSatisfyingRequirement(in: courses).count
+                    if connectionType == .any {
+                        numSatisfying += max(req.coursesSatisfyingRequirement(in: courses).count, req.fulfillmentProgress)
                     } else {
                         numSatisfying += 1
                     }
@@ -306,7 +306,9 @@ class RequirementsListStatement: NSObject {
             }
         }
         
-        if connectionType == .any || threshold > 1 {
+        if connectionType == .any, threshold == 0 {
+            isFulfilled = true
+        } else if connectionType == .any || threshold > 1 {
             switch thresholdType {
             case .greaterThan:
                 isFulfilled = (numSatisfying > max(threshold, 1))
@@ -330,10 +332,14 @@ class RequirementsListStatement: NSObject {
                 return progresses.reduce((0, 0), { ($0.0 + min($1.0, $1.1), $0.1 + $1.1) })
             }
             let sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled }).map({ $0.fulfilledFraction })
-            let result = sortedProgresses[0..<min(max(threshold, 1), sortedProgresses.count)].reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
-            return result
+            if threshold > 0 {
+                let tempResult = sortedProgresses[0..<min(threshold, sortedProgresses.count)].reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
+                return (min(threshold, tempResult.0), threshold)
+            } else {
+                return (sortedProgresses.reduce(0, { $0 + $1.0 }), 0)
+            }
         }
-        return (fulfillmentProgress, max(threshold, 1))
+        return (fulfillmentProgress, threshold)
     }
     
     var percentageFulfilled: Float {

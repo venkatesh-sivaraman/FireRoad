@@ -26,7 +26,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     @IBOutlet var tableView: UITableView!
     var requirementsList: RequirementsListStatement?
-    var presentationItems: [(title: String, items: [PresentationItem])] = []
+    var presentationItems: [(title: String, statement: RequirementsListStatement, items: [PresentationItem])] = []
     
     let courseCellIdentifier = "CourseCell"
     let listVCIdentifier = "RequirementsList"
@@ -50,10 +50,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             if requirement.thresholdDescription.characters.count > 0 {
                 titleText += " (\(requirement.thresholdDescription))"
             }
-            items.append(PresentationItem(cellType: cellType, statement: nil, text: titleText))
+            items.append(PresentationItem(cellType: cellType, statement: requirement, text: titleText))
         }
         if let description = requirement.contentDescription, description.characters.count > 0 {
-            items.append(PresentationItem(cellType: .description, statement: nil, text: description))
+            items.append(PresentationItem(cellType: .description, statement: requirement, text: description))
         }
         
         if level == 0,
@@ -75,28 +75,28 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         return items
     }
     
-    func buildPresentationItems(from list: RequirementsListStatement) -> [(title: String, items: [PresentationItem])] {
+    func buildPresentationItems(from list: RequirementsListStatement) -> [(title: String, statement: RequirementsListStatement, items: [PresentationItem])] {
         guard let requirements = list.requirements else {
             return []
         }
         
-        var ret: [(title: String, items: [PresentationItem])] = []
+        var ret: [(title: String, statement: RequirementsListStatement, items: [PresentationItem])] = []
         if list.minimumNestDepth <= 1 {
-            ret.append(("", presentationItems(for: list)))
+            ret.append(("", list, presentationItems(for: list)))
         } else {
             if let description = list.contentDescription, description.characters.count > 0 {
                 var rows: [PresentationItem] = []
                 if let title = list.title, title.characters.count > 0 {
-                    rows.append(PresentationItem(cellType: .title, statement: nil, text: title))
+                    rows.append(PresentationItem(cellType: .title, statement: list, text: title))
                 }
-                rows.append(PresentationItem(cellType: .description, statement: nil, text: description))
-                ret.append(("", rows))
+                rows.append(PresentationItem(cellType: .description, statement: list, text: description))
+                ret.append(("", list, rows))
             }
             for topLevelRequirement in requirements {
                 var rows: [PresentationItem] = presentationItems(for: topLevelRequirement)
                 // Remove the title
                 rows.removeFirst()
-                ret.append((topLevelRequirement.title ?? "", rows))
+                ret.append((topLevelRequirement.title ?? "", topLevelRequirement, rows))
             }
         }
         
@@ -196,16 +196,23 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
             if let reqs = statement.requirements {
                 if statement.isFulfilled {
-                    courseListCell.fulfillmentIndications = reqs.map {
-                        (max($0.fulfillmentProgress, 1), max($0.threshold, 1))
+                    if statement.connectionType == .any, statement.threshold == 0,
+                        !presentationItems[indexPath.section].statement.isFulfilled {
+                        courseListCell.fulfillmentIndications = reqs.map {
+                            ($0.fulfillmentProgress, $0.threshold)
+                        }
+                    } else {
+                        courseListCell.fulfillmentIndications = reqs.map {
+                            (max($0.fulfillmentProgress, 1), $0.threshold)
+                        }
                     }
                 } else {
                     courseListCell.fulfillmentIndications = reqs.map {
-                        ($0.fulfillmentProgress, max($0.threshold, 1))
+                        ($0.fulfillmentProgress, $0.threshold)
                     }
                 }
             } else {
-                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress, max(statement.threshold, 1))]
+                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress, statement.threshold)]
             }
             
             courseListCell.delegate = self

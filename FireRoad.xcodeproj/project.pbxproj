@@ -85,6 +85,7 @@
 		9659E38D1F89B57700E55FA2 /* minor21m.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9659E38C1F89B57700E55FA2 /* minor21m.reql */; };
 		9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9659E38E1F89C09F00E55FA2 /* major9.reql */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
+		9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9669C7B41F904CAD00E60D89 /* minor9.reql */; };
 		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
 		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
 		968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */; };
@@ -200,6 +201,7 @@
 		9659E38C1F89B57700E55FA2 /* minor21m.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = minor21m.reql; sourceTree = "<group>"; };
 		9659E38E1F89C09F00E55FA2 /* major9.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = major9.reql; sourceTree = "<group>"; };
 		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
+		9669C7B41F904CAD00E60D89 /* minor9.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = minor9.reql; sourceTree = "<group>"; };
 		96897B171EC8F5500011E572 /* CourseListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseListCell.swift; sourceTree = "<group>"; };
 		968FE0551F75F86D0098E97F /* CourseCatalogScrubber */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CourseCatalogScrubber; sourceTree = BUILT_PRODUCTS_DIR; };
 		968FE0571F75F86D0098E97F /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -375,6 +377,7 @@
 				9626B6E21F80A93F009F6F96 /* major6-7.reql */,
 				9659E38C1F89B57700E55FA2 /* minor21m.reql */,
 				9659E38E1F89C09F00E55FA2 /* major9.reql */,
+				9669C7B41F904CAD00E60D89 /* minor9.reql */,
 			);
 			path = "Requirements Lists";
 			sourceTree = "<group>";
@@ -552,6 +555,7 @@
 				9636DE081F7894F300117A82 /* MS.txt in Resources */,
 				9636DDE81F7894F300117A82 /* 17.txt in Resources */,
 				9636DE0F1F7894F400117A82 /* WGS.txt in Resources */,
+				9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */,
 				9636DE0E1F7894F400117A82 /* SWE.txt in Resources */,
 				9646CFDA1EB921FE005F87CB /* Main.storyboard in Resources */,
 				9636DE0B1F7894F300117A82 /* SCM.txt in Resources */,
