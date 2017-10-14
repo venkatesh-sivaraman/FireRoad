@@ -35,7 +35,6 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        updateRequirementsStatus()
     }
     
     func updateRequirementsStatus() {
@@ -80,6 +79,7 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
             }
             return
         }
+        updateRequirementsStatus()
     }
     
     func splitViewController(_ splitViewController: UISplitViewController, collapseSecondary secondaryViewController: UIViewController, onto primaryViewController: UIViewController) -> Bool {

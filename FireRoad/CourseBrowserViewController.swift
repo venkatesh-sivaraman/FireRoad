@@ -9,11 +9,11 @@
 import UIKit
 
 protocol CourseBrowserDelegate: class {
-    func courseBrowser(added course: Course) -> UserSemester?
+    func courseBrowser(added course: Course, to semester: UserSemester?) -> UserSemester?
     func courseBrowserRequestedDetails(about course: Course)
 }
 
-class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITableViewDataSource, UITableViewDelegate, CourseBrowserCellDelegate, UINavigationControllerDelegate {
+class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITableViewDataSource, UITableViewDelegate, CourseBrowserCellDelegate, UINavigationControllerDelegate, PopDownTableMenuDelegate {
     
     @IBOutlet var searchBar: UISearchBar?
     @IBOutlet var tableView: UITableView! = nil
@@ -34,6 +34,20 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     var results: [Course] = []
     var managesNavigation: Bool = true
     
+    enum NonSearchingViewMode: Int {
+        case recents = 0
+        case favorites = 1
+    }
+    
+    var isShowingSearchResults = false
+    var nonSearchViewMode: NonSearchingViewMode = .recents {
+        didSet {
+            UserDefaults.standard.set(nonSearchViewMode.rawValue, forKey: nonSearchViewModeDefaultsKey)
+        }
+    }
+    
+    let nonSearchViewModeDefaultsKey = "CourseBrowserNonSearchViewMode"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -46,6 +60,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         if let panel = panelViewController {
             NotificationCenter.default.addObserver(self, selector: #selector(panelViewControllerWillCollapse(_:)), name: .PanelViewControllerWillCollapse, object: panel)
         }
+        
+        nonSearchViewMode = NonSearchingViewMode(rawValue: UserDefaults.standard.integer(forKey: nonSearchViewModeDefaultsKey)) ?? .recents
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -56,7 +72,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         
         if let searchBar = searchBar,
             searchBar.text?.characters.count == 0 {
-            showRecentlyViewedCourses()
+            showNonSearchingCourses()
         } else if let initialSearch = searchTerm {
             loadSearchResults(withString: initialSearch, options: searchOptions)
         }
@@ -100,7 +116,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     if searchText.characters.count > 0 {
                         self.loadSearchResults(withString: searchText, options: self.searchOptions)
                     } else {
-                        self.showRecentlyViewedCourses()
+                        self.showNonSearchingCourses()
                     }
                 } else if let initialSearch = self.searchTerm {
                     self.loadSearchResults(withString: initialSearch, options: self.searchOptions)
@@ -145,12 +161,16 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         panelViewController?.expandView()
     }
     
-    func showRecentlyViewedCourses() {
+    func showNonSearchingCourses() {
         guard CourseManager.shared.isLoaded else {
             return
         }
-        var recentlyViewed = CourseManager.shared.recentlyViewedCourses
-        results = [Course](recentlyViewed[0..<min(recentlyViewed.count, 15)])
+        isShowingSearchResults = false
+        if nonSearchViewMode == .recents {
+            results = CourseManager.shared.recentlyViewedCourses
+        } else {
+            results = CourseManager.shared.favoriteCourses
+        }
         tableView.reloadData()
     }
     
@@ -172,7 +192,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             self.expandView()
         }
         guard searchText.characters.count > 0 else {
-            showRecentlyViewedCourses()
+            showNonSearchingCourses()
             return
         }
         loadSearchResults(withString: searchText, options: searchOptions)
@@ -198,6 +218,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         guard CourseManager.shared.isLoaded, !isSearching else {
             return
         }
+        self.isShowingSearchResults = true
         DispatchQueue.global(qos: .userInitiated).async {
             self.isSearching = true
             let cacheText = self.searchBar?.text
@@ -279,12 +300,24 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return results.count
     }
     
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if let searchBar = searchBar,
-            searchBar.text?.characters.count == 0, results.count > 0 {
-            return "Recents"
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        if !isShowingSearchResults,
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SegmentedHeader") {
+            cell.backgroundColor = UIColor(white: 0.95, alpha: 1.0)
+            let segmentedControl = cell.viewWithTag(12) as? UISegmentedControl
+            segmentedControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
+            segmentedControl?.removeTarget(self, action: nil, for: .valueChanged)
+            segmentedControl?.addTarget(self, action: #selector(segmentedControlSelectionChanged(_:)), for: .valueChanged)
+            return cell
         }
         return nil
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if !isShowingSearchResults {
+            return 42.0
+        }
+        return 0.0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -308,8 +341,87 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         cell.detailTextLabel?.textColor = UIColor.darkGray.withAlphaComponent(0.7)
     }
     
+    func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
+        guard !isShowingSearchResults else {
+            return nil
+        }
+        return "Remove"
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        guard !isShowingSearchResults, editingStyle == .delete else {
+            return
+        }
+        let course = results[indexPath.row]
+        if nonSearchViewMode == .recents {
+            CourseManager.shared.removeCourseFromRecentlyViewed(course)
+        } else {
+            CourseManager.shared.markCourseAsNotFavorite(course)
+        }
+        results.remove(at: indexPath.row)
+        tableView.deleteRows(at: [indexPath], with: .fade)
+    }
+    
     func browserCell(added course: Course) -> UserSemester? {
         self.searchBar?.resignFirstResponder()
-        return self.delegate?.courseBrowser(added: course)
+        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
+            print("No pop down table menu in storyboard!")
+            return nil
+        }
+        popDown.course = course
+        popDown.delegate = self
+        let containingView: UIView = self.view
+        containingView.addSubview(popDown.view)
+        popDown.view.translatesAutoresizingMaskIntoConstraints = false
+        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
+        popDown.willMove(toParentViewController: self)
+        self.addChildViewController(popDown)
+        popDown.didMove(toParentViewController: self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            popDown.show(animated: true)
+        }
+        return nil
+    }
+    
+    @objc func segmentedControlSelectionChanged(_ sender: UISegmentedControl) {
+        guard searchBar?.text?.characters.count == 0,
+            let viewMode = NonSearchingViewMode(rawValue: sender.selectedSegmentIndex) else {
+                return
+        }
+        nonSearchViewMode = viewMode
+        showNonSearchingCourses()
+    }
+    
+    // MARK: - Pop Down Table Menu
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
+        if CourseManager.shared.favoriteCourses.contains(course) {
+            CourseManager.shared.markCourseAsNotFavorite(course)
+        } else {
+            CourseManager.shared.markCourseAsFavorite(course)
+        }
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester) {
+        _ = self.delegate?.courseBrowser(added: course, to: semester)
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController) {
+        navigationItem.rightBarButtonItem?.isEnabled = true
+        if !isShowingSearchResults {
+            // Refresh favorites if necessary
+            showNonSearchingCourses()
+        }
+        tableMenu.hide(animated: true) {
+            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.view.removeFromSuperview()
+            tableMenu.removeFromParentViewController()
+            tableMenu.didMove(toParentViewController: nil)
+        }
     }
 }

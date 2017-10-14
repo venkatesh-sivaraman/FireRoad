@@ -11,6 +11,7 @@ import UIKit
 protocol PopDownTableMenuDelegate: class {
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course)
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester)
+    func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController)
 }
 
 class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITableViewDelegate {
@@ -42,6 +43,10 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
         blurView?.effect = nil
     }
     
+    @IBAction func touchOnBackgroundView(_ sender: UITapGestureRecognizer) {
+        delegate?.popDownTableMenuCanceled(self)
+    }
+    
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
@@ -53,8 +58,13 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.row == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: PopDownTableMenuController.favoritesCellIdentifier, for: indexPath)
-            if let imageView = cell.viewWithTag(34) as? UIImageView {
-                imageView.image = imageView.image?.withRenderingMode(.alwaysTemplate)
+            if let imageView = cell.viewWithTag(34) as? UIImageView,
+                let label = cell.viewWithTag(12) as? UILabel,
+                let course = course {
+                let isInFavorites = CourseManager.shared.favoriteCourses.contains(course)
+                let image = isInFavorites ? UIImage(named: "heart-filled") : UIImage(named: "heart")
+                imageView.image = image?.withRenderingMode(.alwaysTemplate)
+                label.text = isInFavorites ? "Remove from Favorites" : "Add to Favorites"
             }
             cell.selectionStyle = .default
             return cell
@@ -71,10 +81,6 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
             }
         }
         return cell
-    }
-    
-    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
-        return indexPath.row == 0
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -111,7 +117,7 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
         }
     }
     
-    func hide(animated: Bool) {
+    func hide(animated: Bool, completion: (() -> Void)? = nil) {
         if let height = heightConstraint {
             topConstraint?.constant = -height.constant
         }
@@ -120,7 +126,13 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
             UIView.animate(withDuration: 0.4, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
                 self.blurView?.effect = nil
                 self.view.layoutIfNeeded()
-            }, completion: nil)
+            }, completion: { completed in
+                if completed {
+                    completion?()
+                }
+            })
+        } else {
+            completion?()
         }
     }
 }

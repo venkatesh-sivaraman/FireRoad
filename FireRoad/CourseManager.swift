@@ -392,10 +392,11 @@ class CourseManager: NSObject {
                 _recentlyViewedCourses = (UserDefaults.standard.array(forKey: recentlyViewedCoursesDefaultsKey) as? [String])?.flatMap({
                     getCourse(withID: $0)
                 }) ?? []
+                _recentlyViewedCourses = [Course](_recentlyViewedCourses![0..<min(_recentlyViewedCourses!.count, 15)])
             }
             return _recentlyViewedCourses!
         } set {
-            _recentlyViewedCourses = newValue
+            _recentlyViewedCourses = [Course](newValue[0..<min(newValue.count, 15)])
             UserDefaults.standard.set(_recentlyViewedCourses?.flatMap({ $0.subjectID }), forKey: recentlyViewedCoursesDefaultsKey)
         }
     }
@@ -405,6 +406,44 @@ class CourseManager: NSObject {
             recentlyViewedCourses.remove(at: index)
         }
         recentlyViewedCourses.insert(course, at: 0)
+    }
+    
+    func removeCourseFromRecentlyViewed(_ course: Course) {
+        if let index = recentlyViewedCourses.index(of: course) {
+            recentlyViewedCourses.remove(at: index)
+        }
+    }
+    
+    // MARK: - Favorites List
+    
+    let favoriteCoursesDefaultsKey = "FavoriteCourses"
+    
+    var _favoriteCourses: [Course]?
+    private(set) var favoriteCourses: [Course] {
+        get {
+            if _favoriteCourses == nil {
+                _favoriteCourses = (UserDefaults.standard.array(forKey: favoriteCoursesDefaultsKey) as? [String])?.flatMap({
+                    getCourse(withID: $0)
+                }) ?? []
+            }
+            return _favoriteCourses!
+        } set {
+            _favoriteCourses = newValue
+            UserDefaults.standard.set(_favoriteCourses?.flatMap({ $0.subjectID }), forKey: favoriteCoursesDefaultsKey)
+        }
+    }
+    
+    func markCourseAsFavorite(_ course: Course) {
+        if let index = favoriteCourses.index(of: course) {
+            return
+        }
+        favoriteCourses.append(course)
+    }
+    
+    func markCourseAsNotFavorite(_ course: Course) {
+        if let index = favoriteCourses.index(where: { $0.subjectID == course.subjectID }) {
+            favoriteCourses.remove(at: index)
+        }
     }
     
     // MARK: - Spotlight

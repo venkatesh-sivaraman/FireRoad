@@ -408,7 +408,6 @@
 				9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */,
 				961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */,
 				96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */,
-				9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */,
 			);
 			name = "Course Road";
 			sourceTree = "<group>";
@@ -429,6 +428,7 @@
 			children = (
 				961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */,
 				965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */,
+				9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */,
 			);
 			name = "Useful View Controllers";
 			sourceTree = "<group>";

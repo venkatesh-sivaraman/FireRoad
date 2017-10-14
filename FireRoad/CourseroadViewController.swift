@@ -391,8 +391,8 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         self.navigationController?.popViewController(animated: true)
     }
     
-    func courseBrowser(added course: Course) -> UserSemester? {
-        return addCourse(course)
+    func courseBrowser(added course: Course, to semester: UserSemester?) -> UserSemester? {
+        return addCourse(course, to: semester)
     }
     
     func courseBrowserRequestedDetails(about course: Course) {

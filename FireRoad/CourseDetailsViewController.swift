@@ -30,7 +30,7 @@ enum CourseDetailItem {
     case courseListAccessory
 }
 
-class CourseDetailsViewController: UITableViewController, CourseListCellDelegate, PopDownTableMenuDelegate {
+class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CourseListCellDelegate, PopDownTableMenuDelegate {
 
     var course: Course? = nil {
         didSet {
@@ -47,6 +47,8 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
     var sectionTitles: [String] = []
     var detailMapping: [IndexPath: CourseDetailItem] = [:]
     
+    @IBOutlet var tableView: UITableView!
+    
     var displayStandardMode = false {
         didSet {
             updateScrollViewForDisplayMode()
@@ -54,6 +56,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
     }
     
     func updateScrollViewForDisplayMode() {
+        loadViewIfNeeded()
         self.tableView.contentInset = UIEdgeInsets(top: 8.0, left: 0.0, bottom: 8.0, right: 0.0)
         if !displayStandardMode {
             self.tableView.backgroundColor = UIColor.clear
@@ -99,10 +102,12 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             print("No pop down table menu in storyboard!")
             return
         }
+        navigationItem.rightBarButtonItem?.isEnabled = false
         popDown.course = self.course
         popDown.delegate = self
-        let containingView = self.view
+        let containingView: UIView = self.view
         containingView.addSubview(popDown.view)
+        popDown.view.translatesAutoresizingMaskIntoConstraints = false
         popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
         popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
         popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
@@ -110,16 +115,33 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
         popDown.willMove(toParentViewController: self)
         self.addChildViewController(popDown)
         popDown.didMove(toParentViewController: self)
-        popDown.show(animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            popDown.show(animated: true)
+        }
     }
     
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
-        print("Added to favorites")
-        tableMenu.hide(animated: true)
+        if CourseManager.shared.favoriteCourses.contains(course) {
+            CourseManager.shared.markCourseAsNotFavorite(course)
+        } else {
+            CourseManager.shared.markCourseAsFavorite(course)
+        }
+        popDownTableMenuCanceled(tableMenu)
     }
     
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester) {
         self.delegate?.courseDetails(added: course, to: semester)
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController) {
+        navigationItem.rightBarButtonItem?.isEnabled = true
+        tableMenu.hide(animated: true) {
+            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.view.removeFromSuperview()
+            tableMenu.removeFromParentViewController()
+            tableMenu.didMove(toParentViewController: nil)
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -237,15 +259,15 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
 
     // MARK: - Table view data source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return self.sectionTitles.count
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.detailMapping.filter({ $0.key.section == section }).count
     }
     
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let cellType = self.cellType(for: self.detailMapping[indexPath]!)
         if cellType == "DescriptionCell" || cellType == "MetadataCell" {
             return UITableViewAutomaticDimension
@@ -255,15 +277,15 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
         return 60.0
     }
     
-    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return -CGFloat.greatestFiniteMagnitude
     }
     
-    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         return nil
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let detailItemType = self.detailMapping[indexPath]!
         let id = self.cellType(for: detailItemType)
         let cell = tableView.dequeueReusableCell(withIdentifier: id, for: indexPath)
