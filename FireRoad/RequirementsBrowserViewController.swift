@@ -8,7 +8,7 @@
 
 import UIKit
 
-class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISplitViewControllerDelegate {
+class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISplitViewControllerDelegate, RequirementsListViewControllerDelegate {
 
     @IBOutlet var tableView: UITableView!
     
@@ -35,6 +35,10 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        updateRequirementsStatus()
+    }
+    
+    func updateRequirementsStatus() {
         if let tabVC = rootParent as? RootTabViewController,
             let currentUser = tabVC.currentUser {
             let courses = currentUser.allCourses
@@ -49,6 +53,26 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         super.viewDidAppear(animated)
         if let ip = tableView.indexPathForSelectedRow {
             tableView.deselectRow(at: ip, animated: true)
+        }
+        
+        if !CourseManager.shared.isLoaded {
+            let hud = MBProgressHUD.showAdded(to: self.splitViewController?.view ?? self.view, animated: true)
+            hud.mode = .determinateHorizontalBar
+            hud.label.text = "Loading courses…"
+            DispatchQueue.global(qos: .background).async {
+                let initialProgress = CourseManager.shared.loadingProgress
+                while !CourseManager.shared.isLoaded {
+                    DispatchQueue.main.async {
+                        hud.progress = (CourseManager.shared.loadingProgress - initialProgress) / (1.0 - initialProgress)
+                    }
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    self.updateRequirementsStatus()
+                    hud.hide(animated: true)
+                }
+            }
+            return
         }
     }
     
@@ -75,13 +99,24 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: listCellIdentifier, for: indexPath)
-        cell.textLabel?.text = requirementsLists[indexPath.row].mediumTitle ?? "No title"
-        let progress = requirementsLists[indexPath.row].percentageFulfilled
-        if progress > 0.0 {
-            cell.detailTextLabel?.text = "\(round(progress))%"
-            cell.detailTextLabel?.textColor = UIColor(hue: 0.005 * CGFloat(progress), saturation: 0.9, brightness: 0.7, alpha: 1.0)
+        let textLabel = cell.viewWithTag(12) as? UILabel
+        let detailTextLabel = cell.viewWithTag(34) as? UILabel
+        textLabel?.text = requirementsLists[indexPath.row].mediumTitle ?? "No title"
+        if CourseManager.shared.isLoaded {
+            let progress = requirementsLists[indexPath.row].percentageFulfilled
+            let fulfillmentIndicator = cell.viewWithTag(56)
+            if progress > 0.0 {
+                detailTextLabel?.text = "\(Int(round(progress)))%"
+                detailTextLabel?.textColor = UIColor.white
+                fulfillmentIndicator?.backgroundColor = UIColor(hue: 0.005 * CGFloat(progress), saturation: 0.9, brightness: 0.7, alpha: 1.0)
+                fulfillmentIndicator?.layer.cornerRadius = RequirementsListViewController.fulfillmentIndicatorCornerRadius
+                fulfillmentIndicator?.layer.masksToBounds = true
+            } else {
+                detailTextLabel?.text = ""
+                fulfillmentIndicator?.backgroundColor = UIColor.clear
+            }
         } else {
-            cell.detailTextLabel?.text = ""
+            detailTextLabel?.text = ""
         }
         return cell
     }
@@ -93,8 +128,15 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
             return
         }
         
+        listVC.delegate = self
         listVC.requirementsList = reqList
         splitViewController?.showDetailViewController(nav, sender: self)
        // tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    func requirementsListViewControllerUpdatedFulfillmentStatus(_ vc: RequirementsListViewController) {
+        let row = tableView.indexPathForSelectedRow
+        tableView.reloadData()
+        tableView.selectRow(at: row, animated: false, scrollPosition: .none)
     }
 }

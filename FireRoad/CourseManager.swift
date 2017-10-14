@@ -18,6 +18,10 @@ enum CourseOfStudy: String {
     case minor21M = "Minor in Music and Theater Arts"
 }
 
+extension Notification.Name {
+    static let CourseManagerFinishedLoading = Notification.Name(rawValue: "CourseManagerFinishedLoadingNotification")
+}
+
 class CourseManager: NSObject {
     
     var courses: [Course] = []
@@ -27,6 +31,7 @@ class CourseManager: NSObject {
     var loadedDepartments: [String] = []
     
     var isLoaded = false
+    var loadingProgress: Float = 0.0
     
     private var loadingCompletionBlock: ((Bool) -> Void)? = nil
 
@@ -129,15 +134,21 @@ class CourseManager: NSObject {
             self.coursesByTitle = [:]
             self.loadedDepartments = []
 
-            self.readSummaryFile(at: path)
+            self.readSummaryFile(at: path) { progress in
+                self.loadingProgress = progress * 0.9
+            }
             var completionCount: Int = 0
             let groupCompletionBlock: ((Bool) -> Void) = { (success) in
                 if success {
                     completionCount += 1
+                    self.loadingProgress += 0.05
                     if completionCount == 2 {
                         //self.indexSearchableItemsInBackground()
                         DispatchQueue.main.async {
                             self.isLoaded = success
+                            if success {
+                                NotificationCenter.default.post(name: .CourseManagerFinishedLoading, object: self)
+                            }
                             completion(success)
                         }
                     }
@@ -212,7 +223,7 @@ class CourseManager: NSObject {
         
     }
     
-    func readSummaryFile(at path: String) {
+    func readSummaryFile(at path: String, updateBlock: ((Float) -> Void)? = nil) {
         guard let text = try? String(contentsOfFile: path) else {
             print("Error loading summary file")
             return
@@ -220,7 +231,7 @@ class CourseManager: NSObject {
         let lines = text.components(separatedBy: .newlines)
         var csvHeaders: [String]? = nil
         
-        for line in lines {
+        for (i, line) in lines.enumerated() {
             let comps = line.components(separatedBy: ",")
             if comps.contains("Subject Id") {
                 csvHeaders = comps
@@ -260,6 +271,7 @@ class CourseManager: NSObject {
                 print("No CSV headers found, so this file can't be read.")
                 return
             }
+            updateBlock?(Float(i) / Float(lines.count))
         }
     }
     
@@ -439,17 +451,17 @@ class CourseManager: NSObject {
     }
     
     func indexSearchableItemsInBackground() {
-        DispatchQueue.global(qos: .utility).async {
+        /*DispatchQueue.global(qos: .utility).async {
             self.indexSearchableItems()
-        }
+        }*/
     }
     
     func indexSearchableItems(forDepartment department: String) {
         guard !indexedDepartments.contains(department) else {
             return
         }
-        DispatchQueue.global(qos: .utility).async {
+        /*DispatchQueue.global(qos: .utility).async {
             self.indexSearchableItems(for: department)
-        }
+        }*/
     }
 }

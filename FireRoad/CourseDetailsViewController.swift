@@ -54,7 +54,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
     }
     
     func updateScrollViewForDisplayMode() {
-        self.tableView.contentInset = UIEdgeInsetsMake(8.0, 0.0, 0.0, 0.0)
+        self.tableView.contentInset = UIEdgeInsets(top: 8.0, left: 0.0, bottom: 8.0, right: 0.0)
         if !displayStandardMode {
             self.tableView.backgroundColor = UIColor.clear
             self.tableView.estimatedRowHeight = 60.0
@@ -126,29 +126,27 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
         rowIndex = 0
         sectionIndex += 1
 
-        if course!.prerequisites.count > 0 {
-            let prereqs: [String] = course!.prerequisites.flatMap({ $0 })
-            if prereqs.count > 0 {
-                titles.append("Prerequisites")
-                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+        if course!.prerequisites.flatMap({ $0 }).count > 0 {
+            titles.append("Prerequisites")
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+            for _ in course!.prerequisites {
                 rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .prerequisites
-                //mapping[IndexPath(row: rowIndex + 1, section: sectionIndex)] = .courseListAccessory
-                rowIndex = 0
-                sectionIndex += 1
             }
+            //mapping[IndexPath(row: rowIndex + 1, section: sectionIndex)] = .courseListAccessory
+            rowIndex = 0
+            sectionIndex += 1
         }
-        if course!.corequisites.count > 0 {
-            let coreqs: [String] = course!.corequisites.flatMap({ $0 })
-            if coreqs.count > 0 {
-                titles.append("Corequisites")
-                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+        if course!.corequisites.flatMap({ $0 }).count > 0 {
+            titles.append("Corequisites")
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+            for _ in course!.corequisites {
                 rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .corequisites
-                //mapping[IndexPath(row: rowIndex + 1, section: sectionIndex)] = .courseListAccessory
-                rowIndex = 0
-                sectionIndex += 1
             }
+            //mapping[IndexPath(row: rowIndex + 1, section: sectionIndex)] = .courseListAccessory
+            rowIndex = 0
+            sectionIndex += 1
         }
         if course!.jointSubjects.count > 0 {
             titles.append("Joint Subjects")
@@ -367,7 +365,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             (cell as! CourseListCell).collectionView.reloadData()
         case .prerequisites:
             (cell as! CourseListCell).courses = []
-            let prereqs = self.course!.prerequisites.flatMap({ $0 })
+            let prereqs = self.course!.prerequisites[indexPath.row - 1]
             for myID in prereqs {
                 if myID.range(of: "[") != nil || myID.range(of: "{") != nil {
                     continue
@@ -385,7 +383,7 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
             (cell as! CourseListCell).collectionView.reloadData()
         case .corequisites:
             (cell as! CourseListCell).courses = []
-            for myID in self.course!.corequisites.flatMap({ $0 }) {
+            for myID in self.course!.corequisites[indexPath.row - 1] {
                 // Useful when the corequisites were notated in brackets, but not anymore
                 //let myID = String(id[(id.index(id.startIndex, offsetBy: 1))..<(id.index(id.endIndex, offsetBy: -1))])
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)

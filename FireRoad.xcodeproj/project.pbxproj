@@ -67,7 +67,6 @@
 		9636DE0D1F7894F300117A82 /* STS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDE1F7894F300117A82 /* STS.txt */; };
 		9636DE0E1F7894F400117A82 /* SWE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDF1F7894F300117A82 /* SWE.txt */; };
 		9636DE0F1F7894F400117A82 /* WGS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDE01F7894F300117A82 /* WGS.txt */; };
-		963BE43B1F8AAA58008905AE /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 963BE4391F8AAA57008905AE /* MBProgressHUD.m */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
 		9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* CatalogViewController.swift */; };
 		9646CFD71EB921FE005F87CB /* CourseroadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */; };
@@ -86,9 +85,11 @@
 		9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9659E38E1F89C09F00E55FA2 /* major9.reql */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
 		9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9669C7B41F904CAD00E60D89 /* minor9.reql */; };
+		9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 9669C7C71F90628300E60D89 /* MBProgressHUD.m */; };
 		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
 		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
 		968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */; };
+		96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */; };
 		96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */; };
 		96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */; };
 /* End PBXBuildFile section */
@@ -178,8 +179,6 @@
 		9636DDDF1F7894F300117A82 /* SWE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SWE.txt; sourceTree = "<group>"; };
 		9636DDE01F7894F300117A82 /* WGS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WGS.txt; sourceTree = "<group>"; };
 		963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FireRoad-Bridging-Header.h"; sourceTree = "<group>"; };
-		963BE4391F8AAA57008905AE /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MBProgressHUD.m; path = "../../../../Downloads/MBProgressHUD-master/MBProgressHUD.m"; sourceTree = "<group>"; };
-		963BE43A1F8AAA57008905AE /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MBProgressHUD.h; path = "../../../../Downloads/MBProgressHUD-master/MBProgressHUD.h"; sourceTree = "<group>"; };
 		9646CFCF1EB921FE005F87CB /* FireRoad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireRoad.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9646CFD21EB921FE005F87CB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9646CFD41EB921FE005F87CB /* CatalogViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogViewController.swift; sourceTree = "<group>"; };
@@ -202,11 +201,14 @@
 		9659E38E1F89C09F00E55FA2 /* major9.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = major9.reql; sourceTree = "<group>"; };
 		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
 		9669C7B41F904CAD00E60D89 /* minor9.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = minor9.reql; sourceTree = "<group>"; };
+		9669C7C71F90628300E60D89 /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
+		9669C7C81F90628300E60D89 /* MBProgressHUD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		96897B171EC8F5500011E572 /* CourseListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseListCell.swift; sourceTree = "<group>"; };
 		968FE0551F75F86D0098E97F /* CourseCatalogScrubber */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CourseCatalogScrubber; sourceTree = BUILT_PRODUCTS_DIR; };
 		968FE0571F75F86D0098E97F /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLNodeExtractor.swift; sourceTree = "<group>"; };
 		968FE05E1F75FE270098E97F /* test_html.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_html.txt; sourceTree = "<group>"; };
+		96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsBrowserTableCell.swift; sourceTree = "<group>"; };
 		96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseThumbnailCell.swift; sourceTree = "<group>"; };
 		96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseCatalogParser.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -317,34 +319,21 @@
 			isa = PBXGroup;
 			children = (
 				9646CFD21EB921FE005F87CB /* AppDelegate.swift */,
-				962DAD651F89A6180011D96F /* RootTabViewController.swift */,
-				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
-				9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */,
-				961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */,
-				96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */,
-				965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */,
-				961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */,
-				96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */,
-				961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */,
-				961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */,
 				9646CFF61EB9251A005F87CB /* CourseManager.swift */,
 				9646CFF41EB922C3005F87CB /* Course.swift */,
 				9646CFF81EB92525005F87CB /* User.swift */,
-				96897B171EC8F5500011E572 /* CourseListCell.swift */,
-				9611BE331F7EE43C0090137E /* ArrayExtension.swift */,
-				9626B6E01F8070EB009F6F96 /* StringExtension.swift */,
-				9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */,
-				9626B6E51F815686009F6F96 /* RequirementsBrowserViewController.swift */,
-				9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */,
-				9626B6E91F815917009F6F96 /* RequirementsList.swift */,
+				962DAD651F89A6180011D96F /* RootTabViewController.swift */,
+				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
+				9669C7CA1F9062A800E60D89 /* Course Road */,
+				9669C7B81F9061E700E60D89 /* Requirements Browser */,
+				9669C7CC1F9062FF00E60D89 /* Useful View Controllers */,
+				9669C7CB1F9062CB00E60D89 /* Cell Subclasses */,
+				9669C7C01F90623D00E60D89 /* Helpers */,
 				9646CFD81EB921FE005F87CB /* Main.storyboard */,
 				9646CFDB1EB921FE005F87CB /* Assets.xcassets */,
 				9646CFDD1EB921FE005F87CB /* LaunchScreen.storyboard */,
 				9646CFE01EB921FE005F87CB /* Info.plist */,
 				961E49FE1EC7771D002BABB9 /* enrollment.txt */,
-				963BE43A1F8AAA57008905AE /* MBProgressHUD.h */,
-				963BE4391F8AAA57008905AE /* MBProgressHUD.m */,
-				9659E3901F89C24600E55FA2 /* Requirements Lists */,
 				9626B6E41F80AF1F009F6F96 /* course_requirements_spec.md */,
 				9636DDB11F7894F300117A82 /* scraped_course_data */,
 				961E49931EC6938F002BABB9 /* course_processor.py */,
@@ -380,6 +369,60 @@
 				9669C7B41F904CAD00E60D89 /* minor9.reql */,
 			);
 			path = "Requirements Lists";
+			sourceTree = "<group>";
+		};
+		9669C7B81F9061E700E60D89 /* Requirements Browser */ = {
+			isa = PBXGroup;
+			children = (
+				9626B6E51F815686009F6F96 /* RequirementsBrowserViewController.swift */,
+				9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */,
+				9626B6E91F815917009F6F96 /* RequirementsList.swift */,
+				9659E3901F89C24600E55FA2 /* Requirements Lists */,
+			);
+			name = "Requirements Browser";
+			sourceTree = "<group>";
+		};
+		9669C7C01F90623D00E60D89 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */,
+				9611BE331F7EE43C0090137E /* ArrayExtension.swift */,
+				9626B6E01F8070EB009F6F96 /* StringExtension.swift */,
+				9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */,
+				9669C7C81F90628300E60D89 /* MBProgressHUD.h */,
+				9669C7C71F90628300E60D89 /* MBProgressHUD.m */,
+			);
+			name = Helpers;
+			sourceTree = "<group>";
+		};
+		9669C7CA1F9062A800E60D89 /* Course Road */ = {
+			isa = PBXGroup;
+			children = (
+				9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */,
+				961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */,
+				96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */,
+			);
+			name = "Course Road";
+			sourceTree = "<group>";
+		};
+		9669C7CB1F9062CB00E60D89 /* Cell Subclasses */ = {
+			isa = PBXGroup;
+			children = (
+				961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */,
+				96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */,
+				96897B171EC8F5500011E572 /* CourseListCell.swift */,
+				96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */,
+			);
+			name = "Cell Subclasses";
+			sourceTree = "<group>";
+		};
+		9669C7CC1F9062FF00E60D89 /* Useful View Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */,
+				965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */,
+			);
+			name = "Useful View Controllers";
 			sourceTree = "<group>";
 		};
 		968FE0561F75F86D0098E97F /* CourseCatalogScrubber */ = {
@@ -581,6 +624,7 @@
 				965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */,
 				9646CFF51EB922C3005F87CB /* Course.swift in Sources */,
 				961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */,
+				96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */,
 				962DAD661F89A6180011D96F /* RootTabViewController.swift in Sources */,
 				9659E38B1F89A93F00E55FA2 /* UIViewControllerExtension.swift in Sources */,
 				9626B6E11F8070EB009F6F96 /* StringExtension.swift in Sources */,
@@ -592,7 +636,7 @@
 				9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */,
 				9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */,
 				96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */,
-				963BE43B1F8AAA58008905AE /* MBProgressHUD.m in Sources */,
+				9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */,
 				96500EAE1F7A056400872F82 /* RoundedToolbarView.swift in Sources */,
 				9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */,
 				9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */,
@@ -830,7 +874,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
@@ -843,7 +887,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
 			};
 			name = Release;

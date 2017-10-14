@@ -59,6 +59,13 @@ enum UserSemester: Int {
         .JuniorFall, .JuniorIAP, .JuniorSpring,
         .SeniorFall, .SeniorIAP, .SeniorSpring
     ]
+    
+    static let allSemesters: [UserSemester] = [
+        .PreviousCredit, .FreshmanFall, .FreshmanIAP, .FreshmanSpring,
+        .SophomoreFall, .SophomoreIAP, .SophomoreSpring,
+        .JuniorFall, .JuniorIAP, .JuniorSpring,
+        .SeniorFall, .SeniorIAP, .SeniorSpring
+    ]
 }
 
 class User: NSObject {
@@ -99,6 +106,7 @@ class User: NSObject {
         if saveTimer?.isValid == true {
             saveTimer?.invalidate()
         }
+        NotificationCenter.default.removeObserver(self)
     }
     
     override init() {
@@ -155,6 +163,12 @@ class User: NSObject {
         needsSave = true
     }
     
+    @objc func courseManagerFinishedLoading() {
+        for (semester, courses) in selectedSubjects {
+            selectedSubjects[semester] = courses.map({ CourseManager.shared.getCourse(withID: $0.subjectID!) ?? $0 })
+        }
+    }
+    
     // MARK: - File Handling
     
     var subjectComponentSeparator = "#,#"
@@ -205,6 +219,10 @@ class User: NSObject {
             }
             
             add(course, toSemester: semester)
+        }
+        
+        if !CourseManager.shared.isLoaded {
+            NotificationCenter.default.addObserver(self, selector: #selector(courseManagerFinishedLoading), name: .CourseManagerFinishedLoading, object: nil)
         }
     }
     

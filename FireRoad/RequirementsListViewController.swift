@@ -16,6 +16,10 @@ enum RequirementsListCellType: String {
     case courseListAccessory = "CourseListAccessoryCell"
 }
 
+protocol RequirementsListViewControllerDelegate: class {
+    func requirementsListViewControllerUpdatedFulfillmentStatus(_ vc: RequirementsListViewController)
+}
+
 class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, UIPopoverPresentationControllerDelegate {
 
     struct PresentationItem {
@@ -31,6 +35,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     let courseCellIdentifier = "CourseCell"
     let listVCIdentifier = "RequirementsList"
     let courseListVCIdentifier = "CourseListVC"
+    static let fulfillmentIndicatorCornerRadius = CGFloat(6.0)
+    
+    weak var delegate: RequirementsListViewControllerDelegate?
 
     func recursivelyExtractCourses(from statement: RequirementsListStatement) -> [Course] {
         if let req = statement.requirement,
@@ -128,6 +135,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             requirementsList?.computeRequirementStatus(with: currentUser.allCourses)
             tableView.reloadData()
         }
+        delegate?.requirementsListViewControllerUpdatedFulfillmentStatus(self)
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -157,6 +165,14 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         if presentationItems[section].title.characters.count > 0 {
             if let cell = tableView.dequeueReusableCell(withIdentifier: "HeaderView") {
                 ((cell.viewWithTag(12) as? UILabel) ?? cell.textLabel)?.text = presentationItems[section].title
+                let detailTextLabel = (cell.viewWithTag(34) as? UILabel) ?? cell.detailTextLabel
+                let fulfillmentIndicator = cell.viewWithTag(56)
+                let (text, color) = progressInformation(for: presentationItems[section].statement)
+                detailTextLabel?.text = text
+                detailTextLabel?.textColor = UIColor.white
+                fulfillmentIndicator?.backgroundColor = color
+                fulfillmentIndicator?.layer.cornerRadius = RequirementsListViewController.fulfillmentIndicatorCornerRadius
+                fulfillmentIndicator?.layer.masksToBounds = true
                 return cell
             }
         }
@@ -195,21 +211,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 return Course(courseID: $0, courseTitle: "", courseDescription: "")
             }
             if let reqs = statement.requirements {
-                if statement.isFulfilled {
-                    if statement.connectionType == .any, statement.threshold == 0,
-                        !presentationItems[indexPath.section].statement.isFulfilled {
-                        courseListCell.fulfillmentIndications = reqs.map {
-                            ($0.fulfillmentProgress, $0.threshold)
-                        }
-                    } else {
-                        courseListCell.fulfillmentIndications = reqs.map {
-                            (max($0.fulfillmentProgress, 1), $0.threshold)
-                        }
-                    }
-                } else {
-                    courseListCell.fulfillmentIndications = reqs.map {
-                        ($0.fulfillmentProgress, $0.threshold)
-                    }
+                courseListCell.fulfillmentIndications = reqs.map {
+                    ($0.fulfillmentProgress, $0.threshold)
                 }
             } else {
                 courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress, statement.threshold)]
@@ -219,8 +222,32 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             
         } else {
             textLabel?.text = item.text ?? ""
+            let fulfillmentIndicator = cell.viewWithTag(56)
+            if item.cellType == .title || item.cellType == .title2,
+                indexPath.section != 0 || indexPath.row != 0 { //Exclude the main title
+                let (text, color) = progressInformation(for: item.statement)
+                detailTextLabel?.text = text
+                detailTextLabel?.textColor = UIColor.white
+                fulfillmentIndicator?.backgroundColor = color
+                fulfillmentIndicator?.layer.cornerRadius = RequirementsListViewController.fulfillmentIndicatorCornerRadius
+                fulfillmentIndicator?.layer.masksToBounds = true
+            } else {
+                detailTextLabel?.text = ""
+                fulfillmentIndicator?.backgroundColor = UIColor.clear
+            }
         }
         return cell
+    }
+    
+    func progressInformation(for requirement: RequirementsListStatement?) -> (String, UIColor) {
+        if let req = requirement,
+            req.connectionType == .all || req.threshold > 0 {
+            let progress = req.percentageFulfilled
+            if progress > 0.0 {
+                return ("\(Int(round(progress)))%", UIColor(hue: 0.005 * CGFloat(progress), saturation: 0.5, brightness: 0.8, alpha: 1.0))
+            }
+        }
+        return ("", UIColor.clear)
     }
     
     func courseListCell(_ cell: CourseListCell, selected course: Course) {

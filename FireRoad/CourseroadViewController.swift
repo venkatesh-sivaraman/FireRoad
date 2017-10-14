@@ -222,6 +222,52 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             cell.detailTextLabel?.attributedText = NSAttributedString(string: title, attributes: [.paragraphStyle: paraStyle])
         }
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
+        
+        if let user = currentUser {
+            var unsatisfiedPrereqs: [String] = []
+            for prereq in course.prerequisites.flatMap({ $0 }) {
+                var satisfied = false
+                for semester in UserSemester.allSemesters where semester.rawValue < indexPath.section {
+                    for course in user.courses(forSemester: semester) {
+                        if course.satisfies(requirement: prereq) {
+                            satisfied = true
+                            break
+                        }
+                    }
+                    if satisfied {
+                        break
+                    }
+                }
+                if !satisfied {
+                    unsatisfiedPrereqs.append(prereq)
+                }
+            }
+            var unsatisfiedCoreqs: [String] = []
+            for coreq in course.corequisites.flatMap({ $0 }) {
+                var satisfied = false
+                for semester in UserSemester.allSemesters where semester.rawValue <= indexPath.section {
+                    for course in user.courses(forSemester: semester) {
+                        if course.satisfies(requirement: coreq) {
+                            satisfied = true
+                            break
+                        }
+                    }
+                    if satisfied {
+                        break
+                    }
+                }
+                if !satisfied {
+                    unsatisfiedCoreqs.append(coreq)
+                }
+            }
+            if unsatisfiedPrereqs.count > 0 {
+                print("Unsatisfied prereqs for \(course.subjectID!): \(unsatisfiedPrereqs)")
+            }
+            if unsatisfiedCoreqs.count > 0 {
+                print("Unsatisfied coreqs for \(course.subjectID!): \(unsatisfiedCoreqs)")
+            }
+        }
+        
         return cell
     }
     
@@ -405,9 +451,28 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     // MARK: - Model Interaction
     
     func viewDetails(for course: Course) {
+        if !CourseManager.shared.isLoaded {
+            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+            hud.mode = .determinateHorizontalBar
+            hud.label.text = "Loading courses…"
+            DispatchQueue.global(qos: .background).async {
+                let initialProgress = CourseManager.shared.loadingProgress
+                while !CourseManager.shared.isLoaded {
+                    DispatchQueue.main.async {
+                        hud.progress = (CourseManager.shared.loadingProgress - initialProgress) / (1.0 - initialProgress)
+                    }
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    hud.hide(animated: true)
+                    self.viewDetails(for: course)
+                }
+            }
+            return
+        }
         if let id = course.subjectID,
-            CourseManager.shared.getCourse(withID: id) != nil {
-            CourseManager.shared.loadCourseDetails(about: course) { (success) in
+            let realCourse = CourseManager.shared.getCourse(withID: id) {
+            CourseManager.shared.loadCourseDetails(about: realCourse) { (success) in
                 if success {
                     guard let panel = self.panelView,
                         let browser = self.courseBrowser else {
@@ -418,7 +483,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
                     }
                     
                     let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
-                    details.course = course
+                    details.course = realCourse
                     details.delegate = self
                     browser.navigationController?.pushViewController(details, animated: true)
                     browser.navigationController?.view.setNeedsLayout()

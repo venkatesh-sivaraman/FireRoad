@@ -36,7 +36,7 @@ class RoundedToolbarView: UIView {
         let ctx = UIGraphicsGetCurrentContext()
         ctx?.saveGState()
         ctx?.setShadow(offset: CGSize(width: 0.0, height: 0.5), blur: 6.0, color: UIColor.black.withAlphaComponent(0.2).cgColor)
-        let bezierPath = UIBezierPath(roundedRect: CGRect(x: 15.0, y: 15.0, width: 30.0, height: 30.0).insetBy(dx: 12.0 / designCornerRadius - 1.0, dy: 12.0 / designCornerRadius - 1.0), cornerRadius: designCornerRadius)
+        let bezierPath = UIBezierPath(roundedRect: CGRect(x: 15.0, y: 15.0, width: 30.0, height: 30.0).insetBy(dx: 12.0 / designCornerRadius, dy: 12.0 / designCornerRadius), cornerRadius: designCornerRadius)
         bezierPath.lineWidth = 2.0
         UIColor.white.setFill()
         bezierPath.fill()

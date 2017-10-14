@@ -196,20 +196,17 @@ class CourseCatalogParser: NSObject {
     let informationSeparator = CharacterSet.newlines.union(CharacterSet(charactersIn: "-/,;"))
     
     func filterCourseListString(_ list: String) -> [[String]] {
-        var trimmedList = list.replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "")
+        let trimmedList = list.replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "")
         if trimmedList.contains(";") {
-            if trimmedList.contains(" or") {
-                trimmedList = trimmedList.replacingOccurrences(of: " or", with: ";")
-            }
             let components = trimmedList.components(separatedBy: ";")
             return components.flatMap {
                 filterCourseListString($0)
             }
         }
         if trimmedList.contains(" or") {
-            return [trimmedList.replacingOccurrences(of: " or", with: ",").replacingOccurrences(of: " and", with: "").components(separatedBy: informationSeparator).map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }).filter({ $0.characters.count > 0 && !$0.lowercased().contains(CourseCatalogConstants.none) })]
+            return [trimmedList.replacingOccurrences(of: " or", with: ",").replacingOccurrences(of: " and", with: ",").components(separatedBy: informationSeparator).map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }).filter({ $0.characters.count > 0 && !$0.lowercased().contains(CourseCatalogConstants.none) })]
         }
-        return trimmedList.replacingOccurrences(of: " or", with: "").replacingOccurrences(of: " and", with: "").components(separatedBy: informationSeparator).map({ [$0.trimmingCharacters(in: .whitespacesAndNewlines)] }).filter({ $0[0].characters.count > 0 && !$0[0].lowercased().contains(CourseCatalogConstants.none) })
+        return trimmedList.replacingOccurrences(of: " or", with: "").replacingOccurrences(of: " and", with: ",").components(separatedBy: informationSeparator).map({ [$0.trimmingCharacters(in: .whitespacesAndNewlines)] }).filter({ $0[0].characters.count > 0 && !$0[0].lowercased().contains(CourseCatalogConstants.none) })
     }
     
     func parseScheduleString(_ schedule: String, quarterInformation: UnsafeMutablePointer<String>?) -> String {

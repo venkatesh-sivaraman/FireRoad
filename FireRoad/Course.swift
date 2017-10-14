@@ -46,6 +46,8 @@ enum GIRAttribute: String, AttributeEnum {
         .lab: "Lab GIR",
         .rest: "REST GIR"
     ]
+    
+    static let sortedDescriptions = GIRAttribute.descriptions.sorted(by: { $1.value.characters.count > $0.value.characters.count })
 
     func descriptionText() -> String {
         return GIRAttribute.descriptions[self] ?? self.rawValue
@@ -59,7 +61,7 @@ enum GIRAttribute: String, AttributeEnum {
         let trimmedRawValue = rawValue.lowercased().replacingOccurrences(of: "gir:", with: "").trimmingCharacters(in: .whitespaces)
         if let value = GIRAttribute.allValues.first(where: { $0.rawValue.lowercased() == trimmedRawValue }) {
             self = value
-        } else if let converted = GIRAttribute.descriptions.sorted(by: { $1.value.characters.count > $0.value.characters.count }).first(where: { $1.lowercased().contains(trimmedRawValue) })?.key {
+        } else if let converted = GIRAttribute.sortedDescriptions.first(where: { $1.lowercased().contains(trimmedRawValue) })?.key {
             self = converted
         } else {
             return nil
@@ -428,6 +430,9 @@ class Course: NSObject {
         // Semicolons separate lecture, recitation, lab options
         let scheduleGroups = scheduleString.components(separatedBy: ";")
         for group in scheduleGroups {
+            guard group.characters.count > 0 else {
+                continue
+            }
             var commaComponents = group.components(separatedBy: ",")
             guard commaComponents.count > 0 else {
                 continue
@@ -461,7 +466,7 @@ class Course: NSObject {
                             // It may be a time like 7.30
                             if let dotRange = startTime.range(of: "."),
                                 let hour = Int(String(startTime[startTime.startIndex..<dotRange.lowerBound])) {
-                                endTime = "\((hour % 12) + 1)\(startTime[dotRange.upperBound..<startTime.endIndex])"
+                                endTime = "\((hour % 12) + 1).\(startTime[dotRange.upperBound..<startTime.endIndex])"
                             } else {
                                 print("Start time can't be represented as an integer: \(startTime)")
                             }
@@ -492,14 +497,14 @@ class Course: NSObject {
     
     func extractCourseListString(_ string: String?) -> [[String]] {
         if let listString = string {
-            return [listString.replacingOccurrences(of: ";", with: ",").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.characters.count > 0 })]
+            return [listString.replacingOccurrences(of: ";", with: ",").replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.characters.count > 0 })]
         }
         return []
     }
     
     func extractListString(_ string: String?) -> [String] {
         if let value = string {
-            var modifiedValue: String = value
+            var modifiedValue: String = value.replacingOccurrences(of: "[J]", with: "")
             if value.contains("#,#") {
                 modifiedValue = modifiedValue.replacingOccurrences(of: " ", with: "")
             }
@@ -516,5 +521,17 @@ class Course: NSObject {
             }
         }
         return []
+    }
+    
+    // MARK: - Requirements
+    
+    func satisfies(requirement: String) -> Bool {
+        let req = requirement.replacingOccurrences(of: "GIR:", with: "")
+        return subjectID == req ||
+            jointSubjects.contains(req) ||
+            equivalentSubjects.contains(req) ||
+            girAttribute?.satisfies(GIRAttribute(rawValue: req)) == true ||
+            hassAttribute?.satisfies(HASSAttribute(rawValue: req)) == true ||
+            communicationRequirement?.satisfies(CommunicationAttribute(rawValue: req)) == true
     }
 }

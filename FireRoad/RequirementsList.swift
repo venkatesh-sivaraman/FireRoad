@@ -15,6 +15,8 @@ enum SyntaxConstants {
     static let declarationCharacter = ":="
     static let variableDeclarationSeparator = ","
     static let headerSeparator = "#,#"
+    
+    static let thresholdParameter = "threshold="
 }
 
 class RequirementsListStatement: NSObject {
@@ -235,11 +237,6 @@ class RequirementsListStatement: NSObject {
         
         let (components, cType) = separateTopLevelItems(in: filteredStatement)
         connectionType = cType
-        if connectionType == .any {
-            print("Or statement: \(filteredStatement)")
-        } else {
-            print("And statement: \(filteredStatement)")
-        }
         
         if components.count == 1 {
             requirement = components[0]
@@ -271,17 +268,9 @@ class RequirementsListStatement: NSObject {
     
     func coursesSatisfyingRequirement(in courses: [Course]) -> [Course] {
         var satisfying: [Course] = []
-        if let req = requirement?.replacingOccurrences(of: "GIR:", with: "") {
-            let gir = GIRAttribute(rawValue: req)
-            let hass = HASSAttribute(rawValue: req)
-            let comm = CommunicationAttribute(rawValue: req)
+        if let req = requirement {
             for course in courses {
-                if course.subjectID == req ||
-                    course.jointSubjects.contains(req) ||
-                    course.equivalentSubjects.contains(req) ||
-                    course.girAttribute?.satisfies(gir) == true ||
-                    course.hassAttribute?.satisfies(hass) == true ||
-                    course.communicationRequirement?.satisfies(comm) == true {
+                if course.satisfies(requirement: req) {
                     satisfying.append(course)
                 }
             }
@@ -371,14 +360,24 @@ class RequirementsList: RequirementsListStatement {
         
         // Parse the first two lines
         let headerLine = lines.removeFirst()
-        let headerComps = headerLine.components(separatedBy: SyntaxConstants.headerSeparator).map( { undecoratedComponent($0) })
+        var headerComps = headerLine.components(separatedBy: SyntaxConstants.headerSeparator).map( { undecoratedComponent($0) })
         if headerComps.count > 0 {
-            shortTitle = headerComps[0]
-            if headerComps.count > 1 {
-                mediumTitle = headerComps[1]
+            shortTitle = headerComps.removeFirst()
+            if headerComps.count > 0 {
+                mediumTitle = headerComps.removeFirst()
             }
-            if headerComps.count > 2 {
-                title = headerComps[2]
+            if headerComps.count > 0 {
+                title = headerComps.removeFirst()
+            }
+            for comp in headerComps {
+                let noWhitespaceComp = comp.components(separatedBy: .whitespaces).joined()
+                if let thresholdRange = noWhitespaceComp.range(of: SyntaxConstants.thresholdParameter) {
+                    if let thresholdValue = Int(noWhitespaceComp[thresholdRange.upperBound..<noWhitespaceComp.endIndex]) {
+                        threshold = thresholdValue
+                    } else {
+                        print("Invalid threshold parameter declaration: \(noWhitespaceComp)")
+                    }
+                }
             }
         }
         // Second line is the description of the course
