@@ -386,8 +386,8 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         }, completion: nil)
     }
     
-    func courseDetails(added course: Course) {
-        _ = addCourse(course)
+    func courseDetails(added course: Course, to semester: UserSemester?) {
+        _ = addCourse(course, to: semester)
         self.navigationController?.popViewController(animated: true)
     }
     
@@ -449,7 +449,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     // MARK: - Model Interaction
-    
+        
     func viewDetails(for course: Course) {
         if !CourseManager.shared.isLoaded {
             let hud = MBProgressHUD.showAdded(to: self.view, animated: true)

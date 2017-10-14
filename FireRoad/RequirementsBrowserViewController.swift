@@ -49,6 +49,8 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         }
     }
     
+    var courseLoadingHUD: MBProgressHUD?
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let ip = tableView.indexPathForSelectedRow {
@@ -56,9 +58,13 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         }
         
         if !CourseManager.shared.isLoaded {
+            guard courseLoadingHUD == nil else {
+                return
+            }
             let hud = MBProgressHUD.showAdded(to: self.splitViewController?.view ?? self.view, animated: true)
             hud.mode = .determinateHorizontalBar
             hud.label.text = "Loading courses…"
+            courseLoadingHUD = hud
             DispatchQueue.global(qos: .background).async {
                 let initialProgress = CourseManager.shared.loadingProgress
                 while !CourseManager.shared.isLoaded {

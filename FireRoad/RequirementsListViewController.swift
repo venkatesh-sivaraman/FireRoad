@@ -280,8 +280,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
     }
     
-    func courseDetails(added course: Course) {
-        _ = addCourse(course)
+    func courseDetails(added course: Course, to semester: UserSemester?) {
+        _ = addCourse(course, to: semester)
     }
     
     func courseBrowser(added course: Course) -> UserSemester? {
@@ -296,7 +296,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         viewDetails(for: course)
     }
     
-    func addCourse(_ course: Course) -> UserSemester? {
+    func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
         guard let tabVC = rootParent as? RootTabViewController else {
             print("Root isn't a tab bar controller!")
             return nil
@@ -305,7 +305,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             dismiss(animated: true, completion: nil)
             popoverNavigationController = nil
         }
-        let ret = tabVC.addCourse(course)
+        let ret = tabVC.addCourse(course, to: semester)
         updateRequirementsStatus()
         return ret
     }

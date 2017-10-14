@@ -9,7 +9,7 @@
 import UIKit
 
 protocol CourseDetailsDelegate: class {
-    func courseDetails(added course: Course)
+    func courseDetails(added course: Course, to semester: UserSemester?)
     func courseDetailsRequestedDetails(about course: Course)
 }
 
@@ -30,7 +30,7 @@ enum CourseDetailItem {
     case courseListAccessory
 }
 
-class CourseDetailsViewController: UITableViewController, CourseListCellDelegate {
+class CourseDetailsViewController: UITableViewController, CourseListCellDelegate, PopDownTableMenuDelegate {
 
     var course: Course? = nil {
         didSet {
@@ -94,7 +94,32 @@ class CourseDetailsViewController: UITableViewController, CourseListCellDelegate
     }
     
     @objc func addCourseButtonPressed(sender: AnyObject) {
-        self.delegate?.courseDetails(added: self.course!)
+        //self.delegate?.courseDetails(added: self.course!)
+        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
+            print("No pop down table menu in storyboard!")
+            return
+        }
+        popDown.course = self.course
+        popDown.delegate = self
+        let containingView = self.view
+        containingView.addSubview(popDown.view)
+        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor, constant: navigationController?.navigationBar.frame.size.height ?? 0.0).isActive = true
+        popDown.willMove(toParentViewController: self)
+        self.addChildViewController(popDown)
+        popDown.didMove(toParentViewController: self)
+        popDown.show(animated: true)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
+        print("Added to favorites")
+        tableMenu.hide(animated: true)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester) {
+        self.delegate?.courseDetails(added: course, to: semester)
     }
     
     override func didReceiveMemoryWarning() {
