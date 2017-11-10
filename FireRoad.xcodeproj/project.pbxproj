@@ -94,6 +94,11 @@
 		96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */; };
 		96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */; };
 		96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */; };
+		96FF1F8D1FB65797007F4A7C /* IS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F881FB65796007F4A7C /* IS.txt */; };
+		96FF1F8E1FB65797007F4A7C /* condensed_2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F891FB65796007F4A7C /* condensed_2.txt */; };
+		96FF1F8F1FB65797007F4A7C /* condensed_3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8A1FB65797007F4A7C /* condensed_3.txt */; };
+		96FF1F901FB65797007F4A7C /* condensed_0.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8B1FB65797007F4A7C /* condensed_0.txt */; };
+		96FF1F911FB65797007F4A7C /* condensed_1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8C1FB65797007F4A7C /* condensed_1.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -216,6 +221,11 @@
 		96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsBrowserTableCell.swift; sourceTree = "<group>"; };
 		96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseThumbnailCell.swift; sourceTree = "<group>"; };
 		96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseCatalogParser.swift; sourceTree = "<group>"; };
+		96FF1F881FB65796007F4A7C /* IS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IS.txt; sourceTree = "<group>"; };
+		96FF1F891FB65796007F4A7C /* condensed_2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed_2.txt; sourceTree = "<group>"; };
+		96FF1F8A1FB65797007F4A7C /* condensed_3.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed_3.txt; sourceTree = "<group>"; };
+		96FF1F8B1FB65797007F4A7C /* condensed_0.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed_0.txt; sourceTree = "<group>"; };
+		96FF1F8C1FB65797007F4A7C /* condensed_1.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed_1.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -279,6 +289,11 @@
 				9636DDCE1F7894F300117A82 /* CC.txt */,
 				9636DDCF1F7894F300117A82 /* CMS.txt */,
 				9636DDD01F7894F300117A82 /* condensed.txt */,
+				96FF1F8B1FB65797007F4A7C /* condensed_0.txt */,
+				96FF1F8C1FB65797007F4A7C /* condensed_1.txt */,
+				96FF1F891FB65796007F4A7C /* condensed_2.txt */,
+				96FF1F8A1FB65797007F4A7C /* condensed_3.txt */,
+				96FF1F881FB65796007F4A7C /* IS.txt */,
 				9636DDD11F7894F300117A82 /* courses.txt */,
 				9636DDD21F7894F300117A82 /* CSB.txt */,
 				9636DDD31F7894F300117A82 /* EC.txt */,
@@ -559,6 +574,7 @@
 				9636DE051F7894F300117A82 /* HST.txt in Resources */,
 				9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */,
 				9636DDFD1F7894F300117A82 /* CC.txt in Resources */,
+				96FF1F8D1FB65797007F4A7C /* IS.txt in Resources */,
 				9636DDFB1F7894F300117A82 /* 9.txt in Resources */,
 				9636DDF41F7894F300117A82 /* 24.txt in Resources */,
 				9636DDE71F7894F300117A82 /* 16.txt in Resources */,
@@ -572,6 +588,7 @@
 				961E49941EC6938F002BABB9 /* course_processor.py in Resources */,
 				9636DDE61F7894F300117A82 /* 15.txt in Resources */,
 				9636DDF91F7894F300117A82 /* 7.txt in Resources */,
+				96FF1F8F1FB65797007F4A7C /* condensed_3.txt in Resources */,
 				9636DDE11F7894F300117A82 /* 1.txt in Resources */,
 				9636DDFE1F7894F300117A82 /* CMS.txt in Resources */,
 				9636DDEA1F7894F300117A82 /* 2.txt in Resources */,
@@ -594,6 +611,8 @@
 				9636DDFF1F7894F300117A82 /* condensed.txt in Resources */,
 				9636DE0C1F7894F300117A82 /* SP.txt in Resources */,
 				9636DDFC1F7894F300117A82 /* AS.txt in Resources */,
+				96FF1F8E1FB65797007F4A7C /* condensed_2.txt in Resources */,
+				96FF1F911FB65797007F4A7C /* condensed_1.txt in Resources */,
 				9636DDF81F7894F300117A82 /* 6.txt in Resources */,
 				9659E38D1F89B57700E55FA2 /* minor21m.reql in Resources */,
 				9636DDEF1F7894F300117A82 /* 21H.txt in Resources */,
@@ -608,6 +627,7 @@
 				9636DDE81F7894F300117A82 /* 17.txt in Resources */,
 				9636DE0F1F7894F400117A82 /* WGS.txt in Resources */,
 				9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */,
+				96FF1F901FB65797007F4A7C /* condensed_0.txt in Resources */,
 				9636DE0E1F7894F400117A82 /* SWE.txt in Resources */,
 				9646CFDA1EB921FE005F87CB /* Main.storyboard in Resources */,
 				9636DE0B1F7894F300117A82 /* SCM.txt in Resources */,

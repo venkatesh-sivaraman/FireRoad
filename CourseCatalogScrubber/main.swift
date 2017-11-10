@@ -35,10 +35,31 @@ func courses(from courseCode: String) -> [[CourseAttribute: Any]] {
     if let url = URL(string: "\(urlPrefix)\(urlLastPrefix)\(courseCode)\(urlSuffix)") {
         parser.catalogURL = url
         let regions = parser.htmlRegions(from: url)
-        let courses = regions.map({ parser.extractCourseProperties(from: $0) })
-        /*for course in courses {
-            print(course)
-        }*/
+        var courses: [[CourseAttribute: Any]] = []
+        // Autofill empty regions with the subsequent course information
+        var i = 0
+        var regionsToAutofill: [HTMLNodeExtractor.HTMLRegion] = []
+        while i < regions.count {
+            let region = regions[i]
+            if region.nodes.count == 1 {
+                regionsToAutofill.append(region)
+                i += 1
+            } else {
+                let course = parser.extractCourseProperties(from: region)
+                for autofillRegion in regionsToAutofill {
+                    var copiedCourse: [CourseAttribute: Any] = [:]
+                    for (attribute, value) in course {
+                        copiedCourse[attribute] = value
+                    }
+                    copiedCourse[.subjectID] = autofillRegion.title
+                    copiedCourse[.schedule] = nil
+                    courses.append(copiedCourse)
+                }
+                courses.append(course)
+                i += 1
+                regionsToAutofill = []
+            }
+        }
         return courses
     }
     return []
@@ -129,7 +150,13 @@ for courseCode in courseNumbers {
     allCourses += departmentCourses
 }
 
+let splitCount = 4
 print("Writing condensed courses...")
-writeCondensedCourses(allCourses, to: outputDirectory + "condensed.txt")
+for i in 0..<splitCount {
+    let lowerBound = Int(Float(i) / 4.0 * Float(allCourses.count))
+    let upperBound = min(allCourses.count, Int(Float(i + 1) / 4.0 * Float(allCourses.count)))
+    print("Courses \(lowerBound) to \(upperBound)")
+    writeCondensedCourses([[CourseAttribute: Any]](allCourses[lowerBound..<upperBound]), to: outputDirectory + "condensed_\(i).txt")
+}
 print("Writing all courses...")
 writeFullCourses(allCourses, to: outputDirectory + "courses.txt")

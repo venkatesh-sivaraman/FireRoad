@@ -122,105 +122,76 @@ class CourseManager: NSObject {
         "SWE": UIColor(hue: 32.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
     ]*/
     
+    typealias DispatchJob = ((Bool) -> Void) -> Void
+    
     func loadCourses(completion: @escaping ((Bool) -> Void)) {
         
         DispatchQueue.global(qos: .background).async {
-            guard let path = Bundle.main.path(forResource: "condensed", ofType: "txt") else {
-                print("Failed")
-                return
-            }
             self.courses = []
             self.coursesByID = [:]
             self.coursesByTitle = [:]
             self.loadedDepartments = []
-
-            self.readSummaryFile(at: path) { progress in
-                self.loadingProgress = progress * 0.9
-            }
-            var completionCount: Int = 0
-            let groupCompletionBlock: ((Bool) -> Void) = { (success) in
-                if success {
-                    completionCount += 1
-                    self.loadingProgress += 0.05
-                    if completionCount == 2 {
-                        //self.indexSearchableItemsInBackground()
-                        DispatchQueue.main.async {
-                            self.isLoaded = success
-                            if success {
-                                NotificationCenter.default.post(name: .CourseManagerFinishedLoading, object: self)
-                            }
-                            completion(success)
-                        }
+            
+            self.dispatch(jobs: [Int](0..<4).map({ num -> DispatchJob in
+                return { [weak self] (taskCompletion) in
+                    guard let path = Bundle.main.path(forResource: "condensed_\(num)", ofType: "txt") else {
+                        print("Failed")
+                        taskCompletion(false)
+                        return
                     }
-                } else {
+                    self?.readSummaryFile(at: path) { progress in
+                        self?.loadingProgress += progress * 0.9 / 4.0
+                    }
+                    taskCompletion(true)
+                }
+            }), completion: { (summarySuccess) in
+                guard summarySuccess else {
+                    completion(false)
+                    return
+                }
+                
+                let enrollmentBlock: DispatchJob = { [weak self] taskCompletion in
+                    self?.loadEnrollment(taskCompletion: taskCompletion)
+                }
+                let relatedBlock: DispatchJob = { [weak self] taskCompletion in
+                    self?.loadRelatedCourses(taskCompletion: taskCompletion)
+                }
+                
+                self.dispatch(jobs: [enrollmentBlock, relatedBlock], completion: { (success) in
+                    self.isLoaded = success
+                    if success {
+                        NotificationCenter.default.post(name: .CourseManagerFinishedLoading, object: self)
+                    }
+                    completion(success)
+                }, totalProgress: 0.1)
+            }, totalProgress: 0.0)
+        }
+    }
+    
+    private func dispatch(jobs: [DispatchJob], completion: @escaping (Bool) -> Void, totalProgress: Float = 0.1) {
+        var completionCount: Int = 0
+        let groupCompletionBlock: ((Bool) -> Void) = { (success) in
+            if success {
+                completionCount += 1
+                self.loadingProgress += totalProgress / Float(jobs.count)
+                if completionCount == jobs.count {
                     DispatchQueue.main.async {
-                        self.isLoaded = success
                         completion(success)
                     }
                 }
-            }
-            DispatchQueue.global(qos: .background).async { [weak self] in
-                guard let enrollPath = Bundle.main.path(forResource: "enrollment", ofType: "txt"),
-                    let text = try? String(contentsOfFile: enrollPath) else {
-                        print("Failed with enrollment")
-                        groupCompletionBlock(false)
-                        return
+            } else {
+                DispatchQueue.main.async {
+                    self.isLoaded = success
+                    completion(success)
                 }
-                let lines = text.components(separatedBy: .newlines)
-                var csvHeaders: [String]? = nil
-                for line in lines {
-                    guard let `self` = self else {
-                        groupCompletionBlock(false)
-                        return
-                    }
-                    let comps = line.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).components(separatedBy: ",")
-                    if comps.contains("Subject Id") {
-                        csvHeaders = comps
-                    } else if csvHeaders != nil {
-                        var currentID: String?
-                        for (i, comp) in comps.enumerated() {
-                            if csvHeaders![i] == "Subject Id" {
-                                currentID = comp
-                            } else if csvHeaders![i] == "Subject Enrollment Number",
-                                let id = currentID {
-                                let course = self.getOrInitializeCourse(withID: id)
-                                course.enrollmentNumber = max(course.enrollmentNumber, Int(Float(comp)!))
-                            }
-                        }
-                    } else {
-                        print("No CSV headers found, so this file can't be read.")
-                        groupCompletionBlock(false)
-                        return
-                    }
-                }
-                groupCompletionBlock(true)
-            }
-            DispatchQueue.global(qos: .background).async { [weak self] in
-                guard let relatedPath = Bundle.main.path(forResource: "related", ofType: "txt"),
-                    let text = try? String(contentsOfFile: relatedPath) else {
-                        print("Failed with related")
-                        groupCompletionBlock(false)
-                        return
-                }
-                let lines = text.components(separatedBy: .newlines)
-                
-                for line in lines {
-                    guard let `self` = self else {
-                        groupCompletionBlock(false)
-                        return
-                    }
-                    let comps = line.components(separatedBy: ",")
-                    var related: [(String, Float)] = []
-                    for compIdx in stride(from: 1, to: comps.count, by: 2) {
-                        related.append((comps[compIdx], Float(comps[compIdx + 1])!))
-                    }
-                    let course = self.getOrInitializeCourse(withID: comps[0].trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
-                    course.relatedSubjects = related.sorted(by: { $0.1 > $1.1 })
-                }
-                groupCompletionBlock(true)
             }
         }
         
+        for job in jobs {
+            DispatchQueue.global(qos: .background).async {
+                job(groupCompletionBlock)
+            }
+        }
     }
     
     func readSummaryFile(at path: String, updateBlock: ((Float) -> Void)? = nil) {
@@ -271,8 +242,62 @@ class CourseManager: NSObject {
                 print("No CSV headers found, so this file can't be read.")
                 return
             }
-            updateBlock?(Float(i) / Float(lines.count))
+            updateBlock?(1.0 / Float(lines.count))
         }
+    }
+    
+    func loadEnrollment(taskCompletion: (Bool) -> Void) {
+        guard let enrollPath = Bundle.main.path(forResource: "enrollment", ofType: "txt"),
+            let text = try? String(contentsOfFile: enrollPath) else {
+                print("Failed with enrollment")
+                taskCompletion(false)
+                return
+        }
+        let lines = text.components(separatedBy: .newlines)
+        var csvHeaders: [String]? = nil
+        for line in lines {
+            let comps = line.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).components(separatedBy: ",")
+            if comps.contains("Subject Id") {
+                csvHeaders = comps
+            } else if csvHeaders != nil {
+                var currentID: String?
+                for (i, comp) in comps.enumerated() {
+                    if csvHeaders![i] == "Subject Id" {
+                        currentID = comp
+                    } else if csvHeaders![i] == "Subject Enrollment Number",
+                        let id = currentID {
+                        let course = self.getOrInitializeCourse(withID: id)
+                        course.enrollmentNumber = max(course.enrollmentNumber, Int(Float(comp)!))
+                    }
+                }
+            } else {
+                print("No CSV headers found, so this file can't be read.")
+                taskCompletion(false)
+                return
+            }
+        }
+        taskCompletion(true)
+    }
+    
+    func loadRelatedCourses(taskCompletion: (Bool) -> Void) {
+        guard let relatedPath = Bundle.main.path(forResource: "related", ofType: "txt"),
+            let text = try? String(contentsOfFile: relatedPath) else {
+                print("Failed with related")
+                taskCompletion(false)
+                return
+        }
+        let lines = text.components(separatedBy: .newlines)
+        
+        for line in lines {
+            let comps = line.components(separatedBy: ",")
+            var related: [(String, Float)] = []
+            for compIdx in stride(from: 1, to: comps.count, by: 2) {
+                related.append((comps[compIdx], Float(comps[compIdx + 1])!))
+            }
+            let course = getOrInitializeCourse(withID: comps[0].trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
+            course.relatedSubjects = related.sorted(by: { $0.1 > $1.1 })
+        }
+        taskCompletion(true)
     }
     
     func loadCourseDetails(about course: Course, _ completion: @escaping ((Bool) -> Void)) {
@@ -300,14 +325,19 @@ class CourseManager: NSObject {
     
     // MARK: - Course Object Management
     
+    let courseEditingQueueID = "FireRoadCourseManagerEditingQueue"
+    lazy var courseEditingQueue = DispatchQueue(label: courseEditingQueueID)
+    
     private func getOrInitializeCourse(withID subjectID: String) -> Course {
-        if let course = getCourse(withID: subjectID) {
-            return course
+        return courseEditingQueue.sync {
+            if let course = getCourse(withID: subjectID) {
+                return course
+            }
+            let newCourse = Course()
+            courses.append(newCourse)
+            updateSubjectID(for: newCourse, to: subjectID)
+            return newCourse
         }
-        let newCourse = Course()
-        courses.append(newCourse)
-        updateSubjectID(for: newCourse, to: subjectID)
-        return newCourse
     }
     
     private func updateSubjectID(for course: Course, to newValue: String) {
@@ -348,15 +378,17 @@ class CourseManager: NSObject {
     }
     
     func addCourse(_ course: Course) {
-        guard let processedID = course.subjectID?.replacingOccurrences(of: "[J]", with: "") else {
-            print("Tried to add course \(course) with no ID")
-            return
+        courseEditingQueue.sync {
+            guard let processedID = course.subjectID?.replacingOccurrences(of: "[J]", with: "") else {
+                print("Tried to add course \(course) with no ID")
+                return
+            }
+            coursesByID[processedID] = course
+            if let title = course.subjectTitle {
+                coursesByTitle[title] = course
+            }
+            courses.append(course)
         }
-        coursesByID[processedID] = course
-        if let title = course.subjectTitle {
-            coursesByTitle[title] = course
-        }
-        courses.append(course)
     }
     
     func addCourse(withID subjectID: String, title: String, units: Int) {

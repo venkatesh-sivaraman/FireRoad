@@ -44,26 +44,46 @@ class RequirementsListStatement: NSObject {
     var thresholdType: ThresholdType = .greaterThanOrEqual
     var threshold = 1
     
+    var distinctThresholdType: ThresholdType = .greaterThanOrEqual
+    /**
+     Defines the bound on the number of distinct elements in the requirements list
+     that courses must satisfy.
+     */
+    var distinctThreshold = 0
+    
     var thresholdDescription: String {
+        var ret = ""
         if threshold > 1 {
             switch thresholdType {
             case .lessThanOrEqual:
-                return "select at most \(threshold)"
+                ret = "select at most \(threshold)"
             case .lessThan:
-                return "select at most \(threshold - 1)"
+                ret = "select at most \(threshold - 1)"
             case .greaterThanOrEqual:
-                return "select any \(threshold)"
+                ret = "select any \(threshold)"
             case .greaterThan:
-                return "select any \(threshold + 1)"
+                ret = "select any \(threshold + 1)"
             }
-        }
-        if connectionType == .any {
+        } else if connectionType == .any {
             if let reqs = requirements, reqs.count == 2 {
-                return "select either"
+                ret = "select either"
+            } else {
+                ret = "select any"
             }
-            return "select any"
         }
-        return ""
+        if distinctThreshold > 0 {
+            switch distinctThresholdType {
+            case .lessThanOrEqual:
+                ret += " from at most \(distinctThreshold) categories"
+            case .lessThan:
+                ret = " from at most \(distinctThreshold - 1) categories"
+            case .greaterThanOrEqual:
+                ret = " from at least \(distinctThreshold) categories"
+            case .greaterThan:
+                ret = " from at least \(distinctThreshold + 1) categories"
+            }
+        }
+        return ret
     }
     
     override var debugDescription: String {
@@ -208,22 +228,47 @@ class RequirementsListStatement: NSObject {
         return components.map({ undecoratedComponent($0) })
     }
     
-    func parseModifier(_ modifier: String) {
+    fileprivate func parseModifierComponent(_ modifier: String) -> (ThresholdType, Int) {
         // Of the form >=x, <=x, >x, or <x
+        var type: ThresholdType = .greaterThanOrEqual
         if modifier.contains(">=") {
-            thresholdType = .greaterThanOrEqual
+            type = .greaterThanOrEqual
         } else if modifier.contains("<=") {
-            thresholdType = .lessThanOrEqual
+            type = .lessThanOrEqual
         } else if modifier.contains(">") {
-            thresholdType = .greaterThan
+            type = .greaterThan
         } else if modifier.contains("<") {
-            thresholdType = .lessThan
+            type = .lessThan
         }
         guard let number = Int(modifier.replacingOccurrences(of: ">", with: "").replacingOccurrences(of: "<", with: "").replacingOccurrences(of: "=", with: "")) else {
             print("Couldn't get number out of modifier string \(modifier)")
-            return
+            return (type, 0)
         }
-        threshold = number
+        return (type, number)
+    }
+    
+    func parseModifier(_ modifier: String) {
+        if modifier.contains("|") {
+            let comps = modifier.components(separatedBy: "|")
+            guard comps.count == 2 else {
+                print("Unsupported number of components in modifier string: \(modifier)")
+                return
+            }
+            if comps[0].characters.count > 0 {
+                let (type, thresh) = parseModifierComponent(comps[0])
+                thresholdType = type
+                threshold = thresh
+            }
+            if comps[1].characters.count > 0 {
+                let (type, thresh) = parseModifierComponent(comps[0])
+                distinctThresholdType = type
+                distinctThreshold = thresh
+            }
+        } else {
+            let (type, thresh) = parseModifierComponent(modifier)
+            thresholdType = type
+            threshold = thresh
+        }
     }
     
     fileprivate func parseStatement(_ statement: String) {
@@ -278,8 +323,24 @@ class RequirementsListStatement: NSObject {
         return satisfying
     }
     
+    func number(_ number: Int, satisfies numberThreshold: Int, with type: ThresholdType) -> Bool {
+        var fulfilledThreshold = false
+        switch thresholdType {
+        case .greaterThan:
+            fulfilledThreshold = (number > numberThreshold)
+        case .greaterThanOrEqual:
+            fulfilledThreshold = (number >= numberThreshold)
+        case .lessThan:
+            fulfilledThreshold = (number < numberThreshold)
+        case .lessThanOrEqual:
+            fulfilledThreshold = (number <= numberThreshold)
+        }
+        return fulfilledThreshold
+    }
+    
     func computeRequirementStatus(with courses: [Course]) {
         var numSatisfying = 0
+        var distinctNumSatisfying = 0
         if requirement != nil {
             numSatisfying += coursesSatisfyingRequirement(in: courses).count
         } else if let reqs = requirements {
@@ -291,6 +352,7 @@ class RequirementsListStatement: NSObject {
                     } else {
                         numSatisfying += 1
                     }
+                    distinctNumSatisfying += 1
                 }
             }
         }
@@ -298,16 +360,7 @@ class RequirementsListStatement: NSObject {
         if connectionType == .any, threshold == 0 {
             isFulfilled = true
         } else if connectionType == .any || threshold > 1 {
-            switch thresholdType {
-            case .greaterThan:
-                isFulfilled = (numSatisfying > max(threshold, 1))
-            case .greaterThanOrEqual:
-                isFulfilled = (numSatisfying >= max(threshold, 1))
-            case .lessThan:
-                isFulfilled = (numSatisfying < max(threshold, 1))
-            case .lessThanOrEqual:
-                isFulfilled = (numSatisfying <= max(threshold, 1))
-            }
+            isFulfilled = number(numSatisfying, satisfies: max(threshold, 1), with: thresholdType) && number(distinctNumSatisfying, satisfies: distinctNumSatisfying, with: distinctThresholdType)
         } else {
             isFulfilled = (numSatisfying >= (requirements?.count ?? 1))
         }

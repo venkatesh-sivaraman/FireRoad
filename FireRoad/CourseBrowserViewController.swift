@@ -303,7 +303,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if !isShowingSearchResults,
             let cell = tableView.dequeueReusableCell(withIdentifier: "SegmentedHeader") {
-            cell.backgroundColor = UIColor(white: 0.95, alpha: 1.0)
+            cell.backgroundColor = UIColor(white: 0.92, alpha: 1.0)
             let segmentedControl = cell.viewWithTag(12) as? UISegmentedControl
             segmentedControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
             segmentedControl?.removeTarget(self, action: nil, for: .valueChanged)

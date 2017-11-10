@@ -284,7 +284,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         _ = addCourse(course, to: semester)
     }
     
-    func courseBrowser(added course: Course) -> UserSemester? {
+    func courseBrowser(added course: Course, to semester: UserSemester?) -> UserSemester? {
         return addCourse(course)
     }
     

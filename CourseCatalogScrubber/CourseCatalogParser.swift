@@ -193,6 +193,13 @@ class CourseCatalogParser: NSObject {
         return regex
     }()
     
+    let courseIDListRegex: NSRegularExpression = {
+        guard let regex = try? NSRegularExpression(pattern: "([A-Z0-9.-]+(,\\s)?)+(?![:])", options: []) else {
+            fatalError("Couldn't initialize course ID list regex")
+        }
+        return regex
+    }()
+    
     let informationSeparator = CharacterSet.newlines.union(CharacterSet(charactersIn: "-/,;"))
     
     func filterCourseListString(_ list: String) -> [[String]] {
@@ -296,6 +303,37 @@ class CourseCatalogParser: NSObject {
         } else if let coreqRange = item.range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) {
             attributes[.corequisites] = filterCourseListString(String(item[coreqRange.upperBound..<item.endIndex]))
             
+        } else if item.contains(CourseCatalogConstants.urlPrefix) {
+            // Don't save URLs
+        } else if classTimeRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.characters.count)) != nil {
+            var trimmedItem = item
+            if item.contains(CourseCatalogConstants.finalFlag) {
+                attributes[.hasFinal] = true
+                trimmedItem = trimmedItem.replacingOccurrences(of: CourseCatalogConstants.finalFlag, with: "")
+            }
+            var quarterInformation = ""
+            attributes[.schedule] = parseScheduleString(trimmedItem.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: ""), quarterInformation: &quarterInformation)
+            if quarterInformation.count > 0 {
+                attributes[.quarterInformation] = quarterInformation
+            }
+            
+        } else if let subjectID = attributes[.subjectID] as? String,
+            let firstMatch = courseIDListRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.characters.count)),
+            let firstMatchRange = Range(firstMatch.range, in: item),
+            String(item[firstMatchRange]).contains(subjectID) {
+            attributes[.title] = String(item[firstMatchRange.upperBound..<item.endIndex]).replacingOccurrences(of: CourseCatalogConstants.jointClass, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        } else if item.characters.count > 75 {
+            if let existingDescription = attributes[.description] as? String,
+                existingDescription.characters.count > item.characters.count {
+                if let notes = attributes[.notes] as? String {
+                    attributes[.notes] = notes + "\n" + item.trimmingCharacters(in: .whitespacesAndNewlines)
+                } else {
+                    attributes[.notes] = item.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+            } else {
+                attributes[.description] = item.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            
         } else if item.range(of: CourseCatalogConstants.meetsWithPrefix, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.equivalentSubjectsPrefix, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.jointSubjectsPrefix, options: .caseInsensitive) != nil {
@@ -342,38 +380,7 @@ class CourseCatalogParser: NSObject {
         }/* else if let unitsArrangedRange = item.range(of: CourseCatalogConstants.unitsArrangedPrefix, options: .caseInsensitive) {
              attributes[.units] = item.substring(from: unitsArrangedRange.upperBound).trimmingCharacters(in: .whitespacesAndNewlines)
              
-         }*/ else if classTimeRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.characters.count)) != nil {
-            var trimmedItem = item
-            if item.contains(CourseCatalogConstants.finalFlag) {
-                attributes[.hasFinal] = true
-                trimmedItem = trimmedItem.replacingOccurrences(of: CourseCatalogConstants.finalFlag, with: "")
-            }
-            var quarterInformation = ""
-            attributes[.schedule] = parseScheduleString(trimmedItem.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: ""), quarterInformation: &quarterInformation)
-            if quarterInformation.count > 0 {
-                attributes[.quarterInformation] = quarterInformation
-            }
-            
-        } else if let subjectID = attributes[.subjectID] as? String,
-            let idRange = item.range(of: subjectID),
-            idRange.lowerBound == item.startIndex {
-            attributes[.title] = String(item[idRange.upperBound..<item.endIndex]).replacingOccurrences(of: CourseCatalogConstants.jointClass, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-            
-        } else if item.characters.count > 75 {
-            if let existingDescription = attributes[.description] as? String,
-                existingDescription.characters.count > item.characters.count {
-                if let notes = attributes[.notes] as? String {
-                    attributes[.notes] = notes + "\n" + item.trimmingCharacters(in: .whitespacesAndNewlines)
-                } else {
-                    attributes[.notes] = item.trimmingCharacters(in: .whitespacesAndNewlines)
-                }
-            } else {
-                attributes[.description] = item.trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-            
-        } else if item.contains(CourseCatalogConstants.urlPrefix) {
-            // Don't save URLs
-        } else if item.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil {
+         }*/ else if item.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil {
             attributes[.offeredFall] = true
         } else if item.range(of: CourseCatalogConstants.spring, options: .caseInsensitive) != nil {
             attributes[.offeredSpring] = true
