@@ -29,6 +29,13 @@ class CourseThumbnailCell: UICollectionViewCell {
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
     
+    @IBOutlet var warningIcon: UIImageView?
+    var showsWarningIcon: Bool = false {
+        didSet {
+            warningIcon?.isHidden = !showsWarningIcon
+        }
+    }
+    
     @IBOutlet var bigLayoutConstraints: [NSLayoutConstraint]?
     @IBOutlet var smallLayoutConstraints: [NSLayoutConstraint]?
     
@@ -91,7 +98,7 @@ class CourseThumbnailCell: UICollectionViewCell {
         backgroundColorLayer = colorLayer
         //self.layer.cornerRadius = 6.0
         shadowEnabled = true
-        contentView.clipsToBounds = true
+        contentView.clipsToBounds = false
     }
     
     override func layoutSubviews() {

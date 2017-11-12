@@ -126,7 +126,7 @@ class User: NSObject {
             semesterCourses.remove(at: delIdx)
         }
         self.selectedSubjects[semester] = semesterCourses
-        needsSave = true
+        setNeedsSave()
     }
     
     func add(_ course: Course, toSemester destSemester: UserSemester) {
@@ -135,7 +135,7 @@ class User: NSObject {
             semesterCourses.append(course)
         }
         self.selectedSubjects[destSemester] = semesterCourses
-        needsSave = true
+        setNeedsSave()
         
         // Index the new department for Spotlight
         if let code = course.subjectCode {
@@ -149,7 +149,7 @@ class User: NSObject {
             semesterCourses.insert(course, at: min(idx, semesterCourses.count))
         }
         self.selectedSubjects[destSemester] = semesterCourses
-        needsSave = true
+        setNeedsSave()
         
         // Index the new department for Spotlight
         if let code = course.subjectCode {
@@ -160,16 +160,87 @@ class User: NSObject {
     func move(_ course: Course, fromSemester semester: UserSemester, toSemester destSemester: UserSemester, atIndex idx: Int) {
         self.delete(course, fromSemester: semester)
         self.insert(course, toSemester: destSemester, atIndex: idx)
-        needsSave = true
+        setNeedsSave()
     }
     
     @objc func courseManagerFinishedLoading() {
         for (semester, courses) in selectedSubjects {
             selectedSubjects[semester] = courses.map({ CourseManager.shared.getCourse(withID: $0.subjectID!) ?? $0 })
         }
+        warningsCache.removeAll()
+    }
+    
+    // MARK: - Courseroad Error Checking
+    
+    enum CourseWarningType {
+        case unsatisfiedPrerequisites
+        case unsatisfiedCorequisites
+    }
+    
+    struct CourseWarning {
+        var type: CourseWarningType
+        var message: String?
+    }
+    
+    var warningsCache: [Course: [CourseWarning]] = [:]
+    
+    func warningsForCourse(_ course: Course, in semester: UserSemester) -> [CourseWarning] {
+        if let warnings = warningsCache[course] {
+            return warnings
+        }
+        var unsatisfiedPrereqs: [String] = []
+        for prereq in course.prerequisites.flatMap({ $0 }) {
+            var satisfied = false
+            for otherSemester in UserSemester.allSemesters where otherSemester.rawValue < semester.rawValue {
+                for course in courses(forSemester: otherSemester) {
+                    if course.satisfies(requirement: prereq) {
+                        satisfied = true
+                        break
+                    }
+                }
+                if satisfied {
+                    break
+                }
+            }
+            if !satisfied {
+                unsatisfiedPrereqs.append(prereq)
+            }
+        }
+        var unsatisfiedCoreqs: [String] = []
+        for coreq in course.corequisites.flatMap({ $0 }) {
+            var satisfied = false
+            for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
+                for course in courses(forSemester: otherSemester) {
+                    if course.satisfies(requirement: coreq) {
+                        satisfied = true
+                        break
+                    }
+                }
+                if satisfied {
+                    break
+                }
+            }
+            if !satisfied {
+                unsatisfiedCoreqs.append(coreq)
+            }
+        }
+        var warnings: [CourseWarning] = []
+        if unsatisfiedPrereqs.count > 0 {
+            warnings.append(CourseWarning(type: .unsatisfiedPrerequisites, message: nil))
+        }
+        if unsatisfiedCoreqs.count > 0 {
+            warnings.append(CourseWarning(type: .unsatisfiedCorequisites, message: nil))
+        }
+        warningsCache[course] = warnings
+        return warnings
     }
     
     // MARK: - File Handling
+    
+    func setNeedsSave() {
+        needsSave = true
+        warningsCache.removeAll()
+    }
     
     var subjectComponentSeparator = "#,#"
     

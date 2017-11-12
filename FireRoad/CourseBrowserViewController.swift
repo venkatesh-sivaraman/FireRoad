@@ -13,6 +13,15 @@ protocol CourseBrowserDelegate: class {
     func courseBrowserRequestedDetails(about course: Course)
 }
 
+struct SearchOptions: OptionSet {
+    var rawValue: Int
+    
+    static let all = SearchOptions(rawValue: 1 << 0)
+    static let GIR = SearchOptions(rawValue: 1 << 1)
+    static let HASS = SearchOptions(rawValue: 1 << 2)
+    static let CI = SearchOptions(rawValue: 1 << 3)
+}
+
 class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITableViewDataSource, UITableViewDelegate, CourseBrowserCellDelegate, UINavigationControllerDelegate, PopDownTableMenuDelegate {
     
     @IBOutlet var searchBar: UISearchBar?
@@ -203,15 +212,6 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         self.loadSearchResults(withString: searchBar.text!, options: searchOptions)
     }
     
-    struct SearchOptions: OptionSet {
-        var rawValue: Int
-        
-        static let all = SearchOptions(rawValue: 1 << 0)
-        static let GIR = SearchOptions(rawValue: 1 << 1)
-        static let HASS = SearchOptions(rawValue: 1 << 2)
-        static let CI = SearchOptions(rawValue: 1 << 3)
-    }
-    
     var isSearching = false
     
     func loadSearchResults(withString searchTerm: String, options: SearchOptions = .all) {
@@ -308,6 +308,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             segmentedControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
             segmentedControl?.removeTarget(self, action: nil, for: .valueChanged)
             segmentedControl?.addTarget(self, action: #selector(segmentedControlSelectionChanged(_:)), for: .valueChanged)
+            let filterButton = cell.viewWithTag(34) as? UIButton
+            filterButton?.setImage(filterButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
+            filterButton?.removeTarget(self, action: nil, for: .touchUpInside)
+            filterButton?.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
             return cell
         }
         return nil
@@ -393,6 +397,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         }
         nonSearchViewMode = viewMode
         showNonSearchingCourses()
+    }
+    
+    @objc func filterButtonTapped(_ sender: UIButton) {
+        
     }
     
     // MARK: - Pop Down Table Menu

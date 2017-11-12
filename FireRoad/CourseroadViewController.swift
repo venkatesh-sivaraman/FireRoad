@@ -24,6 +24,8 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     
     @IBOutlet var bigLayoutConstraints: [NSLayoutConstraint]!
     @IBOutlet var smallLayoutConstraints: [NSLayoutConstraint]!
+    
+    @IBOutlet var layoutToggleButton: UIButton?
     var isSmallLayoutMode = false
     
     let viewMenuItemTitle = "View"
@@ -33,7 +35,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         super.viewDidLoad()
         if !CourseManager.shared.isLoaded {
             CourseManager.shared.loadCourses { (success: Bool) in
-                print("Success: \(success)")
+                self.updateCourseWarningStatus()
             }
         }
         
@@ -61,6 +63,8 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         menu.menuItems = [
             UIMenuItem(title: viewMenuItemTitle, action: #selector(CourseThumbnailCell.viewDetails(_:)))
         ]
+        
+        updateLayoutToggleButton()
         
         loadRecentCourseroad()
     }
@@ -186,6 +190,8 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    // MARK: - Collection View
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 13
@@ -209,11 +215,13 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             cell.shadowEnabled = false
             cell.textLabel?.text = ""
             cell.detailTextLabel?.text = ""
+            cell.showsWarningIcon = false
             return cell
         }
         cell.shadowEnabled = true
         cell.delegate = self
-        let course = self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!)[indexPath.item]
+        let semester = UserSemester(rawValue: indexPath.section)!
+        let course = self.currentUser!.courses(forSemester: semester)[indexPath.item]
         cell.textLabel?.text = course.subjectID
         let paraStyle = NSMutableParagraphStyle()
         paraStyle.hyphenationFactor = 0.7
@@ -222,51 +230,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             cell.detailTextLabel?.attributedText = NSAttributedString(string: title, attributes: [.paragraphStyle: paraStyle])
         }
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
-        
-        if let user = currentUser {
-            var unsatisfiedPrereqs: [String] = []
-            for prereq in course.prerequisites.flatMap({ $0 }) {
-                var satisfied = false
-                for semester in UserSemester.allSemesters where semester.rawValue < indexPath.section {
-                    for course in user.courses(forSemester: semester) {
-                        if course.satisfies(requirement: prereq) {
-                            satisfied = true
-                            break
-                        }
-                    }
-                    if satisfied {
-                        break
-                    }
-                }
-                if !satisfied {
-                    unsatisfiedPrereqs.append(prereq)
-                }
-            }
-            var unsatisfiedCoreqs: [String] = []
-            for coreq in course.corequisites.flatMap({ $0 }) {
-                var satisfied = false
-                for semester in UserSemester.allSemesters where semester.rawValue <= indexPath.section {
-                    for course in user.courses(forSemester: semester) {
-                        if course.satisfies(requirement: coreq) {
-                            satisfied = true
-                            break
-                        }
-                    }
-                    if satisfied {
-                        break
-                    }
-                }
-                if !satisfied {
-                    unsatisfiedCoreqs.append(coreq)
-                }
-            }
-            if unsatisfiedPrereqs.count > 0 {
-                print("Unsatisfied prereqs for \(course.subjectID!): \(unsatisfiedPrereqs)")
-            }
-            if unsatisfiedCoreqs.count > 0 {
-                print("Unsatisfied coreqs for \(course.subjectID!): \(unsatisfiedCoreqs)")
-            }
-        }
+        cell.showsWarningIcon = (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0
         
         return cell
     }
@@ -383,8 +347,12 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             if self.currentUser!.courses(forSemester: UserSemester(rawValue: sourceIndexPath.section)!).count == 0 {
                 self.collectionView.insertItems(at: [IndexPath(item: 0, section: sourceIndexPath.section)])
             }
-        }, completion: nil)
+        }, completion: { _ in
+            self.updateCourseWarningStatus()
+        })
     }
+    
+    // MARK: - Delegate Methods
     
     func courseDetails(added course: Course, to semester: UserSemester?) {
         _ = addCourse(course, to: semester)
@@ -539,6 +507,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             }
         }
         self.panelView?.collapseView(to: self.panelView!.collapseHeight)
+        updateCourseWarningStatus()
         return selectedSemester
     }
     
@@ -576,9 +545,28 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
                 self.collectionView.deleteItems(at: [indexPath])
             }
         }
+        updateCourseWarningStatus()
+    }
+    
+    func updateCourseWarningStatus() {
+        for indexPath in collectionView.indexPathsForVisibleItems {
+            guard let cell = collectionView.cellForItem(at: indexPath) as? CourseThumbnailCell,
+                let semester = UserSemester(rawValue: indexPath.section),
+                let courses = self.currentUser?.courses(forSemester: semester),
+                indexPath.item < courses.count else {
+                    continue
+            }
+            let course = courses[indexPath.item]
+            cell.showsWarningIcon = (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0
+        }
     }
     
     // MARK: - View
+    
+    func updateLayoutToggleButton() {
+        layoutToggleButton?.imageView?.contentMode = .center
+        layoutToggleButton?.setImage(UIImage(named: isSmallLayoutMode ? "large-grid" : "small-grid")?.withRenderingMode(.alwaysTemplate), for: .normal)
+    }
     
     @IBAction func toggleViewLayoutMode(_ sender: AnyObject) {
         isSmallLayoutMode = !isSmallLayoutMode
@@ -586,5 +574,6 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             updateCellForLayoutSizeMode(cell)
         }
         collectionView.collectionViewLayout.invalidateLayout()
+        updateLayoutToggleButton()
     }
 }
