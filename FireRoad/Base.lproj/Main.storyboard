@@ -755,7 +755,7 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vSC-jv-MSs">
-                                            <rect key="frame" x="0.0" y="299" width="375" height="348"/>
+                                            <rect key="frame" x="0.0" y="359" width="375" height="288"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                             <gestureRecognizers/>
                                             <connections>
@@ -763,13 +763,13 @@
                                             </connections>
                                         </view>
                                         <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="60" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="w9a-Ru-vmD">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="300"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="360"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                             <constraints>
-                                                <constraint firstAttribute="height" constant="300" id="N8S-10-rjE"/>
+                                                <constraint firstAttribute="height" constant="360" id="N8S-10-rjE"/>
                                             </constraints>
                                             <prototypes>
-                                                <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="FavoritesCell" id="fpp-hQ-Gye">
+                                                <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="OneButtonCell" id="fpp-hQ-Gye">
                                                     <rect key="frame" x="0.0" y="28" width="375" height="60"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="fpp-hQ-Gye" id="2r7-p6-IJR">
@@ -1429,6 +1429,7 @@
                                         <segments>
                                             <segment title="Recents"/>
                                             <segment title="Favorites"/>
+                                            <segment title="Search"/>
                                         </segments>
                                         <connections>
                                             <action selector="segmentedControlSelectionChanged:" destination="f08-wX-Ff9" eventType="valueChanged" id="nBT-wj-i8r"/>

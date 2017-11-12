@@ -265,8 +265,8 @@ class CourseManager: NSObject {
                     if csvHeaders![i] == "Subject Id" {
                         currentID = comp
                     } else if csvHeaders![i] == "Subject Enrollment Number",
-                        let id = currentID {
-                        let course = self.getOrInitializeCourse(withID: id)
+                        let id = currentID,
+                        let course = self.getCourse(withID: id) {
                         course.enrollmentNumber = max(course.enrollmentNumber, Int(Float(comp)!))
                     }
                 }
@@ -330,6 +330,9 @@ class CourseManager: NSObject {
     
     private func getOrInitializeCourse(withID subjectID: String) -> Course {
         return courseEditingQueue.sync {
+            if subjectID == "18.014" {
+                print("Here")
+            }
             if let course = getCourse(withID: subjectID) {
                 return course
             }

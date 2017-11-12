@@ -44,18 +44,40 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return (self.navigationController?.parent as? PanelViewController)
     }
     
+    var searchResults: [Course] = []
     var results: [Course] = []
     var managesNavigation: Bool = true
     
-    enum NonSearchingViewMode: Int {
+    enum ViewMode: Int {
         case recents = 0
         case favorites = 1
+        case search = 2
     }
     
-    var isShowingSearchResults = false
-    var nonSearchViewMode: NonSearchingViewMode = .recents {
+    var isShowingSearchResults = false {
         didSet {
-            UserDefaults.standard.set(nonSearchViewMode.rawValue, forKey: nonSearchViewModeDefaultsKey)
+            DispatchQueue.main.async {
+                if self.isShowingSearchResults {
+                    self.nonSearchViewMode = .search
+                    self.categoryControl?.setEnabled(true, forSegmentAt: ViewMode.search.rawValue)
+                    self.categoryControl?.selectedSegmentIndex = ViewMode.search.rawValue
+                    self.updateCourseVisibility()
+                } else {
+                    self.categoryControl?.setEnabled(false, forSegmentAt: ViewMode.search.rawValue)
+                }
+            }
+        }
+    }
+    var lastViewMode: ViewMode = .recents
+    var nonSearchViewMode: ViewMode = .recents {
+        didSet {
+            if categoryControl?.selectedSegmentIndex != nonSearchViewMode.rawValue {
+                categoryControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
+            }
+            if nonSearchViewMode != .search {
+                UserDefaults.standard.set(nonSearchViewMode.rawValue, forKey: nonSearchViewModeDefaultsKey)
+                lastViewMode = nonSearchViewMode
+            }
         }
     }
     
@@ -74,7 +96,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             NotificationCenter.default.addObserver(self, selector: #selector(panelViewControllerWillCollapse(_:)), name: .PanelViewControllerWillCollapse, object: panel)
         }
         
-        nonSearchViewMode = NonSearchingViewMode(rawValue: UserDefaults.standard.integer(forKey: nonSearchViewModeDefaultsKey)) ?? .recents
+        nonSearchViewMode = ViewMode(rawValue: UserDefaults.standard.integer(forKey: nonSearchViewModeDefaultsKey)) ?? .recents
         
         categoryControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
         filterButton?.setImage(filterButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
@@ -88,7 +110,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         
         if let searchBar = searchBar,
             searchBar.text?.characters.count == 0 {
-            showNonSearchingCourses()
+            clearSearch()
         } else if let initialSearch = searchTerm {
             loadSearchResults(withString: initialSearch, options: searchOptions)
         }
@@ -136,7 +158,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     if searchText.characters.count > 0 {
                         self.loadSearchResults(withString: searchText, options: self.searchOptions)
                     } else {
-                        self.showNonSearchingCourses()
+                        self.clearSearch()
                     }
                 } else if let initialSearch = self.searchTerm {
                     self.loadSearchResults(withString: initialSearch, options: self.searchOptions)
@@ -181,14 +203,25 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         panelViewController?.expandView()
     }
     
-    func showNonSearchingCourses() {
+    func clearSearch() {
+        searchResults = []
+        isShowingSearchResults = false
+        if nonSearchViewMode == .search {
+            nonSearchViewMode = lastViewMode
+        }
+        updateCourseVisibility()
+    }
+    
+    func updateCourseVisibility() {
         guard CourseManager.shared.isLoaded else {
             return
         }
-        isShowingSearchResults = false
-        if nonSearchViewMode == .recents {
+        switch nonSearchViewMode {
+        case .search:
+            results = searchResults
+        case .recents:
             results = CourseManager.shared.recentlyViewedCourses
-        } else {
+        case .favorites:
             results = CourseManager.shared.favoriteCourses
         }
         tableView.reloadData()
@@ -212,7 +245,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             self.expandView()
         }
         guard searchText.characters.count > 0 else {
-            showNonSearchingCourses()
+            clearSearch()
             return
         }
         loadSearchResults(withString: searchText, options: searchOptions)
@@ -229,10 +262,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         guard CourseManager.shared.isLoaded, !isSearching else {
             return
         }
-        self.isShowingSearchResults = true
+        isShowingSearchResults = true
+        let cacheText = self.searchBar?.text
         DispatchQueue.global(qos: .userInitiated).async {
             self.isSearching = true
-            let cacheText = self.searchBar?.text
             let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
             
             var newResults: [Course: Float] = [:]
@@ -280,15 +313,15 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             }
             let sortedResults = newResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
             self.isSearching = false
-            if cacheText == self.searchBar?.text {
-                DispatchQueue.main.async {
-                    self.results = sortedResults
+            DispatchQueue.main.async {
+                if cacheText == self.searchBar?.text {
+                    self.searchResults = sortedResults
                     print("Reloading with \(self.results.count) results")
-                    self.tableView.reloadData()
+                    self.updateCourseVisibility()
+                } else {
+                    print("Searching again")
+                    self.loadSearchResults(withString: self.searchBar?.text ?? searchTerm, options: options)
                 }
-            } else {
-                print("Searching again")
-                self.loadSearchResults(withString: self.searchBar?.text ?? searchTerm, options: options)
             }
         }
     }
@@ -378,12 +411,11 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     @IBAction func segmentedControlSelectionChanged(_ sender: UISegmentedControl) {
-        guard searchBar?.text?.characters.count == 0,
-            let viewMode = NonSearchingViewMode(rawValue: sender.selectedSegmentIndex) else {
-                return
+        guard let viewMode = ViewMode(rawValue: sender.selectedSegmentIndex) else {
+            return
         }
         nonSearchViewMode = viewMode
-        showNonSearchingCourses()
+        updateCourseVisibility()
     }
     
     @IBAction func filterButtonTapped(_ sender: UIButton) {
@@ -410,7 +442,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         navigationItem.rightBarButtonItem?.isEnabled = true
         if !isShowingSearchResults {
             // Refresh favorites if necessary
-            showNonSearchingCourses()
+            updateCourseVisibility()
         }
         tableMenu.hide(animated: true) {
             tableMenu.willMove(toParentViewController: nil)

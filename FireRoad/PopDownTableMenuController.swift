@@ -25,10 +25,12 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     @IBOutlet var topConstraint: NSLayoutConstraint?
     @IBOutlet var heightConstraint: NSLayoutConstraint?
     
-    static let favoritesCellIdentifier = "FavoritesCell"
+    static let oneButtonCellIdentifier = "OneButtonCell"
     static let buttonCellIdentifier = "ButtonCell"
     
     let headings = [
+        "Favorites",
+        "Prior Credit",
         "Freshman",
         "Sophomore",
         "Junior",
@@ -52,26 +54,31 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5
+        return headings.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.row == 0 {
-            let cell = tableView.dequeueReusableCell(withIdentifier: PopDownTableMenuController.favoritesCellIdentifier, for: indexPath)
+        if indexPath.row < 2 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: PopDownTableMenuController.oneButtonCellIdentifier, for: indexPath)
             if let imageView = cell.viewWithTag(34) as? UIImageView,
-                let label = cell.viewWithTag(12) as? UILabel,
-                let course = course {
-                let isInFavorites = CourseManager.shared.favoriteCourses.contains(course)
-                let image = isInFavorites ? UIImage(named: "heart-filled") : UIImage(named: "heart")
-                imageView.image = image?.withRenderingMode(.alwaysTemplate)
-                label.text = isInFavorites ? "Remove from Favorites" : "Add to Favorites"
+                let label = cell.viewWithTag(12) as? UILabel {
+                
+                if indexPath.row == 0, let course = course {
+                    let isInFavorites = CourseManager.shared.favoriteCourses.contains(course)
+                    let image = isInFavorites ? UIImage(named: "heart-filled") : UIImage(named: "heart")
+                    imageView.image = image?.withRenderingMode(.alwaysTemplate)
+                    label.text = isInFavorites ? "Remove from Favorites" : "Add to Favorites"
+                } else if indexPath.row == 1 {
+                    imageView.image = UIImage(named: "prior-credit")?.withRenderingMode(.alwaysTemplate)
+                    label.text = "Prior Credit"
+                }
             }
             cell.selectionStyle = .default
             return cell
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: PopDownTableMenuController.buttonCellIdentifier, for: indexPath)
         if let textLabel = cell.viewWithTag(12) as? UILabel {
-            textLabel.text = headings[indexPath.row - 1]
+            textLabel.text = headings[indexPath.row]
         }
         cell.selectionStyle = .none
         for view in cell.contentView.subviews {
@@ -84,8 +91,13 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.row == 0, let course = course {
+        guard let course = course else {
+            return
+        }
+        if indexPath.row == 0 {
             delegate?.popDownTableMenu(self, addedCourseToFavorites: course)
+        } else if indexPath.row == 1 {
+            delegate?.popDownTableMenu(self, addedCourse: course, to: .PreviousCredit)
         }
     }
     
