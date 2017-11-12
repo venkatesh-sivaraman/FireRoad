@@ -268,8 +268,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
                 listVC.searchTerm = reqString
-                listVC.searchOptions = [.GIR, .HASS, .CI]
+                listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .fulfillsHASS, .fulfillsCIH, .fulfillsCIHW, .searchRequirements]
                 listVC.delegate = self
+                listVC.showsHeaderBar = false
                 listVC.managesNavigation = false
                 showInformationalViewController(listVC, from: selectedCell.convert(selectedCell.bounds, to: self.view))
             } else {
@@ -355,9 +356,11 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
         } else if course.subjectID == "GIR" {
             let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
-            listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
-            listVC.searchOptions = [.GIR, .HASS, .CI]
+            let keyword = course.subjectDescription ?? (course.subjectTitle ?? "")
+            listVC.searchTerm = GIRAttribute(rawValue: keyword)?.rawValue
+            listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
             listVC.delegate = self
+            listVC.showsHeaderBar = false
             listVC.managesNavigation = false
             self.showInformationalViewController(listVC, from: rect ?? CGRect.zero)
         }

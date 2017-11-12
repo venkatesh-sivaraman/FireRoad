@@ -470,7 +470,8 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
             
             let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
             listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
-            listVC.searchOptions = [.GIR, .HASS, .CI]
+            listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
+            listVC.showsHeaderBar = false
             listVC.delegate = self
             listVC.managesNavigation = false
             listVC.view.backgroundColor = UIColor.clear

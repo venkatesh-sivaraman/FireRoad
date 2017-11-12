@@ -202,7 +202,7 @@ class CourseManager: NSObject {
         let lines = text.components(separatedBy: .newlines)
         var csvHeaders: [String]? = nil
         
-        for (i, line) in lines.enumerated() {
+        for line in lines {
             let comps = line.components(separatedBy: ",")
             if comps.contains("Subject Id") {
                 csvHeaders = comps

@@ -16,13 +16,46 @@ protocol CourseBrowserDelegate: class {
 struct SearchOptions: OptionSet {
     var rawValue: Int
     
-    static let all = SearchOptions(rawValue: 1 << 0)
-    static let GIR = SearchOptions(rawValue: 1 << 1)
-    static let HASS = SearchOptions(rawValue: 1 << 2)
-    static let CI = SearchOptions(rawValue: 1 << 3)
+    static let anyRequirement = SearchOptions(rawValue: 1 << 0)
+    static let fulfillsGIR = SearchOptions(rawValue: 1 << 1)
+    static let fulfillsHASS = SearchOptions(rawValue: 1 << 2)
+    static let fulfillsCIH = SearchOptions(rawValue: 1 << 3)
+    static let fulfillsCIHW = SearchOptions(rawValue: 1 << 4)
+
+    static let offeredAnySemester = SearchOptions(rawValue: 1 << 10)
+    static let offeredFall = SearchOptions(rawValue: 1 << 11)
+    static let offeredSpring = SearchOptions(rawValue: 1 << 12)
+    static let offeredIAP = SearchOptions(rawValue: 1 << 13)
+
+    static let containsSearchTerm = SearchOptions(rawValue: 1 << 14)
+    static let matchesSearchTerm = SearchOptions(rawValue: 1 << 15)
+    static let startsWithSearchTerm = SearchOptions(rawValue: 1 << 16)
+    static let endsWithSearchTerm = SearchOptions(rawValue: 1 << 17)
+    
+    static let searchID = SearchOptions(rawValue: 1 << 20)
+    static let searchTitle = SearchOptions(rawValue: 1 << 21)
+    static let searchPrereqs = SearchOptions(rawValue: 1 << 23)
+    static let searchCoreqs = SearchOptions(rawValue: 1 << 24)
+    static let searchInstructors = SearchOptions(rawValue: 1 << 25)
+    static let searchRequirements = SearchOptions(rawValue: 1 << 26)
+    static let searchAllFields: SearchOptions = [
+        .searchID,
+        .searchTitle,
+        .searchPrereqs,
+        .searchCoreqs,
+        .searchInstructors,
+        .searchRequirements
+    ]
+
+    static let noFilter: SearchOptions = [
+        .anyRequirement,
+        .offeredAnySemester,
+        .containsSearchTerm,
+        .searchAllFields
+    ]
 }
 
-class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITableViewDataSource, UITableViewDelegate, CourseBrowserCellDelegate, UINavigationControllerDelegate, PopDownTableMenuDelegate {
+class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITableViewDataSource, UITableViewDelegate, CourseBrowserCellDelegate, UINavigationControllerDelegate, PopDownTableMenuDelegate, CourseFilterDelegate {
     
     @IBOutlet var searchBar: UISearchBar?
     @IBOutlet var tableView: UITableView! = nil
@@ -33,12 +66,21 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     @IBOutlet var filterButton: UIButton?
     @IBOutlet var categoryControl: UISegmentedControl?
     
+    @IBOutlet var headerBarHeightConstraint: NSLayoutConstraint?
+    let headerBarHeight = CGFloat(44.0)
+    
+    var showsHeaderBar = true {
+        didSet {
+            headerBarHeightConstraint?.constant = showsHeaderBar ? headerBarHeight : 0.0
+        }
+    }
+    
     weak var delegate: CourseBrowserDelegate? = nil
     
     /// An initial search to perform in the browser.
     var searchTerm: String?
     
-    var searchOptions: SearchOptions = .all
+    var searchOptions: SearchOptions = .noFilter
     
     var panelViewController: PanelViewController? {
         return (self.navigationController?.parent as? PanelViewController)
@@ -99,7 +141,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         nonSearchViewMode = ViewMode(rawValue: UserDefaults.standard.integer(forKey: nonSearchViewModeDefaultsKey)) ?? .recents
         
         categoryControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
-        filterButton?.setImage(filterButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        updateFilterButton()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -258,7 +300,51 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     var isSearching = false
     
-    func loadSearchResults(withString searchTerm: String, options: SearchOptions = .all) {
+    private func courseSatisfiesSearchOptions(_ course: Course, options: SearchOptions) -> Bool {
+        var fulfillsRequirement = false
+        if options.contains(.anyRequirement) {
+            fulfillsRequirement = true
+        } else if options.contains(.fulfillsGIR), course.girAttribute != nil {
+            fulfillsRequirement = true
+        } else if options.contains(.fulfillsHASS), course.hassAttribute != nil {
+            fulfillsRequirement = true
+        } else if options.contains(.fulfillsCIH), course.communicationRequirement == .ciH {
+            fulfillsRequirement = true
+        } else if options.contains(.fulfillsCIHW), course.communicationRequirement == .ciHW {
+            fulfillsRequirement = true
+        }
+        
+        var fulfillsOffered = false
+        if options.contains(.offeredAnySemester) {
+            fulfillsOffered = true
+        } else if options.contains(.offeredFall), course.isOfferedFall {
+            fulfillsOffered = true
+        } else if options.contains(.offeredSpring), course.isOfferedSpring {
+            fulfillsOffered = true
+        } else if options.contains(.offeredIAP), course.isOfferedIAP {
+            fulfillsOffered = true
+        }
+        
+        return fulfillsRequirement && fulfillsOffered
+    }
+    
+    private func searchText(for course: Course, options: SearchOptions) -> String {
+        var courseComps: [String?] = []
+        if options.contains(.searchID) {
+            courseComps += [course.subjectID, course.subjectID, course.subjectID]
+        }
+        if options.contains(.searchTitle) {
+            courseComps.append(course.subjectTitle)
+        }
+        if options.contains(.searchRequirements) {
+            courseComps += [course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText(), course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText(), course.girAttribute?.rawValue, course.girAttribute?.descriptionText()]
+        }
+        
+        let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.anyRequirement) ? course.instructors : [])).joined(separator: "\n").lowercased()
+        return courseText
+    }
+    
+    func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter) {
         guard CourseManager.shared.isLoaded, !isSearching else {
             return
         }
@@ -270,26 +356,17 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             
             var newResults: [Course: Float] = [:]
             for course in CourseManager.shared.courses {
-                var relevance: Float = 0.0
-                var courseComps: [String?] = []
-                if options.contains(.GIR) {
-                    courseComps += [course.girAttribute?.rawValue, course.girAttribute?.descriptionText()]
-                }
-                if options.contains(.HASS) {
-                    courseComps += [course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText()]
-                }
-                if options.contains(.CI) {
-                    courseComps += [course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText()]
-                }
-                if options.contains(.all) {
-                    courseComps = [String?]([course.subjectID, course.subjectID, course.subjectID, course.subjectTitle, course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText(), course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText(), course.girAttribute?.rawValue, course.girAttribute?.descriptionText()])
+                guard self.courseSatisfiesSearchOptions(course, options: options) else {
+                    continue
                 }
                 
-                let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.all) ? course.instructors : [])).joined(separator: "\n").lowercased()
+                var relevance: Float = 0.0
+                let courseText = self.searchText(for: course, options: options)
                 for comp in comps {
+                    // TODO: Make this use regex
                     if courseText.contains(comp) {
                         let separated = courseText.components(separatedBy: comp)
-                        var multiplier: Float = 1.0
+                        var multiplier: Float = options.contains(.containsSearchTerm) ? 1.0 : 0.0
                         for (i, sepComp) in separated.enumerated() {
                             if sepComp.characters.count > 0, i < separated.count - 1 {
                                 let lastCharacter = sepComp[sepComp.index(before: sepComp.endIndex)..<sepComp.endIndex]
@@ -307,7 +384,6 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                 }
                 if relevance > 0.0 {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
-                    print(course.subjectID!, courseText, relevance)
                     newResults[course] = relevance
                 }
             }
@@ -316,7 +392,6 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             DispatchQueue.main.async {
                 if cacheText == self.searchBar?.text {
                     self.searchResults = sortedResults
-                    print("Reloading with \(self.results.count) results")
                     self.updateCourseVisibility()
                 } else {
                     print("Searching again")
@@ -418,10 +493,6 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         updateCourseVisibility()
     }
     
-    @IBAction func filterButtonTapped(_ sender: UIButton) {
-        
-    }
-    
     // MARK: - Pop Down Table Menu
     
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
@@ -450,5 +521,32 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             tableMenu.removeFromParentViewController()
             tableMenu.didMove(toParentViewController: nil)
         }
+    }
+    
+    // MARK: - Filter Controller
+    
+    func updateFilterButton() {
+        let image = (searchOptions == .noFilter ? UIImage(named: "filter") : UIImage(named: "filter-on"))
+        filterButton?.setImage(image?.withRenderingMode(.alwaysTemplate), for: .normal)
+    }
+    
+    @IBAction func filterButtonTapped(_ sender: UIButton) {
+        let filter = self.storyboard!.instantiateViewController(withIdentifier: "CourseFilter") as! CourseFilterViewController
+        filter.options = searchOptions
+        filter.delegate = self
+        navigationController?.pushViewController(filter, animated: true)
+        navigationController?.view.setNeedsLayout()
+    }
+    
+    func courseFilter(_ filter: CourseFilterViewController, changed options: SearchOptions) {
+        searchOptions = options
+        updateFilterButton()
+        if isShowingSearchResults, let searchText = searchBar?.text {
+            self.loadSearchResults(withString: searchText, options: searchOptions)
+        }
+    }
+    
+    func courseFilterWantsDismissal(_ filter: CourseFilterViewController) {
+        navigationController?.popViewController(animated: true)
     }
 }

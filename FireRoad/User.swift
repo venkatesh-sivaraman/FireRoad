@@ -25,7 +25,7 @@ enum UserSemester: Int {
     
     func toString() -> String {
         switch self {
-        case .PreviousCredit: return "Previous Credit"
+        case .PreviousCredit: return "Prior Credit"
         case .FreshmanFall: return "Freshman Fall"
         case .FreshmanIAP: return "Freshman IAP"
         case .FreshmanSpring: return "Freshman Spring"

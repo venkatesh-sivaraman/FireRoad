@@ -155,6 +155,9 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     @objc func collapseViewFromDimViewTap(_ sender: UITapGestureRecognizer) {
+        guard !self.view.bounds.insetBy(dx: -10.0, dy: -10.0).contains(sender.location(in: self.view)) else {
+            return
+        }
         collapseView()
     }
     
