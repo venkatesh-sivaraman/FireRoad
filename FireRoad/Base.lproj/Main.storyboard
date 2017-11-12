@@ -1404,16 +1404,53 @@
                         <rect key="frame" x="0.0" y="0.0" width="351" height="300"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <searchBar contentMode="redraw" verticalCompressionResistancePriority="751" searchBarStyle="minimal" placeholder="Search courses…" translatesAutoresizingMaskIntoConstraints="NO" id="C4N-lp-ru4">
-                                <rect key="frame" x="0.0" y="4" width="351" height="56"/>
+                            <searchBar contentMode="redraw" verticalCompressionResistancePriority="1000" searchBarStyle="minimal" placeholder="Search courses…" translatesAutoresizingMaskIntoConstraints="NO" id="C4N-lp-ru4">
+                                <rect key="frame" x="0.0" y="0.0" width="351" height="56"/>
                                 <textInputTraits key="textInputTraits" returnKeyType="search"/>
                                 <connections>
                                     <outlet property="delegate" destination="f08-wX-Ff9" id="azH-gO-znK"/>
                                 </connections>
                             </searchBar>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="57" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="Vqr-Qv-Rcf">
-                                <rect key="frame" x="0.0" y="69" width="351" height="231"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="D5v-R6-v0N">
+                                <rect key="frame" x="0.0" y="60" width="351" height="44"/>
+                                <subviews>
+                                    <button opaque="NO" tag="34" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SoY-N8-962">
+                                        <rect key="frame" x="307" y="6" width="32" height="32"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" secondItem="SoY-N8-962" secondAttribute="height" multiplier="1:1" id="3PW-K3-Mb6"/>
+                                        </constraints>
+                                        <state key="normal" image="filter"/>
+                                        <connections>
+                                            <action selector="filterButtonTapped:" destination="f08-wX-Ff9" eventType="touchUpInside" id="PZB-g5-FLT"/>
+                                        </connections>
+                                    </button>
+                                    <segmentedControl opaque="NO" tag="12" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="21Q-vQ-eeQ">
+                                        <rect key="frame" x="20" y="8" width="267" height="29"/>
+                                        <segments>
+                                            <segment title="Recents"/>
+                                            <segment title="Favorites"/>
+                                        </segments>
+                                        <connections>
+                                            <action selector="segmentedControlSelectionChanged:" destination="f08-wX-Ff9" eventType="valueChanged" id="nBT-wj-i8r"/>
+                                        </connections>
+                                    </segmentedControl>
+                                </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstItem="SoY-N8-962" firstAttribute="leading" secondItem="21Q-vQ-eeQ" secondAttribute="trailing" constant="20" id="01r-aK-RbU"/>
+                                    <constraint firstAttribute="trailing" secondItem="SoY-N8-962" secondAttribute="trailing" constant="12" id="9Zl-JQ-yXH"/>
+                                    <constraint firstItem="21Q-vQ-eeQ" firstAttribute="centerY" secondItem="D5v-R6-v0N" secondAttribute="centerY" id="aNU-qr-lot"/>
+                                    <constraint firstAttribute="height" constant="44" id="aue-y1-XjR"/>
+                                    <constraint firstItem="21Q-vQ-eeQ" firstAttribute="leading" secondItem="D5v-R6-v0N" secondAttribute="leading" constant="20" id="i4d-ft-qKY"/>
+                                    <constraint firstItem="SoY-N8-962" firstAttribute="centerY" secondItem="D5v-R6-v0N" secondAttribute="centerY" id="ids-NU-x5m"/>
+                                </constraints>
+                            </view>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="57" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="Vqr-Qv-Rcf">
+                                <rect key="frame" x="0.0" y="104" width="351" height="196"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" id="djz-4k-r6s"/>
+                                </constraints>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="CourseCell" rowHeight="60" id="v78-Nm-0Hb" customClass="CourseBrowserCell" customModule="FireRoad" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="28" width="351" height="60"/>
@@ -1480,40 +1517,6 @@
                                             <outlet property="titleLabel" destination="ewu-QX-o3y" id="7V3-WR-RXV"/>
                                         </connections>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="SegmentedHeader" rowHeight="42" id="C67-z8-XRp" customClass="CourseBrowserCell" customModule="FireRoad" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="88" width="351" height="42"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="C67-z8-XRp" id="hx1-E0-20E">
-                                            <rect key="frame" x="0.0" y="0.0" width="351" height="41.5"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <subviews>
-                                                <segmentedControl opaque="NO" tag="12" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="21Q-vQ-eeQ">
-                                                    <rect key="frame" x="20" y="7" width="277.5" height="29"/>
-                                                    <segments>
-                                                        <segment title="Recents"/>
-                                                        <segment title="Favorites"/>
-                                                    </segments>
-                                                </segmentedControl>
-                                                <button opaque="NO" tag="34" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SoY-N8-962">
-                                                    <rect key="frame" x="317.5" y="8" width="25.5" height="25.5"/>
-                                                    <constraints>
-                                                        <constraint firstAttribute="width" secondItem="SoY-N8-962" secondAttribute="height" multiplier="1:1" id="3PW-K3-Mb6"/>
-                                                    </constraints>
-                                                    <state key="normal" image="filter"/>
-                                                </button>
-                                            </subviews>
-                                            <constraints>
-                                                <constraint firstItem="SoY-N8-962" firstAttribute="centerY" secondItem="hx1-E0-20E" secondAttribute="centerY" id="8jF-gP-f5R"/>
-                                                <constraint firstItem="SoY-N8-962" firstAttribute="top" secondItem="hx1-E0-20E" secondAttribute="top" constant="8" id="FnU-Ke-fXw"/>
-                                                <constraint firstItem="SoY-N8-962" firstAttribute="leading" secondItem="21Q-vQ-eeQ" secondAttribute="trailing" constant="20" id="XJ1-aI-UCe"/>
-                                                <constraint firstAttribute="trailing" secondItem="SoY-N8-962" secondAttribute="trailing" constant="8" id="gxH-sa-87s"/>
-                                                <constraint firstItem="21Q-vQ-eeQ" firstAttribute="centerY" secondItem="hx1-E0-20E" secondAttribute="centerY" id="hJF-0i-2IZ"/>
-                                                <constraint firstItem="21Q-vQ-eeQ" firstAttribute="leading" secondItem="hx1-E0-20E" secondAttribute="leading" constant="20" id="hNc-Er-VL0"/>
-                                                <constraint firstAttribute="bottom" secondItem="SoY-N8-962" secondAttribute="bottom" constant="8" id="jlb-eP-pcJ"/>
-                                            </constraints>
-                                        </tableViewCellContentView>
-                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                    </tableViewCell>
                                 </prototypes>
                                 <connections>
                                     <outlet property="dataSource" destination="f08-wX-Ff9" id="C8W-Cq-UNs"/>
@@ -1521,16 +1524,16 @@
                                 </connections>
                             </tableView>
                             <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2K3-QJ-RZn">
-                                <rect key="frame" x="0.0" y="69" width="351" height="231"/>
+                                <rect key="frame" x="0.0" y="60" width="351" height="240"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="LOADING" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xx9-wi-iKy">
-                                        <rect key="frame" x="147" y="133" width="57.5" height="16"/>
+                                        <rect key="frame" x="147" y="138" width="57.5" height="16"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                         <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="u3p-HK-uRx">
-                                        <rect key="frame" x="165" y="105" width="20" height="20"/>
+                                        <rect key="frame" x="165" y="110" width="20" height="20"/>
                                     </activityIndicatorView>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
@@ -1546,13 +1549,16 @@
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="2K3-QJ-RZn" firstAttribute="trailing" secondItem="Vqr-Qv-Rcf" secondAttribute="trailing" id="2Eo-f8-veE"/>
-                            <constraint firstAttribute="bottom" secondItem="Vqr-Qv-Rcf" secondAttribute="bottom" id="Asg-dd-U4W"/>
-                            <constraint firstItem="Vqr-Qv-Rcf" firstAttribute="top" secondItem="C4N-lp-ru4" secondAttribute="bottom" constant="9" id="IXW-W5-hmU"/>
+                            <constraint firstItem="2K3-QJ-RZn" firstAttribute="top" secondItem="D5v-R6-v0N" secondAttribute="top" id="6RQ-fe-kyM"/>
+                            <constraint firstItem="D5v-R6-v0N" firstAttribute="top" secondItem="C4N-lp-ru4" secondAttribute="bottom" constant="4" id="7o2-kb-Xuz"/>
+                            <constraint firstAttribute="bottom" secondItem="Vqr-Qv-Rcf" secondAttribute="bottom" priority="995" id="Asg-dd-U4W"/>
+                            <constraint firstItem="D5v-R6-v0N" firstAttribute="leading" secondItem="C4N-lp-ru4" secondAttribute="leading" id="KxE-ge-Bwe"/>
                             <constraint firstAttribute="trailing" secondItem="C4N-lp-ru4" secondAttribute="trailing" id="acD-c0-OcY"/>
+                            <constraint firstItem="Vqr-Qv-Rcf" firstAttribute="top" secondItem="D5v-R6-v0N" secondAttribute="bottom" id="cKv-Nw-rhc"/>
                             <constraint firstItem="Vqr-Qv-Rcf" firstAttribute="leading" secondItem="M25-h0-EN4" secondAttribute="leading" id="cR7-lc-N2b"/>
                             <constraint firstItem="2K3-QJ-RZn" firstAttribute="leading" secondItem="Vqr-Qv-Rcf" secondAttribute="leading" id="f52-WJ-GaN"/>
-                            <constraint firstItem="C4N-lp-ru4" firstAttribute="top" secondItem="M25-h0-EN4" secondAttribute="top" constant="4" id="fgE-rY-xvF"/>
-                            <constraint firstItem="2K3-QJ-RZn" firstAttribute="top" secondItem="Vqr-Qv-Rcf" secondAttribute="top" id="jmr-er-Rcx"/>
+                            <constraint firstItem="C4N-lp-ru4" firstAttribute="top" secondItem="M25-h0-EN4" secondAttribute="top" id="fgE-rY-xvF"/>
+                            <constraint firstItem="D5v-R6-v0N" firstAttribute="trailing" secondItem="C4N-lp-ru4" secondAttribute="trailing" id="qDe-6z-yC6"/>
                             <constraint firstItem="C4N-lp-ru4" firstAttribute="leading" secondItem="M25-h0-EN4" secondAttribute="leading" id="xnz-Ar-IHT"/>
                             <constraint firstAttribute="trailing" secondItem="Vqr-Qv-Rcf" secondAttribute="trailing" id="xoE-uV-2mX"/>
                             <constraint firstItem="2K3-QJ-RZn" firstAttribute="bottom" secondItem="Vqr-Qv-Rcf" secondAttribute="bottom" id="zWK-6a-3uB"/>
@@ -1560,6 +1566,9 @@
                     </view>
                     <navigationItem key="navigationItem" id="P1y-XP-jof"/>
                     <connections>
+                        <outlet property="categoryControl" destination="21Q-vQ-eeQ" id="Ba1-ub-9pm"/>
+                        <outlet property="filterButton" destination="SoY-N8-962" id="yCr-LG-lnT"/>
+                        <outlet property="headerBar" destination="D5v-R6-v0N" id="xce-Jr-60z"/>
                         <outlet property="loadingIndicator" destination="u3p-HK-uRx" id="AL1-1o-1B0"/>
                         <outlet property="loadingView" destination="2K3-QJ-RZn" id="wGj-hD-D1E"/>
                         <outlet property="searchBar" destination="C4N-lp-ru4" id="SlT-WW-qYQ"/>

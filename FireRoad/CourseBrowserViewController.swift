@@ -29,6 +29,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     @IBOutlet var loadingView: UIView?
     @IBOutlet var loadingIndicator: UIActivityIndicatorView?
     
+    @IBOutlet var headerBar: UIView?
+    @IBOutlet var filterButton: UIButton?
+    @IBOutlet var categoryControl: UISegmentedControl?
+    
     weak var delegate: CourseBrowserDelegate? = nil
     
     /// An initial search to perform in the browser.
@@ -71,6 +75,9 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         }
         
         nonSearchViewMode = NonSearchingViewMode(rawValue: UserDefaults.standard.integer(forKey: nonSearchViewModeDefaultsKey)) ?? .recents
+        
+        categoryControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
+        filterButton?.setImage(filterButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -94,10 +101,12 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                 self.loadingIndicator?.startAnimating()
                 UIView.animate(withDuration: 0.2, animations: {
                     self.tableView.alpha = 0.0
+                    self.headerBar?.alpha = 0.0
                     loadingView.alpha = 1.0
                 }, completion: { (completed) in
                     if completed {
                         self.tableView.isHidden = true
+                        self.headerBar?.isHidden = true
                     }
                 })
             }
@@ -109,9 +118,11 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             }
             DispatchQueue.main.async {
                 self.tableView.isHidden = false
+                self.headerBar?.isHidden = false
                 if let loadingView = self.loadingView {
                     UIView.animate(withDuration: 0.2, animations: {
                         self.tableView.alpha = 1.0
+                        self.headerBar?.alpha = 1.0
                         loadingView.alpha = 0.0
                     }, completion: { (completed) in
                         if completed {
@@ -300,30 +311,6 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return results.count
     }
     
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if !isShowingSearchResults,
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SegmentedHeader") {
-            cell.backgroundColor = UIColor(white: 0.92, alpha: 1.0)
-            let segmentedControl = cell.viewWithTag(12) as? UISegmentedControl
-            segmentedControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
-            segmentedControl?.removeTarget(self, action: nil, for: .valueChanged)
-            segmentedControl?.addTarget(self, action: #selector(segmentedControlSelectionChanged(_:)), for: .valueChanged)
-            let filterButton = cell.viewWithTag(34) as? UIButton
-            filterButton?.setImage(filterButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
-            filterButton?.removeTarget(self, action: nil, for: .touchUpInside)
-            filterButton?.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
-            return cell
-        }
-        return nil
-    }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if !isShowingSearchResults {
-            return 42.0
-        }
-        return 0.0
-    }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CourseCell", for: indexPath) as! CourseBrowserCell
         cell.course = results[indexPath.row]
@@ -390,7 +377,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return nil
     }
     
-    @objc func segmentedControlSelectionChanged(_ sender: UISegmentedControl) {
+    @IBAction func segmentedControlSelectionChanged(_ sender: UISegmentedControl) {
         guard searchBar?.text?.characters.count == 0,
             let viewMode = NonSearchingViewMode(rawValue: sender.selectedSegmentIndex) else {
                 return
@@ -399,7 +386,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         showNonSearchingCourses()
     }
     
-    @objc func filterButtonTapped(_ sender: UIButton) {
+    @IBAction func filterButtonTapped(_ sender: UIButton) {
         
     }
     
