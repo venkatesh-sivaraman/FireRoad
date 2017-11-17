@@ -22,7 +22,7 @@ class CourseBrowserCell: UITableViewCell {
     var course: Course? = nil {
         didSet {
             self.titleLabel.text = course?.subjectID
-            if course?.subjectTitle == nil || course?.subjectTitle?.characters.count == 0 {
+            if course?.subjectTitle == nil || course?.subjectTitle?.count == 0 {
                 print("Subject title nil")
             }
             self.descriptionLabel.text = course?.subjectTitle

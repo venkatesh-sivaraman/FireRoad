@@ -47,7 +47,7 @@ enum GIRAttribute: String, AttributeEnum {
         .rest: "REST GIR"
     ]
     
-    static let sortedDescriptions = GIRAttribute.descriptions.sorted(by: { $1.value.characters.count > $0.value.characters.count })
+    static let sortedDescriptions = GIRAttribute.descriptions.sorted(by: { $1.value.count > $0.value.count })
 
     func descriptionText() -> String {
         return GIRAttribute.descriptions[self] ?? self.rawValue
@@ -128,17 +128,114 @@ enum CourseOfferingPattern: String {
     case never = "Never"
 }
 
+struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible {
+    var rawValue: Int
+    
+    static let none = CourseScheduleDay(rawValue: 0)
+    static let monday = CourseScheduleDay(rawValue: 1 << 0)
+    static let tuesday = CourseScheduleDay(rawValue: 1 << 1)
+    static let wednesday = CourseScheduleDay(rawValue: 1 << 2)
+    static let thursday = CourseScheduleDay(rawValue: 1 << 3)
+    static let friday = CourseScheduleDay(rawValue: 1 << 4)
+    static let saturday = CourseScheduleDay(rawValue: 1 << 5)
+    static let sunday = CourseScheduleDay(rawValue: 1 << 6)
+    
+    static let ordering: [CourseScheduleDay] = [
+        .monday,
+        .tuesday,
+        .wednesday,
+        .thursday,
+        .friday,
+        .saturday,
+        .sunday
+    ]
+    
+    private static let stringMappings: [Int: String] = [
+        CourseScheduleDay.monday.rawValue: "M",
+        CourseScheduleDay.tuesday.rawValue: "T",
+        CourseScheduleDay.wednesday.rawValue: "W",
+        CourseScheduleDay.thursday.rawValue: "R",
+        CourseScheduleDay.friday.rawValue: "F",
+        CourseScheduleDay.saturday.rawValue: "S",
+        CourseScheduleDay.sunday.rawValue: "S"
+    ]
+    
+    func stringEquivalent() -> String {
+        var ret = ""
+        for item in CourseScheduleDay.ordering {
+            if contains(item) {
+                ret += CourseScheduleDay.stringMappings[item.rawValue] ?? ""
+            }
+        }
+        return ret
+    }
+    
+    var debugDescription: String {
+        return "CourseScheduleDay(\(stringEquivalent()))"
+    }
+    
+    static func fromString(_ days: String) -> CourseScheduleDay {
+        var offered = CourseScheduleDay.none
+        var currentOrderingIndex = 0
+        for character in days {
+            while character != CourseScheduleDay.ordering[currentOrderingIndex].stringEquivalent().first {
+                currentOrderingIndex += 1
+            }
+            guard currentOrderingIndex < CourseScheduleDay.ordering.count else {
+                print("Ran out of possible weekday letters")
+                return .none
+            }
+            offered = offered.union(CourseScheduleDay.ordering[currentOrderingIndex])
+        }
+        return offered
+    }
+}
+
+struct CourseScheduleTime: CustomDebugStringConvertible {
+    var hour: Int
+    var minute: Int
+    var PM: Bool
+    
+    /**
+     If evening is false, times >= 7 will be AM and times less than 7
+     will be PM. If evening is true, the opposite will be assigned.
+     */
+    static func fromString(_ time: String, evening: Bool = false) -> CourseScheduleTime {
+        let comps = time.components(separatedBy: .punctuationCharacters).flatMap({ Int($0) })
+        guard comps.count > 0 else {
+            print("Not enough components in time string: \(time)")
+            return CourseScheduleTime(hour: 12, minute: 0, PM: true)
+        }
+        var pm = ((comps[0] >= 7) == evening)
+        if comps[0] == 12 {
+            pm = !evening
+        }
+        if comps.count == 1 {
+            return CourseScheduleTime(hour: comps[0], minute: 0, PM: pm)
+        }
+        return CourseScheduleTime(hour: comps[0], minute: comps[1], PM: pm)
+    }
+    
+    func stringEquivalent(withTimeOfDay: Bool = false) -> String {
+        return String(format: "%d:%02d", hour, minute) + (withTimeOfDay ? (PM ? " pm" : " am") : "")
+    }
+    
+    var debugDescription: String {
+        return stringEquivalent(withTimeOfDay: true)
+    }
+}
+
 class CourseScheduleItem: NSObject {
-    var days: String
-    var startTime: String
-    var endTime: String
+    var days: CourseScheduleDay
+    var startTime: CourseScheduleTime
+    var endTime: CourseScheduleTime
     var isEvening: Bool
     var location: String?
     
     init(days: String, startTime: String, endTime: String, isEvening: Bool = false, location: String? = nil) {
-        self.days = days
-        self.startTime = startTime
-        self.endTime = endTime
+        self.days = CourseScheduleDay.fromString(days)
+        self.startTime = CourseScheduleTime.fromString(startTime, evening: isEvening)
+        self.endTime = CourseScheduleTime.fromString(endTime, evening: isEvening)
         self.isEvening = isEvening
         self.location = location
     }
@@ -334,7 +431,7 @@ class Course: NSObject {
     var offeringPattern: CourseOfferingPattern = .everyYear
     
     func updateOfferingPattern() {
-        if let notOffered = notOfferedYear, notOffered.characters.count > 0 {
+        if let notOffered = notOfferedYear, notOffered.count > 0 {
             offeringPattern = .alternateYears
         } else {
             offeringPattern = isOfferedThisYear ? .everyYear : .never
@@ -430,7 +527,7 @@ class Course: NSObject {
         // Semicolons separate lecture, recitation, lab options
         let scheduleGroups = scheduleString.components(separatedBy: ";")
         for group in scheduleGroups {
-            guard group.characters.count > 0 else {
+            guard group.count > 0 else {
                 continue
             }
             var commaComponents = group.components(separatedBy: ",")
@@ -490,14 +587,14 @@ class Course: NSObject {
     
     func extractIntegerString(_ string: String?) -> Int {
         if let text = string {
-            return text.characters.count > 0 ?  Int(Float(text)!) : 0
+            return text.count > 0 ?  Int(Float(text)!) : 0
         }
         return 0
     }
     
     func extractCourseListString(_ string: String?) -> [[String]] {
         if let listString = string {
-            return [listString.replacingOccurrences(of: ";", with: ",").replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.characters.count > 0 })]
+            return [listString.replacingOccurrences(of: ";", with: ",").replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.count > 0 })]
         }
         return []
     }
@@ -509,7 +606,7 @@ class Course: NSObject {
                 modifiedValue = modifiedValue.replacingOccurrences(of: " ", with: "")
             }
             modifiedValue = modifiedValue.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ";", with: ",")
-            if modifiedValue.characters.count > 0 {
+            if modifiedValue.count > 0 {
                 if value.contains("#,#") {
                     let subValues = modifiedValue.components(separatedBy: "#,#")
                     return ["{" + subValues[0] + "}"] + subValues[1].components(separatedBy: ",")

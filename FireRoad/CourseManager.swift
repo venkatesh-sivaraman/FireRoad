@@ -211,12 +211,12 @@ class CourseManager: NSObject {
                 var quotedLine = ""
                 var currentID: String?
                 for comp in comps {
-                    var trimmed: String = quotedLine + (quotedLine.characters.count > 0 ? "," : "") + comp
-                    if (trimmed.characters.count - trimmed.replacingOccurrences(of: "\"", with: "").characters.count) % 2 == 1 {
+                    var trimmed: String = quotedLine + (quotedLine.count > 0 ? "," : "") + comp
+                    if (trimmed.count - trimmed.replacingOccurrences(of: "\"", with: "").count) % 2 == 1 {
                         quotedLine = trimmed
                     } else {
                         quotedLine = ""
-                        trimmed = trimmed.characters.first == Character("\"") ? String(trimmed[trimmed.index(trimmed.startIndex, offsetBy: 1)..<trimmed.index(trimmed.endIndex, offsetBy: -1)]) : trimmed
+                        trimmed = trimmed.first == Character("\"") ? String(trimmed[trimmed.index(trimmed.startIndex, offsetBy: 1)..<trimmed.index(trimmed.endIndex, offsetBy: -1)]) : trimmed
                         trimmed = trimmed.trimmingCharacters(in: .whitespacesAndNewlines)
                         if i >= csvHeaders!.count {
                             print("Beyond bounds")
@@ -361,7 +361,7 @@ class CourseManager: NSObject {
     
     func getCourse(withID subjectID: String) -> Course? {
         let processedID = subjectID.replacingOccurrences(of: "[J]", with: "")
-        if processedID.characters.count == 0 {
+        if processedID.count == 0 {
             return nil
         }
         if let course = self.coursesByID[processedID] {
@@ -371,7 +371,7 @@ class CourseManager: NSObject {
     }
     
     func getCourse(withTitle subjectTitle: String) -> Course? {
-        if subjectTitle.characters.count == 0 {
+        if subjectTitle.count == 0 {
             return nil
         }
         if let course = self.coursesByTitle[subjectTitle] {
@@ -500,7 +500,7 @@ class CourseManager: NSObject {
             let attributeSet = CSSearchableItemAttributeSet()
             attributeSet.title = id + " – " + title
             
-            let infoItems: [String] = [course.girAttribute?.rawValue, course.hassAttribute?.rawValue, course.communicationRequirement?.rawValue].flatMap({ $0 }).filter({ $0.characters.count > 0 })
+            let infoItems: [String] = [course.girAttribute?.rawValue, course.hassAttribute?.rawValue, course.communicationRequirement?.rawValue].flatMap({ $0 }).filter({ $0.count > 0 })
             var infoString = infoItems.joined(separator: ", ")
             if course.instructors.count > 0 {
                 infoString += "\nTaught by \(course.instructors.joined(separator: ", "))"
@@ -508,7 +508,7 @@ class CourseManager: NSObject {
             attributeSet.contentDescription = infoString
             
             attributeSet.keywords = [id] + [title, infoString].joined(separator: "\n").components(separatedBy: separatorSet).filter { (word) -> Bool in
-                ((word.characters.count >= 4) || word == id) && word != "Taught"
+                ((word.count >= 4) || word == id) && word != "Taught"
                 
                 } as [String]
             let item = CSSearchableItem(uniqueIdentifier: CourseManager.spotlightDomainIdentifier + "." + id, domainIdentifier: CourseManager.spotlightDomainIdentifier, attributeSet: attributeSet)

@@ -151,7 +151,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         }
         
         if let searchBar = searchBar,
-            searchBar.text?.characters.count == 0 {
+            searchBar.text?.count == 0 {
             clearSearch()
         } else if let initialSearch = searchTerm {
             loadSearchResults(withString: initialSearch, options: searchOptions)
@@ -197,7 +197,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                 }
                 
                 if let searchText = self.searchBar?.text {
-                    if searchText.characters.count > 0 {
+                    if searchText.count > 0 {
                         self.loadSearchResults(withString: searchText, options: self.searchOptions)
                     } else {
                         self.clearSearch()
@@ -283,10 +283,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.characters.count > 0 && panelViewController?.isExpanded == false {
+        if searchText.count > 0 && panelViewController?.isExpanded == false {
             self.expandView()
         }
-        guard searchText.characters.count > 0 else {
+        guard searchText.count > 0 else {
             clearSearch()
             return
         }
@@ -368,18 +368,18 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                         let separated = courseText.components(separatedBy: comp)
                         var multiplier: Float = options.contains(.containsSearchTerm) ? 1.0 : 0.0
                         for (i, sepComp) in separated.enumerated() {
-                            if sepComp.characters.count > 0, i < separated.count - 1 {
+                            if sepComp.count > 0, i < separated.count - 1 {
                                 let lastCharacter = sepComp[sepComp.index(before: sepComp.endIndex)..<sepComp.endIndex]
-                                if lastCharacter.trimmingCharacters(in: .newlines).characters.count == 0 {
+                                if lastCharacter.trimmingCharacters(in: .newlines).count == 0 {
                                     multiplier += 20.0
-                                } else if lastCharacter.trimmingCharacters(in: .whitespaces).characters.count == 0 {
+                                } else if lastCharacter.trimmingCharacters(in: .whitespaces).count == 0 {
                                     multiplier += 10.0
                                 }
                             } else {
                                 multiplier += 1.0
                             }
                         }
-                        relevance += multiplier * Float(comp.characters.count)
+                        relevance += multiplier * Float(comp.count)
                     }
                 }
                 if relevance > 0.0 {

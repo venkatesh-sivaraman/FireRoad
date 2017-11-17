@@ -54,22 +54,22 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         if let title = requirement.title {
             let cellType: RequirementsListCellType = level == 0 ? .title : .title2
             var titleText = title
-            if requirement.thresholdDescription.characters.count > 0 {
+            if requirement.thresholdDescription.count > 0 {
                 titleText += " (\(requirement.thresholdDescription))"
             }
             items.append(PresentationItem(cellType: cellType, statement: requirement, text: titleText))
         }
-        if let description = requirement.contentDescription, description.characters.count > 0 {
+        if let description = requirement.contentDescription, description.count > 0 {
             items.append(PresentationItem(cellType: .description, statement: requirement, text: description))
         }
         
         if level == 0,
-            requirement.title == nil, requirement.thresholdDescription.characters.count > 0 {
+            requirement.title == nil, requirement.thresholdDescription.count > 0 {
             items.append(PresentationItem(cellType: .title2, statement: nil, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
         }
         if requirement.minimumNestDepth <= 1, (requirement.maximumNestDepth <= 1 || level > 0) {
             items.append(PresentationItem(cellType: .courseList, statement: requirement, text: nil))
-            if requirement.thresholdDescription.characters.count > 0 {
+            if requirement.thresholdDescription.count > 0 {
                 //items.append(PresentationItem(cellType: .courseListAccessory, statement: nil, text: requirement.thresholdDescription))
                 // Indicate this on the cell somehow
             }
@@ -91,9 +91,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         if list.minimumNestDepth <= 1 {
             ret.append(("", list, presentationItems(for: list)))
         } else {
-            if let description = list.contentDescription, description.characters.count > 0 {
+            if let description = list.contentDescription, description.count > 0 {
                 var rows: [PresentationItem] = []
-                if let title = list.title, title.characters.count > 0 {
+                if let title = list.title, title.count > 0 {
                     rows.append(PresentationItem(cellType: .title, statement: list, text: title))
                 }
                 rows.append(PresentationItem(cellType: .description, statement: list, text: description))
@@ -155,14 +155,14 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if presentationItems[section].title.characters.count > 0 {
+        if presentationItems[section].title.count > 0 {
             return 44.0
         }
         return 0.0
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if presentationItems[section].title.characters.count > 0 {
+        if presentationItems[section].title.count > 0 {
             if let cell = tableView.dequeueReusableCell(withIdentifier: "HeaderView") {
                 ((cell.viewWithTag(12) as? UILabel) ?? cell.textLabel)?.text = presentationItems[section].title
                 let detailTextLabel = (cell.viewWithTag(34) as? UILabel) ?? cell.detailTextLabel
@@ -205,7 +205,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 }
                 if let whitespaceRange = $0.rangeOfCharacter(from: .whitespaces) {
                     return Course(courseID: String($0[$0.startIndex..<whitespaceRange.lowerBound]), courseTitle: String($0[whitespaceRange.upperBound..<$0.endIndex]), courseDescription: "")
-                } else if $0.characters.count > 8 {
+                } else if $0.count > 8 {
                     return Course(courseID: "", courseTitle: $0, courseDescription: "")
                 }
                 return Course(courseID: $0, courseTitle: "", courseDescription: "")

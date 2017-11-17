@@ -267,7 +267,7 @@ class User: NSObject {
         lines.removeFirst()
         
         selectedSubjects = [:]
-        for subjectLine in lines where subjectLine.characters.count > 0 {
+        for subjectLine in lines where subjectLine.count > 0 {
             let comps = subjectLine.components(separatedBy: subjectComponentSeparator)
             guard comps.count >= 4 else {
                 print("Not enough components in subject line \(subjectLine)")

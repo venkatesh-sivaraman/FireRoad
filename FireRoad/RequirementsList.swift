@@ -89,10 +89,10 @@ class RequirementsListStatement: NSObject {
     override var debugDescription: String {
         let fulfillmentString = fulfillmentProgress > 0 ? "(\(fulfillmentProgress) - \(percentageFulfilled)%) " : ""
         if let req = requirement {
-            return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title != nil ? title! + ": " : "")\(req)\(thresholdDescription.characters.count > 0 ? " (" + thresholdDescription + ")" : "")>"
+            return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title != nil ? title! + ": " : "")\(req)\(thresholdDescription.count > 0 ? " (" + thresholdDescription + ")" : "")>"
         } else if let reqList = requirements {
             var connectionString = "\(connectionType)"
-            if thresholdDescription.characters.count > 0 {
+            if thresholdDescription.count > 0 {
                 connectionString += " (\(thresholdDescription))"
             }
             return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title != nil ? title! + ": " : "")\(connectionString) of \n\(reqList.map({ String(reflecting: $0) }).joined(separator: "\n"))>"
@@ -169,8 +169,8 @@ class RequirementsListStatement: NSObject {
         var components: [String] = []
         var connectionType = ConnectionType.all
         var currentIndentLevel = 0
-        for characterIndex in text.characters.indices {
-            let character = text.characters[characterIndex]
+        for characterIndex in text.indices {
+            let character = text[characterIndex]
             if String(character) == SyntaxConstants.allSeparator,
                 currentIndentLevel == 0 {
                 connectionType = .all
@@ -218,7 +218,7 @@ class RequirementsListStatement: NSObject {
     fileprivate func components(in string: String, separatedBy regex: NSRegularExpression) -> [String] {
         var components: [String] = []
         var matchLocation = string.startIndex
-        for match in regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.characters.count)) {
+        for match in regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.count)) {
             if let range = Range(match.range, in: string) {
                 components.append(String(string[matchLocation..<range.lowerBound]))
                 matchLocation = range.upperBound
@@ -254,12 +254,12 @@ class RequirementsListStatement: NSObject {
                 print("Unsupported number of components in modifier string: \(modifier)")
                 return
             }
-            if comps[0].characters.count > 0 {
+            if comps[0].count > 0 {
                 let (type, thresh) = parseModifierComponent(comps[0])
                 thresholdType = type
                 threshold = thresh
             }
-            if comps[1].characters.count > 0 {
+            if comps[1].count > 0 {
                 let (type, thresh) = parseModifierComponent(comps[0])
                 distinctThresholdType = type
                 distinctThreshold = thresh
@@ -273,11 +273,11 @@ class RequirementsListStatement: NSObject {
     
     fileprivate func parseStatement(_ statement: String) {
         var filteredStatement = statement
-        if let match = modifierRegex.firstMatch(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.characters.count)) {
+        if let match = modifierRegex.firstMatch(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.count)) {
             if let range = Range(match.range(at: 1), in: filteredStatement) {
                 parseModifier(String(filteredStatement[range]))
             }
-            filteredStatement = modifierRegex.stringByReplacingMatches(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.characters.count), withTemplate: "")
+            filteredStatement = modifierRegex.stringByReplacingMatches(in: filteredStatement, options: [], range: NSRange(location: 0, length: filteredStatement.count), withTemplate: "")
         }
         
         let (components, cType) = separateTopLevelItems(in: filteredStatement)
@@ -435,7 +435,7 @@ class RequirementsList: RequirementsListStatement {
         }
         // Second line is the description of the course
         let descriptionLine = lines.removeFirst().trimmingCharacters(in: .whitespaces)
-        if descriptionLine.characters.count > 0 {
+        if descriptionLine.count > 0 {
             contentDescription = descriptionLine.replacingOccurrences(of: "\\n", with: "\n")
         }
         
@@ -443,7 +443,7 @@ class RequirementsList: RequirementsListStatement {
             print("Reached end of file early!")
             return
         }
-        guard lines[0].characters.count == 0 else {
+        guard lines[0].count == 0 else {
             print("Third line isn't empty")
             return
         }
@@ -451,7 +451,7 @@ class RequirementsList: RequirementsListStatement {
         
         // Parse top-level list
         var topLevelSections: [(varName: String, description: String)] = []
-        while lines.count > 0, lines[0].characters.count > 0 {
+        while lines.count > 0, lines[0].count > 0 {
             guard lines.count > 2 else {
                 print("Not enough lines for top-level sections - need variable names and descriptions on two separate lines.")
                 return
@@ -470,7 +470,7 @@ class RequirementsList: RequirementsListStatement {
         var variables: [String: RequirementsListStatement] = [:]
         while lines.count > 0 {
             let currentLine = lines.removeFirst()
-            guard currentLine.characters.count > 0 else {
+            guard currentLine.count > 0 else {
                 continue
             }
             guard currentLine.contains(SyntaxConstants.declarationCharacter) else {

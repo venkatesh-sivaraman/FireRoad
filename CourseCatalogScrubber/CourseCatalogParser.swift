@@ -125,7 +125,7 @@ class CourseCatalogParser: NSObject {
             }
             let regex = try NSRegularExpression(pattern: "name(?:\\s?)=\"(.+)\"", options: .caseInsensitive)
             let regions = HTMLNodeExtractor.htmlRegions(in: topLevelNodes, demarcatedByTag: "a") { (node: HTMLNode) -> String? in
-                if let match = regex.firstMatch(in: node.attributeText, options: [], range: NSRange(location: 0, length: node.attributeText.characters.count)) {
+                if let match = regex.firstMatch(in: node.attributeText, options: [], range: NSRange(location: 0, length: node.attributeText.count)) {
                     return (node.attributeText as NSString).substring(with: match.range(at: 1))
                 }
                 return nil
@@ -156,7 +156,7 @@ class CourseCatalogParser: NSObject {
                 print("Couldn't initialize img title regex")
                 return informationItems
             }
-            if let match = regex.firstMatch(in: node.attributeText, options: [], range: NSRange(location: 0, length: node.attributeText.characters.count)) {
+            if let match = regex.firstMatch(in: node.attributeText, options: [], range: NSRange(location: 0, length: node.attributeText.count)) {
                 informationItems.append((node.attributeText as NSString).substring(with: match.range(at: 1)))
             }
         } else if nodeIsDelimitingATag(node) {
@@ -211,13 +211,13 @@ class CourseCatalogParser: NSObject {
             }
         }
         if trimmedList.contains(" or") {
-            return [trimmedList.replacingOccurrences(of: " or", with: ",").replacingOccurrences(of: " and", with: ",").components(separatedBy: informationSeparator).map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }).filter({ $0.characters.count > 0 && !$0.lowercased().contains(CourseCatalogConstants.none) })]
+            return [trimmedList.replacingOccurrences(of: " or", with: ",").replacingOccurrences(of: " and", with: ",").components(separatedBy: informationSeparator).map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }).filter({ $0.count > 0 && !$0.lowercased().contains(CourseCatalogConstants.none) })]
         }
-        return trimmedList.replacingOccurrences(of: " or", with: "").replacingOccurrences(of: " and", with: ",").components(separatedBy: informationSeparator).map({ [$0.trimmingCharacters(in: .whitespacesAndNewlines)] }).filter({ $0[0].characters.count > 0 && !$0[0].lowercased().contains(CourseCatalogConstants.none) })
+        return trimmedList.replacingOccurrences(of: " or", with: "").replacingOccurrences(of: " and", with: ",").components(separatedBy: informationSeparator).map({ [$0.trimmingCharacters(in: .whitespacesAndNewlines)] }).filter({ $0[0].count > 0 && !$0[0].lowercased().contains(CourseCatalogConstants.none) })
     }
     
     func parseScheduleString(_ schedule: String, quarterInformation: UnsafeMutablePointer<String>?) -> String {
-        guard schedule.trimmingCharacters(in: .whitespacesAndNewlines).characters.count > 0 else {
+        guard schedule.trimmingCharacters(in: .whitespacesAndNewlines).count > 0 else {
             return schedule.trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
@@ -226,7 +226,7 @@ class CourseCatalogParser: NSObject {
             print("Failed to load quarter info regex")
             return schedule
         }
-        if let quarterInfoMatch = quarterInfoRegex.firstMatch(in: schedule, options: [], range: NSRange(location: 0, length: schedule.characters.count)) {
+        if let quarterInfoMatch = quarterInfoRegex.firstMatch(in: schedule, options: [], range: NSRange(location: 0, length: schedule.count)) {
             if let typeRange = Range(quarterInfoMatch.range(at: 1), in: schedule),
                 let dateRange = Range(quarterInfoMatch.range(at: 2), in: schedule) {
                 let scheduleType = String(schedule[typeRange])
@@ -235,7 +235,7 @@ class CourseCatalogParser: NSObject {
             }
         }
         
-        let trimmedSchedule = quarterInfoRegex.stringByReplacingMatches(in: schedule, options: [], range: NSRange(location: 0, length: schedule.characters.count), withTemplate: "")
+        let trimmedSchedule = quarterInfoRegex.stringByReplacingMatches(in: schedule, options: [], range: NSRange(location: 0, length: schedule.count), withTemplate: "")
         
         // Class type regex matches "Lecture:abc XX:"
         // Time regex matches "MTWRF9-11 ( 1-123 )" or "MTWRF EVE (8-10) ( 1-234 )".
@@ -246,7 +246,7 @@ class CourseCatalogParser: NSObject {
             return schedule
         }
         var scheduleComponents: [String] = []
-        for match in classTypeRegex.matches(in: trimmedSchedule, options: [], range: NSRange(location: 0, length: trimmedSchedule.characters.count)) {
+        for match in classTypeRegex.matches(in: trimmedSchedule, options: [], range: NSRange(location: 0, length: trimmedSchedule.count)) {
             guard let typeRange = Range(match.range(at: 1), in: trimmedSchedule),
                 let contentsRange = Range(match.range(at: 2), in: trimmedSchedule) else {
                     continue
@@ -261,7 +261,7 @@ class CourseCatalogParser: NSObject {
                 for time in times {
                     var locationStart = 0
                     var timeComps: [String] = []
-                    for submatch in timeRegex.matches(in: time, options: [], range: NSRange(location: 0, length: time.characters.count)) {
+                    for submatch in timeRegex.matches(in: time, options: [], range: NSRange(location: 0, length: time.count)) {
                         guard let dayRange = Range(submatch.range(at: 1), in: time) else {
                             print("Couldn't get days in \(time)")
                             continue
@@ -278,7 +278,7 @@ class CourseCatalogParser: NSObject {
                         }
                         locationStart = submatch.range.location + submatch.range.length
                     }
-                    for locationMatch in locationRegex.matches(in: time, options: [], range: NSRange(location: locationStart, length: time.characters.count - locationStart)) {
+                    for locationMatch in locationRegex.matches(in: time, options: [], range: NSRange(location: locationStart, length: time.count - locationStart)) {
                         guard let locationRange = Range(locationMatch.range(at: 0), in: time) else {
                             continue
                         }
@@ -305,7 +305,7 @@ class CourseCatalogParser: NSObject {
             
         } else if item.contains(CourseCatalogConstants.urlPrefix) {
             // Don't save URLs
-        } else if classTimeRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.characters.count)) != nil {
+        } else if classTimeRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)) != nil {
             var trimmedItem = item
             if item.contains(CourseCatalogConstants.finalFlag) {
                 attributes[.hasFinal] = true
@@ -318,13 +318,13 @@ class CourseCatalogParser: NSObject {
             }
             
         } else if let subjectID = attributes[.subjectID] as? String,
-            let firstMatch = courseIDListRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.characters.count)),
+            let firstMatch = courseIDListRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)),
             let firstMatchRange = Range(firstMatch.range, in: item),
             String(item[firstMatchRange]).contains(subjectID) {
             attributes[.title] = String(item[firstMatchRange.upperBound..<item.endIndex]).replacingOccurrences(of: CourseCatalogConstants.jointClass, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-        } else if item.characters.count > 75 {
+        } else if item.count > 75 {
             if let existingDescription = attributes[.description] as? String,
-                existingDescription.characters.count > item.characters.count {
+                existingDescription.count > item.count {
                 if let notes = attributes[.notes] as? String {
                     attributes[.notes] = notes + "\n" + item.trimmingCharacters(in: .whitespacesAndNewlines)
                 } else {
@@ -343,7 +343,7 @@ class CourseCatalogParser: NSObject {
                 print("Failed to load prefix regex")
                 return
             }
-            for (i, match) in prefixRegex.matches(in: item, options: [], range: NSRange(location: 0, length: item.characters.count)).enumerated() {
+            for (i, match) in prefixRegex.matches(in: item, options: [], range: NSRange(location: 0, length: item.count)).enumerated() {
                 guard let prefixRange = Range(match.range(at: 1), in: item),
                     let contentsRange = Range(match.range(at: 2), in: item) else {
                     continue
@@ -397,7 +397,7 @@ class CourseCatalogParser: NSObject {
             attributes[.communicationRequirement] = CourseCatalogConstants.abbreviation(for: item.trimmingCharacters(in: .whitespacesAndNewlines))
         } else if let girRequirement = CourseCatalogConstants.GIRRequirements[item.trimmingCharacters(in: .whitespacesAndNewlines)] {
             attributes[.GIR] = girRequirement
-        } else if instructorRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.characters.count)) != nil {
+        } else if instructorRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)) != nil {
             attributes[.instructors] = item.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: "")
         }
     }
@@ -422,14 +422,14 @@ class CourseCatalogParser: NSObject {
                         continue
                     }
                     if let lineNodes = HTMLNodeExtractor.extractNodes(from: line),
-                        lineNodes.count == 1, lineNodes[0].enclosingRange.length >= line.characters.count - 5 {
+                        lineNodes.count == 1, lineNodes[0].enclosingRange.length >= line.count - 5 {
                         if nodeIsDelimitingATag(lineNodes[0]), informationItems.count > 0 {
                             shouldStop = true
                             break
                         }
                         informationItems.append(lineNodes[0].contents)
                     } else {
-                        if HTMLNodeExtractor.stripHTMLTags(from: line).trimmingCharacters(in: .whitespacesAndNewlines).characters.count > 0 {
+                        if HTMLNodeExtractor.stripHTMLTags(from: line).trimmingCharacters(in: .whitespacesAndNewlines).count > 0 {
                             let strippedLine = HTMLNodeExtractor.stripHTMLTags(from: line, replacementString: "\n")
                             informationItems.append(strippedLine)
                         }
@@ -447,14 +447,14 @@ class CourseCatalogParser: NSObject {
                 informationItems.append(node.contents)
             }
         }
-        //print("Information items: \(informationItems.filter({ $0.characters.count > 0 }).joined(separator: "\n") as NSString)")
+        //print("Information items: \(informationItems.filter({ $0.count > 0 }).joined(separator: "\n") as NSString)")
         
         var processedItems: [CourseAttribute: Any] = [.subjectID : region.title]
         if let url = catalogURL {
             processedItems[.URL] = url.absoluteString + "#\(region.title)"
         }
         for item in informationItems {
-            guard item.characters.count > 0,
+            guard item.count > 0,
                 let escapedItem = String(htmlEncodedString: item) else {
                     continue
             }

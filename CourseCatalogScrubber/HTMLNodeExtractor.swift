@@ -22,7 +22,7 @@ class HTMLNode: CustomDebugStringConvertible {
     
     var debugDescription: String {
         if childNodes.count == 0 {
-            if contents.characters.count == 0 {
+            if contents.count == 0 {
                 return "<\(tagText)\(attributeText)/>"
             } else {
                 return "<\(tagText)\(attributeText)>: \"\(strippedContents)\""
@@ -91,7 +91,7 @@ class HTMLNodeExtractor: NSObject {
             print("Failed to generate tag regex")
             return text
         }
-        return tagRegex.stringByReplacingMatches(in: text, options: [], range: NSRange(location: 0, length: text.characters.count), withTemplate: replacementString)
+        return tagRegex.stringByReplacingMatches(in: text, options: [], range: NSRange(location: 0, length: text.count), withTemplate: replacementString)
     }
     
     /**
@@ -107,8 +107,8 @@ class HTMLNodeExtractor: NSObject {
      */
     class func extractNodes(from text: String, ignoreErrors: Bool = false) -> [HTMLNode]? {
         if text.contains(HTMLTags.htmlTagOpening) {
-            guard let startRange = regexForOpeningTag(HTMLTags.bodyTagOpening).firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.characters.count))?.range,
-                let endRange = regexForOpeningTag(HTMLTags.bodyTagClosing).firstMatch(in: text, options: [], range: NSRange(location: startRange.location + startRange.length, length: text.characters.count - (startRange.location + startRange.length)))?.range else {
+            guard let startRange = regexForOpeningTag(HTMLTags.bodyTagOpening).firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.count))?.range,
+                let endRange = regexForOpeningTag(HTMLTags.bodyTagClosing).firstMatch(in: text, options: [], range: NSRange(location: startRange.location + startRange.length, length: text.count - (startRange.location + startRange.length)))?.range else {
                     assert(false, "The given HTML text has an HTML tag but no body tag.")
                     return nil
             }

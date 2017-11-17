@@ -346,6 +346,7 @@
 				9646CFF81EB92525005F87CB /* User.swift */,
 				962DAD651F89A6180011D96F /* RootTabViewController.swift */,
 				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
+				96EBE5641FBEB3F900FABE1E /* Schedule */,
 				9669C7CA1F9062A800E60D89 /* Course Road */,
 				9669C7B81F9061E700E60D89 /* Requirements Browser */,
 				9669C7CC1F9062FF00E60D89 /* Useful View Controllers */,
@@ -460,6 +461,13 @@
 				968FE05E1F75FE270098E97F /* test_html.txt */,
 			);
 			path = CourseCatalogScrubber;
+			sourceTree = "<group>";
+		};
+		96EBE5641FBEB3F900FABE1E /* Schedule */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Schedule;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

@@ -223,7 +223,7 @@ class CourseThumbnailCell: UICollectionViewCell {
     func repositionFulfillmentIndicators() {
         var topThreshold = CGFloat(0.0)
         if let detail = detailTextLabel,
-            detail.text?.characters.count != 0 {
+            detail.text?.count != 0 {
             topThreshold = detail.frame.maxY
         } else {
             topThreshold = frame.size.height / 2.0
