@@ -171,7 +171,7 @@ struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible {
     }
     
     var debugDescription: String {
-        return "CourseScheduleDay(\(stringEquivalent()))"
+        return stringEquivalent()
     }
     
     static func fromString(_ days: String) -> CourseScheduleDay {
@@ -217,11 +217,11 @@ struct CourseScheduleTime: CustomDebugStringConvertible {
     }
     
     func stringEquivalent(withTimeOfDay: Bool = false) -> String {
-        return String(format: "%d:%02d", hour, minute) + (withTimeOfDay ? (PM ? " pm" : " am") : "")
+        return String(format: "%d", hour) + (minute != 0 ? String(format: ":%02d", minute) : "") + (withTimeOfDay ? (PM ? " PM" : " AM") : "")
     }
     
     var debugDescription: String {
-        return stringEquivalent(withTimeOfDay: true)
+        return stringEquivalent(withTimeOfDay: (PM && hour >= 7 && hour != 12))
     }
 }
 
@@ -238,6 +238,14 @@ class CourseScheduleItem: NSObject {
         self.endTime = CourseScheduleTime.fromString(endTime, evening: isEvening)
         self.isEvening = isEvening
         self.location = location
+    }
+    
+    func stringEquivalent(withLocation: Bool = true) -> String {
+        return "\(days) \(startTime)–\(endTime)" + (location != nil && withLocation ? " (\(location!))" : "")
+    }
+    
+    override var description: String {
+        return stringEquivalent(withLocation: true)
     }
 }
 

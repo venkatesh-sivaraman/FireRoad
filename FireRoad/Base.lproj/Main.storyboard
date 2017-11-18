@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13196" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="49e-Tb-3d3">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="49e-Tb-3d3">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13173"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13527"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -62,7 +62,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" tag="34" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="249" text="A Really Titularly, Which Won't Fit on This Label" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" minimumScaleFactor="0.80000000000000004" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8dy-I6-nZD">
-                                                    <rect key="frame" x="6" y="30" width="103" height="64"/>
+                                                    <rect key="frame" x="6" y="38" width="103" height="48"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" relation="greaterThanOrEqual" priority="995" constant="40" id="wAb-Fl-9XP"/>
                                                     </constraints>
@@ -71,7 +71,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" tag="12" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="18.03" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zyu-hP-Bts">
-                                                    <rect key="frame" x="27.5" y="1" width="61.5" height="29"/>
+                                                    <rect key="frame" x="27.5" y="9" width="61.5" height="29"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="29" id="Ulk-ZB-Wns"/>
                                                     </constraints>
@@ -122,7 +122,7 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" tag="10" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Freshman Fall" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7QE-px-20T">
-                                            <rect key="frame" x="8" y="10" width="108.5" height="20.5"/>
+                                            <rect key="frame" x="16" y="10" width="108.5" height="20.5"/>
                                             <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
@@ -1001,10 +1001,10 @@
             </objects>
             <point key="canvasLocation" x="670" y="1110"/>
         </scene>
-        <!--Catalog-->
+        <!--Schedule-->
         <scene sceneID="wg7-f3-ORb">
             <objects>
-                <viewController id="8rJ-Kc-sve" customClass="CatalogViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="8rJ-Kc-sve" customClass="ScheduleViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="L7p-HK-0SC"/>
                         <viewControllerLayoutGuide type="bottom" id="Djb-ko-YwX"/>
@@ -1026,20 +1026,71 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="d8A-Va-ZUe">
+                                <rect key="frame" x="12" y="26" width="351" height="60"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" priority="995" constant="380" id="Adf-4D-lBf"/>
+                                    <constraint firstAttribute="height" priority="995" constant="60" id="z5F-8z-NmR"/>
+                                </constraints>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="Adf-4D-lBf"/>
+                                    </mask>
+                                </variation>
+                                <variation key="widthClass=regular">
+                                    <mask key="constraints">
+                                        <include reference="Adf-4D-lBf"/>
+                                    </mask>
+                                </variation>
+                                <connections>
+                                    <segue destination="Dfz-bt-fZR" kind="embed" id="5m9-3K-xoz"/>
+                                </connections>
+                            </containerView>
+                            <containerView hidden="YES" opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ehw-gD-NEe">
+                                <rect key="frame" x="0.0" y="94" width="375" height="524"/>
+                                <connections>
+                                    <segue destination="9rO-07-LYp" kind="embed" id="dEW-SP-aUh"/>
+                                </connections>
+                            </containerView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="ehw-gD-NEe" firstAttribute="top" secondItem="L7p-HK-0SC" secondAttribute="bottom" constant="74" id="74d-Le-QAi"/>
+                            <constraint firstAttribute="trailing" secondItem="d8A-Va-ZUe" secondAttribute="trailing" constant="12" id="8Ua-xf-A31"/>
+                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="d8A-Va-ZUe" secondAttribute="bottom" constant="12" id="94M-on-sVo"/>
                             <constraint firstItem="NDk-cv-Gan" firstAttribute="top" secondItem="zEq-FU-wV5" secondAttribute="bottom" constant="8" symbolic="YES" id="Day-4N-Vmt"/>
+                            <constraint firstItem="Djb-ko-YwX" firstAttribute="top" secondItem="ehw-gD-NEe" secondAttribute="bottom" id="Fwd-Xw-gUl"/>
                             <constraint firstItem="NDk-cv-Gan" firstAttribute="centerX" secondItem="zEq-FU-wV5" secondAttribute="centerX" id="JgO-Fn-dHn"/>
+                            <constraint firstItem="d8A-Va-ZUe" firstAttribute="top" secondItem="L7p-HK-0SC" secondAttribute="bottom" constant="6" id="QUq-tm-I7W"/>
+                            <constraint firstItem="Djb-ko-YwX" firstAttribute="top" relation="greaterThanOrEqual" secondItem="d8A-Va-ZUe" secondAttribute="bottom" constant="12" id="SFx-oh-ATy"/>
+                            <constraint firstItem="ehw-gD-NEe" firstAttribute="leading" secondItem="QS5-Rx-YEW" secondAttribute="leading" id="ePi-sk-Yvl"/>
+                            <constraint firstItem="d8A-Va-ZUe" firstAttribute="leading" secondItem="QS5-Rx-YEW" secondAttribute="leading" constant="12" id="p9E-St-cv8"/>
                             <constraint firstAttribute="centerX" secondItem="zEq-FU-wV5" secondAttribute="centerX" id="qqM-NS-xev"/>
                             <constraint firstAttribute="centerY" secondItem="zEq-FU-wV5" secondAttribute="centerY" id="qzY-Ky-pLD"/>
+                            <constraint firstAttribute="trailing" secondItem="ehw-gD-NEe" secondAttribute="trailing" id="t1I-pc-SWG"/>
+                            <constraint firstItem="d8A-Va-ZUe" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="QS5-Rx-YEW" secondAttribute="leading" constant="12" id="wEb-KO-MCU"/>
                         </constraints>
+                        <variation key="widthClass=regular">
+                            <mask key="constraints">
+                                <exclude reference="p9E-St-cv8"/>
+                                <include reference="wEb-KO-MCU"/>
+                            </mask>
+                        </variation>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Catalog" image="second" id="cPa-gy-q4n"/>
+                    <tabBarItem key="tabBarItem" title="Schedule" image="second" id="cPa-gy-q4n"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4Nw-L8-lE0" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="670" y="359"/>
+            <point key="canvasLocation" x="669.60000000000002" y="358.4707646176912"/>
+        </scene>
+        <!--Page View Controller-->
+        <scene sceneID="OeK-Dg-CGK">
+            <objects>
+                <pageViewController autoresizesArchivedViewToFullSize="NO" transitionStyle="scroll" navigationOrientation="horizontal" spineLocation="none" id="9rO-07-LYp" sceneMemberID="viewController"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="cYi-RK-jcd" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1574" y="358"/>
         </scene>
         <!--Root Tab View Controller-->
         <scene sceneID="yl2-sM-qoP">
@@ -1691,4 +1742,7 @@
         <image name="small-grid" width="26" height="26"/>
         <image name="warning" width="32" height="32"/>
     </resources>
+    <inferredMetricsTieBreakers>
+        <segue reference="5m9-3K-xoz"/>
+    </inferredMetricsTieBreakers>
 </document>

@@ -387,7 +387,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 detailTextLabel?.text = "TBA"
             } else {
                 let itemDescriptions = items.map({ (itemSet) -> String in
-                    return itemSet.map({ "\($0.days)\($0.startTime)-\($0.endTime)\($0.isEvening ? "pm" : "")" }).joined(separator: ", ") + (itemSet.first?.location != nil ? " (\(itemSet.first!.location!))" : "")
+                    return itemSet.map({ $0.stringEquivalent(withLocation: false) }).joined(separator: ", ") + (itemSet.first?.location != nil ? " (\(itemSet.first!.location!))" : "")
                 }).joined(separator: "\n")
                 detailTextLabel?.text = itemDescriptions
             }

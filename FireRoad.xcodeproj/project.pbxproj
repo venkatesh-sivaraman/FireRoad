@@ -94,6 +94,8 @@
 		96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */; };
 		96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */; };
 		96D055251FB80B6700BD18A8 /* CourseFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */; };
+		96EBE5661FBF9B8500FABE1E /* ScheduleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5651FBF9B8500FABE1E /* ScheduleViewController.swift */; };
+		96EBE5681FBF9E2B00FABE1E /* PanelParentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */; };
 		96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */; };
 		96FF1F8D1FB65797007F4A7C /* IS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F881FB65796007F4A7C /* IS.txt */; };
 		96FF1F8E1FB65797007F4A7C /* condensed_2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F891FB65796007F4A7C /* condensed_2.txt */; };
@@ -222,6 +224,8 @@
 		96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsBrowserTableCell.swift; sourceTree = "<group>"; };
 		96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseThumbnailCell.swift; sourceTree = "<group>"; };
 		96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseFilterViewController.swift; sourceTree = "<group>"; };
+		96EBE5651FBF9B8500FABE1E /* ScheduleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleViewController.swift; sourceTree = "<group>"; };
+		96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelParentViewController.swift; sourceTree = "<group>"; };
 		96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseCatalogParser.swift; sourceTree = "<group>"; };
 		96FF1F881FB65796007F4A7C /* IS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IS.txt; sourceTree = "<group>"; };
 		96FF1F891FB65796007F4A7C /* condensed_2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed_2.txt; sourceTree = "<group>"; };
@@ -345,6 +349,7 @@
 				9646CFF41EB922C3005F87CB /* Course.swift */,
 				9646CFF81EB92525005F87CB /* User.swift */,
 				962DAD651F89A6180011D96F /* RootTabViewController.swift */,
+				96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */,
 				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
 				96EBE5641FBEB3F900FABE1E /* Schedule */,
 				9669C7CA1F9062A800E60D89 /* Course Road */,
@@ -466,6 +471,7 @@
 		96EBE5641FBEB3F900FABE1E /* Schedule */ = {
 			isa = PBXGroup;
 			children = (
+				96EBE5651FBF9B8500FABE1E /* ScheduleViewController.swift */,
 			);
 			name = Schedule;
 			sourceTree = "<group>";
@@ -670,9 +676,11 @@
 				9626B6E11F8070EB009F6F96 /* StringExtension.swift in Sources */,
 				96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */,
 				9626B6E61F815686009F6F96 /* RequirementsBrowserViewController.swift in Sources */,
+				96EBE5681FBF9E2B00FABE1E /* PanelParentViewController.swift in Sources */,
 				9646CFD71EB921FE005F87CB /* CourseroadViewController.swift in Sources */,
 				961E49FD1EC6A8CB002BABB9 /* CourseDetailsViewController.swift in Sources */,
 				9646CFF91EB92525005F87CB /* User.swift in Sources */,
+				96EBE5661FBF9B8500FABE1E /* ScheduleViewController.swift in Sources */,
 				9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */,
 				9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */,
 				96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */,

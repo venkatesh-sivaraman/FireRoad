@@ -8,7 +8,8 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseBrowserDelegate, CourseDetailsDelegate, CourseThumbnailCellDelegate {
+class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate {
+    
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
@@ -45,19 +46,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         
         self.collectionView.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(CourseroadViewController.handleLongGesture(gesture:))))
         
-        for child in self.childViewControllers {
-            if child is PanelViewController {
-                self.panelView = child as? PanelViewController
-                for subchild in self.panelView!.childViewControllers[0].childViewControllers {
-                    if subchild is CourseBrowserViewController {
-                        self.courseBrowser = subchild as? CourseBrowserViewController
-                        break
-                    }
-                }
-            }
-        }
-
-        self.courseBrowser?.delegate = self
+        findPanelChildViewController()
         
         let menu = UIMenuController.shared
         menu.menuItems = [
@@ -179,7 +168,7 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.collectionView.reloadData()
-        self.panelView?.collapseHeight = self.panelView!.view.frame.size.height
+        updatePanelViewCollapseHeight()
     }
     
     override func viewWillLayoutSubviews() {
@@ -352,25 +341,6 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
         })
     }
     
-    // MARK: - Delegate Methods
-    
-    func courseDetails(added course: Course, to semester: UserSemester?) {
-        _ = addCourse(course, to: semester)
-        self.navigationController?.popViewController(animated: true)
-    }
-    
-    func courseBrowser(added course: Course, to semester: UserSemester?) -> UserSemester? {
-        return addCourse(course, to: semester)
-    }
-    
-    func courseBrowserRequestedDetails(about course: Course) {
-        viewDetails(for: course)
-    }
-    
-    func courseDetailsRequestedDetails(about course: Course) {
-        viewDetails(for: course)
-    }
-    
     // MARK: - Menu Actions
     
     /*func collectionView(_ collectionView: UICollectionView, shouldShowMenuForItemAt indexPath: IndexPath) -> Bool {
@@ -418,68 +388,6 @@ class CourseroadViewController: UIViewController, UICollectionViewDataSource, UI
     
     // MARK: - Model Interaction
         
-    func viewDetails(for course: Course) {
-        if !CourseManager.shared.isLoaded {
-            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
-            hud.mode = .determinateHorizontalBar
-            hud.label.text = "Loading courses…"
-            DispatchQueue.global(qos: .background).async {
-                let initialProgress = CourseManager.shared.loadingProgress
-                while !CourseManager.shared.isLoaded {
-                    DispatchQueue.main.async {
-                        hud.progress = (CourseManager.shared.loadingProgress - initialProgress) / (1.0 - initialProgress)
-                    }
-                    usleep(100)
-                }
-                DispatchQueue.main.async {
-                    hud.hide(animated: true)
-                    self.viewDetails(for: course)
-                }
-            }
-            return
-        }
-        if let id = course.subjectID,
-            let realCourse = CourseManager.shared.getCourse(withID: id) {
-            CourseManager.shared.loadCourseDetails(about: realCourse) { (success) in
-                if success {
-                    guard let panel = self.panelView,
-                        let browser = self.courseBrowser else {
-                            return
-                    }
-                    if !panel.isExpanded {
-                        panel.expandView()
-                    }
-                    
-                    let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
-                    details.course = realCourse
-                    details.delegate = self
-                    browser.navigationController?.pushViewController(details, animated: true)
-                    browser.navigationController?.view.setNeedsLayout()
-                } else {
-                    print("Failed to load course details!")
-                }
-            }
-        } else if course.subjectID == "GIR" {
-            guard let panel = self.panelView,
-                let browser = self.courseBrowser else {
-                    return
-            }
-            if !panel.isExpanded {
-                panel.expandView()
-            }
-            
-            let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
-            listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
-            listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
-            listVC.showsHeaderBar = false
-            listVC.delegate = self
-            listVC.managesNavigation = false
-            listVC.view.backgroundColor = UIColor.clear
-            browser.navigationController?.pushViewController(listVC, animated: true)
-            browser.navigationController?.view.setNeedsLayout()
-        }
-    }
-    
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
         var selectedSemester: UserSemester? = semester
         if selectedSemester == nil {
