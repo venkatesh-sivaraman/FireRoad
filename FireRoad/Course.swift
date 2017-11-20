@@ -422,11 +422,66 @@ class Course: NSObject {
     }
     @objc dynamic var department: String?
     
-    @objc dynamic var equivalentSubjects: [String] = []
-    @objc dynamic var jointSubjects: [String] = []
-    @objc dynamic var meetsWithSubjects: [String] = []
-    @objc dynamic var prerequisites: [[String]] = []
-    @objc dynamic var corequisites: [[String]] = []
+    private var _equivalentSubjects: [String] = []
+    @objc dynamic var equivalentSubjects: [String] {
+        get {
+            if let cache = parseDeferredValues[.equivalentSubjects] {
+                _equivalentSubjects = extractListString(cache)
+                parseDeferredValues[.equivalentSubjects] = nil
+            }
+            return _equivalentSubjects
+        } set {
+            _equivalentSubjects = newValue
+        }
+    }
+    private var _jointSubjects: [String] = []
+    @objc dynamic var jointSubjects: [String] {
+        get {
+            if let cache = parseDeferredValues[.jointSubjects] {
+                _jointSubjects = extractListString(cache)
+                parseDeferredValues[.jointSubjects] = nil
+            }
+            return _jointSubjects
+        } set {
+            _jointSubjects = newValue
+        }
+    }
+    private var _meetsWithSubjects: [String] = []
+    @objc dynamic var meetsWithSubjects: [String] {
+        get {
+            if let cache = parseDeferredValues[.meetsWithSubjects] {
+                _meetsWithSubjects = extractListString(cache)
+                parseDeferredValues[.meetsWithSubjects] = nil
+            }
+            return _meetsWithSubjects
+        } set {
+            _meetsWithSubjects = newValue
+        }
+    }
+    private var _prerequisites: [[String]] = []
+    @objc dynamic var prerequisites: [[String]] {
+        get {
+            if let cache = parseDeferredValues[.prerequisites] {
+                _prerequisites = extractCourseListString(cache)
+                parseDeferredValues[.prerequisites] = nil
+            }
+            return _prerequisites
+        } set {
+            _prerequisites = newValue
+        }
+    }
+    private var _corequisites: [[String]] = []
+    @objc dynamic var corequisites: [[String]] {
+        get {
+            if let cache = parseDeferredValues[.corequisites] {
+                _corequisites = extractCourseListString(cache)
+                parseDeferredValues[.corequisites] = nil
+            }
+            return _corequisites
+        } set {
+            _corequisites = newValue
+        }
+    }
 
     var girAttribute: GIRAttribute?
     var communicationRequirement: CommunicationAttribute?
@@ -435,7 +490,18 @@ class Course: NSObject {
     @objc dynamic var gradeRule: String?
     @objc dynamic var gradeType: String?
     
-    @objc dynamic var instructors: [String] = []
+    private var _instructors: [String] = []
+    @objc dynamic var instructors: [String] {
+        get {
+            if let cache = parseDeferredValues[.instructors] {
+                _instructors = extractListString(cache)
+                parseDeferredValues[.instructors] = nil
+            }
+            return _instructors
+        } set {
+            _instructors = newValue
+        }
+    }
     @objc dynamic var isOfferedFall: Bool = false
     @objc dynamic var isOfferedIAP: Bool = false
     @objc dynamic var isOfferedSpring: Bool = false
@@ -498,6 +564,8 @@ class Course: NSObject {
     var relatedSubjects: [(String, Float)] = []
     
     var schedule: [String: [[CourseScheduleItem]]]?
+    
+    private var parseDeferredValues: [CourseAttribute: String] = [:]
 
     override init() {
         
@@ -527,13 +595,13 @@ class Course: NSObject {
                 if (value as? [[String]]) != nil {
                     super.setValue(value, forKey: key)
                 } else {
-                    super.setValue(extractCourseListString(value as? String), forKey: key)
+                    parseDeferredValues[attribute] = value as? String
                 }
             case .equivalentSubjects, .jointSubjects, .meetsWithSubjects, .instructors:
                 if (value as? [String]) != nil {
                     super.setValue(value, forKey: key)
                 } else {
-                    super.setValue(extractListString(value as? String), forKey: key)
+                    parseDeferredValues[attribute] = value as? String
                 }
             case .isOfferedFall, .isOfferedIAP, .isOfferedSpring, .isOfferedSummer, .isOfferedThisYear,
                  .isVariableUnits:

@@ -222,7 +222,7 @@ class CourseManager: NSObject {
                             print("Beyond bounds")
                         } else if let key = CourseAttribute(csvHeader: csvHeaders![i]) {
                             if key == .subjectID {
-                                currentID = trimmed
+                                currentID = trimmed.replacingOccurrences(of: "[J]", with: "")
                             }
                             if let id = currentID {
                                 let course = getOrInitializeCourse(withID: id)
@@ -263,7 +263,7 @@ class CourseManager: NSObject {
                 var currentID: String?
                 for (i, comp) in comps.enumerated() {
                     if csvHeaders![i] == "Subject Id" {
-                        currentID = comp
+                        currentID = comp.replacingOccurrences(of: "[J]", with: "")
                     } else if csvHeaders![i] == "Subject Enrollment Number",
                         let id = currentID,
                         let course = self.getCourse(withID: id) {
@@ -294,7 +294,7 @@ class CourseManager: NSObject {
             for compIdx in stride(from: 1, to: comps.count, by: 2) {
                 related.append((comps[compIdx], Float(comps[compIdx + 1])!))
             }
-            let course = getOrInitializeCourse(withID: comps[0].trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
+            let course = getOrInitializeCourse(withID: comps[0].trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).replacingOccurrences(of: "[J]", with: ""))
             course.relatedSubjects = related.sorted(by: { $0.1 > $1.1 })
         }
         taskCompletion(true)
@@ -345,9 +345,6 @@ class CourseManager: NSObject {
     
     private func getOrInitializeCourse(withID subjectID: String) -> Course {
         return courseEditingQueue.sync {
-            if subjectID == "18.014" {
-                print("Here")
-            }
             if let course = getCourse(withID: subjectID) {
                 return course
             }
@@ -375,11 +372,7 @@ class CourseManager: NSObject {
     }
     
     func getCourse(withID subjectID: String) -> Course? {
-        let processedID = subjectID.replacingOccurrences(of: "[J]", with: "")
-        if processedID.count == 0 {
-            return nil
-        }
-        if let course = self.coursesByID[processedID] {
+        if let course = self.coursesByID[subjectID] {
             return course
         }
         return nil
@@ -397,7 +390,7 @@ class CourseManager: NSObject {
     
     func addCourse(_ course: Course) {
         courseEditingQueue.sync {
-            guard let processedID = course.subjectID?.replacingOccurrences(of: "[J]", with: "") else {
+            guard var processedID = course.subjectID else {
                 print("Tried to add course \(course) with no ID")
                 return
             }
@@ -410,9 +403,8 @@ class CourseManager: NSObject {
     }
     
     func addCourse(withID subjectID: String, title: String, units: Int) {
-        let processedID = subjectID.replacingOccurrences(of: "[J]", with: "")
         let newCourse = Course()
-        newCourse.subjectID = processedID
+        newCourse.subjectID = subjectID
         newCourse.subjectTitle = title
         newCourse.totalUnits = units
         addCourse(newCourse)
