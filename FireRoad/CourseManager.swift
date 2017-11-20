@@ -300,6 +300,21 @@ class CourseManager: NSObject {
         taskCompletion(true)
     }
     
+    func loadCourseDetailsSynchronously(about course: Course) {
+        if self.getCourse(withID: course.subjectID!) == nil {
+            return
+        }
+        if self.loadedDepartments.contains(course.subjectCode!) {
+            return
+        }
+        guard let path = Bundle.main.path(forResource: course.subjectCode!, ofType: "txt") else {
+            print("Failed to load details for \(course.subjectID!)")
+            return
+        }
+        self.readSummaryFile(at: path)
+        self.loadedDepartments.append(course.subjectCode!)
+    }
+    
     func loadCourseDetails(about course: Course, _ completion: @escaping ((Bool) -> Void)) {
         if self.getCourse(withID: course.subjectID!) == nil {
             completion(false)

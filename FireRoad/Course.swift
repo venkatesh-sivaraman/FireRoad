@@ -191,7 +191,7 @@ struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible {
     }
 }
 
-struct CourseScheduleTime: CustomDebugStringConvertible {
+struct CourseScheduleTime: CustomDebugStringConvertible, Comparable {
     var hour: Int
     var minute: Int
     var PM: Bool
@@ -222,6 +222,42 @@ struct CourseScheduleTime: CustomDebugStringConvertible {
     
     var debugDescription: String {
         return stringEquivalent(withTimeOfDay: (PM && hour >= 7 && hour != 12))
+    }
+    
+    var hour24: Int {
+        return hour + (PM && hour != 12 ? 12 : 0)
+    }
+    
+    static func <(lhs: CourseScheduleTime, rhs: CourseScheduleTime) -> Bool {
+        let lHour = lhs.hour24
+        let rHour = rhs.hour24
+        if lHour != rHour {
+            return lHour < rHour
+        }
+        if lhs.minute != rhs.minute {
+            return lhs.minute < rhs.minute
+        }
+        return false
+    }
+    
+    static func ==(lhs: CourseScheduleTime, rhs: CourseScheduleTime) -> Bool {
+        return lhs.hour == rhs.hour && lhs.minute == rhs.minute && lhs.PM == rhs.PM
+    }
+    
+    func delta(to otherValue: CourseScheduleTime) -> (Int, Int) {
+        if self > otherValue {
+            let res = otherValue.delta(to: self)
+            return (-res.0, -res.1)
+        }
+        var myHour = hour24
+        let destinationHour = otherValue.hour24
+        var minutes = 0
+        while myHour < destinationHour {
+            minutes += 60
+            myHour += 1
+        }
+        minutes += otherValue.minute - minute
+        return (minutes / 60, minutes % 60)
     }
 }
 
@@ -259,6 +295,17 @@ enum CourseScheduleType {
                            CourseScheduleType.recitation,
                            CourseScheduleType.design,
                            CourseScheduleType.lab]
+    
+    private static let abbreviations = [
+        CourseScheduleType.lecture: "Lec",
+        CourseScheduleType.recitation: "Rec",
+        CourseScheduleType.lab: "Lab",
+        CourseScheduleType.design: "Des"
+    ]
+    
+    static func abbreviation(for scheduleType: String) -> String? {
+        return abbreviations[scheduleType]
+    }
 }
 
 enum CourseQuarter {
