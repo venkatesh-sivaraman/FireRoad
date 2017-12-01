@@ -147,7 +147,7 @@ class ScheduleGridViewController: UIViewController {
                     courseCell.topAnchor.constraint(equalTo: parentView.topAnchor, constant: cellMargin).isActive = true
                     courseCell.bottomAnchor.constraint(equalTo: parentView.bottomAnchor, constant: -cellMargin).isActive = true
                     courseCell.backgroundColor = CourseManager.shared.color(forCourse: course)
-                    courseCell.generateLabels()
+                    courseCell.generateLabels(withDetail: traitCollection.horizontalSizeClass != .compact || UIDevice.current.orientation.isLandscape)
                     courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
                     courseCell.textLabel?.text = course.subjectID!
                     courseCell.detailTextLabel?.font = courseCell.detailTextLabel?.font.withSize(cellDescriptionFontSize)
@@ -162,7 +162,8 @@ class ScheduleGridViewController: UIViewController {
     }
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        if previousTraitCollection?.horizontalSizeClass != traitCollection.horizontalSizeClass,
+        if previousTraitCollection?.horizontalSizeClass != traitCollection.horizontalSizeClass ||
+            previousTraitCollection?.verticalSizeClass != traitCollection.verticalSizeClass,
             let schedule = self.schedule {
             loadGrid(with: schedule)
         }

@@ -105,35 +105,46 @@ class CourseThumbnailCell: UICollectionViewCell {
         contentView.clipsToBounds = false
     }
     
-    func generateLabels() {
+    func generateLabels(withDetail: Bool = true) {
         let titleLabel = UILabel(frame: .zero)
         titleLabel.textAlignment = .center
         titleLabel.minimumScaleFactor = 0.6
         titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.allowsDefaultTighteningForTruncation = true
         titleLabel.font = UIFont.systemFont(ofSize: 24.0, weight: .light)
         titleLabel.textColor = UIColor.white
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        let detailLabel = UILabel(frame: .zero)
-        detailLabel.textAlignment = .center
-        detailLabel.minimumScaleFactor = 0.7
-        detailLabel.adjustsFontSizeToFitWidth = true
-        detailLabel.font = UIFont.systemFont(ofSize: 14.0, weight: .semibold)
-        detailLabel.textColor = UIColor.white
-        detailLabel.numberOfLines = 0
-        detailLabel.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(titleLabel)
-        self.addSubview(detailLabel)
-        titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 4.0).isActive = true
-        titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 4.0).isActive = true
-        titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -4.0).isActive = true
-        titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        detailLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 0.0).isActive = true
-        detailLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        detailLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 4.0).isActive = true
-        detailLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -4.0).isActive = true
-        detailLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4.0).isActive = true
         self.textLabel = titleLabel
-        self.detailTextLabel = detailLabel
+
+        if withDetail {
+            let detailLabel = UILabel(frame: .zero)
+            detailLabel.textAlignment = .center
+            detailLabel.minimumScaleFactor = 0.7
+            detailLabel.adjustsFontSizeToFitWidth = true
+            detailLabel.allowsDefaultTighteningForTruncation = true
+            detailLabel.font = UIFont.systemFont(ofSize: 14.0, weight: .semibold)
+            detailLabel.textColor = UIColor.white
+            detailLabel.numberOfLines = 0
+            detailLabel.translatesAutoresizingMaskIntoConstraints = false
+            self.addSubview(detailLabel)
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 4.0).isActive = true
+            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 4.0).isActive = true
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -4.0).isActive = true
+            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+            detailLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 0.0).isActive = true
+            detailLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+            detailLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 4.0).isActive = true
+            detailLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -4.0).isActive = true
+            detailLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4.0).isActive = true
+            self.detailTextLabel = detailLabel
+        } else {
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 6.0).isActive = true
+            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 2.0).isActive = true
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -2.0).isActive = true
+            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+            titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4.0).isActive = true
+        }
     }
     
     override func layoutSubviews() {

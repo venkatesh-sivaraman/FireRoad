@@ -8,26 +8,33 @@
 
 import UIKit
 
-struct ScheduleItem: CustomDebugStringConvertible {
+class ScheduleUnit: NSObject {
     var course: Course
-    var selectedSections: [String: [CourseScheduleItem]]
+    var sectionType: String
+    var scheduleItems: [CourseScheduleItem]
     
-    var debugDescription: String {
-        return "\(course.subjectID!): \(selectedSections)"
+    init(course: Course, sectionType: String, scheduleItems: [CourseScheduleItem]) {
+        self.course = course
+        self.sectionType = sectionType
+        self.scheduleItems = scheduleItems
+    }
+    
+    override var debugDescription: String {
+        return "\(course.subjectID!) \(sectionType): \(scheduleItems)"
     }
     
     func hasWeekendSession() -> Bool {
-        return selectedSections.values.contains(where: { (items) -> Bool in
-            return items.contains(where: { $0.days.contains(.saturday) || $0.days.contains(.sunday) })
-        })
+        return scheduleItems.contains(where: { $0.days.contains(.saturday) || $0.days.contains(.sunday) })
     }
 }
 
 class Schedule: NSObject {
-    var scheduleItems: [ScheduleItem]
+    var scheduleItems: [ScheduleUnit]
+    var conflictCount = 0
     
-    init(items: [ScheduleItem]) {
+    init(items: [ScheduleUnit], conflictCount: Int = 0) {
         self.scheduleItems = items
+        self.conflictCount = conflictCount
     }
     
     override var debugDescription: String {
@@ -37,9 +44,9 @@ class Schedule: NSObject {
     typealias ScheduleChronologicalElement = (course: Course, type: String, item: CourseScheduleItem)
     
     func chronologicalItems(for day: CourseScheduleDay) -> [ScheduleChronologicalElement] {
-        let allItems = scheduleItems.reduce([], { (list: [ScheduleChronologicalElement], item: ScheduleItem) -> [ScheduleChronologicalElement] in
-            return list + item.selectedSections.flatMap({ (key, value) in
-                value.map({ (item.course, key, $0) })
+        let allItems = scheduleItems.reduce([], { (list: [ScheduleChronologicalElement], item: ScheduleUnit) -> [ScheduleChronologicalElement] in
+            return list + item.scheduleItems.flatMap({
+                (item.course, item.sectionType, $0)
             })
         }).filter {
             $0.item.days.contains(day)
