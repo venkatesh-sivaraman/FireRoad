@@ -1,0 +1,48 @@
+16#,#16 Major#,#Bachelor of Science in Aerospace Engineering
+This program is designed to prepare the graduate for an entry-level position in aerospace and related fields and for further education at the master's level; it is accredited by the Engineering Accreditation Commission of ABET. The program includes an opportunity for a year's study abroad.
+
+dept_core
+
+prof_area
+Select four subjects from at least three professional areas. For students who wish to complete an option in aerospace information technology, 36 of the 48 units must come from subjects other than 16.100, 16.20, 16.50, or 16.90.
+lab_capstone
+
+ci_m
+Choose at least two subjects in the major that are designated as communication-intensive (CI-M) to fulfill the Communication Requirement.
+girs
+
+
+%% GIRs
+
+science_gir, "Science Requirement" := GIR:PHY1, GIR:PHY2, GIR:CAL1, GIR:CAL2, GIR:CHEM, GIR:BIOL
+hass_gen_req := HASS{>=8}
+hass_req := hass_gen_req, HASS-A, HASS-S, HASS-H
+ci_req := "CI-H"/"CI-HW"{>=2} %% at least two subjects must be designated as CI-H or CI-HW
+hass_gir, "Humanities, Arts, and Social Sciences (HASS) Requirement" := hass_req, ci_req
+rest_gir, "REST Requirement" := GIR:REST{>=2}
+lab_gir, "Lab Requirement" := GIR:LAB
+
+girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir, rest_gir, lab_gir
+
+
+%% Departmental Program
+
+dept_core, "Departmental Core" := (6.00/(6.0001, 6.0002)), 16.001, 16.002, 16.003, 16.004, 16.06, 16.07, (18.03/18.032), (16.09/(6.041A, 6.041B))
+
+flu_mech, "Fluid Mechanics" := 16.100{>=0}
+mat_struct, "Materials and Structures" := 16.20{>=0}
+propulsion, "Propulsion" := 16.50{>=0}
+comp_tools, "Computational Tools" := 16.90{>=0}
+est_control, "Estimation and Control" := 16.30{>=0}
+comp_sys, "Computer Systems" := 6.111/16.35{>=0}
+comm_sys, "Communications Systems" := 16.36{>=0}
+hum_auto, "Humans and Automation" := 16.400{>=0}
+prof_area, "Professional Area Subjects" := flu_mech/mat_struct/propulsion/comp_tools/est_control/comp_sys/comm_sys/hum_auto{>=4|>=3}
+
+robotics, "Robotics" := 16.405{>=0}
+exp_proj, "Experimental Projects" := 16.621, 16.622{>=0}
+fli_veh, "Flight Vehicle Development" := 16.821{>=0}
+space_sys, "Space Systems Development" := 16.831{>=0}
+lab_capstone, "Laboratory and Capstone Subjects" := (16.82/16.83), (robotics/exp_proj/fli_veh/space_sys)
+
+ci_m, "CI-M Options" := 16.82/16.83/16.405/16.622/16.821/16.831

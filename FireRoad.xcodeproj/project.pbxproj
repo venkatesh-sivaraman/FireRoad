@@ -86,6 +86,10 @@
 		9659E38D1F89B57700E55FA2 /* minor21m.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9659E38C1F89B57700E55FA2 /* minor21m.reql */; };
 		9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9659E38E1F89C09F00E55FA2 /* major9.reql */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
+		966493C31FD2181100B8D684 /* minorRussian.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493BE1FD2180F00B8D684 /* minorRussian.reql */; };
+		966493C51FD2181100B8D684 /* minorJapanese.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493C01FD2181000B8D684 /* minorJapanese.reql */; };
+		966493C61FD2181100B8D684 /* major16-ENG.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493C11FD2181100B8D684 /* major16-ENG.reql */; };
+		966493C71FD2181100B8D684 /* major16.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493C21FD2181100B8D684 /* major16.reql */; };
 		9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9669C7B41F904CAD00E60D89 /* minor9.reql */; };
 		9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 9669C7C71F90628300E60D89 /* MBProgressHUD.m */; };
 		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
@@ -215,6 +219,10 @@
 		9659E38C1F89B57700E55FA2 /* minor21m.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = minor21m.reql; sourceTree = "<group>"; };
 		9659E38E1F89C09F00E55FA2 /* major9.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = major9.reql; sourceTree = "<group>"; };
 		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
+		966493BE1FD2180F00B8D684 /* minorRussian.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = minorRussian.reql; sourceTree = "<group>"; };
+		966493C01FD2181000B8D684 /* minorJapanese.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = minorJapanese.reql; sourceTree = "<group>"; };
+		966493C11FD2181100B8D684 /* major16-ENG.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "major16-ENG.reql"; sourceTree = "<group>"; };
+		966493C21FD2181100B8D684 /* major16.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major16.reql; sourceTree = "<group>"; };
 		9669C7B41F904CAD00E60D89 /* minor9.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = minor9.reql; sourceTree = "<group>"; };
 		9669C7C71F90628300E60D89 /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
 		9669C7C81F90628300E60D89 /* MBProgressHUD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
@@ -399,8 +407,12 @@
 				9626B6E21F80A93F009F6F96 /* major6-7.reql */,
 				9659E38C1F89B57700E55FA2 /* minor21m.reql */,
 				9659E38E1F89C09F00E55FA2 /* major9.reql */,
+				966493C11FD2181100B8D684 /* major16-ENG.reql */,
+				966493C21FD2181100B8D684 /* major16.reql */,
 				9611CD841F92881600DE2BDE /* minor6.reql */,
 				9669C7B41F904CAD00E60D89 /* minor9.reql */,
+				966493C01FD2181000B8D684 /* minorJapanese.reql */,
+				966493BE1FD2180F00B8D684 /* minorRussian.reql */,
 			);
 			path = "Requirements Lists";
 			sourceTree = "<group>";
@@ -611,6 +623,7 @@
 				961E49941EC6938F002BABB9 /* course_processor.py in Resources */,
 				9636DDE61F7894F300117A82 /* 15.txt in Resources */,
 				9636DDF91F7894F300117A82 /* 7.txt in Resources */,
+				966493C51FD2181100B8D684 /* minorJapanese.reql in Resources */,
 				96FF1F8F1FB65797007F4A7C /* condensed_3.txt in Resources */,
 				9636DDE11F7894F300117A82 /* 1.txt in Resources */,
 				9636DDFE1F7894F300117A82 /* CMS.txt in Resources */,
@@ -631,6 +644,7 @@
 				9636DE031F7894F300117A82 /* EM.txt in Resources */,
 				9636DDF51F7894F300117A82 /* 3.txt in Resources */,
 				9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */,
+				966493C71FD2181100B8D684 /* major16.reql in Resources */,
 				9636DDFF1F7894F300117A82 /* condensed.txt in Resources */,
 				9636DE0C1F7894F300117A82 /* SP.txt in Resources */,
 				9636DDFC1F7894F300117A82 /* AS.txt in Resources */,
@@ -641,8 +655,10 @@
 				9636DDEF1F7894F300117A82 /* 21H.txt in Resources */,
 				9636DDF01F7894F300117A82 /* 21L.txt in Resources */,
 				9636DE041F7894F300117A82 /* ES.txt in Resources */,
+				966493C31FD2181100B8D684 /* minorRussian.reql in Resources */,
 				961E49FF1EC7771D002BABB9 /* enrollment.txt in Resources */,
 				9636DDF31F7894F300117A82 /* 22.txt in Resources */,
+				966493C61FD2181100B8D684 /* major16-ENG.reql in Resources */,
 				9636DE001F7894F300117A82 /* courses.txt in Resources */,
 				9626B6E31F80A93F009F6F96 /* major6-7.reql in Resources */,
 				9636DDED1F7894F300117A82 /* 21A.txt in Resources */,

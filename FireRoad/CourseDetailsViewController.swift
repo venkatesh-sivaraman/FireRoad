@@ -30,6 +30,16 @@ enum CourseDetailItem {
     case courseListAccessory
 }
 
+enum CourseDetailSectionTitle {
+    static let none = ""
+    static let prerequisites = "Prerequisites"
+    static let corequisites = "Corequisites"
+    static let jointSubjects = "Joint Subjects"
+    static let equivalentSubjects = "Equivalent Subjects"
+    static let schedule = "Schedule"
+    static let related = "Related"
+}
+
 class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CourseListCellDelegate, PopDownTableMenuDelegate {
 
     var course: Course? = nil {
@@ -155,7 +165,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             IndexPath(row: 1, section: 0): .description,
             IndexPath(row: 2, section: 0): .units,
             ]
-        var titles: [String] = [""]
+        var titles: [String] = [CourseDetailSectionTitle.none]
         var rowIndex: Int = 3, sectionIndex: Int = 0
         if course!.communicationRequirement != nil ||
             course!.girAttribute != nil ||
@@ -174,9 +184,16 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         sectionIndex += 1
 
         if course!.prerequisites.flatMap({ $0 }).count > 0 {
-            titles.append("Prerequisites")
+            titles.append(CourseDetailSectionTitle.prerequisites)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-            for _ in course!.prerequisites {
+            rowIndex += 1
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .description
+            if course!.prerequisites.first(where: { $0.count > 1 }) != nil {
+                for _ in course!.prerequisites {
+                    rowIndex += 1
+                    mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .prerequisites
+                }
+            } else {
                 rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .prerequisites
             }
@@ -185,9 +202,16 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             sectionIndex += 1
         }
         if course!.corequisites.flatMap({ $0 }).count > 0 {
-            titles.append("Corequisites")
+            titles.append(CourseDetailSectionTitle.corequisites)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-            for _ in course!.corequisites {
+            rowIndex += 1
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .description
+            if course!.corequisites.first(where: { $0.count > 1 }) != nil {
+                for _ in course!.corequisites {
+                    rowIndex += 1
+                    mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .corequisites
+                }
+            } else {
                 rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .corequisites
             }
@@ -196,7 +220,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             sectionIndex += 1
         }
         if course!.jointSubjects.count > 0 {
-            titles.append("Joint Subjects")
+            titles.append(CourseDetailSectionTitle.jointSubjects)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
             rowIndex += 1
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .joint
@@ -204,7 +228,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             sectionIndex += 1
         }
         if course!.equivalentSubjects.count > 0 {
-            titles.append("Equivalent Subjects")
+            titles.append(CourseDetailSectionTitle.equivalentSubjects)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
             rowIndex += 1
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .equivalent
@@ -212,7 +236,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             sectionIndex += 1
         }
         if course!.relatedSubjects.count > 0 {
-            titles.append("Related")
+            titles.append(CourseDetailSectionTitle.related)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
             rowIndex += 1
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .related
@@ -220,7 +244,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             sectionIndex += 1
         }
         if let schedule = course?.schedule, schedule.count > 0 {
-            titles.append("Schedule")
+            titles.append(CourseDetailSectionTitle.schedule)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
             rowIndex += 1
             for _ in 0..<schedule.count {
@@ -270,6 +294,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let cellType = self.cellType(for: self.detailMapping[indexPath]!)
         if cellType == "DescriptionCell" || cellType == "MetadataCell" {
+            if sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites || sectionTitles[indexPath.section] == CourseDetailSectionTitle.corequisites {
+                return 32.0
+            }
             return UITableViewAutomaticDimension
         } else if cellType == "CourseListCell" {
             return 124.0
@@ -305,7 +332,25 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         case .title:
             textLabel?.text = self.course!.subjectTitle
         case .description:
-            textLabel?.text = self.course!.subjectDescription
+            if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites {
+                if course!.prerequisites.first(where: { $0.count > 1 }) == nil {
+                    textLabel?.text = "Fulfill all of the following:"
+                } else if course!.prerequisites.count == 1 {
+                    textLabel?.text = "Fulfill any of the following:"
+                } else {
+                    textLabel?.text = "Fulfill one from each row:"
+                }
+            } else if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.corequisites {
+                if course!.corequisites.first(where: { $0.count > 1 }) == nil {
+                    textLabel?.text = "Fulfill all of the following:"
+                } else if course!.corequisites.count == 1 {
+                    textLabel?.text = "Fulfill any of the following:"
+                } else {
+                    textLabel?.text = "Fulfill one from each row:"
+                }
+            } else {
+                textLabel?.text = self.course!.subjectDescription
+            }
         case .units:
             textLabel?.text = "Units"
             detailTextLabel?.text = "\(self.course!.totalUnits) total\n(\(self.course!.lectureUnits)-\(self.course!.labUnits)-\(self.course!.preparationUnits))"
@@ -412,7 +457,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             (cell as! CourseListCell).collectionView.reloadData()
         case .prerequisites:
             (cell as! CourseListCell).courses = []
-            let prereqs = self.course!.prerequisites[indexPath.row - 1]
+            let prereqs = self.course!.prerequisites.contains(where: { $0.count > 1 }) ? self.course!.prerequisites[indexPath.row - 2] : self.course!.prerequisites.flatMap({ $0 })
             for myID in prereqs {
                 if myID.range(of: "[") != nil || myID.range(of: "{") != nil {
                     continue
@@ -430,7 +475,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             (cell as! CourseListCell).collectionView.reloadData()
         case .corequisites:
             (cell as! CourseListCell).courses = []
-            for myID in self.course!.corequisites[indexPath.row - 1] {
+            let coreqs = self.course!.corequisites.contains(where: { $0.count > 1 }) ? self.course!.corequisites[indexPath.row - 2] : self.course!.corequisites.flatMap({ $0 })
+            for myID in coreqs {
                 // Useful when the corequisites were notated in brackets, but not anymore
                 //let myID = String(id[(id.index(id.startIndex, offsetBy: 1))..<(id.index(id.endIndex, offsetBy: -1))])
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)

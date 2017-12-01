@@ -1,0 +1,38 @@
+16-ENG#,#16-ENG Major#,#Bachelor of Science in Engineering as Recommended by the Department of Aeronautics and Astronautics
+Course 16-ENG is an engineering degree program designed to offer flexibility within the context of aerospace engineering and is a complement to our Course 16 aerospace engineering degree program. The 16-ENG degree is accredited by the Engineering Accreditation Commission of ABET.
+
+dept_core
+
+concentration
+These electives define a concentrated area of study and must be chosen with the written approval of the AeroAstro Undergraduate Office. A minimum of 42 units of engineering topics and a minimum of 12 units of mathematics or science topics must be included in the 72 units of concentration electives. In all cases, the concentration subjects must be clearly related to the theme of the concentration. A list of approved subjects for each concentration, as well as additional information about the 16-ENG program, is available on the department's website.
+lab_capstone
+
+ci_m
+Choose at least two subjects in the major that are designated as communication-intensive (CI-M) to fulfill the Communication Requirement.
+girs
+
+
+%% GIRs
+
+science_gir, "Science Requirement" := GIR:PHY1, GIR:PHY2, GIR:CAL1, GIR:CAL2, GIR:CHEM, GIR:BIOL
+hass_gen_req := HASS{>=8}
+hass_req := hass_gen_req, HASS-A, HASS-S, HASS-H
+ci_req := "CI-H"/"CI-HW"{>=2} %% at least two subjects must be designated as CI-H or CI-HW
+hass_gir, "Humanities, Arts, and Social Sciences (HASS) Requirement" := hass_req, ci_req
+rest_gir, "REST Requirement" := GIR:REST{>=2}
+lab_gir, "Lab Requirement" := GIR:LAB
+
+girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir, rest_gir, lab_gir
+
+
+%% Departmental Program
+
+dept_core, "Departmental Core" := (6.00/(6.0001, 6.0002)), 16.001, 16.002, 16.003, 16.004, (16.06/16.07), (18.03/18.032))
+
+robotics, "Robotics" := 16.405{>=0}
+exp_proj, "Experimental Projects" := 16.621, 16.622{>=0}
+fli_veh, "Flight Vehicle Development" := 16.821{>=0}
+space_sys, "Space Systems Development" := 16.831{>=0}
+lab_capstone, "Laboratory and Capstone Subjects" := (16.82/16.83), (robotics/exp_proj/fli_veh/space_sys)
+
+ci_m, "CI-M Options" := 16.82/16.83/16.405/16.622/16.821/16.831

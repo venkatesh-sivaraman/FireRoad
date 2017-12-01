@@ -717,7 +717,9 @@ class Course: NSObject {
     
     func extractCourseListString(_ string: String?) -> [[String]] {
         if let listString = string {
-            return [listString.replacingOccurrences(of: ";", with: ",").replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.count > 0 })]
+            return listString.components(separatedBy: ";").map { item in
+                item.replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.count > 0 })
+            }
         }
         return []
     }

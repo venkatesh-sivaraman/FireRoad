@@ -1,0 +1,14 @@
+Russian#,#Russian Minor#,#Minor in Russian and Eurasian Studies
+The Minor in Russian and Eurasian Studies is intended for students seeking an interdisciplinary program of study centered on Russia and Eurasia. The program is regional in spirit, meaning that students can take subjects about a wide range of countries of Eastern/Central Europe, the Slavic states, and Central Asia. This subject list is not exhaustive. Additional information can be obtained from the minor advisor or from the SHASS academic administrator.
+
+area_1
+Two intermediate (Levels III and IV) subjects in the Russian language are required to satisfy Area I. Students with the equivalent proficiency, but who are not native speakers, can either take two advanced language subjects beyond Level IV (highly recommended) or two additional subjects from Areas II, III, or IV. Native speakers may substitute other subjects, with the permission of the minor advisor. Students who are not required to take Area I subjects must take all six subjects for the minor from Areas II, III, and IV, with at least one subject from each area.
+areas
+Select four subjects from at least two of the following areas. Students may choose either subject in Area II but it is preferred that they take 21G.618 (Russian Language Option). All Areas include the option of taking appropriate subjects offered at Harvard or Wellesley.
+
+area_1, "Area I: Language" := 21G.613, 21G.614
+
+area_2, "Area II: Humanities and the Arts" := 21G.077/21G.618{>=0}
+area_3, "Area III: Social Sciences" := 17.569/21H.245{>=0}
+area_4, "Area IV: Historical Studies" := 21H.244{>=0}
+areas, "Areas II-IV" area_2/area_3/area_4{>=4}
