@@ -297,6 +297,17 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         viewDetails(for: course)
     }
     
+    func courseDetailsRequestedPostReqs(for course: Course) {
+        let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
+        listVC.searchTerm = (course.subjectID ?? "") + " " + (course.girAttribute?.descriptionText() ?? "")
+        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .anyRequirement, .searchPrereqs]
+        listVC.showsHeaderBar = false
+        listVC.delegate = self
+        listVC.managesNavigation = false
+        listVC.view.backgroundColor = UIColor.clear
+        showInformationalViewController(listVC)
+    }
+
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
         guard let tabVC = rootParent as? RootTabViewController else {
             print("Root isn't a tab bar controller!")

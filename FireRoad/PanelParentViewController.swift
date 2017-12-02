@@ -125,4 +125,24 @@ extension PanelParentViewController {
             browser.navigationController?.view.setNeedsLayout()
         }
     }
+    
+    func courseDetailsRequestedPostReqs(for course: Course) {
+        guard let panel = self.panelView,
+            let browser = self.courseBrowser else {
+                return
+        }
+        if !panel.isExpanded {
+            panel.expandView()
+        }
+
+        let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
+        listVC.searchTerm = (course.subjectID ?? "") + " " + (course.girAttribute?.descriptionText() ?? "")
+        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .anyRequirement, .searchPrereqs]
+        listVC.showsHeaderBar = false
+        listVC.delegate = self
+        listVC.managesNavigation = false
+        listVC.view.backgroundColor = UIColor.clear
+        browser.navigationController?.pushViewController(listVC, animated: true)
+        browser.navigationController?.view.setNeedsLayout()
+    }
 }

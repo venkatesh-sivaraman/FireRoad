@@ -300,7 +300,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     var isSearching = false
     
-    private func courseSatisfiesSearchOptions(_ course: Course, options: SearchOptions) -> Bool {
+    private func courseSatisfiesSearchOptions(_ course: Course, searchTerm: String, options: SearchOptions) -> Bool {
         var fulfillsRequirement = false
         if options.contains(.anyRequirement) {
             fulfillsRequirement = true
@@ -339,8 +339,16 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         if options.contains(.searchRequirements) {
             courseComps += [course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText(), course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText(), course.girAttribute?.rawValue, course.girAttribute?.descriptionText()]
         }
+        if options.contains(.searchPrereqs) {
+            let prereqs: [String?] = course.prerequisites.flatMap({ $0 })
+            courseComps += prereqs
+        }
+        if options.contains(.searchCoreqs) {
+            let coreqs: [String?] = course.corequisites.flatMap({ $0 })
+            courseComps += coreqs
+        }
         
-        let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.anyRequirement) ? course.instructors : [])).joined(separator: "\n").lowercased()
+        let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.searchAllFields) ? course.instructors : [])).joined(separator: "\n").lowercased()
         return courseText
     }
     
@@ -356,7 +364,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             
             var newResults: [Course: Float] = [:]
             for course in CourseManager.shared.courses {
-                guard self.courseSatisfiesSearchOptions(course, options: options) else {
+                guard self.courseSatisfiesSearchOptions(course, searchTerm: searchTerm, options: options) else {
                     continue
                 }
                 

@@ -11,6 +11,7 @@ import UIKit
 protocol CourseDetailsDelegate: class {
     func courseDetails(added course: Course, to semester: UserSemester?)
     func courseDetailsRequestedDetails(about course: Course)
+    func courseDetailsRequestedPostReqs(for course: Course)
 }
 
 enum CourseDetailItem {
@@ -28,6 +29,7 @@ enum CourseDetailItem {
     case corequisites
     case schedule
     case courseListAccessory
+    case button
 }
 
 enum CourseDetailSectionTitle {
@@ -240,6 +242,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
             rowIndex += 1
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .related
+            rowIndex += 1
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .button
             rowIndex = 0
             sectionIndex += 1
         }
@@ -276,6 +280,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "CourseListCell"
         case .courseListAccessory:
             id = "CourseListAccessoryCell"
+        case .button:
+            id = "ButtonCell"
         }
         return id
     }
@@ -312,6 +318,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         return nil
     }
     
+    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
+        return self.detailMapping[indexPath] == .button
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let detailItemType = self.detailMapping[indexPath]!
         let id = self.cellType(for: detailItemType)
@@ -331,6 +341,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             textLabel?.text = self.sectionTitles[indexPath.section]
         case .title:
             textLabel?.text = self.course!.subjectTitle
+        case .button:
+            textLabel?.text = "Find Classes With \(self.course!.subjectID!) as Prerequisite"
         case .description:
             if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites {
                 if course!.prerequisites.first(where: { $0.count > 1 }) == nil {
@@ -526,7 +538,11 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         self.delegate?.courseDetailsRequestedDetails(about: course)
     }
     
-
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        delegate?.courseDetailsRequestedPostReqs(for: self.course!)
+    }
+    
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
