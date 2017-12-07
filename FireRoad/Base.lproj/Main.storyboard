@@ -998,6 +998,22 @@
             <point key="canvasLocation" x="670" y="1110"/>
         </scene>
         <!--Schedule-->
+        <scene sceneID="g64-Fm-l0k">
+            <objects>
+                <navigationController navigationBarHidden="YES" id="PVc-iw-TlX" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Schedule" id="DEc-Sk-Cl2"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="qc7-fx-ITg">
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="8rJ-Kc-sve" kind="relationship" relationship="rootViewController" id="D30-4Y-YXA"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Av4-PV-0Us" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="434" y="344"/>
+        </scene>
+        <!--Schedule-->
         <scene sceneID="wg7-f3-ORb">
             <objects>
                 <viewController id="8rJ-Kc-sve" customClass="ScheduleViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
@@ -1066,7 +1082,9 @@
                             <constraint firstAttribute="trailing" secondItem="d8A-Va-ZUe" secondAttribute="trailing" constant="12" id="8Ua-xf-A31"/>
                             <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="d8A-Va-ZUe" secondAttribute="bottom" constant="12" id="94M-on-sVo"/>
                             <constraint firstItem="Djb-ko-YwX" firstAttribute="top" secondItem="ehw-gD-NEe" secondAttribute="bottom" id="Fwd-Xw-gUl"/>
-                            <constraint firstItem="d8A-Va-ZUe" firstAttribute="top" secondItem="L7p-HK-0SC" secondAttribute="bottom" constant="6" id="QUq-tm-I7W"/>
+                            <constraint firstItem="d8A-Va-ZUe" firstAttribute="top" secondItem="L7p-HK-0SC" secondAttribute="bottom" constant="6" id="QUq-tm-I7W">
+                                <variation key="heightClass=regular-widthClass=regular" constant="12"/>
+                            </constraint>
                             <constraint firstItem="Djb-ko-YwX" firstAttribute="top" relation="greaterThanOrEqual" secondItem="d8A-Va-ZUe" secondAttribute="bottom" constant="12" id="SFx-oh-ATy"/>
                             <constraint firstAttribute="trailing" secondItem="lRs-Ye-afu" secondAttribute="trailing" id="XGn-Gj-wno"/>
                             <constraint firstItem="ehw-gD-NEe" firstAttribute="leading" secondItem="QS5-Rx-YEW" secondAttribute="leading" id="ePi-sk-Yvl"/>
@@ -1083,6 +1101,7 @@
                         </variation>
                     </view>
                     <tabBarItem key="tabBarItem" title="Schedule" image="second" id="cPa-gy-q4n"/>
+                    <navigationItem key="navigationItem" id="d6c-5Z-CYT"/>
                     <connections>
                         <outlet property="loadingIndicator" destination="VXC-T0-XSO" id="jOf-Oe-uJf"/>
                         <outlet property="loadingView" destination="lRs-Ye-afu" id="hpi-5c-Qdu"/>
@@ -1090,7 +1109,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4Nw-L8-lE0" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="669.60000000000002" y="358.4707646176912"/>
+            <point key="canvasLocation" x="1138" y="335"/>
         </scene>
         <!--Page View Controller-->
         <scene sceneID="OeK-Dg-CGK">
@@ -1098,7 +1117,7 @@
                 <pageViewController autoresizesArchivedViewToFullSize="NO" transitionStyle="scroll" navigationOrientation="horizontal" spineLocation="none" id="9rO-07-LYp" sceneMemberID="viewController"/>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cYi-RK-jcd" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1574" y="358"/>
+            <point key="canvasLocation" x="1890" y="313"/>
         </scene>
         <!--Schedule Grid View Controller-->
         <scene sceneID="CrA-Pr-DaX">
@@ -1713,7 +1732,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mX5-cN-fsB" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2364" y="351.27436281859076"/>
+            <point key="canvasLocation" x="2633" y="501"/>
         </scene>
         <!--Root Tab View Controller-->
         <scene sceneID="yl2-sM-qoP">
@@ -1727,7 +1746,7 @@
                     </tabBar>
                     <connections>
                         <segue destination="26F-sm-OqV" kind="relationship" relationship="viewControllers" id="2UP-5y-Ryt"/>
-                        <segue destination="8rJ-Kc-sve" kind="relationship" relationship="viewControllers" id="lzU-1b-eKA"/>
+                        <segue destination="PVc-iw-TlX" kind="relationship" relationship="viewControllers" id="IuZ-td-y5e"/>
                         <segue destination="Ygt-br-sRO" kind="relationship" relationship="viewControllers" id="htp-KC-fHW"/>
                     </connections>
                 </tabBarController>

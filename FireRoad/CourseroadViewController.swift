@@ -56,6 +56,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         updateLayoutToggleButton()
         
         loadRecentCourseroad()
+        
+        updateNavigationBar(animated: false)
     }
     
     let recentCourseroadPathDefaultsKey = "recent-courseroad-filepath"
@@ -124,6 +126,16 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
         updateCollectionViewLayout(with: newCollection)
+        updateNavigationBar(newTraits: newCollection)
+    }
+    
+    func updateNavigationBar(animated: Bool = true, newTraits: UITraitCollection? = nil) {
+        let traits = newTraits ?? traitCollection
+        navigationItem.title = "FireRoad"
+        let newHiddenValue = traits.horizontalSizeClass != .regular || traits.verticalSizeClass != .regular || traits.userInterfaceIdiom != .pad
+        if newHiddenValue != navigationController?.isNavigationBarHidden {
+            navigationController?.setNavigationBarHidden(newHiddenValue, animated: animated)
+        }
     }
     
     func updateCollectionViewLayout(with traits: UITraitCollection? = nil) {
@@ -162,7 +174,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController?.setNavigationBarHidden(true, animated: true)
+        updateNavigationBar()
+
     }
     
     override func viewDidAppear(_ animated: Bool) {

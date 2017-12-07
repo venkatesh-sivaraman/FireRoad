@@ -32,6 +32,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         loadScheduleOptions {
             self.pageViewController?.setViewControllers([self.scheduleGrid(for: 0)].flatMap({ $0 }), direction: .forward, animated: false, completion: nil)
         }
+        
+        updateNavigationBar(animated: false)
     }
 
     override func didReceiveMemoryWarning() {
@@ -42,6 +44,19 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         updatePanelViewCollapseHeight()
+    }
+    
+    override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+        updateNavigationBar(newTraits: newCollection)
+    }
+    
+    func updateNavigationBar(animated: Bool = true, newTraits: UITraitCollection? = nil) {
+        let traits = newTraits ?? traitCollection
+        navigationItem.title = "Schedule"
+        let newHiddenValue = traits.horizontalSizeClass != .regular || traits.verticalSizeClass != .regular || traits.userInterfaceIdiom != .pad
+        if newHiddenValue != navigationController?.isNavigationBarHidden {
+            navigationController?.setNavigationBarHidden(newHiddenValue, animated: animated)
+        }
     }
     
     func loadScheduleOptions(completion: @escaping () -> Void) {
