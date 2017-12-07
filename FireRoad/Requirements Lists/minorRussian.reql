@@ -11,4 +11,4 @@ area_1, "Area I: Language" := 21G.613, 21G.614
 area_2, "Area II: Humanities and the Arts" := 21G.077/21G.618{>=0}
 area_3, "Area III: Social Sciences" := 17.569/21H.245{>=0}
 area_4, "Area IV: Historical Studies" := 21H.244{>=0}
-areas, "Areas II-IV" area_2/area_3/area_4{>=4}
+areas, "Areas II-IV" := area_2/area_3/area_4{>=4|>=2}

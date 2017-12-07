@@ -364,11 +364,13 @@ class CourseManager: NSObject {
     }
     
     private func updateSubjectTitle(for course: Course, to newValue: String) {
-        if let oldTitle = course.subjectTitle, coursesByTitle[oldTitle] == course {
-            coursesByTitle[oldTitle] = nil
+        courseEditingQueue.sync {
+            if let oldTitle = course.subjectTitle, coursesByTitle[oldTitle] == course {
+                coursesByTitle[oldTitle] = nil
+            }
+            course.subjectTitle = newValue
+            coursesByTitle[newValue] = course
         }
-        course.subjectTitle = newValue
-        coursesByTitle[newValue] = course
     }
     
     func getCourse(withID subjectID: String) -> Course? {

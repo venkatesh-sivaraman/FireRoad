@@ -33,3 +33,6 @@ Statements can contain variables as part of their definitions. For example:
 x := 3.091
 chem_requirement, "Chemistry Requirement" := x/5.112
 ```
+
+## Other Notes
+To display arbitrary text on a course tile, enclose the text in double quotes - ""text""

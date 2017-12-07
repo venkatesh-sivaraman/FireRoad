@@ -39,6 +39,8 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
     
+    var shouldExpandOnKeyboardChange = false
+    
     public private(set) var isExpanded: Bool = false
     
     private var bottomConstraint: NSLayoutConstraint?
@@ -190,6 +192,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
                 break
             }
         }
+        shouldExpandOnKeyboardChange = false
     }
     
     func expandView() {
@@ -214,7 +217,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     @objc func keyboardWillChangeFrame(sender: Notification) {
-        if self.parent != nil {
+        if self.parent != nil, isExpanded || shouldExpandOnKeyboardChange {
             let deltaY = (sender.userInfo![UIKeyboardFrameBeginUserInfoKey]! as! CGRect).origin.y - (sender.userInfo![UIKeyboardFrameEndUserInfoKey]! as! CGRect).origin.y
             if bottomConstraint == nil, let container = self.view.superview, let sview = container.superview {
                 for constraint in sview.constraints {

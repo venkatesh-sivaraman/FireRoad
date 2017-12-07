@@ -269,6 +269,11 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         tableView.reloadData()
     }
     
+    func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
+        panelViewController?.shouldExpandOnKeyboardChange = true
+        return true
+    }
+    
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         searchBar.setShowsCancelButton(true, animated: true)
     }

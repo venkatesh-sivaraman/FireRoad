@@ -112,7 +112,7 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
                 print("Couldn't find button in visible cells")
                 return
         }
-        if let semester = UserSemester(rawValue: (indexPath.row - 1) * 3 + sender.tag) {
+        if let semester = UserSemester(rawValue: (indexPath.row - 2) * 3 + sender.tag) {
             delegate?.popDownTableMenu(self, addedCourse: course, to: semester)
         }
     }

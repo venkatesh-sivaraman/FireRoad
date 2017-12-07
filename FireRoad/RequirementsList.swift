@@ -27,6 +27,7 @@ class RequirementsListStatement: NSObject {
     enum ConnectionType {
         case all
         case any
+        case none
     }
     
     enum ThresholdType {
@@ -166,6 +167,12 @@ class RequirementsListStatement: NSObject {
     }
     
     fileprivate func separateTopLevelItems(in text: String) -> ([String], ConnectionType) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count >= 4,
+            trimmed[trimmed.startIndex..<trimmed.index(trimmed.startIndex, offsetBy: 2)] == "\"\"",
+            trimmed[trimmed.index(trimmed.endIndex, offsetBy: -2)..<trimmed.endIndex] == "\"\"" {
+            return ([undecoratedComponent(trimmed)], .none)
+        }
         var components: [String] = []
         var connectionType = ConnectionType.all
         var currentIndentLevel = 0
@@ -385,7 +392,14 @@ class RequirementsListStatement: NSObject {
     }
     
     var percentageFulfilled: Float {
-        return min(1.0, Float(fulfilledFraction.0) / Float(fulfilledFraction.1)) * 100.0
+        if connectionType == .none {
+            return 0.0
+        }
+        let fulfilled = fulfilledFraction
+        if fulfilled.0 == 0, fulfilled.1 == 0 {
+            return 0.0
+        }
+        return min(1.0, Float(fulfilled.0) / Float(fulfilled.1)) * 100.0
     }
 }
 

@@ -189,12 +189,17 @@ class User: NSObject {
             return warnings
         }
         var unsatisfiedPrereqs: [String] = []
-        for prereq in course.prerequisites.flatMap({ $0 }) {
+        for prereqList in course.prerequisites {
             var satisfied = false
-            for otherSemester in UserSemester.allSemesters where otherSemester.rawValue < semester.rawValue {
-                for course in courses(forSemester: otherSemester) {
-                    if course.satisfies(requirement: prereq) {
-                        satisfied = true
+            for prereq in prereqList {
+                for otherSemester in UserSemester.allSemesters where otherSemester.rawValue < semester.rawValue {
+                    for course in courses(forSemester: otherSemester) {
+                        if course.satisfies(requirement: prereq) {
+                            satisfied = true
+                            break
+                        }
+                    }
+                    if satisfied {
                         break
                     }
                 }
@@ -203,16 +208,21 @@ class User: NSObject {
                 }
             }
             if !satisfied {
-                unsatisfiedPrereqs.append(prereq)
+                unsatisfiedPrereqs += prereqList
             }
         }
         var unsatisfiedCoreqs: [String] = []
-        for coreq in course.corequisites.flatMap({ $0 }) {
+        for coreqList in course.corequisites {
             var satisfied = false
-            for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
-                for course in courses(forSemester: otherSemester) {
-                    if course.satisfies(requirement: coreq) {
-                        satisfied = true
+            for coreq in coreqList {
+                for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
+                    for course in courses(forSemester: otherSemester) {
+                        if course.satisfies(requirement: coreq) {
+                            satisfied = true
+                            break
+                        }
+                    }
+                    if satisfied {
                         break
                     }
                 }
@@ -221,7 +231,7 @@ class User: NSObject {
                 }
             }
             if !satisfied {
-                unsatisfiedCoreqs.append(coreq)
+                unsatisfiedCoreqs += coreqList
             }
         }
         var warnings: [CourseWarning] = []

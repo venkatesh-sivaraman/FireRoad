@@ -108,6 +108,10 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             }
             for (section, sectionOptions) in schedule {
                 let allOptions = sectionOptions.map({ ScheduleUnit(course: course, sectionType: section, scheduleItems: $0) })
+                guard allOptions.count > 0 else {
+                    print("No options for \(course.subjectID!) \(section)")
+                    continue
+                }
                 scheduleConfigurations.append(allOptions)
                 scheduleConfigurationsList += allOptions
             }

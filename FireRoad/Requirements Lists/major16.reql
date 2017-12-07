@@ -8,7 +8,7 @@ Select four subjects from at least three professional areas. For students who wi
 lab_capstone
 
 ci_m
-Choose at least two subjects in the major that are designated as communication-intensive (CI-M) to fulfill the Communication Requirement.
+
 girs
 
 
@@ -45,4 +45,4 @@ fli_veh, "Flight Vehicle Development" := 16.821{>=0}
 space_sys, "Space Systems Development" := 16.831{>=0}
 lab_capstone, "Laboratory and Capstone Subjects" := (16.82/16.83), (robotics/exp_proj/fli_veh/space_sys)
 
-ci_m, "CI-M Options" := 16.82/16.83/16.405/16.622/16.821/16.831
+ci_m, "CI-M Options" := 16.82/16.83/16.405/16.622/16.821/16.831{>=2}

@@ -88,7 +88,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
         
         var ret: [(title: String, statement: RequirementsListStatement, items: [PresentationItem])] = []
-        if list.minimumNestDepth <= 1 {
+        if list.maximumNestDepth <= 1 {
             ret.append(("", list, presentationItems(for: list)))
         } else {
             if let description = list.contentDescription, description.count > 0 {
