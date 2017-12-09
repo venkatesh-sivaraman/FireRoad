@@ -443,8 +443,10 @@ class RequirementsList: RequirementsListStatement {
 
     var shortTitle: String?
     var mediumTitle: String?
+    var listID: String
     
     init(contentsOf file: String) throws {
+        self.listID = URL(fileURLWithPath: file).deletingPathExtension().lastPathComponent
         let fileText = try String(contentsOfFile: file)
         super.init()
         self.parseRequirementsList(from: fileText)

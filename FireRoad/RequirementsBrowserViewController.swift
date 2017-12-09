@@ -31,6 +31,7 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
                 }
             }
         }
+        requirementsLists.sort(by: { ($0.mediumTitle?.compare($1.mediumTitle ?? "") ?? .orderedDescending) == .orderedAscending })
     }
     
     override func viewWillAppear(_ animated: Bool) {
