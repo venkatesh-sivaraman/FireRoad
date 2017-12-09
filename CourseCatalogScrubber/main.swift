@@ -71,6 +71,7 @@ func writeCondensedCourses(_ courses: [[CourseAttribute: Any]], to file: String)
         try parser.writeCourses(courses, to: file, attributes: [
             .subjectID,
             .title,
+            .subjectLevel,
             .prerequisites,
             .corequisites,
             .jointSubjects,
@@ -97,6 +98,7 @@ func writeFullCourses(_ courses: [[CourseAttribute: Any]], to file: String) {
         try parser.writeCourses(courses, to: file, attributes: [
             .subjectID,
             .title,
+            .subjectLevel,
             .lectureUnits,
             .labUnits,
             .preparationUnits,
@@ -131,7 +133,7 @@ var departmentCourses: [[CourseAttribute: Any]] = []
 for courseCode in courseNumbers {
     departmentCourses = []
     var originalHTML: String?
-    for letter in alphabet.characters {
+    for letter in alphabet {
         let totalCode = courseCode + "\(letter)"
         if let html = originalHTML, !html.contains("\(urlLastPrefix)\(totalCode)\(urlSuffix)") {
             continue
@@ -142,7 +144,7 @@ for courseCode in courseNumbers {
         }
         print("======", totalCode)
         departmentCourses += addlCourses
-        if letter == alphabet.characters.first {
+        if letter == alphabet.first {
             originalHTML = parser.htmlContents
         }
     }

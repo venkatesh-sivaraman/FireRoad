@@ -495,7 +495,7 @@
                                                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <subviews>
-                                                            <label opaque="NO" multipleTouchEnabled="YES" tag="12" contentMode="left" text="A super long title that might wrap, we'll see" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" minimumScaleFactor="0.80000000000000004" translatesAutoresizingMaskIntoConstraints="NO" id="Eme-fi-VEv">
+                                                            <label opaque="NO" multipleTouchEnabled="YES" tag="12" contentMode="left" text="A super long title that might wrap, we'll see" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" minimumScaleFactor="0.59999999999999998" translatesAutoresizingMaskIntoConstraints="NO" id="Eme-fi-VEv">
                                                                 <rect key="frame" x="15" y="6" width="312" height="32"/>
                                                                 <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="23"/>
                                                                 <nil key="textColor"/>

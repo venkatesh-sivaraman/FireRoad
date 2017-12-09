@@ -1,0 +1,31 @@
+1-ENG#,#1-ENG Major#,#Engineering as Recommended by the Department of Civil and Environmental Engineering
+
+
+gen_dept_reqs
+
+core_subjects
+Select one area of core coursework (54-60 units).
+girs
+
+
+%% Departmental Program
+gen_dept_reqs, "General Department Requirements (GDRs)" := (1.00/1.000), 1.010, 1.013, (1.073/1.074), 18.03
+
+environment, "Environment" := 1.018A/1.060A/1.061A/1.070A/1.080A/1.092/1.089A/1.106/1.107{>=0}
+mech_mat, "Mechanics/Materials" := 1.035/1.050/1.060A/1.036/1.101/1.102{>=0}
+systems, "Systems" := 1.011/1.020/1.022/1.041/1.075/1.101/1.102{>=0}
+elect_eng, "Elective Subjects with Engineering Content" := ""48-60 units""
+
+core_subjects, "Core Subjects" := environment/mech_mat/systems/elect_eng{>=54u|<=1}
+
+%% GIRs
+
+science_gir, "Science Requirement" := GIR:PHY1, GIR:PHY2, GIR:CAL1, GIR:CAL2, GIR:CHEM, GIR:BIOL
+hass_gen_req := HASS{>=8}
+hass_req := hass_gen_req, HASS-A, HASS-S, HASS-H
+ci_req := "CI-H"/"CI-HW"{>=2} %% at least two subjects must be designated as CI-H or CI-HW
+hass_gir, "Humanities, Arts, and Social Sciences (HASS) Requirement" := hass_req, ci_req
+rest_gir, "REST Requirement" := GIR:REST{>=2}
+lab_gir, "Lab Requirement" := GIR:LAB
+
+girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir, rest_gir, lab_gir

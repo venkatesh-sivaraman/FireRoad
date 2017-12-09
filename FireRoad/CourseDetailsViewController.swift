@@ -73,6 +73,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         loadViewIfNeeded()
         self.tableView.contentInset = UIEdgeInsets(top: 8.0, left: 0.0, bottom: 8.0, right: 0.0)
         if !displayStandardMode {
+            self.view.backgroundColor = UIColor.clear
             self.tableView.backgroundColor = UIColor.clear
             self.tableView.estimatedRowHeight = 60.0
             if #available(iOS 11.0, *) {
@@ -81,6 +82,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             //self.navigationController?.navigationBar.shadowImage = UIImage()
             self.navigationController?.navigationBar.isTranslucent = true
         } else {
+            self.view.backgroundColor = UIColor.white
             self.tableView.backgroundColor = UIColor.white
             self.tableView.estimatedRowHeight = 60.0
             if #available(iOS 11.0, *) {
@@ -350,7 +352,11 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         case .header:
             textLabel?.text = self.sectionTitles[indexPath.section]
         case .title:
-            textLabel?.text = self.course!.subjectTitle
+            var title = course?.subjectTitle ?? ""
+            if let level = course?.subjectLevel, level != .undergraduate {
+                title += " (\(level.rawValue))"
+            }
+            textLabel?.text = title
         case .button:
             textLabel?.text = "Find Classes With \(self.course!.subjectID!) as Prerequisite"
         case .description:
@@ -396,16 +402,16 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             textLabel?.text = "Offered"
             var seasons: [String] = []
             if self.course!.isOfferedFall {
-                seasons.append("fall")
+                seasons.append("Fall")
             }
             if self.course!.isOfferedIAP {
                 seasons.append("IAP")
             }
             if self.course!.isOfferedSpring {
-                seasons.append("spring")
+                seasons.append("Spring")
             }
             if self.course!.isOfferedSummer {
-                seasons.append("summer")
+                seasons.append("Summer")
             }
             var offeredString = ""
             if self.course!.offeringPattern == .alternateYears, let notOffered = self.course?.notOfferedYear {
@@ -427,7 +433,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                     quarterString += " – \(attachmentWord) \(formatter.string(from: date))"
                 }
             }
-            detailTextLabel?.text = seasons.joined(separator: ", ").capitalized + quarterString + offeredString
+            detailTextLabel?.text = seasons.joined(separator: ", ") + quarterString + offeredString
         case .schedule:
             textLabel?.text = ""
             detailTextLabel?.text = ""

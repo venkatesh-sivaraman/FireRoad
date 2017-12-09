@@ -10,14 +10,6 @@ import UIKit
 import CoreSpotlight
 import MobileCoreServices
 
-/// Enumerates the different majors and minors.
-enum CourseOfStudy: String {
-    
-    case major67 = "Major in Computational Biology"
-    case minor9 = "Minor in Brain and Cog Sci"
-    case minor21M = "Minor in Music and Theater Arts"
-}
-
 extension Notification.Name {
     static let CourseManagerFinishedLoading = Notification.Name(rawValue: "CourseManagerFinishedLoadingNotification")
 }
@@ -80,47 +72,6 @@ class CourseManager: NSObject {
         ret["CI-HW"] = UIColor(hue: 0.95, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
         return ret
     }()
-        /*[
-        "1": UIColor(hue: 3.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "2": UIColor(hue: 6.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "3": UIColor(hue: 9.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "4": UIColor(hue: 12.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "5": UIColor(hue: 15.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "6": UIColor(hue: 18.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "7": UIColor(hue: 21.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "8": UIColor(hue: 24.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "9": UIColor(hue: 27.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "10": UIColor(hue: 30.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "11": UIColor(hue: 1.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "12": UIColor(hue: 4.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "14": UIColor(hue: 7.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "15": UIColor(hue: 10.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "16": UIColor(hue: 13.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "17": UIColor(hue: 16.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "18": UIColor(hue: 19.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "20": UIColor(hue: 22.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "21A": UIColor(hue: 25.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "CMS": UIColor(hue: 25.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "21W": UIColor(hue: 25.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "21G": UIColor(hue: 25.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "21H": UIColor(hue: 25.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "21L": UIColor(hue: 25.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "21M": UIColor(hue: 25.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "WGS": UIColor(hue: 25.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "22": UIColor(hue: 28.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "24": UIColor(hue: 31.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "CC": UIColor(hue: 2.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "CSB": UIColor(hue: 5.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "EC": UIColor(hue: 8.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "EM": UIColor(hue: 11.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "ES": UIColor(hue: 14.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "HST": UIColor(hue: 17.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "IDS": UIColor(hue: 20.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "MAS": UIColor(hue: 23.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "SCM": UIColor(hue: 26.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "STS": UIColor(hue: 29.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-        "SWE": UIColor(hue: 32.0 / 32.0, saturation: 0.7, brightness: 0.87, alpha: 1.0),
-    ]*/
     
     typealias DispatchJob = ((Bool) -> Void) -> Void
     

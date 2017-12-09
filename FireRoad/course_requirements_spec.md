@@ -23,6 +23,8 @@ Items in a statement may be parenthesized to nest lists together. For instance, 
 ## List Modifications
 A list of courses succeeded by `{>=x}`, where x is an integer, denotes that the given criterion must apply to at least x courses. A similar rule holds true for `{>x}`, `{<=x}`, and `{<x}`.
 
+If the number x is followed by the character `u`, then the given criterion must apply to that number of *units*. For instance, the statement `mech_mat, "Mechanics/Materials" := 1.035/1.050/1.060A/1.036/1.101/1.102{>=54u}` will be satisfied when the total number of units fulfilled by the constituent requirements is at least 54.
+
 List modifications may only be applied to the top level of an expression. For example, the modifier in `variable_name := req1, req2 {>=3}` applies to the entire variable declaration; the modifier in `variable_name := (req1{>=3}), req2` would *still* be parsed as belonging to the entire variable declaration.
 
 ## Variables

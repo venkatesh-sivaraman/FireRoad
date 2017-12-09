@@ -314,6 +314,11 @@ enum CourseQuarter {
     case endOnly
 }
 
+enum CourseLevel: String {
+    case undergraduate = "U"
+    case graduate = "G"
+}
+
 // MARK: - Course Attributes
 
 enum CourseAttribute: String {
@@ -353,11 +358,13 @@ enum CourseAttribute: String {
     case enrollmentNumber
     case relatedSubjects
     case schedule
+    case subjectLevel
 
     static let csvHeaders: [String: CourseAttribute] = [
         "Subject Id": .subjectID,
         "Subject Title": .subjectTitle,
         "Subject Short Title": .subjectShortTitle,
+        "Subject Level": .subjectLevel,
         "Subject Description": .subjectDescription,
         "Subject Code": .subjectCode,
         "Department Name": .department,
@@ -412,6 +419,7 @@ class Course: NSObject {
     @objc dynamic var subjectID: String? = nil
     @objc dynamic var subjectTitle: String? = nil
     @objc dynamic var subjectShortTitle: String? = nil
+    var subjectLevel: CourseLevel? = nil
     @objc dynamic var subjectDescription: String? = nil
     var subjectCode: String? {
         if let subject = subjectID,
@@ -636,6 +644,12 @@ class Course: NSObject {
                     self.schedule = parseScheduleString(text)
                 } else if value == nil {
                     self.schedule = nil
+                }
+            case .subjectLevel:
+                if let string = value as? String {
+                    self.subjectLevel = CourseLevel(rawValue: string)
+                } else {
+                    print("Unidentified subject level: \(value ?? "nil")")
                 }
             default:
                 super.setValue(value, forKey: key)

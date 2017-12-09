@@ -21,7 +21,11 @@ class CourseBrowserCell: UITableViewCell {
 
     var course: Course? = nil {
         didSet {
-            self.titleLabel.text = course?.subjectID
+            var title = course?.subjectID ?? ""
+            if let level = course?.subjectLevel, level != .undergraduate {
+                title += " (\(level.rawValue))"
+            }
+            self.titleLabel.text = title
             if course?.subjectTitle == nil || course?.subjectTitle?.count == 0 {
                 print("Subject title nil")
             }

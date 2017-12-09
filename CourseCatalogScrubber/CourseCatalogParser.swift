@@ -20,6 +20,8 @@ enum CourseCatalogConstants {
     
     static let undergrad = "undergrad"
     static let graduate = "graduate"
+    static let undergradValue = "U"
+    static let graduateValue = "G"
     static let fall = "fall"
     static let spring = "spring"
     static let iap = "iap"
@@ -99,10 +101,40 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
     case URL
     case hasFinal
     case quarterInformation
+    case subjectLevel
     
     var debugDescription: String {
         return rawValue
     }
+    
+    static let csvHeadings: [CourseAttribute: String] = [
+        .subjectID: "Subject Id",
+        .title: "Subject Title",
+        .description: "Subject Description",
+        .offeredFall: "Is Offered Fall Term",
+        .offeredIAP: "Is Offered Iap",
+        .offeredSpring: "Is Offered Spring Term",
+        .offeredSummer: "Is Offered Summer Term",
+        .lectureUnits: "Lecture Units",
+        .labUnits: "Lab Units",
+        .preparationUnits: "Preparation Units",
+        .totalUnits: "Total Units",
+        .instructors: "Instructors",
+        .prerequisites: "Prerequisites",
+        .corequisites: "Corequisites",
+        .notes: "Notes",
+        .schedule: "Schedule",
+        .notOfferedYear: "Not Offered Year",
+        .hassRequirement: "Hass Attribute",
+        .GIR: "Gir Attribute",
+        .communicationRequirement: "Comm Req Attribute",
+        .meetsWithSubjects: "Meets With Subjects",
+        .jointSubjects: "Joint Subjects",
+        .equivalentSubjects: "Equivalent Subjects",
+        .URL: "URL",
+        .quarterInformation: "Quarter Information",
+        .subjectLevel: "Subject Level"
+    ]
 }
 
 
@@ -322,6 +354,12 @@ class CourseCatalogParser: NSObject {
             let firstMatchRange = Range(firstMatch.range, in: item),
             String(item[firstMatchRange]).contains(subjectID) {
             attributes[.title] = String(item[firstMatchRange.upperBound..<item.endIndex]).replacingOccurrences(of: CourseCatalogConstants.jointClass, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        } else if item.range(of: CourseCatalogConstants.undergrad, options: .caseInsensitive) != nil,
+            abs(item.count - CourseCatalogConstants.undergrad.count) < 10 {
+            attributes[.subjectLevel] = CourseCatalogConstants.undergradValue
+        } else if item.range(of: CourseCatalogConstants.graduate, options: .caseInsensitive) != nil,
+            abs(item.count - CourseCatalogConstants.graduate.count) < 10 {
+            attributes[.subjectLevel] = CourseCatalogConstants.graduateValue
         } else if item.count > 75 {
             if let existingDescription = attributes[.description] as? String,
                 existingDescription.count > item.count {
@@ -467,36 +505,8 @@ class CourseCatalogParser: NSObject {
     
     //let headings = "Subject Id,Subject Title,Lecture Units,Lab Units,Preparation Units,Total Units,Gir Attribute,Comm Req Attribute,Prerequisites,Subject Description,Joint Subjects,Meets With Subjects,Equivalent Subjects,Is Offered This Year,Is Offered Fall Term,Is Offered Iap,Is Offered Spring Term,Is Offered Summer Term,Fall Instructors,Spring Instructors,Hass Attribute,Term Duration,URL,Notes"
     
-    static let csvHeadings: [CourseAttribute: String] = [
-        .subjectID: "Subject Id",
-        .title: "Subject Title",
-        .description: "Subject Description",
-        .offeredFall: "Is Offered Fall Term",
-        .offeredIAP: "Is Offered Iap",
-        .offeredSpring: "Is Offered Spring Term",
-        .offeredSummer: "Is Offered Summer Term",
-        .lectureUnits: "Lecture Units",
-        .labUnits: "Lab Units",
-        .preparationUnits: "Preparation Units",
-        .totalUnits: "Total Units",
-        .instructors: "Instructors",
-        .prerequisites: "Prerequisites",
-        .corequisites: "Corequisites",
-        .notes: "Notes",
-        .schedule: "Schedule",
-        .notOfferedYear: "Not Offered Year",
-        .hassRequirement: "Hass Attribute",
-        .GIR: "Gir Attribute",
-        .communicationRequirement: "Comm Req Attribute",
-        .meetsWithSubjects: "Meets With Subjects",
-        .jointSubjects: "Joint Subjects",
-        .equivalentSubjects: "Equivalent Subjects",
-        .URL: "URL",
-        .quarterInformation: "Quarter Information"
-    ]
-    
     func headingForAttribute(_ attribute: CourseAttribute) -> String {
-        guard let heading = CourseCatalogParser.csvHeadings[attribute] else {
+        guard let heading = CourseAttribute.csvHeadings[attribute] else {
             fatalError("No CSV heading defined for attribute \(attribute.rawValue)")
         }
         return heading

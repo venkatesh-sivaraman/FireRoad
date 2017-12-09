@@ -267,7 +267,7 @@ class RequirementsListStatement: NSObject {
                 threshold = thresh
             }
             if comps[1].count > 0 {
-                let (type, thresh) = parseModifierComponent(comps[0])
+                let (type, thresh) = parseModifierComponent(comps[1])
                 distinctThresholdType = type
                 distinctThreshold = thresh
             }
@@ -346,28 +346,37 @@ class RequirementsListStatement: NSObject {
     }
     
     func computeRequirementStatus(with courses: [Course]) {
-        var numSatisfying = 0
+        var numSatisfyingPerCategory: [Int] = []
         var distinctNumSatisfying = 0
         if requirement != nil {
-            numSatisfying += coursesSatisfyingRequirement(in: courses).count
+            numSatisfyingPerCategory.append(coursesSatisfyingRequirement(in: courses).count)
         } else if let reqs = requirements {
             for req in reqs {
+                var satisfying = 0
                 req.computeRequirementStatus(with: courses)
                 if req.isFulfilled {
                     if connectionType == .any {
-                        numSatisfying += max(req.coursesSatisfyingRequirement(in: courses).count, req.fulfillmentProgress)
+                        satisfying += max(req.coursesSatisfyingRequirement(in: courses).count, req.fulfillmentProgress)
                     } else {
-                        numSatisfying += 1
+                        satisfying += 1
                     }
                     distinctNumSatisfying += 1
                 }
+                numSatisfyingPerCategory.append(satisfying)
             }
         }
         
+        var numSatisfying = numSatisfyingPerCategory.reduce(0, +)
         if connectionType == .any, threshold == 0 {
             isFulfilled = true
         } else if connectionType == .any || threshold > 1 {
-            isFulfilled = number(numSatisfying, satisfies: max(threshold, 1), with: thresholdType) && number(distinctNumSatisfying, satisfies: distinctNumSatisfying, with: distinctThresholdType)
+            if distinctThresholdType == .lessThan || distinctThresholdType == .lessThanOrEqual {
+                let optimalReqs = numSatisfyingPerCategory.sorted().reversed()[0..<min(numSatisfyingPerCategory.count, distinctThreshold)]
+                numSatisfying = optimalReqs.reduce(0, +)
+                isFulfilled = number(numSatisfying, satisfies: max(threshold, 1), with: thresholdType) && number(optimalReqs.count, satisfies: distinctNumSatisfying, with: distinctThresholdType)
+            } else {
+                isFulfilled = number(numSatisfying, satisfies: max(threshold, 1), with: thresholdType) && number(distinctNumSatisfying, satisfies: distinctNumSatisfying, with: distinctThresholdType)
+            }
         } else {
             isFulfilled = (numSatisfying >= (requirements?.count ?? 1))
         }
@@ -376,6 +385,9 @@ class RequirementsListStatement: NSObject {
     
     private var fulfilledFraction: (Int, Int) {
         if let reqs = requirements {
+            if distinctThreshold > 0 {
+                return (fulfillmentProgress, threshold)
+            }
             let progresses = reqs.map({ $0.fulfilledFraction })
             if connectionType == .all {
                 return progresses.reduce((0, 0), { ($0.0 + min($1.0, $1.1), $0.1 + $1.1) })
