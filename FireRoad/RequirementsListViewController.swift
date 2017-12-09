@@ -139,7 +139,48 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             tableView.reloadData()
         }
         delegate?.requirementsListViewControllerUpdatedFulfillmentStatus(self)
+        updateFavoritesButton()
     }
+    
+    func updateFavoritesButton() {
+        if let tabVC = rootParent as? RootTabViewController,
+            let currentUser = tabVC.currentUser,
+            let list = requirementsList as? RequirementsList {
+            let image = (currentUser.coursesOfStudy.contains(list.listID)) ? UIImage(named: "heart-small-filled") : UIImage(named: "heart-small")
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(toggleFavorites(sender:)))
+        } else {
+            navigationItem.rightBarButtonItem = nil
+        }
+    }
+    
+    @objc func toggleFavorites(sender: AnyObject) {
+        guard let tabVC = rootParent as? RootTabViewController,
+            let currentUser = tabVC.currentUser,
+            let list = requirementsList as? RequirementsList else {
+                return
+        }
+        var title = ""
+        if currentUser.coursesOfStudy.contains(list.listID) {
+            currentUser.removeCourseOfStudy(list.listID)
+            title = "Removed from My Courses"
+        } else {
+            currentUser.addCourseOfStudy(list.listID)
+            title = "Added to My Courses"
+        }
+        let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+        hud.mode = .customView
+        let imageView = UIImageView(image: UIImage(named: "Checkmark"))
+        imageView.frame = CGRect(x: 0.0, y: 0.0, width: 72.0, height: 72.0)
+        hud.customView = imageView
+        hud.label.text = title
+        hud.isSquare = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            hud.hide(animated: true)
+        }
+        updateFavoritesButton()
+    }
+    
+    // MARK: - Table View
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return presentationItems.count

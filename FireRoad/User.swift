@@ -171,6 +171,20 @@ class User: NSObject {
         warningsCache.removeAll()
     }
     
+    // MARK: - Courses of Study
+    
+    func addCourseOfStudy(_ listID: String) {
+        coursesOfStudy.append(listID)
+        setNeedsSave()
+    }
+    
+    func removeCourseOfStudy(_ listID: String) {
+        if let index = coursesOfStudy.index(of: listID) {
+            coursesOfStudy.remove(at: index)
+            setNeedsSave()
+        }
+    }
+    
     // MARK: - Courseroad Error Checking
     
     enum CourseWarningType {

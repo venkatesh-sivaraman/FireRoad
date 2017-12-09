@@ -14,6 +14,17 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
     
     var requirementsLists: [RequirementsList] = []
     
+    enum RequirementBrowserTableSection: String {
+        case user = "My Courses"
+        case majors = "Majors"
+        case minors = "Minors"
+        case other = "Other"
+        
+        static let ordering: [RequirementBrowserTableSection] = [.user, .majors, .minors, .other]
+    }
+    
+    var organizedRequirementLists: [(RequirementBrowserTableSection, [RequirementsList])] = []
+    
     let listCellIdentifier = "RequirementsListCell"
     let listVCIdentifier = "RequirementsListVC"
     
@@ -42,8 +53,30 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         if let tabVC = rootParent as? RootTabViewController,
             let currentUser = tabVC.currentUser {
             let courses = currentUser.allCourses
+            var organizedCategories: [RequirementBrowserTableSection: [RequirementsList]] = [:]
             for reqList in requirementsLists {
                 reqList.computeRequirementStatus(with: courses)
+                var category: RequirementBrowserTableSection = .other
+                if currentUser.coursesOfStudy.contains(reqList.listID) {
+                    category = .user
+                } else if reqList.listID.range(of: "major", options: .caseInsensitive) != nil {
+                    category = .majors
+                } else if reqList.listID.range(of: "minor", options: .caseInsensitive) != nil {
+                    category = .minors
+                }
+                if organizedCategories[category] == nil {
+                    organizedCategories[category] = [reqList]
+                } else {
+                    organizedCategories[category]?.append(reqList)
+                }
+            }
+            organizedRequirementLists = []
+            
+            for key in RequirementBrowserTableSection.ordering {
+                guard let lists = organizedCategories[key], lists.count > 0 else {
+                    continue
+                }
+                organizedRequirementLists.append((key, lists.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled })))
             }
             tableView.reloadData()
         }
@@ -97,20 +130,25 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+        return organizedRequirementLists.count
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return requirementsLists.count
+        return organizedRequirementLists[section].1.count
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return organizedRequirementLists[section].0.rawValue
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: listCellIdentifier, for: indexPath)
         let textLabel = cell.viewWithTag(12) as? UILabel
         let detailTextLabel = cell.viewWithTag(34) as? UILabel
-        textLabel?.text = requirementsLists[indexPath.row].mediumTitle ?? "No title"
+        let list = organizedRequirementLists[indexPath.section].1[indexPath.row]
+        textLabel?.text = list.mediumTitle ?? "No title"
         if CourseManager.shared.isLoaded {
-            let progress = requirementsLists[indexPath.row].percentageFulfilled
+            let progress = list.percentageFulfilled
             let fulfillmentIndicator = cell.viewWithTag(56)
             if progress > 0.0 {
                 detailTextLabel?.text = "\(Int(round(progress)))%"
@@ -129,7 +167,7 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let reqList = requirementsLists[indexPath.row]
+        let reqList = organizedRequirementLists[indexPath.section].1[indexPath.row]
         guard let nav = storyboard?.instantiateViewController(withIdentifier: listVCIdentifier) as? UINavigationController,
             let listVC = nav.topViewController as? RequirementsListViewController else {
             return
