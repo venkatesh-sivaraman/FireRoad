@@ -73,7 +73,8 @@ class User: NSObject {
     private var selectedSubjects: [UserSemester: [Course]] = [:]
     
     var name: String = "No Name"
-    var coursesOfStudy: [CourseOfStudy] = []
+    /// Courses of study correspond to the filenames of .reql files.
+    var coursesOfStudy: [String] = []
     
     var filePath: String? {
         didSet {
@@ -271,7 +272,7 @@ class User: NSObject {
             return
         }
         name = firstLineComps[0].trimmingCharacters(in: .whitespacesAndNewlines)
-        coursesOfStudy = firstLineComps[1].components(separatedBy: ",").flatMap({ CourseOfStudy(rawValue: $0) })
+        coursesOfStudy = firstLineComps[1].components(separatedBy: ",")
         
         // Do nothing with the second line for now
         lines.removeFirst()
@@ -314,7 +315,7 @@ class User: NSObject {
         
         var contentsString = ""
         // First line, header information
-        contentsString += "\(name);\(coursesOfStudy.map({ $0.rawValue }).joined(separator: ","))\n"
+        contentsString += "\(name);\(coursesOfStudy.joined(separator: ","))\n"
         // Second line, future header information
         contentsString += "\n"
         // Subsequent lines, selected subjects

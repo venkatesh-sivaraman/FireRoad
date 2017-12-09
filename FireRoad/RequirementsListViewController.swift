@@ -212,10 +212,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
             if let reqs = statement.requirements {
                 courseListCell.fulfillmentIndications = reqs.map {
-                    ($0.fulfillmentProgress, $0.threshold)
+                    ($0.fulfillmentProgress, $0.threshold.cutoff)
                 }
             } else {
-                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress, statement.threshold)]
+                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress, statement.threshold.cutoff)]
             }
             
             courseListCell.delegate = self
@@ -241,7 +241,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     func progressInformation(for requirement: RequirementsListStatement?) -> (String, UIColor) {
         if let req = requirement,
-            req.connectionType == .all || req.threshold > 0 {
+            req.connectionType == .all || req.threshold.cutoff > 0 {
             let progress = req.percentageFulfilled
             if progress > 0.0 {
                 return ("\(Int(round(progress)))%", UIColor(hue: 0.005 * CGFloat(progress), saturation: 0.5, brightness: 0.8, alpha: 1.0))
