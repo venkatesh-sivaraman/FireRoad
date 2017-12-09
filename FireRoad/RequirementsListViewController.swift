@@ -58,6 +58,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 titleText += " (\(requirement.thresholdDescription))"
             }
             items.append(PresentationItem(cellType: cellType, statement: requirement, text: titleText))
+        } else if requirement.thresholdDescription.count > 0 {
+            items.append(PresentationItem(cellType: level == 0 ? .title : .title2, statement: requirement, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
         }
         if let description = requirement.contentDescription, description.count > 0 {
             items.append(PresentationItem(cellType: .description, statement: requirement, text: description))

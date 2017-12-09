@@ -80,6 +80,9 @@ class RequirementsListStatement: NSObject {
             case .greaterThan:
                 ret = "select any \(threshold.cutoff + 1)"
             }
+            if threshold.criterion == .units {
+                ret += " units"
+            }
         } else if connectionType == .any {
             if let reqs = requirements, reqs.count == 2 {
                 ret = "select either"
@@ -90,13 +93,17 @@ class RequirementsListStatement: NSObject {
         if distinctThreshold.cutoff > 0 {
             switch distinctThreshold.type {
             case .lessThanOrEqual:
-                ret += " from at most \(distinctThreshold.cutoff) categories"
+                let categoryText = (distinctThreshold.cutoff != 1) ? "categories" : "category"
+                ret += " from at most \(distinctThreshold.cutoff) \(categoryText)"
             case .lessThan:
-                ret = " from at most \(distinctThreshold.cutoff - 1) categories"
+                let categoryText = (distinctThreshold.cutoff + 1 != 1) ? "categories" : "category"
+                ret = " from at most \(distinctThreshold.cutoff - 1) \(categoryText)"
             case .greaterThanOrEqual:
-                ret = " from at least \(distinctThreshold.cutoff) categories"
+                let categoryText = (distinctThreshold.cutoff != 1) ? "categories" : "category"
+                ret = " from at least \(distinctThreshold.cutoff) \(categoryText)"
             case .greaterThan:
-                ret = " from at least \(distinctThreshold.cutoff + 1) categories"
+                let categoryText = (distinctThreshold.cutoff + 1 != 1) ? "categories" : "category"
+                ret = " from at least \(distinctThreshold.cutoff + 1) \(categoryText)"
             }
         }
         return ret
