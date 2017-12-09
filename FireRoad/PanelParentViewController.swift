@@ -15,11 +15,10 @@ protocol PanelParentViewController: CourseBrowserDelegate, CourseDetailsDelegate
     var view: UIView! { get }
     var storyboard: UIStoryboard? { get }
     
-    func findPanelChildViewController()
-    func updatePanelViewCollapseHeight()
+    var showsSemesterDialogs: Bool { get }
     
-    func addCourse(_ course: Course, to semester: UserSemester?) -> UserSemester?
-    func viewDetails(for course: Course)
+    func findPanelChildViewController()
+    func updatePanelViewCollapseHeight()    
 }
 
 extension PanelParentViewController {
@@ -31,6 +30,7 @@ extension PanelParentViewController {
                 for subchild in self.panelView!.childViewControllers[0].childViewControllers {
                     if subchild is CourseBrowserViewController {
                         self.courseBrowser = subchild as? CourseBrowserViewController
+                        self.courseBrowser?.showsSemesterDialog = self.showsSemesterDialogs
                         break
                     }
                 }
@@ -50,14 +50,6 @@ extension PanelParentViewController {
     func courseDetails(added course: Course, to semester: UserSemester?) {
         _ = addCourse(course, to: semester)
         courseBrowser?.navigationController?.popViewController(animated: true)
-    }
-    
-    func courseBrowser(added course: Course, to semester: UserSemester?) -> UserSemester? {
-        return addCourse(course, to: semester)
-    }
-    
-    func courseBrowserRequestedDetails(about course: Course) {
-        viewDetails(for: course)
     }
     
     func courseDetailsRequestedDetails(about course: Course) {
@@ -98,6 +90,7 @@ extension PanelParentViewController {
                     
                     let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
                     details.course = realCourse
+                    details.showsSemesterDialog = self.showsSemesterDialogs
                     details.delegate = self
                     browser.navigationController?.pushViewController(details, animated: true)
                     browser.navigationController?.view.setNeedsLayout()
@@ -120,6 +113,7 @@ extension PanelParentViewController {
             listVC.showsHeaderBar = false
             listVC.delegate = self
             listVC.managesNavigation = false
+            listVC.showsSemesterDialog = self.showsSemesterDialogs
             listVC.view.backgroundColor = UIColor.clear
             browser.navigationController?.pushViewController(listVC, animated: true)
             browser.navigationController?.view.setNeedsLayout()
@@ -141,6 +135,7 @@ extension PanelParentViewController {
         listVC.showsHeaderBar = false
         listVC.delegate = self
         listVC.managesNavigation = false
+        listVC.showsSemesterDialog = self.showsSemesterDialogs
         listVC.view.backgroundColor = UIColor.clear
         browser.navigationController?.pushViewController(listVC, animated: true)
         browser.navigationController?.view.setNeedsLayout()

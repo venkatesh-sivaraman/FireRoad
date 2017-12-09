@@ -26,6 +26,9 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     weak var delegate: CourseThumbnailCellDelegate?
     
+    var course: Course?
+    var isDetached = false
+    
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
     
@@ -177,6 +180,16 @@ class CourseThumbnailCell: UICollectionViewCell {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
         isHighlighted = false
+        if delegate != nil, isDetached {
+            self.becomeFirstResponder()
+            let menu = UIMenuController.shared
+            if menu.isMenuVisible {
+                menu.setMenuVisible(false, animated: true)
+            } else {
+                UIMenuController.shared.setTargetRect(self.bounds, in: self)
+                UIMenuController.shared.setMenuVisible(true, animated: true)
+            }
+        }
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {

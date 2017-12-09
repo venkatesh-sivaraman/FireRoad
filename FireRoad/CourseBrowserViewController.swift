@@ -8,9 +8,8 @@
 
 import UIKit
 
-protocol CourseBrowserDelegate: class {
-    func courseBrowser(added course: Course, to semester: UserSemester?) -> UserSemester?
-    func courseBrowserRequestedDetails(about course: Course)
+protocol CourseBrowserDelegate: CourseDisplayManager {
+    // Nothing here yet
 }
 
 struct SearchOptions: OptionSet {
@@ -88,7 +87,9 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     var searchResults: [Course] = []
     var results: [Course] = []
-    var managesNavigation: Bool = true
+    var managesNavigation = true
+    
+    var showsSemesterDialog = true
     
     enum ViewMode: Int {
         case recents = 0
@@ -442,7 +443,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.searchBar?.resignFirstResponder()
-        self.delegate?.courseBrowserRequestedDetails(about: results[indexPath.row])
+        self.delegate?.viewDetails(for: results[indexPath.row])
         self.tableView.deselectRow(at: indexPath, animated: false)
     }
     
@@ -476,26 +477,30 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     func browserCell(added course: Course) -> UserSemester? {
         self.searchBar?.resignFirstResponder()
-        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
-            print("No pop down table menu in storyboard!")
+        if showsSemesterDialog {
+            guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
+                print("No pop down table menu in storyboard!")
+                return nil
+            }
+            popDown.course = course
+            popDown.delegate = self
+            let containingView: UIView = self.view
+            containingView.addSubview(popDown.view)
+            popDown.view.translatesAutoresizingMaskIntoConstraints = false
+            popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+            popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+            popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+            popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
+            popDown.willMove(toParentViewController: self)
+            self.addChildViewController(popDown)
+            popDown.didMove(toParentViewController: self)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                popDown.show(animated: true)
+            }
             return nil
+        } else {
+            return delegate?.addCourse(course, to: nil)
         }
-        popDown.course = course
-        popDown.delegate = self
-        let containingView: UIView = self.view
-        containingView.addSubview(popDown.view)
-        popDown.view.translatesAutoresizingMaskIntoConstraints = false
-        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
-        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
-        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
-        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
-        popDown.willMove(toParentViewController: self)
-        self.addChildViewController(popDown)
-        popDown.didMove(toParentViewController: self)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            popDown.show(animated: true)
-        }
-        return nil
     }
     
     @IBAction func segmentedControlSelectionChanged(_ sender: UISegmentedControl) {
@@ -518,7 +523,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester) {
-        _ = self.delegate?.courseBrowser(added: course, to: semester)
+        _ = self.delegate?.addCourse(course, to: semester)
         popDownTableMenuCanceled(tableMenu)
     }
     

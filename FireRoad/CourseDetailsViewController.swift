@@ -59,6 +59,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     var sectionTitles: [String] = []
     var detailMapping: [IndexPath: CourseDetailItem] = [:]
     
+    var showsSemesterDialog = true
+    
     @IBOutlet var tableView: UITableView!
     
     var displayStandardMode = false {
@@ -110,25 +112,29 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     @objc func addCourseButtonPressed(sender: AnyObject) {
         //self.delegate?.courseDetails(added: self.course!)
-        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
-            print("No pop down table menu in storyboard!")
-            return
-        }
-        navigationItem.rightBarButtonItem?.isEnabled = false
-        popDown.course = self.course
-        popDown.delegate = self
-        let containingView: UIView = self.view
-        containingView.addSubview(popDown.view)
-        popDown.view.translatesAutoresizingMaskIntoConstraints = false
-        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
-        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
-        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
-        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor, constant: navigationController?.navigationBar.frame.size.height ?? 0.0).isActive = true
-        popDown.willMove(toParentViewController: self)
-        self.addChildViewController(popDown)
-        popDown.didMove(toParentViewController: self)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            popDown.show(animated: true)
+        if showsSemesterDialog {
+            guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
+                print("No pop down table menu in storyboard!")
+                return
+            }
+            navigationItem.rightBarButtonItem?.isEnabled = false
+            popDown.course = self.course
+            popDown.delegate = self
+            let containingView: UIView = self.view
+            containingView.addSubview(popDown.view)
+            popDown.view.translatesAutoresizingMaskIntoConstraints = false
+            popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+            popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+            popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+            popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor, constant: navigationController?.navigationBar.frame.size.height ?? 0.0).isActive = true
+            popDown.willMove(toParentViewController: self)
+            self.addChildViewController(popDown)
+            popDown.didMove(toParentViewController: self)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                popDown.show(animated: true)
+            }
+        } else {
+            delegate?.courseDetails(added: self.course!, to: nil)
         }
     }
     
@@ -208,7 +214,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         if course!.corequisites.flatMap({ $0 }).count > 0 {
             titles.append(CourseDetailSectionTitle.corequisites)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-            if course!.prerequisites.flatMap({ $0 }).count > 1 {
+            if course!.corequisites.flatMap({ $0 }).count > 1 {
                 rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .description
             }

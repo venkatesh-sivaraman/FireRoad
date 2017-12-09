@@ -8,7 +8,11 @@
 
 import UIKit
 
-class ScheduleGridViewController: UIViewController {
+protocol ScheduleGridDelegate: CourseDisplayManager {
+    func deleteCourseFromSchedules(_ course: Course)
+}
+
+class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate {
 
     var schedule: Schedule? {
         didSet {
@@ -18,6 +22,8 @@ class ScheduleGridViewController: UIViewController {
             }
         }
     }
+    
+    weak var delegate: ScheduleGridDelegate?
     
     var pageNumber: Int = 0
     
@@ -94,11 +100,10 @@ class ScheduleGridViewController: UIViewController {
             removeWeekendColumns(from: gridLinesStackView)
         }
         
-        let cellMargin = CGFloat(1.0)
+        let cellMargin = CGFloat(0.0)
         let stackViewMargin = CGFloat(1.0)
         let hourHeight = CGFloat(60.0)
-        // These times match the ones listed in the storyboard
-        let times = [9, 10, 11].flatMap({ [CourseScheduleTime(hour: $0, minute: 0, PM: false), CourseScheduleTime(hour: $0, minute: 30, PM: false)] }) + [12, 1, 2, 3, 4, 5, 6, 7, 8, 9].flatMap({ [CourseScheduleTime(hour: $0, minute: 0, PM: true), CourseScheduleTime(hour: $0, minute: 30, PM: true)] })
+        let times = ScheduleSlotManager.slots
         
         for (i, day) in CourseScheduleDay.ordering.enumerated() {
             guard stackView.arrangedSubviews.count > i + 1,
@@ -116,46 +121,104 @@ class ScheduleGridViewController: UIViewController {
             
             let sortedItems = schedule.chronologicalItems(for: day)
             var timeSlots: [[Schedule.ScheduleChronologicalElement]] = times.map({ _ in [] })
-            for element in sortedItems {
-                guard let timeIndex = times.index(where: { $0 == element.item.startTime }) else {
-                    continue
+            var allTimeSlots: [[Int]] = times.map({ _ in [] })  // List of indices in sortedItems
+            for (i, element) in sortedItems.enumerated() {
+                let startIndex = ScheduleSlotManager.slotIndex(for: element.item.startTime)
+                let endIndex = ScheduleSlotManager.slotIndex(for: element.item.endTime)
+                timeSlots[startIndex].append(element)
+                for index in startIndex..<endIndex {
+                    allTimeSlots[index].append(i)
                 }
-                timeSlots[timeIndex].append(element)
             }
             
-            var lastTimeFilled: CourseScheduleTime?
+            // Cluster the time slots so we know how wide to make each cell
+            var slotOccupancies: [(Int, Int)] = []   // Number of occupancies in each cluster, and number of time slots occupied by the cluster
+            var slotClusterMapping: [Int: Int] = [:]    // Mapping of slot index to cluster in slotOccupiedCounts
+            var currentElements: Set<Int> = Set<Int>() // Indices in sortedItems
+            for (i, slot) in allTimeSlots.enumerated() {
+                currentElements = currentElements.filter { sortedItems[$0].item.endTime > times[i] }
+                if currentElements.count == 0 || slotOccupancies.count == 0 {
+                    slotOccupancies.append((currentElements.count, 0))
+                }
+                assert(slot.count > 0 || currentElements.count == 0, "Inconsistency between allTimeSlots and current element list")
+                currentElements.formUnion(Set<Int>(slot))
+                if let (lastOccupancy, duration) = slotOccupancies.last {
+                    slotOccupancies[slotOccupancies.count - 1] = (max(currentElements.count, lastOccupancy), duration + 1)
+                }
+                slotClusterMapping[i] = slotOccupancies.count - 1
+            }
+            
+            var lastParentView: UIView?
+            var lastParentViewStartIndex = 0
+            var lastParentViewEndIndex = 0
+            // Mapping of column numbers to the indexes at which those columns will end
+            var occupiedColumns: [Int: Int] = [:]
             for (i, slot) in timeSlots.enumerated() {
-                if let lastTime = lastTimeFilled,
-                    times[i] < lastTime {
+                guard let cluster = slotClusterMapping[i] else {
+                    print("Couldn't find current cluster")
                     continue
                 }
-                if let (course, type, item) = slot.first {
-                    let classDuration = item.startTime.delta(to: item.endTime)
-                    var cellHeight = CGFloat(classDuration.0) * hourHeight + CGFloat(classDuration.1) * hourHeight / 60.0
-                    var currentHour = item.startTime.hour24 + 1
-                    while currentHour < item.endTime.hour24 {
-                        cellHeight += stackViewMargin
-                        currentHour += 1
+                occupiedColumns = occupiedColumns.filter({ $1 > i })
+                let (occupancy, duration) = slotOccupancies[cluster]
+                let widthFraction = 1.0 / CGFloat(occupancy)
+                if slot.count > 0 {
+                    for (course, type, item) in slot {
+                        let classDuration = item.startTime.delta(to: item.endTime)
+                        var cellHeight = CGFloat(classDuration.0) * hourHeight + CGFloat(classDuration.1) * hourHeight / 60.0
+                        var currentHour = item.startTime.hour24 + 1
+                        while currentHour < item.endTime.hour24 {
+                            cellHeight += stackViewMargin
+                            currentHour += 1
+                        }
+                        if lastParentViewEndIndex <= i || lastParentView == nil {
+                            let parentView = addGridSpace(to: subStackView, height: CGFloat(duration) * hourHeight / 2.0, color: .clear)
+                            lastParentView = parentView
+                            lastParentViewStartIndex = i
+                            lastParentViewEndIndex = i + duration
+                        }
+                        guard let parentView = lastParentView else {
+                            continue
+                        }
+                        let courseCell = CourseThumbnailCell(frame: .zero)
+                        courseCell.translatesAutoresizingMaskIntoConstraints = false
+                        parentView.addSubview(courseCell)
+                        courseCell.loadThumbnailAppearance()
+                        courseCell.backgroundColor = CourseManager.shared.color(forCourse: course)
+                        courseCell.generateLabels(withDetail: traitCollection.horizontalSizeClass != .compact || UIDevice.current.orientation.isLandscape)
+                        courseCell.delegate = self
+                        courseCell.course = course
+                        courseCell.isDetached = true
+                        courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
+                        courseCell.textLabel?.text = course.subjectID!
+                        courseCell.detailTextLabel?.font = courseCell.detailTextLabel?.font.withSize(cellDescriptionFontSize)
+                        courseCell.detailTextLabel?.text = (CourseScheduleType.abbreviation(for: type)?.lowercased() ?? type.lowercased()) + (item.location != nil ?  " (\(item.location!))" : "")
+                        
+                        // Positioning
+                        for subcolumn in 0..<occupancy {
+                            if occupiedColumns[subcolumn] == nil {
+                                occupiedColumns[subcolumn] = ScheduleSlotManager.slotIndex(for: item.endTime)
+                                if subcolumn == 0 {
+                                    courseCell.leadingAnchor.constraint(equalTo: parentView.leadingAnchor, constant: cellMargin).isActive = true
+                                } else {
+                                    NSLayoutConstraint(item: courseCell, attribute: .leading, relatedBy: .equal, toItem: parentView, attribute: .trailing, multiplier: widthFraction * CGFloat(subcolumn), constant: cellMargin).isActive = true
+                                }
+                                break
+                            }
+                        }
+                        courseCell.widthAnchor.constraint(equalTo: parentView.widthAnchor, multiplier: widthFraction).isActive = true
+                        if i == lastParentViewStartIndex {
+                            courseCell.topAnchor.constraint(equalTo: parentView.topAnchor, constant: cellMargin).isActive = true
+                        } else {
+                            NSLayoutConstraint(item: courseCell, attribute: .top, relatedBy: .equal, toItem: parentView, attribute: .bottom, multiplier: CGFloat(i - lastParentViewStartIndex) / CGFloat(duration), constant: cellMargin).isActive = true
+                        }
+                        courseCell.heightAnchor.constraint(equalToConstant: cellHeight).isActive = true
                     }
-                    let parentView = addGridSpace(to: subStackView, height: cellHeight, color: .clear)
-                    let courseCell = CourseThumbnailCell(frame: .zero)
-                    courseCell.translatesAutoresizingMaskIntoConstraints = false
-                    parentView.addSubview(courseCell)
-                    courseCell.loadThumbnailAppearance()
-                    courseCell.leadingAnchor.constraint(equalTo: parentView.leadingAnchor, constant: cellMargin).isActive = true
-                    courseCell.trailingAnchor.constraint(equalTo: parentView.trailingAnchor, constant: -cellMargin).isActive = true
-                    courseCell.topAnchor.constraint(equalTo: parentView.topAnchor, constant: cellMargin).isActive = true
-                    courseCell.bottomAnchor.constraint(equalTo: parentView.bottomAnchor, constant: -cellMargin).isActive = true
-                    courseCell.backgroundColor = CourseManager.shared.color(forCourse: course)
-                    courseCell.generateLabels(withDetail: traitCollection.horizontalSizeClass != .compact || UIDevice.current.orientation.isLandscape)
-                    courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
-                    courseCell.textLabel?.text = course.subjectID!
-                    courseCell.detailTextLabel?.font = courseCell.detailTextLabel?.font.withSize(cellDescriptionFontSize)
-                    courseCell.detailTextLabel?.text = (CourseScheduleType.abbreviation(for: type)?.lowercased() ?? type.lowercased()) + (item.location != nil ?  " (\(item.location!))" : "")
-                    lastTimeFilled = item.endTime
-                } else {
-                    let _ = addGridSpace(to: subStackView, height: (hourHeight - stackViewMargin) / 2.0, color: .clear)
-                    lastTimeFilled = i + 1 < times.count ? times[i + 1] : nil
+                } else if lastParentViewEndIndex <= i {
+                    let parentView = addGridSpace(to: subStackView, height: (hourHeight - stackViewMargin) / 2.0, color: .clear)
+                    occupiedColumns = [:]
+                    lastParentView = parentView
+                    lastParentViewStartIndex = i
+                    lastParentViewEndIndex = i + duration
                 }
             }
         }
@@ -167,6 +230,20 @@ class ScheduleGridViewController: UIViewController {
             let schedule = self.schedule {
             loadGrid(with: schedule)
         }
+    }
+    
+    func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
+        guard let course = cell.course else {
+            return
+        }
+        delegate?.deleteCourseFromSchedules(course)
+    }
+    
+    func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell) {
+        guard let course = cell.course else {
+            return
+        }
+        delegate?.viewDetails(for: course)
     }
     
     /*

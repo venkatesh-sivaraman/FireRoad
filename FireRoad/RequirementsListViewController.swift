@@ -285,15 +285,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         _ = addCourse(course, to: semester)
     }
     
-    func courseBrowser(added course: Course, to semester: UserSemester?) -> UserSemester? {
-        return addCourse(course)
-    }
-    
     func courseDetailsRequestedDetails(about course: Course) {
-        viewDetails(for: course)
-    }
-    
-    func courseBrowserRequestedDetails(about course: Course) {
         viewDetails(for: course)
     }
     
@@ -351,7 +343,11 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
     }
     
-    func viewDetails(for course: Course, from rect: CGRect? = nil) {
+    func viewDetails(for course: Course) {
+        viewDetails(for: course, from: nil)
+    }
+    
+    func viewDetails(for course: Course, from rect: CGRect?) {
         if let id = course.subjectID,
             CourseManager.shared.getCourse(withID: id) != nil {
             CourseManager.shared.loadCourseDetails(about: course) { (success) in

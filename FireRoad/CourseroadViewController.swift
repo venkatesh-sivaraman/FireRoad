@@ -19,6 +19,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     var panelView: PanelViewController? = nil
     var courseBrowser: CourseBrowserViewController? = nil
+    var showsSemesterDialogs: Bool {
+        return true
+    }
     
     @IBOutlet var loadingView: UIView?
     @IBOutlet var loadingIndicator: UIActivityIndicatorView?
@@ -28,9 +31,6 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     @IBOutlet var layoutToggleButton: UIButton?
     var isSmallLayoutMode = false
-    
-    let viewMenuItemTitle = "View"
-    let deleteMenuItemTitle = "Delete"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,7 +50,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         
         let menu = UIMenuController.shared
         menu.menuItems = [
-            UIMenuItem(title: viewMenuItemTitle, action: #selector(CourseThumbnailCell.viewDetails(_:)))
+            UIMenuItem(title: MenuItemStrings.view, action: #selector(CourseThumbnailCell.viewDetails(_:)))
         ]
         
         updateLayoutToggleButton()

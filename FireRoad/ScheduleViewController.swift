@@ -8,12 +8,20 @@
 
 import UIKit
 
-class ScheduleViewController: UIViewController, PanelParentViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
+class ScheduleViewController: UIViewController, PanelParentViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ScheduleGridDelegate {
     var panelView: PanelViewController?
     var courseBrowser: CourseBrowserViewController?
+    var showsSemesterDialogs: Bool {
+        return false
+    }
+    
+    var displayedCourses: [Course] = []
     
     @IBOutlet var loadingView: UIView?
     @IBOutlet var loadingIndicator: UIActivityIndicatorView?
+    @IBOutlet var loadingBackgroundView: UIView?
+    
+    @IBOutlet var scheduleNumberLabel: UILabel?
     
     var pageViewController: UIPageViewController?
     
@@ -22,6 +30,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        loadingBackgroundView?.layer.cornerRadius = 5.0
+        
         // Do any additional setup after loading the view.
         findPanelChildViewController()
         
@@ -29,9 +39,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         pageViewController?.dataSource = self
         pageViewController?.delegate = self
         
-        loadScheduleOptions {
-            self.pageViewController?.setViewControllers([self.scheduleGrid(for: 0)].flatMap({ $0 }), direction: .forward, animated: false, completion: nil)
-        }
+        updateDisplayedSchedules()
         
         updateNavigationBar(animated: false)
     }
@@ -59,8 +67,19 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         }
     }
     
+    func updateDisplayedSchedules() {
+        loadScheduleOptions {
+            self.pageViewController?.setViewControllers([self.scheduleGrid(for: 0)].flatMap({ $0 }), direction: .forward, animated: false, completion: nil)
+            self.scheduleNumberLabel?.text = "\(1) of \(self.scheduleOptions.count)"
+        }
+    }
+    
     func loadScheduleOptions(completion: @escaping () -> Void) {
-        self.pageViewController?.view.alpha = 0.0
+        let peripheralLoad = scheduleOptions.count > 0
+        if !peripheralLoad {
+            self.pageViewController?.view.alpha = 0.0
+        }
+        self.loadingView?.alpha = 1.0
         self.loadingView?.isHidden = false
         self.loadingIndicator?.startAnimating()
         DispatchQueue.global(qos: .background).async {
@@ -68,52 +87,45 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                 usleep(100)
             }
             
-            if let courses = (self.rootParent as? RootTabViewController)?.currentUser?.courses(forSemester: .FreshmanSpring) {
-                for course in courses {
-                    CourseManager.shared.loadCourseDetailsSynchronously(about: course)
-                }
-                self.scheduleOptions = self.generateSchedules(from: courses)
-                print(self.scheduleOptions)
+            if self.displayedCourses.count == 0,
+                let courses = (self.rootParent as? RootTabViewController)?.currentUser?.courses(forSemester: .FreshmanFall) {
+                self.displayedCourses = courses
             }
             
+            for course in self.displayedCourses {
+                CourseManager.shared.loadCourseDetailsSynchronously(about: course)
+            }
+            self.scheduleOptions = self.generateSchedules(from: self.displayedCourses)
+            print(self.scheduleOptions)
+
             DispatchQueue.main.async {
                 completion()
-                if let loadingView = self.loadingView,
-                    let pageView = self.pageViewController?.view {
-                    pageView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                    pageView.alpha = 0.0
-                    UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
-                        pageView.alpha = 1.0
-                        pageView.transform = CGAffineTransform.identity
-                        loadingView.alpha = 0.0
-                        loadingView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
-                    }, completion: { (completed) in
-                        if completed {
-                            loadingView.isHidden = true
-                            self.loadingIndicator?.stopAnimating()
-                        }
-                    })
+                if !peripheralLoad {
+                    if let loadingView = self.loadingView,
+                        let pageView = self.pageViewController?.view {
+                        pageView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                        pageView.alpha = 0.0
+                        UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
+                            pageView.alpha = 1.0
+                            pageView.transform = CGAffineTransform.identity
+                            loadingView.alpha = 0.0
+                            loadingView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+                        }, completion: { (completed) in
+                            if completed {
+                                loadingView.isHidden = true
+                                self.loadingIndicator?.stopAnimating()
+                            }
+                        })
+                    }
+                } else {
+                    self.loadingView?.isHidden = true
+                    self.loadingIndicator?.stopAnimating()
                 }
             }
         }
     }
     
-    // TODO: Add constraints to this method
     private func generateSchedules(from courses: [Course]) -> [Schedule] {
-        let scheduleSlots = [9, 10, 11].flatMap({ [CourseScheduleTime(hour: $0, minute: 0, PM: false), CourseScheduleTime(hour: $0, minute: 30, PM: false)] }) + [12, 1, 2, 3, 4, 5, 6, 7, 8, 9].flatMap({ [CourseScheduleTime(hour: $0, minute: 0, PM: true), CourseScheduleTime(hour: $0, minute: 30, PM: true)] })
-        let slotIndex: ((CourseScheduleTime) -> Int) = {
-            var base = 0
-            if $0.PM == false || $0.hour == 12 {
-                base = ($0.hour - 9) * 2
-            } else {
-                base = ($0.hour + 3) * 2
-            }
-            if $0.minute >= 30 {
-                return base + 1
-            }
-            return base
-        }
-        
         // Generate a list of ScheduleItem objects representing the possible schedule assignments for each section of each course.
         var scheduleConfigurations: [[ScheduleUnit]] = []
         var scheduleConfigurationsList: [ScheduleUnit] = []
@@ -132,13 +144,13 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             }
         }
         
-        var conflictGroups: [[ScheduleUnit]] = scheduleSlots.map({ _ in [] })
+        var conflictGroups: [[ScheduleUnit]] = ScheduleSlotManager.slots.map({ _ in [] })
         var configurationConflictMapping: [ScheduleUnit: Set<Int>] = [:]
         for unit in scheduleConfigurationsList {
             var slotsOccupied = Set<Int>()
             for item in unit.scheduleItems {
-                let startSlot = slotIndex(item.startTime)
-                let endSlot = slotIndex(item.endTime)
+                let startSlot = ScheduleSlotManager.slotIndex(for: item.startTime)
+                let endSlot = ScheduleSlotManager.slotIndex(for: item.endTime)
                 for slot in startSlot..<endSlot {
                     conflictGroups[slot].append(unit)
                     slotsOccupied.insert(slot)
@@ -151,7 +163,11 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         print("Conflict groups: \(conflictGroups)")
         
         let results = recursivelyGenerateScheduleConfigurations(with: scheduleConfigurations, conflictMapping: configurationConflictMapping)
-        return results.sorted(by: { $0.conflictCount < $1.conflictCount })
+        let sorted = results.sorted(by: { $0.conflictCount < $1.conflictCount })
+        if let minConflicts = sorted.first?.conflictCount {
+            return sorted.filter({ $0.conflictCount <= minConflicts + 1 })
+        }
+        return sorted
     }
     
     /**
@@ -184,32 +200,6 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         return results
     }
     
-    /*private func recursivelyGenerateScheduleConfigurations(for course: Course, currentConfiguration: [String: [CourseScheduleItem]] = [:], scheduleTypeIndex: Int = 0) -> [[ScheduleItem]] {
-        guard scheduleTypeIndex < CourseScheduleType.ordering.count,
-            let sectionsList = course.schedule?[CourseScheduleType.ordering[scheduleTypeIndex]],
-            sectionsList.count > 0 else {
-                return [ScheduleItem(course: course, selectedSections: currentConfiguration)]
-        }
-        let currentType = CourseScheduleType.ordering[scheduleTypeIndex]
-        
-        var prefixConfiguration: [String: [CourseScheduleItem]] = [:]
-        for (type, config) in currentConfiguration {
-            prefixConfiguration[type] = config
-        }
-        var ret: [ScheduleItem] = []
-        for section in sectionsList {
-            prefixConfiguration[currentType] = section
-            ret += recursivelyGenerateScheduleConfigurations(for: course, currentConfiguration: prefixConfiguration, scheduleTypeIndex: scheduleTypeIndex + 1)
-        }
-        
-        return ret
-    }*/
-
-    func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
-        print("Added \(course)")
-        return nil
-    }
-    
     // MARK: - Page View Controller
     
     func scheduleGrid(for page: Int) -> ScheduleGridViewController? {
@@ -218,6 +208,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             page < scheduleOptions.count else {
             return nil
         }
+        vc.delegate = self
         vc.pageNumber = page
         vc.schedule = scheduleOptions[page]
         vc.topPadding = (panelView?.collapseHeight ?? 0.0) + (panelView?.view.convert(.zero, to: self.view).y ?? 0.0) + 12.0
@@ -236,5 +227,36 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             return nil
         }
         return scheduleGrid(for: currentVC.pageNumber - 1)
+    }
+    
+    var pendingPage = -1
+    
+    func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
+        pendingPage = (pendingViewControllers.first as? ScheduleGridViewController)?.pageNumber ?? 0
+    }
+    
+    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+        if pendingPage != -1 {
+            scheduleNumberLabel?.text = "\(pendingPage + 1) of \(scheduleOptions.count)"
+        }
+    }
+    
+    // MARK: Grid Delegate
+    
+    func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
+        displayedCourses.append(course)
+        updateDisplayedSchedules()
+        if traitCollection.horizontalSizeClass == .compact {
+            self.panelView?.collapseView(to: self.panelView!.collapseHeight)
+        }
+        return nil
+    }
+
+    func deleteCourseFromSchedules(_ course: Course) {
+        guard let index = displayedCourses.index(of: course) else {
+            return
+        }
+        displayedCourses.remove(at: index)
+        updateDisplayedSchedules()
     }
 }

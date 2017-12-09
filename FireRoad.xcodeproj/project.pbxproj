@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		960A1F081FDA1FCC00C53E43 /* CommonStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */; };
+		960A1F0A1FDA21A500C53E43 /* CourseDisplayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960A1F091FDA21A500C53E43 /* CourseDisplayManager.swift */; };
 		9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611BE331F7EE43C0090137E /* ArrayExtension.swift */; };
 		9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */; };
 		9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9611CD821F9287CE00DE2BDE /* acknowledgements.txt */; };
@@ -133,6 +135,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonStrings.swift; sourceTree = "<group>"; };
+		960A1F091FDA21A500C53E43 /* CourseDisplayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseDisplayManager.swift; sourceTree = "<group>"; };
 		9611BE331F7EE43C0090137E /* ArrayExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtension.swift; sourceTree = "<group>"; };
 		9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopDownTableMenuController.swift; sourceTree = "<group>"; };
 		9611CD821F9287CE00DE2BDE /* acknowledgements.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = acknowledgements.txt; sourceTree = "<group>"; };
@@ -361,10 +365,12 @@
 				9646CFF41EB922C3005F87CB /* Course.swift */,
 				9646CFF81EB92525005F87CB /* User.swift */,
 				962DAD651F89A6180011D96F /* RootTabViewController.swift */,
+				960A1F091FDA21A500C53E43 /* CourseDisplayManager.swift */,
 				96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */,
 				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
-				96EBE5641FBEB3F900FABE1E /* Schedule */,
+				960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */,
 				9669C7CA1F9062A800E60D89 /* Course Road */,
+				96EBE5641FBEB3F900FABE1E /* Schedule */,
 				9669C7B81F9061E700E60D89 /* Requirements Browser */,
 				9669C7CC1F9062FF00E60D89 /* Useful View Controllers */,
 				9669C7CB1F9062CB00E60D89 /* Cell Subclasses */,
@@ -689,6 +695,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */,
+				960A1F0A1FDA21A500C53E43 /* CourseDisplayManager.swift in Sources */,
 				965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */,
 				9646CFF51EB922C3005F87CB /* Course.swift in Sources */,
 				961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */,
@@ -699,6 +706,7 @@
 				96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */,
 				9626B6E61F815686009F6F96 /* RequirementsBrowserViewController.swift in Sources */,
 				96EBE56A1FBFDE5600FABE1E /* ScheduleGridViewController.swift in Sources */,
+				960A1F081FDA1FCC00C53E43 /* CommonStrings.swift in Sources */,
 				96EBE5681FBF9E2B00FABE1E /* PanelParentViewController.swift in Sources */,
 				9646CFD71EB921FE005F87CB /* CourseroadViewController.swift in Sources */,
 				961E49FD1EC6A8CB002BABB9 /* CourseDetailsViewController.swift in Sources */,
