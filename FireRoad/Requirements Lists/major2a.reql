@@ -1,0 +1,13 @@
+2-A#,#2-A Major#,#Engineering as Recommended by the Department of Mechanical Engineering
+Course 2-A is designed for students whose academic and career goals demand greater breadth and flexibility than are allowed under the mechanical engineering program, Course 2. To a large extent, the 2-A program allows students an opportunity to tailor a curriculum to their own needs, starting from a solid mechanical engineering base. The program combines a rigorous grounding in core mechanical engineering topics with an individualized course of study focused on a second area that the student designs with the help and approval of the 2-A faculty advisor. The program leads to the degree Bachelor of Science in Engineering as Recommended by the Department of Mechanical Engineering.
+
+core_reqd
+
+elective_eng
+Must include one REST subject outside Course 2. These electives define a concentrated area of study which must be approved by the 2-A review committee. The concentration electives must form an engineering topic. Concentration electives must include one subject that meets the REST GIR, but not subjects that fulfill a HASS GIR. In some cases, non-engineering subjects may be necessary for the particular engineering topic defined by the concentration (e.g., management subjects for an engineering management concentration), in which case additional engineering subjects may be required to meet the engineering accreditation standards. In all cases, the relationship of concentration subjects to the engineering topic must be obvious.
+
+%% Departmental Program
+
+core_reqd, "Required Core Subjects" := (2.00/2.00A/2.00B/2.00C), 2.001, 2.003, 2.009, 2.05, 2.051, 2.06, 2.086, 2.087, (2.678/2.674)
+
+elective_eng, "Elective Subjects with Engineering Content" := ""72 units""

@@ -7,20 +7,6 @@ rest_electives
 
 aup
 
-girs
-
-
-%% GIRs
-
-science_gir, "Science Requirement" := GIR:PHY1, GIR:PHY2, GIR:CAL1, GIR:CAL2, GIR:CHEM, GIR:BIOL
-hass_gen_req := HASS{>=8}
-hass_req := hass_gen_req, HASS-A, HASS-S, HASS-H
-ci_req := "CI-H"/"CI-HW"{>=2} %% at least two subjects must be designated as CI-H or CI-HW
-hass_gir, "Humanities, Arts, and Social Sciences (HASS) Requirement" := hass_req, ci_req
-rest_gir, "REST Requirement" := GIR:REST{>=2}
-lab_gir, "Lab Requirement" := GIR:LAB
-
-girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir, rest_gir, lab_gir
 
 %% Departmental Program
 math_intro, "Mathematics and Introductory" := (6.00/(6.0001,6.0002)/6.031), 6.042

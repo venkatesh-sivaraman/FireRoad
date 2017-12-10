@@ -89,7 +89,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                         let url = URL(fileURLWithPath: dirPath)
                         self.currentUser?.filePath = url.appendingPathComponent("first_steps.road").path
                     }
-                    self.currentUser?.coursesOfStudy = [ "major6-7", "minor9", "minor21m" ]
+                    self.currentUser?.coursesOfStudy = [ "girs", "major6-7", "minor9", "minor21m" ]
                     self.currentUser?.add(CourseManager.shared.getCourse(withID: "8.02")!, toSemester: .FreshmanFall)
                     self.currentUser?.add(CourseManager.shared.getCourse(withID: "5.112")!, toSemester: .FreshmanFall)
                     self.currentUser?.add(CourseManager.shared.getCourse(withID: "6.006")!, toSemester: .FreshmanFall)

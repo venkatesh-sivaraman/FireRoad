@@ -3,20 +3,6 @@ The Bachelor of Science in Brain and Cognitive Sciences prepares students to pur
 
 reqd_subjects
 
-girs
-
-
-%% GIRs
-
-science_gir, "Science Requirement" := GIR:PHY1, GIR:PHY2, GIR:CAL1, GIR:CAL2, GIR:CHEM, GIR:BIOL
-hass_gen_req := HASS{>=8}
-hass_req := hass_gen_req, HASS-A, HASS-S, HASS-H
-ci_req := "CI-H"/"CI-HW"{>=2} %% at least two subjects must be designated as CI-H or CI-HW
-hass_gir, "Humanities, Arts, and Social Sciences (HASS) Requirement" := hass_req, ci_req
-rest_gir, "REST Requirement" := GIR:REST{>=2}
-lab_gir, "Lab Requirement" := GIR:LAB
-
-girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir, rest_gir, lab_gir
 
 tier1, "Tier 1" := (6.00/(6.0001,6.0002)), 9.00, 9.01, 9.40, 9.07
 tier2, "Tier 2" := 9.04/9.09/9.10/9.14/9.15/9.16/9.18/9.19/9.20/9.21/9.31/9.35/9.54/9.66/9.85 {>=3}

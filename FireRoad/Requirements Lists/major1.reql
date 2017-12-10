@@ -5,8 +5,6 @@ gen_dept_reqs
 
 core_subjects
 Select one area of core coursework (54-60 units).
-girs
-
 
 %% Departmental Program
 gen_dept_reqs, "General Department Requirements (GDRs)" := (1.00/1.000), 1.010, 1.013, (1.073/1.074), 18.03
@@ -18,14 +16,4 @@ elect_eng, "Elective Subjects with Engineering Content" := ""48-60 units""
 
 core_subjects, "Core Subjects" := environment/mech_mat/systems/elect_eng{>=54u|<=1}
 
-%% GIRs
 
-science_gir, "Science Requirement" := GIR:PHY1, GIR:PHY2, GIR:CAL1, GIR:CAL2, GIR:CHEM, GIR:BIOL
-hass_gen_req := HASS{>=8}
-hass_req := hass_gen_req, HASS-A, HASS-S, HASS-H
-ci_req := "CI-H"/"CI-HW"{>=2} %% at least two subjects must be designated as CI-H or CI-HW
-hass_gir, "Humanities, Arts, and Social Sciences (HASS) Requirement" := hass_req, ci_req
-rest_gir, "REST Requirement" := GIR:REST{>=2}
-lab_gir, "Lab Requirement" := GIR:LAB
-
-girs, "General Institute Requirements (GIRs)" := science_gir, hass_gir, rest_gir, lab_gir
