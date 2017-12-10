@@ -343,7 +343,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         listVC.showsHeaderBar = false
         listVC.delegate = self
         listVC.managesNavigation = false
-        listVC.view.backgroundColor = UIColor.clear
+        listVC.view.backgroundColor = UIColor.white
         showInformationalViewController(listVC)
     }
 

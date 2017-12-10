@@ -17,7 +17,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     
     var displayedCourses: [Course] = [] {
         didSet {
-            updateDisplayedSchedules()
+            if displayedCourses != oldValue {
+                updateDisplayedSchedules()
+            }
         }
     }
     
@@ -78,14 +80,22 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         }
     }
     
+    var loadingScheduleOptions = false
+    
     func loadScheduleOptions(completion: @escaping () -> Void) {
-        let peripheralLoad = scheduleOptions.count > 0
-        if !peripheralLoad {
-            self.pageViewController?.view.alpha = 0.0
+        guard !loadingScheduleOptions else {
+            return
         }
-        self.loadingView?.alpha = 1.0
-        self.loadingView?.isHidden = false
-        self.loadingIndicator?.startAnimating()
+        let peripheralLoad = scheduleOptions.count > 0
+        loadingScheduleOptions = true
+        DispatchQueue.main.async {
+            if !peripheralLoad {
+                self.pageViewController?.view.alpha = 0.0
+            }
+            self.loadingView?.alpha = 1.0
+            self.loadingView?.isHidden = false
+            self.loadingIndicator?.startAnimating()
+        }
         DispatchQueue.global(qos: .background).async {
             while !CourseManager.shared.isLoaded {
                 usleep(100)
@@ -102,6 +112,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             self.scheduleOptions = self.generateSchedules(from: self.displayedCourses)
             print(self.scheduleOptions)
 
+            self.loadingScheduleOptions = false
             DispatchQueue.main.async {
                 completion()
                 if !peripheralLoad {
