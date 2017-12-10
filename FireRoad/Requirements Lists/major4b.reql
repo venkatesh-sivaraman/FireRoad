@@ -1,0 +1,11 @@
+4-B#,#4-B Major#,#Bachelor of Science in Architecture Studies
+Course 4-B is offered for students who find that their basic intellectual commitments are to subjects within the Department of Architecture but whose educational objectives cut across departmental boundaries. These students may, with the approval of the department, plan a course of study that meets their individual needs and interests while including the fundamental areas within the department. For example, students might create a coherent program combining subjects in Course 4 with subjects in urban studies and planning, comparative media studies, systems analysis, computer science, etc.\n\nChoose at least two subjects in the major that are designated as communication-intensive (CI-M) to fulfill the Communication Requirement.
+
+reqd
+
+rest_elec
+Select 84 units based on a proposal of interdisciplinary study approved by the department.
+
+reqd, "Required Subjects" := (4.021/4.02A), 4.022, 4.023, 4.302, 4.401, 4.500, 4.THT, 4.THU, (4.605/4.614/4.635)
+
+rest_elec, "Restricted Electives" := ""84 units""

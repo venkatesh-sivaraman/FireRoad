@@ -69,7 +69,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             requirement.title == nil, requirement.thresholdDescription.count > 0 {
             items.append(PresentationItem(cellType: .title2, statement: nil, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
         }
-        if requirement.minimumNestDepth <= 1, (requirement.maximumNestDepth <= 2 || level > 0) {
+        if requirement.minimumNestDepth <= 1, (requirement.maximumNestDepth <= 2 || level > 0),
+            requirement.requirements?.first(where: { $0.title != nil && $0.title!.count > 0 }) == nil {
             items.append(PresentationItem(cellType: .courseList, statement: requirement, text: nil))
             if requirement.thresholdDescription.count > 0 {
                 //items.append(PresentationItem(cellType: .courseListAccessory, statement: nil, text: requirement.thresholdDescription))
@@ -105,7 +106,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 var rows: [PresentationItem] = presentationItems(for: topLevelRequirement)
                 // Remove the title
                 rows.removeFirst()
-                if topLevelRequirement.connectionType != .all, topLevelRequirement.thresholdDescription.count > 0 {
+                if topLevelRequirement.connectionType != .all, topLevelRequirement.thresholdDescription.count > 0, (topLevelRequirement.contentDescription ?? "").count == 0 {
                     rows.insert(PresentationItem(cellType: .title2, statement: topLevelRequirement, text: topLevelRequirement.thresholdDescription.capitalizingFirstLetter() + ":"), at: 0)
                 }
                 ret.append((topLevelRequirement.title ?? "", topLevelRequirement, rows))

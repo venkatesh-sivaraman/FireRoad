@@ -16,6 +16,11 @@
 		960A1F151FDC8FEB00C53E43 /* major3.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F131FDC8FEB00C53E43 /* major3.reql */; };
 		960A1F161FDC8FEB00C53E43 /* major3a.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F141FDC8FEB00C53E43 /* major3a.reql */; };
 		960A1F181FDC92B600C53E43 /* girs.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F171FDC92B600C53E43 /* girs.reql */; };
+		960A1F1E1FDCDA7100C53E43 /* major4b.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F191FDCDA7000C53E43 /* major4b.reql */; };
+		960A1F1F1FDCDA7100C53E43 /* major3c.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1A1FDCDA7000C53E43 /* major3c.reql */; };
+		960A1F201FDCDA7100C53E43 /* major5-7.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1B1FDCDA7000C53E43 /* major5-7.reql */; };
+		960A1F211FDCDA7100C53E43 /* major5.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1C1FDCDA7000C53E43 /* major5.reql */; };
+		960A1F221FDCDA7100C53E43 /* major4.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1D1FDCDA7100C53E43 /* major4.reql */; };
 		9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611BE331F7EE43C0090137E /* ArrayExtension.swift */; };
 		9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */; };
 		9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9611CD821F9287CE00DE2BDE /* acknowledgements.txt */; };
@@ -151,6 +156,11 @@
 		960A1F131FDC8FEB00C53E43 /* major3.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major3.reql; sourceTree = "<group>"; };
 		960A1F141FDC8FEB00C53E43 /* major3a.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major3a.reql; sourceTree = "<group>"; };
 		960A1F171FDC92B600C53E43 /* girs.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = girs.reql; sourceTree = "<group>"; };
+		960A1F191FDCDA7000C53E43 /* major4b.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major4b.reql; sourceTree = "<group>"; };
+		960A1F1A1FDCDA7000C53E43 /* major3c.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major3c.reql; sourceTree = "<group>"; };
+		960A1F1B1FDCDA7000C53E43 /* major5-7.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "major5-7.reql"; sourceTree = "<group>"; };
+		960A1F1C1FDCDA7000C53E43 /* major5.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major5.reql; sourceTree = "<group>"; };
+		960A1F1D1FDCDA7100C53E43 /* major4.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major4.reql; sourceTree = "<group>"; };
 		9611BE331F7EE43C0090137E /* ArrayExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtension.swift; sourceTree = "<group>"; };
 		9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopDownTableMenuController.swift; sourceTree = "<group>"; };
 		9611CD821F9287CE00DE2BDE /* acknowledgements.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = acknowledgements.txt; sourceTree = "<group>"; };
@@ -433,6 +443,11 @@
 				960A1F111FDC807800C53E43 /* major2.reql */,
 				960A1F131FDC8FEB00C53E43 /* major3.reql */,
 				960A1F141FDC8FEB00C53E43 /* major3a.reql */,
+				960A1F1A1FDCDA7000C53E43 /* major3c.reql */,
+				960A1F1D1FDCDA7100C53E43 /* major4.reql */,
+				960A1F191FDCDA7000C53E43 /* major4b.reql */,
+				960A1F1B1FDCDA7000C53E43 /* major5-7.reql */,
+				960A1F1C1FDCDA7000C53E43 /* major5.reql */,
 				966493C11FD2181100B8D684 /* major16-ENG.reql */,
 				966493C21FD2181100B8D684 /* major16.reql */,
 				9611CD841F92881600DE2BDE /* minor6.reql */,
@@ -653,6 +668,7 @@
 				9636DDF91F7894F300117A82 /* 7.txt in Resources */,
 				966493C51FD2181100B8D684 /* minorJapanese.reql in Resources */,
 				96FF1F8F1FB65797007F4A7C /* condensed_3.txt in Resources */,
+				960A1F1E1FDCDA7100C53E43 /* major4b.reql in Resources */,
 				9636DDE11F7894F300117A82 /* 1.txt in Resources */,
 				9636DDFE1F7894F300117A82 /* CMS.txt in Resources */,
 				9636DDEA1F7894F300117A82 /* 2.txt in Resources */,
@@ -671,10 +687,13 @@
 				9636DDF11F7894F300117A82 /* 21M.txt in Resources */,
 				9636DE031F7894F300117A82 /* EM.txt in Resources */,
 				960A1F0C1FDB7C8000C53E43 /* major1.reql in Resources */,
+				960A1F221FDCDA7100C53E43 /* major4.reql in Resources */,
+				960A1F1F1FDCDA7100C53E43 /* major3c.reql in Resources */,
 				9636DDF51F7894F300117A82 /* 3.txt in Resources */,
 				9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */,
 				966493C71FD2181100B8D684 /* major16.reql in Resources */,
 				9636DDFF1F7894F300117A82 /* condensed.txt in Resources */,
+				960A1F211FDCDA7100C53E43 /* major5.reql in Resources */,
 				960A1F161FDC8FEB00C53E43 /* major3a.reql in Resources */,
 				9636DE0C1F7894F300117A82 /* SP.txt in Resources */,
 				9636DDFC1F7894F300117A82 /* AS.txt in Resources */,
@@ -691,6 +710,7 @@
 				9636DDF31F7894F300117A82 /* 22.txt in Resources */,
 				960A1F0F1FDC7ED400C53E43 /* major2a.reql in Resources */,
 				960A1F121FDC807800C53E43 /* major2.reql in Resources */,
+				960A1F201FDCDA7100C53E43 /* major5-7.reql in Resources */,
 				966493C61FD2181100B8D684 /* major16-ENG.reql in Resources */,
 				9636DE001F7894F300117A82 /* courses.txt in Resources */,
 				9626B6E31F80A93F009F6F96 /* major6-7.reql in Resources */,

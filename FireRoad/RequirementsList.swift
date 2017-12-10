@@ -382,7 +382,7 @@ class RequirementsListStatement: NSObject {
                 var satisfying = 0
                 let (subjects, units) = req.computeRequirementStatus(with: courses)
                 if req.isFulfilled {
-                    if connectionType == .any {
+                    if connectionType == .any, threshold.cutoff > 1 {
                         satisfying += max(subjects, req.fulfillmentProgress)
                     } else {
                         satisfying += 1
@@ -424,9 +424,11 @@ class RequirementsListStatement: NSObject {
                 return progresses.reduce((0, 0), { ($0.0 + min($1.0, $1.1), $0.1 + $1.1) })
             }
             let sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled }).map({ $0.fulfilledFraction })
-            if threshold.cutoff > 0 {
+            if threshold.cutoff > 1 {
                 let tempResult = sortedProgresses[0..<min(threshold.cutoff, sortedProgresses.count)].reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
                 return (min(threshold.cutoff, tempResult.0), threshold.cutoff)
+            } else if threshold.cutoff > 0 {
+                return sortedProgresses.first ?? (0, threshold.cutoff)
             } else {
                 return (sortedProgresses.reduce(0, { $0 + $1.0 }), 0)
             }

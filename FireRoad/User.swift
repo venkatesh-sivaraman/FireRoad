@@ -200,6 +200,9 @@ class User: NSObject {
     var warningsCache: [Course: [CourseWarning]] = [:]
     
     func warningsForCourse(_ course: Course, in semester: UserSemester) -> [CourseWarning] {
+        guard semester != .PreviousCredit else {
+            return []
+        }
         if let warnings = warningsCache[course] {
             return warnings
         }

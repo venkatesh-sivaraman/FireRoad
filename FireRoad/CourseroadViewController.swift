@@ -280,6 +280,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             if let titleView = view.viewWithTag(10) as? UILabel {
                 titleView.text = UserSemester(rawValue: indexPath.section)?.toString()
             }
+            if let button = view.viewWithTag(20) as? UIButton {
+                button.setImage(UIImage(named: "ellipsis")?.withRenderingMode(.alwaysTemplate), for: .normal)
+                button.removeTarget(nil, action: nil, for: .touchUpInside)
+                button.addTarget(self, action: #selector(showActionMenuForSection(_:)), for: .touchUpInside)
+            }
         }
         return view
     }
@@ -397,6 +402,49 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         let course = user.courses(forSemester: semester)[indexPath.item]
         deleteCourse(course, from: semester)
+    }
+    
+    // MARK: - Section Actions
+    
+    @objc func showActionMenuForSection(_ sender: UIButton) {
+        guard let user = currentUser else {
+            return
+        }
+        var tappedSection: Int = -1
+        for ip in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: UICollectionElementKindSectionHeader) {
+            guard let headerView = collectionView.supplementaryView(forElementKind: UICollectionElementKindSectionHeader, at: ip) else {
+                continue
+            }
+            if sender.isDescendant(of: headerView) {
+                tappedSection = ip.section
+                break
+            }
+        }
+        
+        guard tappedSection != -1,
+            let semester = UserSemester(rawValue: tappedSection),
+            let tabVC = rootParent as? RootTabViewController else {
+            return
+        }
+        
+        let actionMenu = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let courses = user.courses(forSemester: semester)
+        actionMenu.addAction(UIAlertAction(title: "View Schedule", style: .default, handler: { (action) in
+            tabVC.displaySchedule(with: courses)
+        }))
+        actionMenu.addAction(UIAlertAction(title: "Clear", style: .destructive, handler: { (action) in
+            for course in courses {
+                user.delete(course, fromSemester: semester)
+            }
+            UIView.transition(with: self.collectionView, duration: 0.2, options: .transitionCrossDissolve, animations: {
+                self.collectionView.reloadData()
+            }, completion: nil)
+        }))
+        actionMenu.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        actionMenu.modalPresentationStyle = .popover
+        actionMenu.popoverPresentationController?.sourceView = sender
+        actionMenu.popoverPresentationController?.sourceRect = sender.bounds
+        present(actionMenu, animated: true, completion: nil)
     }
     
     // MARK: - Model Interaction

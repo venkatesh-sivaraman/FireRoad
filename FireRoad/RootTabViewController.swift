@@ -35,4 +35,15 @@ class RootTabViewController: UITabBarController {
         }
         return courseRoadVC.currentUser
     }
+    
+    func displaySchedule(with courses: [Course]) {
+        guard let scheduleVC = childViewController(where: { $0 is ScheduleViewController }) as? ScheduleViewController else {
+            print("Couldn't get schedule view controller")
+            return
+        }
+        scheduleVC.displayedCourses = courses
+        if let tab = viewControllers?.first(where: { scheduleVC.isDescendant(of: $0) }) {
+            selectedViewController = tab
+        }
+    }
 }

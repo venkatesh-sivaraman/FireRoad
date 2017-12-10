@@ -123,9 +123,19 @@
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
+                                        <button opaque="NO" tag="20" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="D8y-rx-cNy">
+                                            <rect key="frame" x="345" y="9" width="22" height="22"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="22" id="FJ7-MG-cc7"/>
+                                                <constraint firstAttribute="width" constant="22" id="ZDi-Mn-YJB"/>
+                                            </constraints>
+                                            <state key="normal" image="ellipsis"/>
+                                        </button>
                                     </subviews>
                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                     <constraints>
+                                        <constraint firstItem="D8y-rx-cNy" firstAttribute="centerY" secondItem="8lk-qc-ExH" secondAttribute="centerY" id="B3e-fh-5aG"/>
+                                        <constraint firstAttribute="trailing" secondItem="D8y-rx-cNy" secondAttribute="trailing" constant="8" id="EOE-iU-5la"/>
                                         <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="7QE-px-20T" secondAttribute="trailing" constant="8" id="JPb-S1-ykS"/>
                                         <constraint firstItem="7QE-px-20T" firstAttribute="centerY" secondItem="8lk-qc-ExH" secondAttribute="centerY" id="etW-yy-lz7"/>
                                         <constraint firstAttribute="leadingMargin" secondItem="7QE-px-20T" secondAttribute="leading" constant="-8" id="mYm-I4-fZ2"/>
@@ -2492,6 +2502,7 @@
         </scene>
     </scenes>
     <resources>
+        <image name="ellipsis" width="26" height="26"/>
         <image name="filter" width="32" height="32"/>
         <image name="first" width="30" height="30"/>
         <image name="heart" width="30" height="30"/>
@@ -2500,6 +2511,6 @@
         <image name="warning" width="32" height="32"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="5m9-3K-xoz"/>
+        <segue reference="EfL-Rb-tAe"/>
     </inferredMetricsTieBreakers>
 </document>

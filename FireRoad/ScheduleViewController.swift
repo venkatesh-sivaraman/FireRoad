@@ -15,7 +15,11 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         return false
     }
     
-    var displayedCourses: [Course] = []
+    var displayedCourses: [Course] = [] {
+        didSet {
+            updateDisplayedSchedules()
+        }
+    }
     
     @IBOutlet var loadingView: UIView?
     @IBOutlet var loadingIndicator: UIActivityIndicatorView?
