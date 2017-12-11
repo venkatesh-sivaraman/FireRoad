@@ -343,7 +343,7 @@ class CourseManager: NSObject {
     
     func addCourse(_ course: Course) {
         courseEditingQueue.sync {
-            guard var processedID = course.subjectID else {
+            guard let processedID = course.subjectID else {
                 print("Tried to add course \(course) with no ID")
                 return
             }
@@ -429,7 +429,7 @@ class CourseManager: NSObject {
     }
     
     func markCourseAsFavorite(_ course: Course) {
-        if let index = favoriteCourses.index(of: course) {
+        if favoriteCourses.index(of: course) != nil {
             return
         }
         favoriteCourses.append(course)

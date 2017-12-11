@@ -359,6 +359,7 @@ enum CourseAttribute: String {
     case relatedSubjects
     case schedule
     case subjectLevel
+    case url
 
     static let csvHeaders: [String: CourseAttribute] = [
         "Subject Id": .subjectID,
@@ -398,6 +399,7 @@ enum CourseAttribute: String {
         "Enrollment Number": .enrollmentNumber,
         "Related Subjects": .relatedSubjects,
         "Schedule": .schedule,
+        "URL": .url
     ]
     
     init?(csvHeader: String) {
@@ -566,6 +568,8 @@ class Course: NSObject {
             offeringPattern = isOfferedThisYear ? .everyYear : .never
         }
     }
+    
+    @objc dynamic var url: String?
     
     // Supplemental attributes
     @objc dynamic var enrollmentNumber: Int = 0

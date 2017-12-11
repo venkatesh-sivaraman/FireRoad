@@ -138,6 +138,10 @@ class HTMLNodeExtractor: NSObject {
             let attributeText = textString.substring(with: match.range(at: 3))
             let selfClosingFragment = textString.substring(with: match.range(at: 4))
             let tagText = textString.substring(with: match.range(at: 2)).lowercased()
+            // Use this debugging code to find specific text in the HTML nodes
+            /*if textString.substring(to: match.range.location).contains("HST.090") {
+                print("Here")
+            }*/
             if closingFragment == "/" {
                 guard let currentNode = nodeStack.last else {
                     //print("No current node for closing tag \(tagText)")
@@ -172,6 +176,20 @@ class HTMLNodeExtractor: NSObject {
                 newNode.enclosingRange.location = match.range.location
                 
                 if nodeStack.count == 0 {
+                    // Make sure we haven't abandoned any text by not including it
+                    // in a node.
+                    if let lastNode = nodes.last {
+                        let newStrippedRange = NSRange(location: lastNode.enclosingRange.location + lastNode.enclosingRange.length, length: newNode.enclosingRange.location - (lastNode.enclosingRange.location + lastNode.enclosingRange.length))
+                        let newStrippedString = textString.substring(with: newStrippedRange)
+                        if newStrippedString.trimmingCharacters(in: .whitespacesAndNewlines).count > 0 {
+                            let span = HTMLNode(tagText: "span")
+                            span.contentsRange = newStrippedRange
+                            span.enclosingRange = newStrippedRange
+                            span.contents = newStrippedString
+                            span.strippedContents = newStrippedString
+                            nodes.append(span)
+                        }
+                    }
                     nodes.append(newNode)
                 } else if let lastNode = nodeStack.last {
                     
@@ -184,7 +202,19 @@ class HTMLNodeExtractor: NSObject {
                     } else {
                         lastNode.strippedContents = ""
                     }
-                    lastNode.strippedContents += textString.substring(with: NSRange(location: lastContentsBound, length: newNode.enclosingRange.location - lastContentsBound))
+                    let newStrippedRange = NSRange(location: lastContentsBound, length: newNode.enclosingRange.location - lastContentsBound)
+                    let newStrippedString = textString.substring(with: newStrippedRange)
+                    // All nodes should be either purely contents or purely child nodes.
+                    // So, add this text in a <span> node just to be sure.
+                    if newStrippedString.trimmingCharacters(in: .whitespacesAndNewlines).count > 0 {
+                        let span = HTMLNode(tagText: "span")
+                        span.contentsRange = newStrippedRange
+                        span.enclosingRange = newStrippedRange
+                        span.contents = newStrippedString
+                        span.strippedContents = newStrippedString
+                        lastNode.childNodes.append(span)
+                    }
+                    lastNode.strippedContents += newStrippedString
                     lastNode.childNodes.append(newNode)
                 }
                 

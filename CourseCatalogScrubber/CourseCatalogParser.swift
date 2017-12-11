@@ -481,6 +481,8 @@ class CourseCatalogParser: NSObject {
                 informationItems += childItems
             } else if nodeIsDelimitingATag(node), informationItems.count > 0 {
                 break
+            } else if node.contents.count == 0 {
+                informationItems += recursivelyExtractInformationItems(from: node)
             } else {
                 informationItems.append(node.contents)
             }

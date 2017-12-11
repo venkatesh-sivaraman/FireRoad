@@ -13,7 +13,7 @@ let urlSuffix = ".html"
 let urlLastPrefix = "m"
 
 let courseNumbers = [
-    "1", "2", "3", "4",
+    "HST", "1", "2", "3", "4",
     "5", "6", "7", "8",
     "9", "10", "11", "12",
     "14", "15", "16", "17",
@@ -119,7 +119,8 @@ func writeFullCourses(_ courses: [[CourseAttribute: Any]], to file: String) {
             .offeredSummer,
             .quarterInformation,
             .instructors,
-            .schedule
+            .schedule,
+            .URL
             ])
     } catch {
         print("Error writing condensed course file: \(error)")

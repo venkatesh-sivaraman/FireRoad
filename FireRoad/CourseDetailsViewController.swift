@@ -30,6 +30,7 @@ enum CourseDetailItem {
     case schedule
     case courseListAccessory
     case button
+    case url
 }
 
 enum CourseDetailSectionTitle {
@@ -254,8 +255,14 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
             rowIndex += 1
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .related
-            rowIndex += 1
+            rowIndex = 0
+            sectionIndex += 1
+        }
+        if course?.url != nil {
+            titles.append(CourseDetailSectionTitle.none)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .button
+            rowIndex += 1
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .url
             rowIndex = 0
             sectionIndex += 1
         }
@@ -270,7 +277,6 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             rowIndex = 0
             sectionIndex += 1
         }
-        
         if rowIndex == 0 {
             sectionIndex -= 1
         }
@@ -294,6 +300,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "CourseListAccessoryCell"
         case .button:
             id = "ButtonCell"
+        case .url:
+            id = "URLCell"
         }
         return id
     }
@@ -331,7 +339,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     }
     
     func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
-        return self.detailMapping[indexPath] == .button
+        return self.detailMapping[indexPath] == .button || self.detailMapping[indexPath] == .url
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -545,6 +553,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             }
             (cell as! CourseListCell).delegate = self
             (cell as! CourseListCell).collectionView.reloadData()
+        case .url:
+            break
         }
 
         return cell
@@ -556,7 +566,16 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        delegate?.courseDetailsRequestedPostReqs(for: self.course!)
+        guard let detailItemType = self.detailMapping[indexPath] else {
+            return
+        }
+        if detailItemType == .button {
+            delegate?.courseDetailsRequestedPostReqs(for: self.course!)
+        } else if detailItemType == .url,
+            let urlString = course?.url,
+            let url = URL(string: urlString) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
     }
     
     /*
