@@ -315,7 +315,15 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
                 listVC.searchTerm = reqString
-                listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .fulfillsHASS, .fulfillsCIH, .fulfillsCIHW, .searchRequirements]
+                if let ciAttribute = CommunicationAttribute(rawValue: reqString) {
+                    print("CI: \(ciAttribute)")
+                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, (ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW), .searchRequirements]
+                } else if let hassAttribute = HASSAttribute(rawValue: reqString) {
+                    print("Hass: \(hassAttribute)")
+                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsHASS, .searchRequirements]
+                } else {
+                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .fulfillsHASS, .fulfillsCIH, .fulfillsCIHW, .searchRequirements]
+                }
                 listVC.delegate = self
                 listVC.showsHeaderBar = false
                 listVC.managesNavigation = false

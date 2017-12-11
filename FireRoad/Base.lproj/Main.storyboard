@@ -1840,6 +1840,46 @@
             </objects>
             <point key="canvasLocation" x="2633" y="501"/>
         </scene>
+        <!--View Controller-->
+        <scene sceneID="W5O-60-AvZ">
+            <objects>
+                <viewController storyboardIdentifier="NoSchedulesView" id="Q2T-ka-oUG" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="HMc-M2-zWv"/>
+                        <viewControllerLayoutGuide type="bottom" id="oQp-6B-cS2"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="i4b-Eh-nvN">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No Schedules" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Y4Q-bH-ZRB">
+                                <rect key="frame" x="109" y="318" width="156.5" height="31.5"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
+                                <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Search for classes above to add them." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Amq-xi-BzN">
+                                <rect key="frame" x="41" y="357" width="292.5" height="20.5"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="Amq-xi-BzN" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="i4b-Eh-nvN" secondAttribute="leading" constant="8" id="6EW-jX-GT8"/>
+                            <constraint firstItem="Amq-xi-BzN" firstAttribute="centerX" secondItem="Y4Q-bH-ZRB" secondAttribute="centerX" id="IBr-bC-KFc"/>
+                            <constraint firstItem="Y4Q-bH-ZRB" firstAttribute="centerX" secondItem="i4b-Eh-nvN" secondAttribute="centerX" id="Zyy-lu-eS7"/>
+                            <constraint firstItem="Y4Q-bH-ZRB" firstAttribute="centerY" secondItem="i4b-Eh-nvN" secondAttribute="centerY" id="b8K-eo-Qh6"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="Amq-xi-BzN" secondAttribute="trailing" constant="8" id="gnX-ry-QrW"/>
+                            <constraint firstItem="Amq-xi-BzN" firstAttribute="top" secondItem="Y4Q-bH-ZRB" secondAttribute="bottom" constant="7.5" id="w9d-8n-qAA"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="SZY-Pg-CvQ" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3322" y="512"/>
+        </scene>
         <!--Root Tab View Controller-->
         <scene sceneID="yl2-sM-qoP">
             <objects>

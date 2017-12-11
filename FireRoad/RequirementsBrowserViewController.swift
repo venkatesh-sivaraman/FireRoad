@@ -12,8 +12,6 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
 
     @IBOutlet var tableView: UITableView!
     
-    var requirementsLists: [RequirementsList] = []
-    
     enum RequirementBrowserTableSection: String {
         case user = "My Courses"
         case majors = "Majors"
@@ -33,16 +31,7 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         splitViewController?.preferredDisplayMode = .allVisible
         splitViewController?.delegate = self
         
-        if let resourcePath = Bundle.main.resourcePath,
-            let contents = try? FileManager.default.contentsOfDirectory(atPath: resourcePath) {
-            for pathName in contents where pathName.contains(".reql") {
-                let fullPath = URL(fileURLWithPath: resourcePath).appendingPathComponent(pathName).path
-                if let reqList = try? RequirementsList(contentsOf: fullPath) {
-                    requirementsLists.append(reqList)
-                }
-            }
-        }
-        requirementsLists.sort(by: { ($0.mediumTitle?.compare($1.mediumTitle ?? "") ?? .orderedDescending) == .orderedAscending })
+        RequirementsListManager.shared.loadRequirementsLists()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -54,7 +43,7 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
             let currentUser = tabVC.currentUser {
             let courses = currentUser.allCourses
             var organizedCategories: [RequirementBrowserTableSection: [RequirementsList]] = [:]
-            for reqList in requirementsLists {
+            for reqList in RequirementsListManager.shared.requirementsLists {
                 reqList.computeRequirementStatus(with: courses)
                 var category: RequirementBrowserTableSection = .other
                 if currentUser.coursesOfStudy.contains(reqList.listID) {

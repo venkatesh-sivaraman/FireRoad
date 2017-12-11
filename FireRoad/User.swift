@@ -263,11 +263,97 @@ class User: NSObject {
         return warnings
     }
     
+    // MARK: - Global Relevance Calculation
+    
+    private enum RelevanceCacheType: Int {
+        case plannedSubjects
+        case majorSubjects
+        case nonMajorSubjects
+        case primaryRelatedSubjects
+    }
+    private var relevanceCache: [RelevanceCacheType: [Course: Float]] = [:]
+    
+    private static let relevanceCacheWeights: [RelevanceCacheType: Float] = [
+        .plannedSubjects: 2.0,
+        .majorSubjects: 4.0,
+        .nonMajorSubjects: 3.0,
+        .primaryRelatedSubjects: 0.1   //Because it is going to be additionally weighted by relevance
+    ]
+    
+    private func addCourse(_ course: Course, toRelevanceCache cache: RelevanceCacheType, weight: Float = 1.0) {
+        if let oldValue = relevanceCache[cache]?[course] {
+            relevanceCache[cache]?[course]? = max(oldValue, User.relevanceCacheWeights[cache]! * weight)
+        } else {
+            relevanceCache[cache]?[course] = User.relevanceCacheWeights[cache]! * weight
+        }
+    }
+    
+    func updateRelevanceCache() {
+        print("Updating relevance cache...")
+        relevanceCache = [
+            .plannedSubjects: [:],
+            .majorSubjects: [:],
+            .nonMajorSubjects: [:],
+            .primaryRelatedSubjects: [:]
+        ]
+        
+        for course in allCourses + CourseManager.shared.favoriteCourses {
+            addCourse(course, toRelevanceCache: .plannedSubjects)
+            for (relatedOne, relevance) in course.relatedSubjects {
+                guard let relatedCourse = CourseManager.shared.getCourse(withID: relatedOne) else {
+                    continue
+                }
+                addCourse(relatedCourse, toRelevanceCache: .primaryRelatedSubjects, weight: relevance)
+            }
+        }
+        
+        for courseOfStudy in coursesOfStudy {
+            guard let reqList = RequirementsListManager.shared.requirementList(withID: courseOfStudy) else {
+                continue
+            }
+            for reqCourse in reqList.requiredCourses {
+                if reqList.listID.contains("major") {
+                    addCourse(reqCourse, toRelevanceCache: .majorSubjects)
+                } else {
+                    addCourse(reqCourse, toRelevanceCache: .nonMajorSubjects)
+                }
+                for (relatedOne, relevance) in reqCourse.relatedSubjects {
+                    guard let relatedCourse = CourseManager.shared.getCourse(withID: relatedOne) else {
+                        continue
+                    }
+                    addCourse(relatedCourse, toRelevanceCache: .primaryRelatedSubjects, weight: relevance)
+                }
+            }
+        }
+        print("Finished updating relevance cache.")
+    }
+    
+    /**
+     Returns a multiplier indicating the relevance of the given course to the user.
+     If the course has no relevant connections to the user, this function returns
+     1.0. Otherwise, the return value is doubled for every connection to the user
+     (contained within CourseRoad, related to such a course, within major, and
+     within minor).
+     */
+    func userRelevance(for course: Course) -> Float {
+        var relevance: Float = 1.0
+        if relevanceCache.count == 0 {
+            updateRelevanceCache()
+        }
+        for (_, courseSet) in relevanceCache {
+            if let weight = courseSet[course] {
+                relevance *= weight
+            }
+        }
+        return relevance
+    }
+    
     // MARK: - File Handling
     
     func setNeedsSave() {
         needsSave = true
         warningsCache.removeAll()
+        relevanceCache = [:]
     }
     
     var subjectComponentSeparator = "#,#"

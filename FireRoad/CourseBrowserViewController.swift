@@ -248,6 +248,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     func clearSearch() {
         searchResults = []
+        isSearching = false
         isShowingSearchResults = false
         if nonSearchViewMode == .search {
             nonSearchViewMode = lastViewMode
@@ -398,6 +399,9 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                 }
                 if relevance > 0.0 {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
+                    if let user = (self.rootParent as? RootTabViewController)?.currentUser {
+                        relevance *= user.userRelevance(for: course)
+                    }
                     newResults[course] = relevance
                 }
             }

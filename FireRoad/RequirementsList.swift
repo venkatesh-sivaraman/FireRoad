@@ -446,6 +446,19 @@ class RequirementsListStatement: NSObject {
         }
         return min(1.0, Float(fulfilled.0) / Float(fulfilled.1)) * 100.0
     }
+    
+    // MARK: - Required Courses
+    
+    var requiredCourses: Set<Course> {
+        if let req = requirement {
+            if let course = CourseManager.shared.getCourse(withID: req) {
+                return Set<Course>([course])
+            }
+        } else if let reqs = requirements {
+            return reqs.reduce(Set<Course>(), { $0.union($1.requiredCourses) })
+        }
+        return Set<Course>()
+    }
 }
 
 class RequirementsList: RequirementsListStatement {

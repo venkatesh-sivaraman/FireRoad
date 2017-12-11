@@ -15,10 +15,32 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         return false
     }
     
-    var displayedCourses: [Course] = [] {
-        didSet {
-            if displayedCourses != oldValue {
-                updateDisplayedSchedules()
+    private var _displayedCourses: [Course] = []
+    var displayedCourses: [Course] {
+        get {
+            return _displayedCourses
+        } set {
+            if _displayedCourses != newValue {
+                _displayedCourses = newValue
+                let beforeUpdate = _displayedCourses
+                updateDisplayedSchedules(completion: {
+                    var noSchedCourses: [Course] = []
+                    for course in beforeUpdate {
+                        if course.schedule == nil || course.schedule!.count == 0 {
+                            noSchedCourses.append(course)
+                        }
+                    }
+                    var alert: UIAlertController?
+                    if noSchedCourses.count == 1 {
+                        alert = UIAlertController(title: "No Schedule Information", message: "No schedule available for \(noSchedCourses.first!.subjectID!) at this time.", preferredStyle: .alert)
+                    } else if noSchedCourses.count > 1 {
+                        alert = UIAlertController(title: "No Schedule for \(noSchedCourses.count) Courses", message: "No schedule available at this time for the following courses: \(noSchedCourses.flatMap({ $0.subjectID }).joined(separator: ", ")).", preferredStyle: .alert)
+                    }
+                    if let alertController = alert {
+                        alertController.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                        self.present(alertController, animated: true, completion: nil)
+                    }
+                })
             }
         }
     }
@@ -35,6 +57,11 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        if self.displayedCourses.count == 0,
+            let courses = (self.rootParent as? RootTabViewController)?.currentUser?.courses(forSemester: .FreshmanFall) {
+            self.displayedCourses = courses
+        }
 
         loadingBackgroundView?.layer.cornerRadius = 5.0
         
@@ -73,10 +100,16 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         }
     }
     
-    func updateDisplayedSchedules() {
+    func updateDisplayedSchedules(completion: (() -> Void)? = nil) {
         loadScheduleOptions {
-            self.pageViewController?.setViewControllers([self.scheduleGrid(for: 0)].flatMap({ $0 }), direction: .forward, animated: false, completion: nil)
-            self.scheduleNumberLabel?.text = "\(1) of \(self.scheduleOptions.count)"
+            if self.scheduleOptions.count > 0 {
+                self.pageViewController?.setViewControllers([self.scheduleGrid(for: 0)].flatMap({ $0 }), direction: .forward, animated: false, completion: nil)
+                self.scheduleNumberLabel?.text = "\(1) of \(self.scheduleOptions.count)"
+            } else if let noSchedulesView = self.storyboard?.instantiateViewController(withIdentifier: "NoSchedulesView") {
+                self.pageViewController?.setViewControllers([noSchedulesView], direction: .forward, animated: false, completion: nil)
+                self.scheduleNumberLabel?.text = "--"
+            }
+            completion?()
         }
     }
     
@@ -101,16 +134,16 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                 usleep(100)
             }
             
-            if self.displayedCourses.count == 0,
-                let courses = (self.rootParent as? RootTabViewController)?.currentUser?.courses(forSemester: .FreshmanFall) {
-                self.displayedCourses = courses
-            }
-            
             for course in self.displayedCourses {
                 CourseManager.shared.loadCourseDetailsSynchronously(about: course)
             }
-            self.scheduleOptions = self.generateSchedules(from: self.displayedCourses)
-            print(self.scheduleOptions)
+            self._displayedCourses = self.displayedCourses.filter({ $0.schedule != nil && $0.schedule!.count > 0 })
+            if self.displayedCourses.count > 0 {
+                self.scheduleOptions = self.generateSchedules(from: self.displayedCourses)
+                print(self.scheduleOptions)
+            } else {
+                self.scheduleOptions = []
+            }
 
             self.loadingScheduleOptions = false
             DispatchQueue.main.async {
@@ -180,7 +213,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         let results = recursivelyGenerateScheduleConfigurations(with: scheduleConfigurations, conflictMapping: configurationConflictMapping)
         let sorted = results.sorted(by: { $0.conflictCount < $1.conflictCount })
         if let minConflicts = sorted.first?.conflictCount {
-            return sorted.filter({ $0.conflictCount <= minConflicts + 1 })
+            return sorted.filter({ $0.conflictCount <= (minConflicts == 0 ? 0 : minConflicts + 1) })
         }
         return sorted
     }
@@ -260,7 +293,6 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
         displayedCourses.append(course)
-        updateDisplayedSchedules()
         if traitCollection.horizontalSizeClass == .compact {
             self.panelView?.collapseView(to: self.panelView!.collapseHeight)
         }
@@ -272,6 +304,5 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             return
         }
         displayedCourses.remove(at: index)
-        updateDisplayedSchedules()
     }
 }
