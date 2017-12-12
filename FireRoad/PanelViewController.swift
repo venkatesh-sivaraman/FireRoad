@@ -39,8 +39,6 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
     
-    var shouldExpandOnKeyboardChange = false
-    
     public private(set) var isExpanded: Bool = false
     
     private var bottomConstraint: NSLayoutConstraint?
@@ -192,7 +190,6 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
                 break
             }
         }
-        shouldExpandOnKeyboardChange = false
     }
     
     func expandView() {
@@ -217,7 +214,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     @objc func keyboardWillChangeFrame(sender: Notification) {
-        if self.parent != nil, isExpanded || shouldExpandOnKeyboardChange {
+        if self.parent != nil, isExpanded || (UIResponder.first as? UIView)?.isDescendant(of: self.view) == true {
             let deltaY = (sender.userInfo![UIKeyboardFrameBeginUserInfoKey]! as! CGRect).origin.y - (sender.userInfo![UIKeyboardFrameEndUserInfoKey]! as! CGRect).origin.y
             if bottomConstraint == nil, let container = self.view.superview, let sview = container.superview {
                 for constraint in sview.constraints {
@@ -243,10 +240,12 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
                 }
                 
                 let curve: UIViewAnimationOptions = UIViewAnimationOptions(rawValue: (sender.userInfo![UIKeyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
+                self.parent!.view.setNeedsLayout()
                 UIView.animate(withDuration: sender.userInfo![UIKeyboardAnimationDurationUserInfoKey] as! TimeInterval, delay: 0.0, options: [curve, .beginFromCurrentState], animations: {
                     bottomConstraint.constant = newConstant
-                    self.parent!.view.setNeedsLayout()
                     self.parent!.view.layoutIfNeeded()
+                    self.childNavigationController?.view.setNeedsLayout()
+                    self.childNavigationController?.view.layoutIfNeeded()
                     if isExpanding {
                         self.showDimView()
                     }

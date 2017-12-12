@@ -112,6 +112,8 @@
 		96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */; };
 		96C7769F1FDEDCBF00157F2D /* RequirementsListManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */; };
 		96C776A11FDF411600157F2D /* WebpageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A01FDF411600157F2D /* WebpageViewController.swift */; };
+		96C776A31FDF6D8600157F2D /* UITextViewPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */; };
+		96C776A51FDF717B00157F2D /* UIResponderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A41FDF717B00157F2D /* UIResponderExtension.swift */; };
 		96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */; };
 		96D055251FB80B6700BD18A8 /* CourseFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */; };
 		96EBE5661FBF9B8500FABE1E /* ScheduleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5651FBF9B8500FABE1E /* ScheduleViewController.swift */; };
@@ -264,6 +266,8 @@
 		96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsBrowserTableCell.swift; sourceTree = "<group>"; };
 		96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListManager.swift; sourceTree = "<group>"; };
 		96C776A01FDF411600157F2D /* WebpageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageViewController.swift; sourceTree = "<group>"; };
+		96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UITextViewPlaceholder.swift; sourceTree = "<group>"; };
+		96C776A41FDF717B00157F2D /* UIResponderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIResponderExtension.swift; sourceTree = "<group>"; };
 		96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseThumbnailCell.swift; sourceTree = "<group>"; };
 		96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseFilterViewController.swift; sourceTree = "<group>"; };
 		96EBE5651FBF9B8500FABE1E /* ScheduleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleViewController.swift; sourceTree = "<group>"; };
@@ -478,12 +482,14 @@
 		9669C7C01F90623D00E60D89 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */,
 				961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */,
 				9611BE331F7EE43C0090137E /* ArrayExtension.swift */,
 				9626B6E01F8070EB009F6F96 /* StringExtension.swift */,
 				9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */,
 				9669C7C81F90628300E60D89 /* MBProgressHUD.h */,
 				9669C7C71F90628300E60D89 /* MBProgressHUD.m */,
+				96C776A41FDF717B00157F2D /* UIResponderExtension.swift */,
 			);
 			name = Helpers;
 			sourceTree = "<group>";
@@ -767,6 +773,7 @@
 				9646CFF91EB92525005F87CB /* User.swift in Sources */,
 				96EBE5661FBF9B8500FABE1E /* ScheduleViewController.swift in Sources */,
 				9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */,
+				96C776A31FDF6D8600157F2D /* UITextViewPlaceholder.swift in Sources */,
 				96C7769F1FDEDCBF00157F2D /* RequirementsListManager.swift in Sources */,
 				9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */,
 				96EBE56C1FBFDF0900FABE1E /* ScheduleModel.swift in Sources */,
@@ -781,6 +788,7 @@
 				9626B6E81F815692009F6F96 /* RequirementsListViewController.swift in Sources */,
 				9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */,
 				961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */,
+				96C776A51FDF717B00157F2D /* UIResponderExtension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

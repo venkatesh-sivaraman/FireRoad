@@ -441,6 +441,33 @@ class CourseManager: NSObject {
         }
     }
     
+    // MARK: - Course Notes
+    
+    private let subjectNotesKey = "CourseManager.subjectNotes"
+    
+    /// Dictionary keyed by subject IDs and whose values are the notes for the subject.
+    private var notesCache: [String: String] = [:]
+    
+    func notes(for subject: String) -> String? {
+        if notesCache.count == 0 {
+            loadNotesCache()
+        }
+        return notesCache[subject]
+    }
+    
+    func setNotes(_ notesString: String, for subject: String) {
+        notesCache[subject] = notesString
+        saveNotes()
+    }
+    
+    func loadNotesCache() {
+        notesCache = (UserDefaults.standard.dictionary(forKey: subjectNotesKey) as? [String: String]) ?? [:]
+    }
+    
+    func saveNotes() {
+        UserDefaults.standard.set(notesCache, forKey: subjectNotesKey)
+    }
+    
     // MARK: - Spotlight
     
     static let spotlightDomainIdentifier = (Bundle.main.bundleIdentifier ?? "FireRoadNoBundleID") + ".course"

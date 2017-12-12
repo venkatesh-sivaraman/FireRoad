@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="49e-Tb-3d3">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="49e-Tb-3d3">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13527"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
@@ -259,20 +259,20 @@
                             <constraint firstItem="4ug-Mw-9AY" firstAttribute="top" secondItem="Zzg-CV-fJ8" secondAttribute="bottom" constant="10" id="1yo-aW-RPN"/>
                             <constraint firstAttribute="topMargin" secondItem="ahT-Sm-dNV" secondAttribute="top" id="8Rr-cd-Ydf"/>
                             <constraint firstItem="4ug-Mw-9AY" firstAttribute="top" secondItem="mEg-8F-M2W" secondAttribute="bottom" id="M0g-IF-Naj"/>
-                            <constraint firstAttribute="trailing" secondItem="Zzg-CV-fJ8" secondAttribute="trailing" constant="10" id="P8s-5T-osc"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Zzg-CV-fJ8" secondAttribute="trailing" constant="-6" id="P8s-5T-osc"/>
                             <constraint firstAttribute="bottomMargin" secondItem="ahT-Sm-dNV" secondAttribute="bottom" id="Pkb-bS-EjX"/>
                             <constraint firstItem="o13-ex-V0G" firstAttribute="top" secondItem="Ia1-K6-d13" secondAttribute="bottom" constant="6" id="Rhc-A9-vL4">
                                 <variation key="widthClass=regular" constant="12"/>
                             </constraint>
-                            <constraint firstItem="mEg-8F-M2W" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" id="Tj3-YM-x4x"/>
+                            <constraint firstItem="mEg-8F-M2W" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leadingMargin" constant="-16" id="Tj3-YM-x4x"/>
                             <constraint firstAttribute="trailing" secondItem="ahT-Sm-dNV" secondAttribute="trailing" id="YgD-Xz-mOY"/>
                             <constraint firstItem="4ug-Mw-9AY" firstAttribute="top" relation="greaterThanOrEqual" secondItem="o13-ex-V0G" secondAttribute="bottom" constant="12" id="bAm-xm-CEk"/>
-                            <constraint firstItem="o13-ex-V0G" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leading" constant="12" id="bZG-he-D6i"/>
+                            <constraint firstItem="o13-ex-V0G" firstAttribute="leading" secondItem="tsR-hK-woN" secondAttribute="leadingMargin" constant="-4" id="bZG-he-D6i"/>
                             <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="o13-ex-V0G" secondAttribute="bottom" constant="12" id="bnz-Xe-FpZ"/>
                             <constraint firstItem="mEg-8F-M2W" firstAttribute="top" secondItem="tsR-hK-woN" secondAttribute="top" id="fDw-Lr-OlS"/>
-                            <constraint firstAttribute="trailing" secondItem="o13-ex-V0G" secondAttribute="trailing" constant="12" id="i85-fW-yoE"/>
-                            <constraint firstItem="o13-ex-V0G" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="tsR-hK-woN" secondAttribute="leading" constant="12" id="mQG-qs-SEP"/>
-                            <constraint firstAttribute="trailing" secondItem="mEg-8F-M2W" secondAttribute="trailing" id="omI-46-TB5"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="o13-ex-V0G" secondAttribute="trailing" constant="-4" id="i85-fW-yoE"/>
+                            <constraint firstItem="o13-ex-V0G" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="tsR-hK-woN" secondAttribute="leadingMargin" constant="-4" id="mQG-qs-SEP"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="mEg-8F-M2W" secondAttribute="trailing" constant="-16" id="omI-46-TB5"/>
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
@@ -1164,7 +1164,7 @@
                             <constraint firstItem="lRs-Ye-afu" firstAttribute="leading" secondItem="QS5-Rx-YEW" secondAttribute="leading" id="30K-Jf-wSM"/>
                             <constraint firstItem="ehw-gD-NEe" firstAttribute="top" secondItem="QS5-Rx-YEW" secondAttribute="top" id="74d-Le-QAi"/>
                             <constraint firstItem="Djb-ko-YwX" firstAttribute="top" secondItem="50i-Co-HH5" secondAttribute="bottom" constant="10" id="7Ig-UO-4ka"/>
-                            <constraint firstAttribute="trailing" secondItem="d8A-Va-ZUe" secondAttribute="trailing" constant="12" id="8Ua-xf-A31"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="d8A-Va-ZUe" secondAttribute="trailing" constant="-4" id="8Ua-xf-A31"/>
                             <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="d8A-Va-ZUe" secondAttribute="bottom" constant="12" id="94M-on-sVo"/>
                             <constraint firstItem="Djb-ko-YwX" firstAttribute="top" secondItem="ehw-gD-NEe" secondAttribute="bottom" id="Fwd-Xw-gUl"/>
                             <constraint firstItem="d8A-Va-ZUe" firstAttribute="top" secondItem="L7p-HK-0SC" secondAttribute="bottom" constant="6" id="QUq-tm-I7W">
@@ -1172,13 +1172,18 @@
                             </constraint>
                             <constraint firstItem="Djb-ko-YwX" firstAttribute="top" relation="greaterThanOrEqual" secondItem="d8A-Va-ZUe" secondAttribute="bottom" constant="12" id="SFx-oh-ATy"/>
                             <constraint firstAttribute="trailing" secondItem="lRs-Ye-afu" secondAttribute="trailing" id="XGn-Gj-wno"/>
-                            <constraint firstItem="ehw-gD-NEe" firstAttribute="leading" secondItem="QS5-Rx-YEW" secondAttribute="leading" id="ePi-sk-Yvl"/>
-                            <constraint firstAttribute="trailing" secondItem="50i-Co-HH5" secondAttribute="trailing" constant="10" id="hbz-wB-O0I"/>
-                            <constraint firstItem="d8A-Va-ZUe" firstAttribute="leading" secondItem="QS5-Rx-YEW" secondAttribute="leading" constant="12" id="p9E-St-cv8"/>
-                            <constraint firstAttribute="trailing" secondItem="ehw-gD-NEe" secondAttribute="trailing" id="t1I-pc-SWG"/>
+                            <constraint firstItem="ehw-gD-NEe" firstAttribute="leading" secondItem="QS5-Rx-YEW" secondAttribute="leadingMargin" constant="-16" id="ePi-sk-Yvl"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="50i-Co-HH5" secondAttribute="trailing" constant="-6" id="hbz-wB-O0I"/>
+                            <constraint firstItem="d8A-Va-ZUe" firstAttribute="leading" secondItem="QS5-Rx-YEW" secondAttribute="leadingMargin" constant="-4" id="p9E-St-cv8"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="ehw-gD-NEe" secondAttribute="trailing" constant="-16" id="t1I-pc-SWG"/>
                             <constraint firstItem="Djb-ko-YwX" firstAttribute="top" secondItem="lRs-Ye-afu" secondAttribute="bottom" id="vEU-cJ-imy"/>
-                            <constraint firstItem="d8A-Va-ZUe" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="QS5-Rx-YEW" secondAttribute="leading" constant="12" id="wEb-KO-MCU"/>
+                            <constraint firstItem="d8A-Va-ZUe" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="QS5-Rx-YEW" secondAttribute="leadingMargin" constant="-4" id="wEb-KO-MCU"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="wEb-KO-MCU"/>
+                            </mask>
+                        </variation>
                         <variation key="widthClass=regular">
                             <mask key="constraints">
                                 <exclude reference="p9E-St-cv8"/>
@@ -2004,7 +2009,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="bHw-Kc-og0">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" keyboardDismissMode="onDrag" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="bHw-Kc-og0">
                                 <rect key="frame" x="0.0" y="20" width="375" height="647"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="8"/>
@@ -2226,12 +2231,36 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="sNs-1J-RGG">
+                                                    <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                 </imageView>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </tableViewCellContentView>
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" reuseIdentifier="NotesCell" rowHeight="180" id="8PP-nI-tXg">
+                                        <rect key="frame" x="0.0" y="624" width="375" height="180"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="8PP-nI-tXg" id="dcc-if-Y8c">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="180"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" tag="56" contentMode="scaleToFill" keyboardDismissMode="onDrag" text="Notes Me" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="Kya-jy-5Ie">
+                                                    <rect key="frame" x="15" y="11" width="345" height="158"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                                </textView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="Kya-jy-5Ie" firstAttribute="leading" secondItem="dcc-if-Y8c" secondAttribute="leading" constant="15" id="cve-7I-VOV"/>
+                                                <constraint firstAttribute="bottom" secondItem="Kya-jy-5Ie" secondAttribute="bottom" constant="11" id="mR3-rc-yMq"/>
+                                                <constraint firstItem="Kya-jy-5Ie" firstAttribute="top" secondItem="dcc-if-Y8c" secondAttribute="top" constant="11" id="mX6-yB-TjD"/>
+                                                <constraint firstAttribute="trailing" secondItem="Kya-jy-5Ie" secondAttribute="trailing" constant="15" id="wdH-1T-FlE"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </tableViewCell>
                                 </prototypes>
                                 <sections/>
@@ -2255,7 +2284,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2Ry-EN-4Gp" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4652" y="-289"/>
+            <point key="canvasLocation" x="4652" y="-289.20539730134936"/>
         </scene>
         <!--Webpage View Controller-->
         <scene sceneID="dg8-eh-eVi">

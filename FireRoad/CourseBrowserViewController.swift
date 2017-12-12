@@ -236,10 +236,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func collapseView() {
-        guard let searchBar = searchBar else {
-            return
-        }
-        panelViewController?.collapseView(to: searchBar.frame.size.height + 12.0)
+        panelViewController?.collapseView()
     }
     
     func expandView() {
@@ -269,11 +266,6 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             results = CourseManager.shared.favoriteCourses
         }
         tableView.reloadData()
-    }
-    
-    func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
-        panelViewController?.shouldExpandOnKeyboardChange = true
-        return true
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {

@@ -33,6 +33,7 @@ enum CourseDetailItem {
     case button
     case url
     case courseEvaluations
+    case notes
 }
 
 enum CourseDetailSectionTitle {
@@ -43,9 +44,10 @@ enum CourseDetailSectionTitle {
     static let equivalentSubjects = "Equivalent Subjects"
     static let schedule = "Schedule"
     static let related = "Related"
+    static let notes = "Notes"
 }
 
-class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CourseListCellDelegate, PopDownTableMenuDelegate {
+class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CourseListCellDelegate, PopDownTableMenuDelegate, UITextViewDelegate {
 
     var course: Course? = nil {
         didSet {
@@ -271,6 +273,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .courseEvaluations
         rowIndex = 0
         sectionIndex += 1
+        
         if let schedule = course?.schedule, schedule.count > 0 {
             titles.append(CourseDetailSectionTitle.schedule)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
@@ -282,6 +285,13 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             rowIndex = 0
             sectionIndex += 1
         }
+
+        titles.append(CourseDetailSectionTitle.notes)
+        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+        rowIndex += 1
+        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .notes
+        rowIndex = 0
+        sectionIndex += 1
         if rowIndex == 0 {
             sectionIndex -= 1
         }
@@ -307,6 +317,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "ButtonCell"
         case .url, .courseEvaluations:
             id = "URLCell"
+        case .notes:
+            id = "NotesCell"
         }
         return id
     }
@@ -323,7 +335,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let cellType = self.cellType(for: self.detailMapping[indexPath]!)
+        let dataType = self.detailMapping[indexPath]!
+        let cellType = self.cellType(for: dataType)
         if cellType == "DescriptionCell" || cellType == "MetadataCell" {
             if sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites || sectionTitles[indexPath.section] == CourseDetailSectionTitle.corequisites {
                 return 32.0
@@ -331,6 +344,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             return UITableViewAutomaticDimension
         } else if cellType == "CourseListCell" {
             return 124.0
+        } else if dataType == .header {
+            return 40.0
+        } else if dataType == .notes {
+            return 180.0
         }
         return 60.0
     }
@@ -471,6 +488,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             }
             if items.count == 0 {
                 detailTextLabel?.text = "TBA"
+            } else if items.count >= 5 {
+                detailTextLabel?.text = "\(items.count) sections"
             } else {
                 let itemDescriptions = items.map({ (itemSet) -> String in
                     return itemSet.map({ $0.stringEquivalent(withLocation: false) }).joined(separator: ", ") + (itemSet.first?.location != nil ? " (\(itemSet.first!.location!))" : "")
@@ -559,9 +578,16 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             (cell as! CourseListCell).delegate = self
             (cell as! CourseListCell).collectionView.reloadData()
         case .url:
-            textLabel?.text = "View in Safari"
+            textLabel?.text = "View on Registrar Site"
         case .courseEvaluations:
-            textLabel?.text = "Course Evaluations"
+            textLabel?.text = "View Course Evaluations"
+        case .notes:
+            guard let textView = cell.viewWithTag(56) as? UITextView else {
+                break
+            }
+            textView.text = CourseManager.shared.notes(for: course!.subjectID!) ?? ""
+            textView.placeholder = "Take notes here…"
+            textView.delegate = self
         }
 
         return cell
@@ -586,6 +612,20 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             let url = URL(string: "https://edu-apps.mit.edu/ose-rpt/subjectEvaluationSearch.htm?search=Search&subjectCode=\(course!.subjectID!)") {
             delegate?.courseDetailsRequestedOpen(url: url)
         }
+    }
+    
+    // MARK: - Text View
+    
+    func textViewDidChange(_ textView: UITextView) {
+        textView.updatePlaceholder()
+        CourseManager.shared.setNotes(textView.text, for: course!.subjectID!)
+    }
+    
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        guard let indexPath = detailMapping.first(where: { $1 == .notes })?.key else {
+            return
+        }
+        tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
     }
     
     /*
