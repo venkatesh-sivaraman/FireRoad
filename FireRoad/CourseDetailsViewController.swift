@@ -12,6 +12,7 @@ protocol CourseDetailsDelegate: class {
     func courseDetails(added course: Course, to semester: UserSemester?)
     func courseDetailsRequestedDetails(about course: Course)
     func courseDetailsRequestedPostReqs(for course: Course)
+    func courseDetailsRequestedOpen(url: URL)
 }
 
 enum CourseDetailItem {
@@ -31,6 +32,7 @@ enum CourseDetailItem {
     case courseListAccessory
     case button
     case url
+    case courseEvaluations
 }
 
 enum CourseDetailSectionTitle {
@@ -110,7 +112,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController?.setNavigationBarHidden(false, animated: true)
+        navigationController?.setNavigationBarHidden(false, animated: true)
+        navigationController?.setToolbarHidden(true, animated: true)
     }
     
     @objc func addCourseButtonPressed(sender: AnyObject) {
@@ -258,14 +261,16 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             rowIndex = 0
             sectionIndex += 1
         }
+        titles.append(CourseDetailSectionTitle.none)
+        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .button
         if course?.url != nil {
-            titles.append(CourseDetailSectionTitle.none)
-            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .button
             rowIndex += 1
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .url
-            rowIndex = 0
-            sectionIndex += 1
         }
+        rowIndex += 1
+        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .courseEvaluations
+        rowIndex = 0
+        sectionIndex += 1
         if let schedule = course?.schedule, schedule.count > 0 {
             titles.append(CourseDetailSectionTitle.schedule)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
@@ -300,7 +305,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "CourseListAccessoryCell"
         case .button:
             id = "ButtonCell"
-        case .url:
+        case .url, .courseEvaluations:
             id = "URLCell"
         }
         return id
@@ -339,7 +344,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     }
     
     func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
-        return self.detailMapping[indexPath] == .button || self.detailMapping[indexPath] == .url
+        return self.detailMapping[indexPath] == .button || self.detailMapping[indexPath] == .url || self.detailMapping[indexPath] == .courseEvaluations
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -554,7 +559,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             (cell as! CourseListCell).delegate = self
             (cell as! CourseListCell).collectionView.reloadData()
         case .url:
-            break
+            textLabel?.text = "View in Safari"
+        case .courseEvaluations:
+            textLabel?.text = "Course Evaluations"
         }
 
         return cell
@@ -574,7 +581,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         } else if detailItemType == .url,
             let urlString = course?.url,
             let url = URL(string: urlString) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            delegate?.courseDetailsRequestedOpen(url: url)
+        } else if detailItemType == .courseEvaluations,
+            let url = URL(string: "https://edu-apps.mit.edu/ose-rpt/subjectEvaluationSearch.htm?search=Search&subjectCode=\(course!.subjectID!)") {
+            delegate?.courseDetailsRequestedOpen(url: url)
         }
     }
     

@@ -354,6 +354,12 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         listVC.view.backgroundColor = UIColor.white
         showInformationalViewController(listVC)
     }
+    
+    func courseDetailsRequestedOpen(url: URL) {
+        let webVC = self.storyboard!.instantiateViewController(withIdentifier: "WebpageVC") as! WebpageViewController
+        webVC.url = url
+        showInformationalViewController(webVC)
+    }
 
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
         guard let tabVC = rootParent as? RootTabViewController else {

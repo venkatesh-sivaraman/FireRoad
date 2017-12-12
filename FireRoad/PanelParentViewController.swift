@@ -130,7 +130,10 @@ extension PanelParentViewController {
         }
 
         let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
-        listVC.searchTerm = (course.subjectID ?? "") + " " + (course.girAttribute?.descriptionText() ?? "")
+        listVC.searchTerm = (course.subjectID ?? "")
+        if let gir = course.girAttribute, gir != .lab, gir != .rest {
+             listVC.searchTerm = (listVC.searchTerm ?? "") + " " + gir.descriptionText()
+        }
         listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .anyRequirement, .searchPrereqs]
         listVC.showsHeaderBar = false
         listVC.delegate = self
@@ -138,6 +141,22 @@ extension PanelParentViewController {
         listVC.showsSemesterDialog = self.showsSemesterDialogs
         listVC.view.backgroundColor = UIColor.clear
         browser.navigationController?.pushViewController(listVC, animated: true)
+        browser.navigationController?.view.setNeedsLayout()
+    }
+    
+    func courseDetailsRequestedOpen(url: URL) {
+        guard let panel = self.panelView,
+            let browser = self.courseBrowser else {
+                return
+        }
+        if !panel.isExpanded {
+            panel.expandView()
+        }
+        
+        let webVC = self.storyboard!.instantiateViewController(withIdentifier: "WebpageVC") as! WebpageViewController
+        webVC.url = url
+        webVC.view.backgroundColor = UIColor.clear
+        browser.navigationController?.pushViewController(webVC, animated: true)
         browser.navigationController?.view.setNeedsLayout()
     }
 }
