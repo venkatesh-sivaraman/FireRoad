@@ -184,14 +184,22 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
                         parentView.addSubview(courseCell)
                         courseCell.loadThumbnailAppearance()
                         courseCell.backgroundColor = CourseManager.shared.color(forCourse: course)
-                        courseCell.generateLabels(withDetail: traitCollection.horizontalSizeClass != .compact || UIDevice.current.orientation.isLandscape)
                         courseCell.delegate = self
                         courseCell.course = course
                         courseCell.isDetached = true
-                        courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
-                        courseCell.textLabel?.text = course.subjectID!
-                        courseCell.detailTextLabel?.font = courseCell.detailTextLabel?.font.withSize(cellDescriptionFontSize)
-                        courseCell.detailTextLabel?.text = (CourseScheduleType.abbreviation(for: type)?.lowercased() ?? type.lowercased()) + (item.location != nil ?  " (\(item.location!))" : "")
+                        if traitCollection.horizontalSizeClass != .compact || UIDevice.current.orientation.isLandscape {
+                            courseCell.generateLabels(withDetail: true)
+                            courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
+                            courseCell.textLabel?.text = course.subjectID!
+                            courseCell.textLabel?.numberOfLines = 1
+                            courseCell.detailTextLabel?.font = courseCell.detailTextLabel?.font.withSize(cellDescriptionFontSize)
+                            courseCell.detailTextLabel?.text = (CourseScheduleType.abbreviation(for: type)?.lowercased() ?? type.lowercased()) + (item.location != nil ?  " (\(item.location!))" : "")
+                        } else {
+                            courseCell.generateLabels(withDetail: false)
+                            courseCell.textLabel?.font = UIFont.systemFont(ofSize: cellTitleFontSize, weight: .regular)
+                            courseCell.textLabel?.text = course.subjectID!.components(separatedBy: ".").joined(separator: "\n")
+                            courseCell.textLabel?.numberOfLines = 2
+                        }
                         
                         // Positioning
                         for subcolumn in 0..<occupancy {

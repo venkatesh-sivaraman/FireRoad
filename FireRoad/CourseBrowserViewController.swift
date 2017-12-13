@@ -351,6 +351,54 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return courseText
     }
     
+    private func searchRegex(for searchTerm: String, options: SearchOptions = .noFilter) -> NSRegularExpression {
+        let pattern = NSRegularExpression.escapedPattern(for: searchTerm)
+        if options.contains(.matchesSearchTerm) {
+            return try! NSRegularExpression(pattern: "(?:^|[^A-z\\d])\(pattern)(?:$|[^A-z\\d])", options: .caseInsensitive)
+        } else if options.contains(.startsWithSearchTerm) {
+            return try! NSRegularExpression(pattern: "(?:^|[^A-z\\d])\(pattern)(\\w*)(?:$|[^A-z\\d])", options: .caseInsensitive)
+        } else if options.contains(.endsWithSearchTerm) {
+            return try! NSRegularExpression(pattern: "(?:^|[^A-z\\d])(\\w*)\(pattern)(?:$|[^A-z\\d])", options: .caseInsensitive)
+        }
+        return try! NSRegularExpression(pattern: "(?:^|[^A-z\\d])(\\w*)\(pattern)(\\w*)(?:$|[^A-z\\d])", options: .caseInsensitive)
+    }
+    
+    internal func searchResults(for searchTerm: String, options: SearchOptions = .noFilter) -> [Course] {
+        let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
+        
+        var newResults: [Course: Float] = [:]
+        for course in CourseManager.shared.courses {
+            guard courseSatisfiesSearchOptions(course, searchTerm: searchTerm, options: options) else {
+                continue
+            }
+            
+            var relevance: Float = 0.0
+            let courseText = searchText(for: course, options: options)
+            for comp in comps {
+                let regex = searchRegex(for: comp, options: options)
+                for match in regex.matches(in: courseText, options: [], range: NSRange(location: 0, length: courseText.count)) {
+                    var multiplier: Float = 1.0
+                    if match.numberOfRanges > 1 {
+                        for i in 1..<match.numberOfRanges where match.range(at: i).length > 0 {
+                            multiplier += 10.0
+                        }
+                    }
+                    relevance *= 1.1
+                    relevance += multiplier * Float(comp.count)
+                }
+            }
+            if relevance > 0.0 {
+                relevance *= log(Float(max(2, course.enrollmentNumber)))
+                if let user = (self.rootParent as? RootTabViewController)?.currentUser {
+                    relevance *= user.userRelevance(for: course)
+                }
+                newResults[course] = relevance
+            }
+        }
+        let sortedResults = newResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+        return sortedResults
+    }
+    
     func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter) {
         guard CourseManager.shared.isLoaded, !isSearching else {
             return
@@ -359,45 +407,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         let cacheText = self.searchBar?.text
         DispatchQueue.global(qos: .userInitiated).async {
             self.isSearching = true
-            let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
-            
-            var newResults: [Course: Float] = [:]
-            for course in CourseManager.shared.courses {
-                guard self.courseSatisfiesSearchOptions(course, searchTerm: searchTerm, options: options) else {
-                    continue
-                }
-                
-                var relevance: Float = 0.0
-                let courseText = self.searchText(for: course, options: options)
-                for comp in comps {
-                    // TODO: Make this use regex
-                    if courseText.contains(comp) {
-                        let separated = courseText.components(separatedBy: comp)
-                        var multiplier: Float = options.contains(.containsSearchTerm) ? 1.0 : 0.0
-                        for (i, sepComp) in separated.enumerated() {
-                            if sepComp.count > 0, i < separated.count - 1 {
-                                let lastCharacter = sepComp[sepComp.index(before: sepComp.endIndex)..<sepComp.endIndex]
-                                if lastCharacter.trimmingCharacters(in: .newlines).count == 0 {
-                                    multiplier += 20.0
-                                } else if lastCharacter.trimmingCharacters(in: .whitespaces).count == 0 {
-                                    multiplier += 10.0
-                                }
-                            } else {
-                                multiplier += 1.0
-                            }
-                        }
-                        relevance += multiplier * Float(comp.count)
-                    }
-                }
-                if relevance > 0.0 {
-                    relevance *= log(Float(max(2, course.enrollmentNumber)))
-                    if let user = (self.rootParent as? RootTabViewController)?.currentUser {
-                        relevance *= user.userRelevance(for: course)
-                    }
-                    newResults[course] = relevance
-                }
-            }
-            let sortedResults = newResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+            let sortedResults = self.searchResults(for: searchTerm, options: options)
             self.isSearching = false
             DispatchQueue.main.async {
                 if cacheText == self.searchBar?.text {
