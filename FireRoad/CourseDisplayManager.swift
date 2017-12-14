@@ -10,5 +10,6 @@ import Foundation
 
 protocol CourseDisplayManager: class {
     func addCourse(_ course: Course, to semester: UserSemester?) -> UserSemester?
+    func addCourseToSchedule(_ course: Course)
     func viewDetails(for course: Course)
 }

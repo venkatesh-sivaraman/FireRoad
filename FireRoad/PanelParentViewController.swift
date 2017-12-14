@@ -14,6 +14,7 @@ protocol PanelParentViewController: CourseBrowserDelegate, CourseDetailsDelegate
     var childViewControllers: [UIViewController] { get }
     var view: UIView! { get }
     var storyboard: UIStoryboard? { get }
+    var rootParent: UIViewController? { get }
     
     var showsSemesterDialogs: Bool { get }
     
@@ -118,6 +119,17 @@ extension PanelParentViewController {
             browser.navigationController?.pushViewController(listVC, animated: true)
             browser.navigationController?.view.setNeedsLayout()
         }
+    }
+    
+    func addCourseToSchedule(_ course: Course) {
+        guard let rootTab = self.rootParent as? RootTabViewController else {
+            return
+        }
+        rootTab.addCourseToSchedule(course)
+    }
+    
+    func courseDetails(addedCourseToSchedule course: Course) {
+        addCourseToSchedule(course)
     }
     
     func courseDetailsRequestedPostReqs(for course: Course) {

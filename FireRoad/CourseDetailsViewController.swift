@@ -10,6 +10,7 @@ import UIKit
 
 protocol CourseDetailsDelegate: class {
     func courseDetails(added course: Course, to semester: UserSemester?)
+    func courseDetails(addedCourseToSchedule course: Course)
     func courseDetailsRequestedDetails(about course: Course)
     func courseDetailsRequestedPostReqs(for course: Course)
     func courseDetailsRequestedOpen(url: URL)
@@ -152,6 +153,11 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         } else {
             CourseManager.shared.markCourseAsFavorite(course)
         }
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToSchedule course: Course) {
+        delegate?.courseDetails(addedCourseToSchedule: course)
         popDownTableMenuCanceled(tableMenu)
     }
     
@@ -525,10 +531,12 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
                     (cell as! CourseListCell).courses.append(equivCourse!)
-                } else if prereqs.count == 1, myID.lowercased().contains("permission of instructor") {
+                } else if myID.lowercased().contains("permission of instructor") {
                     (cell as! CourseListCell).courses.append(Course(courseID: "None", courseTitle: "(Permission of instructor)", courseDescription: ""))
                 } else if let gir = GIRAttribute(rawValue: myID) {
                     (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
+                } else {
+                    (cell as! CourseListCell).courses.append(Course(courseID: "--", courseTitle: myID, courseDescription: ""))
                 }
             }
             (cell as! CourseListCell).delegate = self

@@ -528,6 +528,11 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         popDownTableMenuCanceled(tableMenu)
     }
     
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToSchedule course: Course) {
+        delegate?.addCourseToSchedule(course)
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester) {
         _ = self.delegate?.addCourse(course, to: semester)
         popDownTableMenuCanceled(tableMenu)

@@ -28,6 +28,17 @@ class RootTabViewController: UITabBarController {
         }
         return ret
     }
+    
+    func addCourseToSchedule(_ course: Course) {
+        guard let scheduleVC = childViewController(where: { $0 is ScheduleViewController }) as? ScheduleViewController else {
+            print("Couldn't get schedule view controller")
+            return
+        }
+        scheduleVC.displayedCourses.append(course)
+        if let tab = viewControllers?.first(where: { scheduleVC.isDescendant(of: $0) }) {
+            selectedViewController = tab
+        }
+    }
 
     var currentUser: User? {
         guard let courseRoadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController else {

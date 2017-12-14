@@ -355,6 +355,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         showInformationalViewController(listVC)
     }
     
+    func courseDetails(addedCourseToSchedule course: Course) {
+        addCourseToSchedule(course)
+    }
+    
     func courseDetailsRequestedOpen(url: URL) {
         let webVC = self.storyboard!.instantiateViewController(withIdentifier: "WebpageVC") as! WebpageViewController
         webVC.url = url
@@ -373,6 +377,18 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         let ret = tabVC.addCourse(course, to: semester)
         updateRequirementsStatus()
         return ret
+    }
+    
+    func addCourseToSchedule(_ course: Course) {
+        guard let tabVC = rootParent as? RootTabViewController else {
+            print("Root isn't a tab bar controller!")
+            return
+        }
+        if presentedViewController != nil {
+            dismiss(animated: true, completion: nil)
+            popoverNavigationController = nil
+        }
+        tabVC.addCourseToSchedule(course)
     }
     
     var popoverNavigationController: UINavigationController?

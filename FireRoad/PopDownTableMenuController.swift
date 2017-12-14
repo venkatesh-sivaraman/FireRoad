@@ -10,6 +10,7 @@ import UIKit
 
 protocol PopDownTableMenuDelegate: class {
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course)
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToSchedule course: Course)
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester)
     func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController)
 }
@@ -30,6 +31,7 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     
     let headings = [
         "Favorites",
+        "Schedule",
         "Prior Credit",
         "Freshman",
         "Sophomore",
@@ -37,9 +39,12 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
         "Senior"
     ]
     
+    let cellHeight: CGFloat = 60.0
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         if let height = heightConstraint {
+            height.constant = CGFloat(headings.count) * cellHeight
             topConstraint?.constant = -height.constant
         }
         blurView?.effect = nil
@@ -58,7 +63,7 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.row < 2 {
+        if indexPath.row < 3 {
             let cell = tableView.dequeueReusableCell(withIdentifier: PopDownTableMenuController.oneButtonCellIdentifier, for: indexPath)
             if let imageView = cell.viewWithTag(34) as? UIImageView,
                 let label = cell.viewWithTag(12) as? UILabel {
@@ -69,6 +74,9 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
                     imageView.image = image?.withRenderingMode(.alwaysTemplate)
                     label.text = isInFavorites ? "Remove from Favorites" : "Add to Favorites"
                 } else if indexPath.row == 1 {
+                    imageView.image = UIImage(named: "calendar")?.withRenderingMode(.alwaysTemplate)
+                    label.text = "Add to Schedule"
+                } else if indexPath.row == 2 {
                     imageView.image = UIImage(named: "prior-credit")?.withRenderingMode(.alwaysTemplate)
                     label.text = "Prior Credit"
                 }
@@ -97,6 +105,8 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
         if indexPath.row == 0 {
             delegate?.popDownTableMenu(self, addedCourseToFavorites: course)
         } else if indexPath.row == 1 {
+            delegate?.popDownTableMenu(self, addedCourseToSchedule: course)
+        } else if indexPath.row == 2 {
             delegate?.popDownTableMenu(self, addedCourse: course, to: .PreviousCredit)
         }
     }
