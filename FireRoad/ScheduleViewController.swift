@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ScheduleViewController: UIViewController, PanelParentViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ScheduleGridDelegate {
+class ScheduleViewController: UIViewController, PanelParentViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ScheduleGridDelegate, ScheduleConstraintDelegate {
     var panelView: PanelViewController?
     var courseBrowser: CourseBrowserViewController?
     var showsSemesterDialogs: Bool {
@@ -45,6 +45,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         }
     }
     
+    var allowedSections: [Course: [String: [Int]]]?
+    
     @IBOutlet var loadingView: UIView?
     @IBOutlet var loadingIndicator: UIActivityIndicatorView?
     @IBOutlet var loadingBackgroundView: UIView?
@@ -75,6 +77,11 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         updateDisplayedSchedules()
         
         updateNavigationBar(animated: false)
+        
+        let menu = UIMenuController.shared
+        menu.menuItems = (menu.menuItems ?? []) + [
+            UIMenuItem(title: MenuItemStrings.constrain, action: #selector(CourseThumbnailCell.constrain(_:)))
+        ]
     }
 
     override func didReceiveMemoryWarning() {
@@ -182,7 +189,11 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                 continue
             }
             for (section, sectionOptions) in schedule {
-                let allOptions = sectionOptions.map({ ScheduleUnit(course: course, sectionType: section, scheduleItems: $0) })
+                var filteredOptions = sectionOptions
+                if let constraint = allowedSections?[course]?[section] {
+                    filteredOptions = constraint.map({ filteredOptions[$0] })
+                }
+                let allOptions = filteredOptions.map({ ScheduleUnit(course: course, sectionType: section, scheduleItems: $0) })
                 guard allOptions.count > 0 else {
                     print("No options for \(course.subjectID!) \(section)")
                     continue
@@ -289,7 +300,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         }
     }
     
-    // MARK: Grid Delegate
+    // MARK: - Grid Delegate
     
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
         displayedCourses.append(course)
@@ -304,5 +315,38 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             return
         }
         displayedCourses.remove(at: index)
+    }
+    
+    func scheduleGrid(_ gridVC: ScheduleGridViewController, wantsConstraintMenuFor course: Course, sender: UIView?) {
+        guard let constraint = storyboard?.instantiateViewController(withIdentifier: "ScheduleConstraintVC") as? ScheduleConstraintViewController else {
+            return
+        }
+        constraint.delegate = self
+        constraint.course = course
+        constraint.allowedSections = allowedSections?[course]
+        let nav = UINavigationController(rootViewController: constraint)
+        if let view = sender {
+            nav.modalPresentationStyle = .popover
+            nav.popoverPresentationController?.sourceView = view
+            nav.popoverPresentationController?.sourceRect = view.bounds
+        }
+        present(nav, animated: true, completion: nil)
+    }
+    
+    // MARK: - Constraints
+    
+    func scheduleConstraintViewControllerDismissed(_ vc: ScheduleConstraintViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func scheduleConstraintViewController(_ vc: ScheduleConstraintViewController, updatedAllowedSections newAllowedSections: [String : [Int]]?) {
+        guard let course = vc.course else {
+            return
+        }
+        if allowedSections == nil {
+            allowedSections = [:]
+        }
+        allowedSections?[course] = newAllowedSections
+        updateDisplayedSchedules()
     }
 }

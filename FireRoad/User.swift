@@ -26,18 +26,18 @@ enum UserSemester: Int {
     func toString() -> String {
         switch self {
         case .PreviousCredit: return "Prior Credit"
-        case .FreshmanFall: return "Freshman Fall"
-        case .FreshmanIAP: return "Freshman IAP"
-        case .FreshmanSpring: return "Freshman Spring"
-        case .SophomoreFall: return "Sophomore Fall"
-        case .SophomoreIAP: return "Sophomore IAP"
-        case .SophomoreSpring: return "Sophomore Spring"
-        case .JuniorFall: return "Junior Fall"
-        case .JuniorIAP: return "Junior IAP"
-        case .JuniorSpring: return "Junior Spring"
-        case .SeniorFall: return "Senior Fall"
-        case .SeniorIAP: return "Senior IAP"
-        case .SeniorSpring: return "Senior Spring"
+        case .FreshmanFall: return "1st Year Fall"
+        case .FreshmanIAP: return "1st Year IAP"
+        case .FreshmanSpring: return "1st Year Spring"
+        case .SophomoreFall: return "2nd Year Fall"
+        case .SophomoreIAP: return "2nd Year IAP"
+        case .SophomoreSpring: return "2nd Year Spring"
+        case .JuniorFall: return "3rd Year Fall"
+        case .JuniorIAP: return "3rd Year IAP"
+        case .JuniorSpring: return "3rd Year Spring"
+        case .SeniorFall: return "4th Year Fall"
+        case .SeniorIAP: return "4th Year IAP"
+        case .SeniorSpring: return "4th Year Spring"
         }
     }
     

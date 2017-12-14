@@ -49,16 +49,16 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         return []
     }
     
-    func presentationItems(for requirement: RequirementsListStatement, at level: Int = 0) -> [PresentationItem] {
+    func presentationItems(for requirement: RequirementsListStatement, at level: Int = 0, alwaysShowTitle: Bool = false) -> [PresentationItem] {
         var items: [PresentationItem] = []
         if let title = requirement.title {
             let cellType: RequirementsListCellType = level == 0 ? .title : .title2
             var titleText = title
-            if requirement.thresholdDescription.count > 0 {
+            if requirement.thresholdDescription.count > 0, requirement.connectionType != .all {
                 titleText += " (\(requirement.thresholdDescription))"
             }
             items.append(PresentationItem(cellType: cellType, statement: requirement, text: titleText))
-        } else if requirement.thresholdDescription.count > 0 {
+        } else if requirement.thresholdDescription.count > 0, (requirement.connectionType != .all || alwaysShowTitle) {
             items.append(PresentationItem(cellType: level == 0 ? .title : .title2, statement: requirement, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
         }
         if let description = requirement.contentDescription, description.count > 0 {
@@ -77,8 +77,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 // Indicate this on the cell somehow
             }
         } else if let reqs = requirement.requirements {
+            let showTitles = reqs.contains(where: { $0.connectionType == .all }) && reqs.contains(where: { $0.connectionType == .any })
             for req in reqs {
-                items += presentationItems(for: req, at: level + 1)
+                items += presentationItems(for: req, at: level + 1, alwaysShowTitle: showTitles)
             }
         }
         

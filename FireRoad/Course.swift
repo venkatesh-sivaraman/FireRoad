@@ -128,17 +128,17 @@ enum CourseOfferingPattern: String {
     case never = "Never"
 }
 
-struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible {
+struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable {
     var rawValue: Int
     
     static let none = CourseScheduleDay(rawValue: 0)
-    static let monday = CourseScheduleDay(rawValue: 1 << 0)
-    static let tuesday = CourseScheduleDay(rawValue: 1 << 1)
-    static let wednesday = CourseScheduleDay(rawValue: 1 << 2)
+    static let monday = CourseScheduleDay(rawValue: 1 << 6)
+    static let tuesday = CourseScheduleDay(rawValue: 1 << 5)
+    static let wednesday = CourseScheduleDay(rawValue: 1 << 4)
     static let thursday = CourseScheduleDay(rawValue: 1 << 3)
-    static let friday = CourseScheduleDay(rawValue: 1 << 4)
-    static let saturday = CourseScheduleDay(rawValue: 1 << 5)
-    static let sunday = CourseScheduleDay(rawValue: 1 << 6)
+    static let friday = CourseScheduleDay(rawValue: 1 << 2)
+    static let saturday = CourseScheduleDay(rawValue: 1 << 1)
+    static let sunday = CourseScheduleDay(rawValue: 1 << 0)
     
     static let ordering: [CourseScheduleDay] = [
         .monday,
@@ -176,18 +176,27 @@ struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible {
     
     static func fromString(_ days: String) -> CourseScheduleDay {
         var offered = CourseScheduleDay.none
-        var currentOrderingIndex = 0
         for character in days {
-            while character != CourseScheduleDay.ordering[currentOrderingIndex].stringEquivalent().first {
-                currentOrderingIndex += 1
+            guard let value = CourseScheduleDay.ordering.first(where: { stringMappings[$0.rawValue] == String(character) }) else {
+                print("Invalid day \(character)")
+                continue
             }
-            guard currentOrderingIndex < CourseScheduleDay.ordering.count else {
-                print("Ran out of possible weekday letters")
-                return .none
-            }
-            offered = offered.union(CourseScheduleDay.ordering[currentOrderingIndex])
+            offered = offered.union(value)
         }
         return offered
+    }
+    
+    static func <(lhs: CourseScheduleDay, rhs: CourseScheduleDay) -> Bool {
+        return lhs.rawValue > rhs.rawValue
+    }
+    
+    func minDay() -> CourseScheduleDay {
+        for day in CourseScheduleDay.ordering {
+            if contains(day) {
+                return day
+            }
+        }
+        return .none
     }
 }
 
@@ -261,7 +270,7 @@ struct CourseScheduleTime: CustomDebugStringConvertible, Comparable {
     }
 }
 
-class CourseScheduleItem: NSObject {
+class CourseScheduleItem: NSObject, Comparable {
     var days: CourseScheduleDay
     var startTime: CourseScheduleTime
     var endTime: CourseScheduleTime
@@ -282,6 +291,15 @@ class CourseScheduleItem: NSObject {
     
     override var description: String {
         return stringEquivalent(withLocation: true)
+    }
+    
+    static func <(lhs: CourseScheduleItem, rhs: CourseScheduleItem) -> Bool {
+        let minL = lhs.days.minDay()
+        let minR = rhs.days.minDay()
+        if minL != minR {
+            return minL < minR
+        }
+        return lhs.startTime < rhs.startTime
     }
 }
 
@@ -713,7 +731,8 @@ class Course: NSObject {
                     items[items.count - 1].append(CourseScheduleItem(days: chunk[0], startTime: startTime, endTime: endTime, isEvening: (integerEvening != 0), location: location))
                 }
             }
-            ret[groupType] = items
+            let earlyTime = CourseScheduleItem(days: "M", startTime: "9", endTime: "10", isEvening: false, location: nil)
+            ret[groupType] = items.sorted(by: { ($0.first ?? earlyTime) < ($1.first ?? earlyTime) })
         }
         
         return ret

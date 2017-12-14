@@ -69,7 +69,9 @@ class RequirementsListStatement: NSObject {
     
     var thresholdDescription: String {
         var ret = ""
-        if threshold.cutoff > 1 {
+        if connectionType == .all {
+            ret = "select all"
+        } else if threshold.cutoff > 1 {
             switch threshold.type {
             case .lessThanOrEqual:
                 ret = "select at most \(threshold.cutoff)"

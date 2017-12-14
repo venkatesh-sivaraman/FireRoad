@@ -33,10 +33,10 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
         "Favorites",
         "Schedule",
         "Prior Credit",
-        "Freshman",
-        "Sophomore",
-        "Junior",
-        "Senior"
+        "1st Year",
+        "2nd Year",
+        "3rd Year",
+        "4th Year"
     ]
     
     let cellHeight: CGFloat = 60.0
@@ -93,6 +93,16 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
             if let button = view as? UIButton {
                 button.removeTarget(nil, action: nil, for: .touchUpInside)
                 button.addTarget(self, action: #selector(semesterButtonTapped(_:)), for: .touchUpInside)
+                switch button.tag {
+                case 1:
+                    button.isEnabled = (course?.isOfferedFall == true)
+                case 2:
+                    button.isEnabled = (course?.isOfferedIAP == true)
+                case 3:
+                    button.isEnabled = (course?.isOfferedSpring == true)
+                default:
+                    button.isEnabled = false
+                }
             }
         }
         return cell

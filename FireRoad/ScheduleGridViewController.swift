@@ -10,6 +10,7 @@ import UIKit
 
 protocol ScheduleGridDelegate: CourseDisplayManager {
     func deleteCourseFromSchedules(_ course: Course)
+    func scheduleGrid(_ gridVC: ScheduleGridViewController, wantsConstraintMenuFor course: Course, sender: UIView?)
 }
 
 class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate {
@@ -187,6 +188,7 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
                         courseCell.delegate = self
                         courseCell.course = course
                         courseCell.isDetached = true
+                        courseCell.showsConstraintMenuItem = true
                         if traitCollection.horizontalSizeClass != .compact || UIDevice.current.orientation.isLandscape {
                             courseCell.generateLabels(withDetail: true)
                             courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
@@ -252,6 +254,13 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
             return
         }
         delegate?.viewDetails(for: course)
+    }
+    
+    func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell) {
+        guard let course = cell.course else {
+            return
+        }
+        delegate?.scheduleGrid(self, wantsConstraintMenuFor: course, sender: cell)
     }
     
     /*

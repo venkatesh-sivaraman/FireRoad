@@ -13,7 +13,7 @@ ci_m
 
 %% Departmental Program
 
-dept_core, "Departmental Core" := (6.00/(6.0001, 6.0002)), 16.001, 16.002, 16.003, 16.004, (16.06/16.07), (18.03/18.032)
+dept_core, "Departmental Core" := (6.00/(6.0001, 6.0002)), (16.001, 16.002, 16.003, 16.004), (16.06/16.07), (18.03/18.032)
 
 concentration, "Concentration" := ""72 units""
 

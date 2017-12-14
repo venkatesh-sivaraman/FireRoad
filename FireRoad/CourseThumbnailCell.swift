@@ -11,6 +11,7 @@ import UIKit
 protocol CourseThumbnailCellDelegate: class {
     func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell)
 }
 
 extension CourseThumbnailCellDelegate {
@@ -18,6 +19,9 @@ extension CourseThumbnailCellDelegate {
         
     }
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
+        
+    }
+    func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell) {
         
     }
 }
@@ -28,6 +32,8 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     var course: Course?
     var isDetached = false
+    
+    var showsConstraintMenuItem = false
     
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
@@ -206,6 +212,8 @@ class CourseThumbnailCell: UICollectionViewCell {
             return delegate != nil
         } else if action == #selector(delete(_:)) {
             return delegate != nil
+        } else if action == #selector(constrain(_:)) {
+            return delegate != nil && showsConstraintMenuItem
         }
         return false
     }
@@ -216,6 +224,10 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     override func delete(_ sender: Any?) {
         delegate?.courseThumbnailCellWantsDelete(self)
+    }
+    
+    @objc func constrain(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsConstrain(self)
     }
     
     // MARK: - Requirement Fulfillment

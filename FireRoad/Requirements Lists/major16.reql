@@ -13,7 +13,7 @@ ci_m
 
 %% Departmental Program
 
-dept_core, "Departmental Core" := (6.00/(6.0001, 6.0002)), 16.001, 16.002, 16.003, 16.004, 16.06, 16.07, (18.03/18.032), (16.09/(6.041A, 6.041B))
+dept_core, "Departmental Core" := (6.00/(6.0001, 6.0002)), (16.001, 16.002, 16.003, 16.004, 16.06, 16.07), (18.03/18.032), (16.09/(6.041A, 6.041B))
 
 flu_mech, "Fluid Mechanics" := 16.100{>=0}
 mat_struct, "Materials and Structures" := 16.20{>=0}

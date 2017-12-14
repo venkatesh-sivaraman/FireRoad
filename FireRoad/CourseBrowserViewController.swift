@@ -347,7 +347,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             courseComps += coreqs
         }
         
-        let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.searchAllFields) ? course.instructors : [])).joined(separator: "\n").lowercased()
+        let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.searchAllFields) ? course.instructors : [])).joined(separator: " ").lowercased()
         return courseText
     }
     
@@ -379,11 +379,17 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                 for match in regex.matches(in: courseText, options: [], range: NSRange(location: 0, length: courseText.count)) {
                     var multiplier: Float = 1.0
                     if match.numberOfRanges > 1 {
-                        for i in 1..<match.numberOfRanges where match.range(at: i).length > 0 {
-                            multiplier += 10.0
+                        multiplier = 50.0
+                        let nonZeroRanges = (1..<match.numberOfRanges).filter({
+                            let range = match.range(at: $0)
+                            return range.length > 0 || range.location == 0 || range.location + range.length == courseText.count
+                        }).count
+                        if nonZeroRanges == 1 {
+                            multiplier = 10.0
+                        } else if nonZeroRanges > 1 {
+                            multiplier = 1.0
                         }
                     }
-                    relevance *= 1.1
                     relevance += multiplier * Float(comp.count)
                 }
             }

@@ -107,6 +107,7 @@
 		9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9669C7B41F904CAD00E60D89 /* minor9.reql */; };
 		9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 9669C7C71F90628300E60D89 /* MBProgressHUD.m */; };
 		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
+		968F2A191FE223480082EE40 /* ScheduleConstraintViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968F2A181FE223480082EE40 /* ScheduleConstraintViewController.swift */; };
 		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
 		968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */; };
 		96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */; };
@@ -259,6 +260,7 @@
 		9669C7C71F90628300E60D89 /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
 		9669C7C81F90628300E60D89 /* MBProgressHUD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		96897B171EC8F5500011E572 /* CourseListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseListCell.swift; sourceTree = "<group>"; };
+		968F2A181FE223480082EE40 /* ScheduleConstraintViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleConstraintViewController.swift; sourceTree = "<group>"; };
 		968FE0551F75F86D0098E97F /* CourseCatalogScrubber */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CourseCatalogScrubber; sourceTree = BUILT_PRODUCTS_DIR; };
 		968FE0571F75F86D0098E97F /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLNodeExtractor.swift; sourceTree = "<group>"; };
@@ -544,6 +546,7 @@
 				96EBE5651FBF9B8500FABE1E /* ScheduleViewController.swift */,
 				96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */,
 				96EBE56B1FBFDF0900FABE1E /* ScheduleModel.swift */,
+				968F2A181FE223480082EE40 /* ScheduleConstraintViewController.swift */,
 			);
 			name = Schedule;
 			sourceTree = "<group>";
@@ -756,6 +759,7 @@
 			files = (
 				9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */,
 				960A1F0A1FDA21A500C53E43 /* CourseDisplayManager.swift in Sources */,
+				968F2A191FE223480082EE40 /* ScheduleConstraintViewController.swift in Sources */,
 				965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */,
 				9646CFF51EB922C3005F87CB /* Course.swift in Sources */,
 				961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */,
