@@ -793,4 +793,17 @@ class Course: NSObject {
             hassAttribute?.satisfies(HASSAttribute(rawValue: req)) == true ||
             communicationRequirement?.satisfies(CommunicationAttribute(rawValue: req)) == true
     }
+    
+    class func isRequirementAutomaticallySatisfied(_ requirement: String) -> Bool {
+        let req = requirement.replacingOccurrences(of: "GIR:", with: "")
+        if CourseManager.shared.getCourse(withID: req) != nil {
+            return false
+        }
+        if GIRAttribute(rawValue: req) != nil ||
+            HASSAttribute(rawValue: req) != nil ||
+            CommunicationAttribute(rawValue: req) != nil {
+            return false
+        }
+        return true
+    }
 }

@@ -39,6 +39,10 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
         "4th Year"
     ]
     
+    func semester(forButtonAt indexPath: IndexPath, tag: Int) -> UserSemester? {
+        return UserSemester(rawValue: (indexPath.row - 3) * 3 + tag)
+    }
+    
     let cellHeight: CGFloat = 60.0
     
     override func viewDidLoad() {
@@ -132,7 +136,7 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
                 print("Couldn't find button in visible cells")
                 return
         }
-        if let semester = UserSemester(rawValue: (indexPath.row - 2) * 3 + sender.tag) {
+        if let semester = semester(forButtonAt: indexPath, tag: sender.tag) {
             delegate?.popDownTableMenu(self, addedCourse: course, to: semester)
         }
     }

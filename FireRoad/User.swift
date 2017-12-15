@@ -221,6 +221,9 @@ class User: NSObject {
                         break
                     }
                 }
+                if !satisfied {
+                    satisfied = Course.isRequirementAutomaticallySatisfied(prereq)
+                }
                 if satisfied {
                     break
                 }
@@ -243,6 +246,9 @@ class User: NSObject {
                     if satisfied {
                         break
                     }
+                }
+                if !satisfied {
+                    satisfied = Course.isRequirementAutomaticallySatisfied(coreq)
                 }
                 if satisfied {
                     break
