@@ -503,26 +503,26 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 detailTextLabel?.text = itemDescriptions
             }
         case .related:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             for (myID, _) in self.course!.relatedSubjects {
                 if let relatedCourse = CourseManager.shared.getCourse(withID: myID) {
-                    (cell as! CourseListCell).courses.append(relatedCourse)
+                    (cell as! CourseListTableCell).courses.append(relatedCourse)
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .equivalent:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             for myID in self.course!.equivalentSubjects {
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
-                    (cell as! CourseListCell).courses.append(equivCourse!)
+                    (cell as! CourseListTableCell).courses.append(equivCourse!)
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .prerequisites:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             let prereqs = self.course!.prerequisites.contains(where: { $0.count > 1 }) ? self.course!.prerequisites[indexPath.row - 2] : self.course!.prerequisites.flatMap({ $0 })
             for myID in prereqs {
                 if myID.range(of: "[") != nil || myID.range(of: "{") != nil {
@@ -530,32 +530,32 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 }
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
-                    (cell as! CourseListCell).courses.append(equivCourse!)
+                    (cell as! CourseListTableCell).courses.append(equivCourse!)
                 } else if myID.lowercased().contains("permission of instructor") {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "None", courseTitle: "(Permission of instructor)", courseDescription: ""))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "None", courseTitle: "(Permission of instructor)", courseDescription: ""))
                 } else if let gir = GIRAttribute(rawValue: myID) {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 } else {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "--", courseTitle: myID, courseDescription: ""))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "--", courseTitle: myID, courseDescription: ""))
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .corequisites:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             let coreqs = self.course!.corequisites.contains(where: { $0.count > 1 }) ? self.course!.corequisites[indexPath.row - 2] : self.course!.corequisites.flatMap({ $0 })
             for myID in coreqs {
                 // Useful when the corequisites were notated in brackets, but not anymore
                 //let myID = String(id[(id.index(id.startIndex, offsetBy: 1))..<(id.index(id.endIndex, offsetBy: -1))])
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
-                    (cell as! CourseListCell).courses.append(equivCourse!)
+                    (cell as! CourseListTableCell).courses.append(equivCourse!)
                 } else if let gir = GIRAttribute(rawValue: myID) {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .courseListAccessory:
             var list: [String] = []
             switch self.detailMapping[IndexPath(row: indexPath.row - 1, section: indexPath.section)]! {
@@ -576,15 +576,15 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 }
             }
         case .joint:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             for myID in self.course!.jointSubjects {
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
-                    (cell as! CourseListCell).courses.append(equivCourse!)
+                    (cell as! CourseListTableCell).courses.append(equivCourse!)
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .url:
             textLabel?.text = "View on Registrar Site"
         case .courseEvaluations:

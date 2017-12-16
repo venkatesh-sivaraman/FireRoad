@@ -241,7 +241,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
 
         if item.cellType == .courseList,
-            let courseListCell = cell as? CourseListCell,
+            let courseListCell = cell as? CourseListTableCell,
             let statement = item.statement {
             
             let requirementStrings = (statement.requirements?.map({ $0.shortDescription })) ?? [statement.shortDescription]
@@ -299,7 +299,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func courseListCell(_ cell: CourseListCell, selected course: Course) {
-        guard let courseIndex = cell.courses.index(of: course),
+        guard let tableCell = cell as? CourseListTableCell,
+            let courseIndex = cell.courses.index(of: course),
             let selectedCell = cell.collectionView.cellForItem(at: IndexPath(item: courseIndex, section: 0)) else {
                 return
         }
@@ -307,7 +308,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             let actualCourse = CourseManager.shared.getCourse(withID: id),
             actualCourse == course {
             viewDetails(for: course, from: selectedCell.convert(selectedCell.bounds, to: self.view))
-        } else if let ip = tableView.indexPath(for: cell) {
+        } else if let ip = tableView.indexPath(for: tableCell) {
             guard let item = presentationItems[ip.section].items[ip.row].statement else {
                 return
             }
