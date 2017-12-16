@@ -117,6 +117,12 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: true)
         navigationController?.setToolbarHidden(true, animated: true)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardChangedFrame(_:)), name: .UIKeyboardDidChangeFrame, object: nil)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        NotificationCenter.default.removeObserver(self)
     }
     
     @objc func addCourseButtonPressed(sender: AnyObject) {
@@ -636,6 +642,14 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
     }
     
+    @objc func keyboardChangedFrame(_ note: Notification) {
+        guard let indexPath = detailMapping.first(where: { $1 == .notes })?.key else {
+            return
+        }
+        if tableView.cellForRow(at: indexPath)?.viewWithTag(56)?.isFirstResponder == true {
+            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+        }
+    }
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {

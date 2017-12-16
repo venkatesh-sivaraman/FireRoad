@@ -318,10 +318,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
                 listVC.searchTerm = reqString
                 if let ciAttribute = CommunicationAttribute(rawValue: reqString) {
-                    print("CI: \(ciAttribute)")
                     listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, (ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW), .searchRequirements]
-                } else if let hassAttribute = HASSAttribute(rawValue: reqString) {
-                    print("Hass: \(hassAttribute)")
+                } else if HASSAttribute(rawValue: reqString) != nil {
                     listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsHASS, .searchRequirements]
                 } else {
                     listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .fulfillsHASS, .fulfillsCIH, .fulfillsCIHW, .searchRequirements]

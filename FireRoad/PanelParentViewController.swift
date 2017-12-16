@@ -8,12 +8,79 @@
 
 import UIKit
 
-protocol PanelParentViewController: CourseBrowserDelegate, CourseDetailsDelegate {
+protocol CourseViewControllerProvider {
+    var view: UIView! { get }
+    var storyboard: UIStoryboard? { get }
+
+    func generateDetailsViewController(for course: Course, completion: @escaping ((CourseDetailsViewController?, CourseBrowserViewController?) -> Void))
+    func generatePostReqsViewController(for course: Course, completion: (CourseBrowserViewController?) -> Void)
+    func generateURLViewController(for url: URL) -> WebpageViewController?
+}
+
+extension CourseViewControllerProvider {
+    func generateDetailsViewController(for course: Course, completion: @escaping ((CourseDetailsViewController?, CourseBrowserViewController?) -> Void)) {
+        if !CourseManager.shared.isLoaded {
+            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+            hud.mode = .determinateHorizontalBar
+            hud.label.text = "Loading courses…"
+            DispatchQueue.global(qos: .background).async {
+                let initialProgress = CourseManager.shared.loadingProgress
+                while !CourseManager.shared.isLoaded {
+                    DispatchQueue.main.async {
+                        hud.progress = (CourseManager.shared.loadingProgress - initialProgress) / (1.0 - initialProgress)
+                    }
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    hud.hide(animated: true)
+                    self.generateDetailsViewController(for: course, completion: completion)
+                }
+            }
+            return
+        }
+        if let id = course.subjectID,
+            let realCourse = CourseManager.shared.getCourse(withID: id) {
+            CourseManager.shared.loadCourseDetails(about: realCourse) { (success) in
+                if success {
+                    let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
+                    details.course = realCourse
+                    completion(details, nil)
+                } else {
+                    print("Failed to load course details!")
+                }
+            }
+        } else if course.subjectID == "GIR" {
+            let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
+            listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
+            listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
+            listVC.showsHeaderBar = false
+            completion(nil, listVC)
+        }
+    }
+    
+    func generatePostReqsViewController(for course: Course, completion: (CourseBrowserViewController?) -> Void) {
+        let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
+        listVC.searchTerm = (course.subjectID ?? "")
+        if let gir = course.girAttribute, gir != .lab, gir != .rest {
+            listVC.searchTerm = (listVC.searchTerm ?? "") + " " + gir.descriptionText()
+        }
+        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .anyRequirement, .searchPrereqs]
+        listVC.showsHeaderBar = false
+        completion(listVC)
+    }
+    
+    func generateURLViewController(for url: URL) -> WebpageViewController? {
+        let webVC = self.storyboard!.instantiateViewController(withIdentifier: "WebpageVC") as! WebpageViewController
+        webVC.url = url
+        return webVC
+    }
+    
+}
+
+protocol PanelParentViewController: CourseViewControllerProvider, CourseBrowserDelegate, CourseDetailsDelegate {
     var panelView: PanelViewController? { get set }
     var courseBrowser: CourseBrowserViewController? { get set }
     var childViewControllers: [UIViewController] { get }
-    var view: UIView! { get }
-    var storyboard: UIStoryboard? { get }
     var rootParent: UIViewController? { get }
     
     var showsSemesterDialogs: Bool { get }
@@ -58,48 +125,7 @@ extension PanelParentViewController {
     }
     
     func viewDetails(for course: Course) {
-        if !CourseManager.shared.isLoaded {
-            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
-            hud.mode = .determinateHorizontalBar
-            hud.label.text = "Loading courses…"
-            DispatchQueue.global(qos: .background).async {
-                let initialProgress = CourseManager.shared.loadingProgress
-                while !CourseManager.shared.isLoaded {
-                    DispatchQueue.main.async {
-                        hud.progress = (CourseManager.shared.loadingProgress - initialProgress) / (1.0 - initialProgress)
-                    }
-                    usleep(100)
-                }
-                DispatchQueue.main.async {
-                    hud.hide(animated: true)
-                    self.viewDetails(for: course)
-                }
-            }
-            return
-        }
-        if let id = course.subjectID,
-            let realCourse = CourseManager.shared.getCourse(withID: id) {
-            CourseManager.shared.loadCourseDetails(about: realCourse) { (success) in
-                if success {
-                    guard let panel = self.panelView,
-                        let browser = self.courseBrowser else {
-                            return
-                    }
-                    if !panel.isExpanded {
-                        panel.expandView()
-                    }
-                    
-                    let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
-                    details.course = realCourse
-                    details.showsSemesterDialog = self.showsSemesterDialogs
-                    details.delegate = self
-                    browser.navigationController?.pushViewController(details, animated: true)
-                    browser.navigationController?.view.setNeedsLayout()
-                } else {
-                    print("Failed to load course details!")
-                }
-            }
-        } else if course.subjectID == "GIR" {
+        generateDetailsViewController(for: course) { (details, list) in
             guard let panel = self.panelView,
                 let browser = self.courseBrowser else {
                     return
@@ -107,17 +133,19 @@ extension PanelParentViewController {
             if !panel.isExpanded {
                 panel.expandView()
             }
-            
-            let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
-            listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
-            listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
-            listVC.showsHeaderBar = false
-            listVC.delegate = self
-            listVC.managesNavigation = false
-            listVC.showsSemesterDialog = self.showsSemesterDialogs
-            listVC.view.backgroundColor = UIColor.clear
-            browser.navigationController?.pushViewController(listVC, animated: true)
-            browser.navigationController?.view.setNeedsLayout()
+            if let detailVC = details {
+                detailVC.showsSemesterDialog = self.showsSemesterDialogs
+                detailVC.delegate = self
+                browser.navigationController?.pushViewController(detailVC, animated: true)
+                browser.navigationController?.view.setNeedsLayout()
+            } else if let listVC = list {
+                listVC.delegate = self
+                listVC.managesNavigation = false
+                listVC.showsSemesterDialog = self.showsSemesterDialogs
+                listVC.view.backgroundColor = UIColor.clear
+                browser.navigationController?.pushViewController(listVC, animated: true)
+                browser.navigationController?.view.setNeedsLayout()
+            }
         }
     }
     
@@ -133,40 +161,35 @@ extension PanelParentViewController {
     }
     
     func courseDetailsRequestedPostReqs(for course: Course) {
-        guard let panel = self.panelView,
-            let browser = self.courseBrowser else {
-                return
+        generatePostReqsViewController(for: course) { (list) in
+            guard let panel = self.panelView,
+                let browser = self.courseBrowser,
+                let listVC = list else {
+                    return
+            }
+            if !panel.isExpanded {
+                panel.expandView()
+            }
+            
+            listVC.delegate = self
+            listVC.managesNavigation = false
+            listVC.showsSemesterDialog = self.showsSemesterDialogs
+            listVC.view.backgroundColor = UIColor.clear
+            browser.navigationController?.pushViewController(listVC, animated: true)
+            browser.navigationController?.view.setNeedsLayout()
         }
-        if !panel.isExpanded {
-            panel.expandView()
-        }
-
-        let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
-        listVC.searchTerm = (course.subjectID ?? "")
-        if let gir = course.girAttribute, gir != .lab, gir != .rest {
-             listVC.searchTerm = (listVC.searchTerm ?? "") + " " + gir.descriptionText()
-        }
-        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .anyRequirement, .searchPrereqs]
-        listVC.showsHeaderBar = false
-        listVC.delegate = self
-        listVC.managesNavigation = false
-        listVC.showsSemesterDialog = self.showsSemesterDialogs
-        listVC.view.backgroundColor = UIColor.clear
-        browser.navigationController?.pushViewController(listVC, animated: true)
-        browser.navigationController?.view.setNeedsLayout()
     }
     
     func courseDetailsRequestedOpen(url: URL) {
         guard let panel = self.panelView,
-            let browser = self.courseBrowser else {
+            let browser = self.courseBrowser,
+            let webVC = generateURLViewController(for: url) else {
                 return
         }
         if !panel.isExpanded {
             panel.expandView()
         }
         
-        let webVC = self.storyboard!.instantiateViewController(withIdentifier: "WebpageVC") as! WebpageViewController
-        webVC.url = url
         webVC.view.backgroundColor = UIColor.clear
         browser.navigationController?.pushViewController(webVC, animated: true)
         browser.navigationController?.view.setNeedsLayout()

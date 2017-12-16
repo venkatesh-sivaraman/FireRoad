@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseListingMasterViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseListCellDelegate {
+class CourseListingMasterViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, CourseViewControllerProvider, UIPopoverPresentationControllerDelegate {
 
     var recommendedCourses: [Course] = []
     
@@ -64,6 +64,10 @@ class CourseListingMasterViewController: UIViewController, UICollectionViewDataS
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
         collectionView.collectionViewLayout.invalidateLayout()
+        if popoverNavigationController != nil {
+            dismiss(animated: true, completion: nil)
+            popoverNavigationController = nil
+        }
     }
     
     // MARK: - Collection View Data Source
@@ -116,7 +120,7 @@ class CourseListingMasterViewController: UIViewController, UICollectionViewDataS
             return CGSize(width: collectionView.frame.size.width, height: 124.0)
         } else if indexPath.section == 1 {
             if traitCollection.horizontalSizeClass == .regular {
-                return CGSize(width: collectionView.frame.size.width / 3.0, height: 48.0)
+                return CGSize(width: collectionView.frame.size.width / 2.0, height: 48.0)
             } else {
                 return CGSize(width: collectionView.frame.size.width, height: 48.0)
             }
@@ -135,6 +139,116 @@ class CourseListingMasterViewController: UIViewController, UICollectionViewDataS
     // MARK: - Course List Cell Delegate
     
     func courseListCell(_ cell: CourseListCell, selected course: Course) {
-        
+        guard let courseIndex = cell.courses.index(of: course),
+            let selectedCell = cell.collectionView.cellForItem(at: IndexPath(item: courseIndex, section: 0)) else {
+                return
+        }
+        viewCourseDetails(for: course, from: selectedCell.convert(selectedCell.bounds, to: self.view))
+    }
+    
+    func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
+        guard let tabVC = rootParent as? RootTabViewController else {
+            print("Root isn't a tab bar controller!")
+            return nil
+        }
+        if presentedViewController != nil {
+            dismiss(animated: true, completion: nil)
+            popoverNavigationController = nil
+        }
+        let ret = tabVC.addCourse(course, to: semester)
+        return ret
+    }
+    
+    func addCourseToSchedule(_ course: Course) {
+        guard let tabVC = rootParent as? RootTabViewController else {
+            print("Root isn't a tab bar controller!")
+            return
+        }
+        if presentedViewController != nil {
+            dismiss(animated: true, completion: nil)
+            popoverNavigationController = nil
+        }
+        tabVC.addCourseToSchedule(course)
+    }
+    
+    func courseDetails(added course: Course, to semester: UserSemester?) {
+        _ = addCourse(course, to: semester)
+        navigationController?.popViewController(animated: true)
+    }
+    
+    func courseDetailsRequestedDetails(about course: Course) {
+        viewDetails(for: course)
+    }
+    
+    func viewDetails(for course: Course) {
+        viewCourseDetails(for: course, from: nil)
+    }
+    
+    func viewCourseDetails(for course: Course, from rect: CGRect?) {
+        generateDetailsViewController(for: course) { (details, list) in
+            if let detailVC = details {
+                detailVC.showsSemesterDialog = true
+                detailVC.delegate = self
+                detailVC.view.backgroundColor = .white
+                self.showInformationalViewController(detailVC, from: rect ?? CGRect.zero)
+            } else if let listVC = list {
+                listVC.delegate = self
+                listVC.managesNavigation = false
+                listVC.showsSemesterDialog = true
+                listVC.view.backgroundColor = .white
+                self.showInformationalViewController(listVC, from: rect ?? CGRect.zero)
+            }
+        }
+    }
+    
+    func courseDetails(addedCourseToSchedule course: Course) {
+        addCourseToSchedule(course)
+    }
+    
+    func courseDetailsRequestedPostReqs(for course: Course) {
+        generatePostReqsViewController(for: course) { (list) in
+            guard let listVC = list else {
+                return
+            }
+            listVC.delegate = self
+            listVC.managesNavigation = false
+            listVC.showsSemesterDialog = true
+            listVC.view.backgroundColor = .white
+            self.showInformationalViewController(listVC)
+        }
+    }
+    
+    func courseDetailsRequestedOpen(url: URL) {
+        guard let webVC = generateURLViewController(for: url) else {
+            return
+        }
+        webVC.view.backgroundColor = .white
+        showInformationalViewController(webVC)
+    }
+    
+    var popoverNavigationController: UINavigationController?
+    
+    /// Shows the view controller in a popover on iPad, and pushes it on iPhone.
+    func showInformationalViewController(_ vc: UIViewController, from rect: CGRect = CGRect.zero) {
+        if traitCollection.horizontalSizeClass == .regular,
+            traitCollection.userInterfaceIdiom == .pad {
+            if let nav = popoverNavigationController {
+                nav.pushViewController(vc, animated: true)
+            } else {
+                let nav = UINavigationController(rootViewController: vc)
+                nav.modalPresentationStyle = .popover
+                nav.popoverPresentationController?.sourceRect = rect
+                nav.popoverPresentationController?.sourceView = self.view
+                nav.popoverPresentationController?.delegate = self
+                present(nav, animated: true)
+                popoverNavigationController = nav
+            }
+        } else {
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    
+    func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
+        popoverNavigationController = nil
     }
 }

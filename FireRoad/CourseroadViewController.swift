@@ -9,7 +9,6 @@
 import UIKit
 
 class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate {
-    
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
