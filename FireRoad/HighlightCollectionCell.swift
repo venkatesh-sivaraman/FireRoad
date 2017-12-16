@@ -8,7 +8,7 @@
 
 import UIKit
 
-class DepartmentCell: UICollectionViewCell {
+class HighlightCollectionCell: UICollectionViewCell {
     
     @IBOutlet var selectionView: UIView?
     

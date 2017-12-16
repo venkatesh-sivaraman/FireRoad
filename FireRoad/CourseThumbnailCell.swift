@@ -100,8 +100,12 @@ class CourseThumbnailCell: UICollectionViewCell {
     }
 
     func loadThumbnailAppearance() {
-        self.textLabel = self.viewWithTag(12) as? UILabel
-        self.detailTextLabel = self.viewWithTag(34) as? UILabel
+        if self.textLabel == nil {
+            self.textLabel = self.viewWithTag(12) as? UILabel
+        }
+        if self.detailTextLabel == nil {
+            self.detailTextLabel = self.viewWithTag(34) as? UILabel
+        }
         let colorLayer = CALayer()
         colorLayer.frame = self.layer.bounds
         colorLayer.backgroundColor = backgroundColor?.cgColor
@@ -147,10 +151,11 @@ class CourseThumbnailCell: UICollectionViewCell {
             detailLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4.0).isActive = true
             self.detailTextLabel = detailLabel
         } else {
-            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 6.0).isActive = true
+            //titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 6.0).isActive = true
             titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 2.0).isActive = true
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -2.0).isActive = true
             titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
             titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4.0).isActive = true
         }
     }

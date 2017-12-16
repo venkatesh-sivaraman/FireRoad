@@ -188,7 +188,7 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
                         courseCell.delegate = self
                         courseCell.course = course
                         courseCell.showsConstraintMenuItem = true
-                        if traitCollection.horizontalSizeClass != .compact || UIDevice.current.orientation.isLandscape {
+                        if traitCollection.horizontalSizeClass != .compact || (UIDevice.current.orientation.isLandscape && traitCollection.userInterfaceIdiom == .phone) {
                             courseCell.generateLabels(withDetail: true)
                             courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
                             courseCell.textLabel?.text = course.subjectID!

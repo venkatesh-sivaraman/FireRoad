@@ -1087,7 +1087,7 @@
                                             <outlet property="collectionView" destination="EKV-Fl-dWq" id="7h0-w1-LpV"/>
                                         </connections>
                                     </collectionViewCell>
-                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="DepartmentCell" id="5es-Tr-nQT" customClass="DepartmentCell" customModule="FireRoad" customModuleProvider="target">
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="DepartmentCell" id="5es-Tr-nQT" customClass="HighlightCollectionCell" customModule="FireRoad" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="172" width="375" height="52"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
@@ -1197,6 +1197,142 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="6gs-dr-yOR" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1516" y="2820.5397301349326"/>
+        </scene>
+        <!--Course Listing View Controller-->
+        <scene sceneID="5XM-Zd-awl">
+            <objects>
+                <viewController storyboardIdentifier="CourseListingVC" id="k17-ck-gZb" customClass="CourseListingViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="B53-QT-feA">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="TsR-jc-nrQ">
+                                <rect key="frame" x="0.0" y="64" width="375" height="554"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="QEt-Lv-iJy">
+                                    <size key="itemSize" width="371" height="190"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                </collectionViewFlowLayout>
+                                <cells>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="CourseListingCell" id="kyq-fo-gyB" customClass="HighlightCollectionCell" customModule="FireRoad" customModuleProvider="target">
+                                        <rect key="frame" x="2" y="0.0" width="371" height="190"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
+                                            <rect key="frame" x="0.0" y="0.0" width="371" height="190"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0Td-Le-668">
+                                                    <rect key="frame" x="0.0" y="0.0" width="371" height="190"/>
+                                                    <color key="backgroundColor" white="0.92000000000000004" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                </view>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="LxG-P7-JTq">
+                                                    <rect key="frame" x="370.5" y="0.0" width="0.5" height="189.5"/>
+                                                    <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="0.5" id="Jqe-yi-9nc"/>
+                                                    </constraints>
+                                                </view>
+                                                <view tag="7" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fk0-Ge-06M" customClass="CourseThumbnailCell" customModule="FireRoad" customModuleProvider="target">
+                                                    <rect key="frame" x="10" y="14" width="88" height="48"/>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="48" id="47x-7a-mEO"/>
+                                                        <constraint firstAttribute="width" constant="88" id="4Qa-Tz-iRW"/>
+                                                    </constraints>
+                                                </view>
+                                                <label opaque="NO" userInteractionEnabled="NO" tag="12" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="This Course Title is Very Long Indeed." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wcV-nS-Y0u">
+                                                    <rect key="frame" x="104" y="14" width="204.5" height="43"/>
+                                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="18"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" tag="56" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="This is a long long long long long long description of a course." lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zZJ-55-h4c">
+                                                    <rect key="frame" x="10" y="81" width="355" height="33.5"/>
+                                                    <fontDescription key="fontDescription" type="system" weight="light" pointSize="14"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" tag="34" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="249" verticalCompressionResistancePriority="751" text="This is a long long long long long long description of a course." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tfb-dC-H6c">
+                                                    <rect key="frame" x="104" y="59" width="261" height="16"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                                    <color key="textColor" white="0.50558207947530864" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="CMi-1E-2sw">
+                                                    <rect key="frame" x="0.0" y="189.5" width="371" height="0.5"/>
+                                                    <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="0.5" id="meg-Ep-93c"/>
+                                                    </constraints>
+                                                </view>
+                                            </subviews>
+                                        </view>
+                                        <constraints>
+                                            <constraint firstItem="CMi-1E-2sw" firstAttribute="leading" secondItem="kyq-fo-gyB" secondAttribute="leading" id="0PJ-kC-zKk"/>
+                                            <constraint firstAttribute="trailing" secondItem="tfb-dC-H6c" secondAttribute="trailing" constant="6" id="4jI-SH-Bm3"/>
+                                            <constraint firstItem="zZJ-55-h4c" firstAttribute="leading" secondItem="kyq-fo-gyB" secondAttribute="leading" constant="10" id="Avv-OO-2bF"/>
+                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="wcV-nS-Y0u" secondAttribute="trailing" constant="6" id="E0g-8h-1dP"/>
+                                            <constraint firstItem="tfb-dC-H6c" firstAttribute="top" secondItem="wcV-nS-Y0u" secondAttribute="bottom" constant="2" id="JkC-vb-nti"/>
+                                            <constraint firstItem="tfb-dC-H6c" firstAttribute="leading" secondItem="fk0-Ge-06M" secondAttribute="trailing" constant="6" id="KJZ-ou-FYy"/>
+                                            <constraint firstItem="wcV-nS-Y0u" firstAttribute="leading" secondItem="fk0-Ge-06M" secondAttribute="trailing" constant="6" id="KNd-ve-nFq"/>
+                                            <constraint firstAttribute="bottom" secondItem="0Td-Le-668" secondAttribute="bottom" id="NYH-CD-6Fv"/>
+                                            <constraint firstAttribute="trailing" secondItem="0Td-Le-668" secondAttribute="trailing" id="O8B-2q-xNL"/>
+                                            <constraint firstAttribute="bottom" secondItem="LxG-P7-JTq" secondAttribute="bottom" id="S7W-KH-quX"/>
+                                            <constraint firstItem="tfb-dC-H6c" firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="fk0-Ge-06M" secondAttribute="bottom" id="Tuh-w9-M43"/>
+                                            <constraint firstItem="0Td-Le-668" firstAttribute="top" secondItem="kyq-fo-gyB" secondAttribute="top" id="a7V-nJ-SJI"/>
+                                            <constraint firstItem="wcV-nS-Y0u" firstAttribute="top" secondItem="fk0-Ge-06M" secondAttribute="top" id="avt-13-8V0"/>
+                                            <constraint firstItem="LxG-P7-JTq" firstAttribute="top" secondItem="kyq-fo-gyB" secondAttribute="top" id="bSU-f8-aHm"/>
+                                            <constraint firstAttribute="bottom" secondItem="CMi-1E-2sw" secondAttribute="bottom" id="e5Y-mB-ujd"/>
+                                            <constraint firstItem="fk0-Ge-06M" firstAttribute="top" secondItem="kyq-fo-gyB" secondAttribute="top" constant="14" id="qYd-hf-L6g"/>
+                                            <constraint firstAttribute="trailing" secondItem="CMi-1E-2sw" secondAttribute="trailing" id="s0O-kN-eun"/>
+                                            <constraint firstItem="zZJ-55-h4c" firstAttribute="top" secondItem="tfb-dC-H6c" secondAttribute="bottom" constant="6" id="sRn-l6-kQw"/>
+                                            <constraint firstItem="0Td-Le-668" firstAttribute="leading" secondItem="kyq-fo-gyB" secondAttribute="leading" id="tFz-Vs-vAy"/>
+                                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="zZJ-55-h4c" secondAttribute="bottom" constant="16" id="tuL-di-59J"/>
+                                            <constraint firstAttribute="trailing" secondItem="zZJ-55-h4c" secondAttribute="trailing" constant="6" id="xGo-jX-oCd"/>
+                                            <constraint firstAttribute="trailing" secondItem="LxG-P7-JTq" secondAttribute="trailing" id="xdX-yk-Vd6"/>
+                                            <constraint firstItem="fk0-Ge-06M" firstAttribute="leading" secondItem="kyq-fo-gyB" secondAttribute="leading" constant="10" id="ycU-o5-ipw"/>
+                                        </constraints>
+                                        <variation key="default">
+                                            <mask key="subviews">
+                                                <exclude reference="LxG-P7-JTq"/>
+                                            </mask>
+                                        </variation>
+                                        <variation key="widthClass=regular">
+                                            <mask key="subviews">
+                                                <include reference="LxG-P7-JTq"/>
+                                            </mask>
+                                        </variation>
+                                        <connections>
+                                            <outlet property="selectionView" destination="0Td-Le-668" id="ToF-5H-GaD"/>
+                                        </connections>
+                                    </collectionViewCell>
+                                </cells>
+                                <connections>
+                                    <outlet property="dataSource" destination="k17-ck-gZb" id="kXP-id-3rx"/>
+                                    <outlet property="delegate" destination="k17-ck-gZb" id="xVz-Dz-vrP"/>
+                                </connections>
+                            </collectionView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="TKN-oe-1z6" firstAttribute="bottom" secondItem="TsR-jc-nrQ" secondAttribute="bottom" id="9Jx-QS-xIi"/>
+                            <constraint firstItem="TsR-jc-nrQ" firstAttribute="leading" secondItem="TKN-oe-1z6" secondAttribute="leading" id="PJP-z4-Kts"/>
+                            <constraint firstItem="TKN-oe-1z6" firstAttribute="trailing" secondItem="TsR-jc-nrQ" secondAttribute="trailing" id="U7K-Pa-PhV"/>
+                            <constraint firstItem="TsR-jc-nrQ" firstAttribute="top" secondItem="TKN-oe-1z6" secondAttribute="top" id="jC9-mv-eQc"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="TKN-oe-1z6"/>
+                    </view>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
+                    <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
+                    <connections>
+                        <outlet property="collectionView" destination="TsR-jc-nrQ" id="d0n-eC-Ipn"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="FRz-ki-Osa" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2164" y="2817.8410794602701"/>
         </scene>
         <!--Requirements-->
         <scene sceneID="3as-1G-87V">

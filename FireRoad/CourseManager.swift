@@ -251,6 +251,18 @@ class CourseManager: NSObject {
         taskCompletion(true)
     }
     
+    func loadCourseDetailsSynchronously(for department: String) {
+        if self.loadedDepartments.contains(department) {
+            return
+        }
+        guard let path = Bundle.main.path(forResource: department, ofType: "txt") else {
+            print("Failed to load details for \(department)")
+            return
+        }
+        self.readSummaryFile(at: path)
+        self.loadedDepartments.append(department)
+    }
+    
     func loadCourseDetailsSynchronously(about course: Course) {
         if self.getCourse(withID: course.subjectID!) == nil {
             return
@@ -339,6 +351,10 @@ class CourseManager: NSObject {
             return course
         }
         return nil
+    }
+    
+    func getCourses(forDepartment department: String) -> [Course] {
+        return courses.filter({ $0.subjectCode == department }).sorted(by: { $0.subjectID!.lexicographicallyPrecedes($1.subjectID!) })
     }
     
     func addCourse(_ course: Course) {
