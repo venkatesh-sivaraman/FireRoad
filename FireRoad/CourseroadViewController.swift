@@ -299,31 +299,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         return CGSize(width: 116.0, height: 112.0)
     }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count > 0,
-            //let semester = UserSemester(rawValue: indexPath.section),
-            //let course = currentUser?.courses(forSemester: semester)[indexPath.item] else {
-            let cell = collectionView.cellForItem(at: indexPath) else {
-            return
-        }
-
-        // Selected
-        //viewDetails(for: course)
-        cell.becomeFirstResponder()
-        let menu = UIMenuController.shared
-        if menu.isMenuVisible {
-            menu.setMenuVisible(false, animated: true)
-        } else {
-            menu.setTargetRect(cell.bounds, in: cell)
-            menu.setMenuVisible(true, animated: true)
-        }
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
         
-    }
-    
     func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
         if self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
             return false

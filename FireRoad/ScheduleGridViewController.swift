@@ -187,7 +187,6 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
                         courseCell.backgroundColor = CourseManager.shared.color(forCourse: course)
                         courseCell.delegate = self
                         courseCell.course = course
-                        courseCell.isDetached = true
                         courseCell.showsConstraintMenuItem = true
                         if traitCollection.horizontalSizeClass != .compact || UIDevice.current.orientation.isLandscape {
                             courseCell.generateLabels(withDetail: true)

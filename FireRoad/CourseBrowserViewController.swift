@@ -298,6 +298,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     var isSearching = false
+    var shouldAbortSearch = false
     
     private func courseSatisfiesSearchOptions(_ course: Course, searchTerm: String, options: SearchOptions) -> Bool {
         var fulfillsRequirement = false
@@ -368,6 +369,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         
         var newResults: [Course: Float] = [:]
         for course in CourseManager.shared.courses {
+            guard !shouldAbortSearch else {
+                print("Aborting search")
+                break
+            }
             guard courseSatisfiesSearchOptions(course, searchTerm: searchTerm, options: options) else {
                 continue
             }
@@ -406,23 +411,26 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter) {
-        guard CourseManager.shared.isLoaded, !isSearching else {
+        guard CourseManager.shared.isLoaded else {
+            return
+        }
+        guard !isSearching else {
+            shouldAbortSearch = true
             return
         }
         isShowingSearchResults = true
-        let cacheText = self.searchBar?.text
         DispatchQueue.global(qos: .userInitiated).async {
             self.isSearching = true
             let sortedResults = self.searchResults(for: searchTerm, options: options)
             self.isSearching = false
             DispatchQueue.main.async {
-                if cacheText == self.searchBar?.text {
-                    self.searchResults = sortedResults
-                    self.updateCourseVisibility()
-                } else {
+                if self.shouldAbortSearch {
                     print("Searching again")
+                    self.shouldAbortSearch = false
                     self.loadSearchResults(withString: self.searchBar?.text ?? searchTerm, options: options)
                 }
+                self.searchResults = sortedResults
+                self.updateCourseVisibility()
             }
         }
     }

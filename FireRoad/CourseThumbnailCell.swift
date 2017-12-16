@@ -31,7 +31,6 @@ class CourseThumbnailCell: UICollectionViewCell {
     weak var delegate: CourseThumbnailCellDelegate?
     
     var course: Course?
-    var isDetached = false
     
     var showsConstraintMenuItem = false
     
@@ -162,17 +161,22 @@ class CourseThumbnailCell: UICollectionViewCell {
         repositionFulfillmentIndicators()
     }
     
+    private var highlightPulseOffDate: Date?
+    
     override var isHighlighted: Bool {
         didSet {
+            let duration = 0.2
+            let scale = CGFloat(0.95)
             if isHighlighted {
-                UIView.animate(withDuration: 0.2, delay: 0.0, options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut], animations: {
-                    self.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-                    //self.highlightView?.alpha = 1.0
+                highlightPulseOffDate = Date().addingTimeInterval(duration)
+                UIView.animate(withDuration: duration, delay: 0.0, options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut], animations: {
+                    self.transform = CGAffineTransform(scaleX: scale, y: scale)
                 }, completion: nil)
             } else {
-                UIView.animate(withDuration: 0.2, delay: 0.0, options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut], animations: {
+                let delay = max(highlightPulseOffDate?.timeIntervalSinceNow ?? 0.0, 0.0)
+                highlightPulseOffDate = nil
+                UIView.animate(withDuration: duration, delay: delay, options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut], animations: {
                     self.transform = CGAffineTransform.identity
-                    //self.highlightView?.alpha = 0.0
                 }, completion: nil)
             }
         }
@@ -186,14 +190,16 @@ class CourseThumbnailCell: UICollectionViewCell {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
         isHighlighted = false
-        if delegate != nil, isDetached {
+        if delegate != nil {
             self.becomeFirstResponder()
-            let menu = UIMenuController.shared
-            if menu.isMenuVisible {
-                menu.setMenuVisible(false, animated: true)
-            } else {
-                UIMenuController.shared.setTargetRect(self.bounds, in: self)
-                UIMenuController.shared.setMenuVisible(true, animated: true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                let menu = UIMenuController.shared
+                if menu.isMenuVisible {
+                    menu.setMenuVisible(false, animated: true)
+                } else {
+                    menu.setTargetRect(self.bounds, in: self)
+                    menu.setMenuVisible(true, animated: true)
+                }
             }
         }
     }
