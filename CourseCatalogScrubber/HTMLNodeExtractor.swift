@@ -76,6 +76,10 @@ class HTMLNodeExtractor: NSObject {
         static let selfClosingTags = [
             "br", "img", "hr"
         ]
+        
+        static let ignoringTags = [
+            "p"
+        ]
     }
     
     private class func regexForOpeningTag(_ tag: String) -> NSRegularExpression {
@@ -138,6 +142,9 @@ class HTMLNodeExtractor: NSObject {
             let attributeText = textString.substring(with: match.range(at: 3))
             let selfClosingFragment = textString.substring(with: match.range(at: 4))
             let tagText = textString.substring(with: match.range(at: 2)).lowercased()
+            guard !HTMLTags.ignoringTags.contains(tagText) else {
+                continue
+            }
             // Use this debugging code to find specific text in the HTML nodes
             /*if textString.substring(to: match.range.location).contains("HST.090") {
                 print("Here")

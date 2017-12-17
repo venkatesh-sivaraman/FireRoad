@@ -194,6 +194,8 @@ class CourseCatalogParser: NSObject {
         } else if nodeIsDelimitingATag(node) {
             shouldStop?.pointee = true
             return informationItems
+        } else if node.tagText.lowercased() == "span", node.contents.count > 0 {
+            informationItems.append(node.contents)
         } else {
             for child in node.childNodes {
                 informationItems += recursivelyExtractInformationItems(from: child)
