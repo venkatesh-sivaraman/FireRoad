@@ -538,7 +538,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 if equivCourse != nil {
                     (cell as! CourseListTableCell).courses.append(equivCourse!)
                 } else if myID.lowercased().contains("permission of instructor") {
-                    (cell as! CourseListTableCell).courses.append(Course(courseID: "None", courseTitle: "(Permission of instructor)", courseDescription: ""))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "--", courseTitle: "(Permission of Instructor)", courseDescription: ""))
                 } else if let gir = GIRAttribute(rawValue: myID) {
                     (cell as! CourseListTableCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 } else {

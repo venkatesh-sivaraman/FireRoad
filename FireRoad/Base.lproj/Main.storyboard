@@ -1211,13 +1211,13 @@
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="QEt-Lv-iJy">
                                     <size key="itemSize" width="371" height="190"/>
-                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="headerReferenceSize" width="50" height="50"/>
                                     <size key="footerReferenceSize" width="0.0" height="0.0"/>
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 </collectionViewFlowLayout>
                                 <cells>
                                     <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="CourseListingCell" id="kyq-fo-gyB" customClass="HighlightCollectionCell" customModule="FireRoad" customModuleProvider="target">
-                                        <rect key="frame" x="2" y="0.0" width="371" height="190"/>
+                                        <rect key="frame" x="2" y="50" width="371" height="190"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
                                             <rect key="frame" x="0.0" y="0.0" width="371" height="190"/>
@@ -1309,6 +1309,22 @@
                                         </connections>
                                     </collectionViewCell>
                                 </cells>
+                                <collectionReusableView key="sectionHeaderView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="SearchView" id="jsF-Zx-tdG">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="50"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <subviews>
+                                        <searchBar tag="12" contentMode="redraw" placeholder="Filter courses…" translatesAutoresizingMaskIntoConstraints="NO" id="2fP-0U-28J">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="62"/>
+                                            <textInputTraits key="textInputTraits" enablesReturnKeyAutomatically="YES"/>
+                                        </searchBar>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="2fP-0U-28J" firstAttribute="top" secondItem="jsF-Zx-tdG" secondAttribute="top" id="14C-qX-6JW"/>
+                                        <constraint firstAttribute="bottom" secondItem="2fP-0U-28J" secondAttribute="bottom" constant="-6" id="My6-23-vd1"/>
+                                        <constraint firstItem="2fP-0U-28J" firstAttribute="leading" secondItem="jsF-Zx-tdG" secondAttribute="leading" id="gwR-AR-9mW"/>
+                                        <constraint firstAttribute="trailing" secondItem="2fP-0U-28J" secondAttribute="trailing" id="sRb-R2-tZ5"/>
+                                    </constraints>
+                                </collectionReusableView>
                                 <connections>
                                     <outlet property="dataSource" destination="k17-ck-gZb" id="kXP-id-3rx"/>
                                     <outlet property="delegate" destination="k17-ck-gZb" id="xVz-Dz-vrP"/>
