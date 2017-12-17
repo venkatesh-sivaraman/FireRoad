@@ -146,7 +146,6 @@ class CourseListingViewController: CourseListingDisplayController, UICollectionV
             return
         }
         viewCourseDetails(for: course, from: cell.convert(cell.bounds, to: self.view))
-        clearSearch()
     }
     
     // MARK: - Flow Layout

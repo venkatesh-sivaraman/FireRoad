@@ -94,6 +94,7 @@ class CourseListingDisplayController: UIViewController, CourseListCellDelegate, 
     
     func courseDetailsRequestedOpen(url: URL) {
         guard let webVC = generateURLViewController(for: url) else {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
             return
         }
         webVC.view.backgroundColor = .white
@@ -176,11 +177,15 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        collectionView.collectionViewLayout.invalidateLayout()
+        if isViewLoaded {
+            collectionView.collectionViewLayout.invalidateLayout()
+        }
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
-        collectionView.collectionViewLayout.invalidateLayout()
+        if isViewLoaded {
+            collectionView.collectionViewLayout.invalidateLayout()
+        }
         if popoverNavigationController != nil {
             dismiss(animated: true, completion: nil)
             popoverNavigationController = nil

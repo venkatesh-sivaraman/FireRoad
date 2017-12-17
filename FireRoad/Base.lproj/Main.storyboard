@@ -13,11 +13,11 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--CourseRoad-->
+        <!--My Road-->
         <scene sceneID="GtG-Nx-8iw">
             <objects>
                 <navigationController navigationBarHidden="YES" id="26F-sm-OqV" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="CourseRoad" image="first" id="PjE-GE-IJV"/>
+                    <tabBarItem key="tabBarItem" title="My Road" image="my-road" id="PjE-GE-IJV"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="sjy-s0-Y8r">
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -983,7 +983,7 @@
         <scene sceneID="CXY-9C-q7Z">
             <objects>
                 <navigationController id="gDc-Gy-N8G" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Browse" id="xee-Ap-GyQ"/>
+                    <tabBarItem key="tabBarItem" title="Browse" image="browse" id="xee-Ap-GyQ"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="JKF-mW-KKt">
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1354,7 +1354,7 @@
         <scene sceneID="3as-1G-87V">
             <objects>
                 <splitViewController title="Requirements" id="Ygt-br-sRO" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Requirements" id="o4a-k5-clM"/>
+                    <tabBarItem key="tabBarItem" title="Requirements" image="requirements" id="o4a-k5-clM"/>
                     <connections>
                         <segue destination="UA0-r1-I4D" kind="relationship" relationship="masterViewController" id="woj-gT-6GT"/>
                         <segue destination="KlF-o2-sxU" kind="relationship" relationship="detailViewController" id="IwJ-9L-B0v"/>
@@ -1368,7 +1368,7 @@
         <scene sceneID="g64-Fm-l0k">
             <objects>
                 <navigationController navigationBarHidden="YES" id="PVc-iw-TlX" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Schedule" id="DEc-Sk-Cl2"/>
+                    <tabBarItem key="tabBarItem" title="Schedule" image="schedule" id="DEc-Sk-Cl2"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="qc7-fx-ITg">
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -3108,11 +3108,15 @@
     </scenes>
     <resources>
         <image name="back" width="26" height="26"/>
+        <image name="browse" width="32" height="32"/>
         <image name="ellipsis" width="26" height="26"/>
         <image name="filter" width="32" height="32"/>
         <image name="first" width="30" height="30"/>
         <image name="forward" width="26" height="26"/>
         <image name="heart" width="30" height="30"/>
+        <image name="my-road" width="32" height="32"/>
+        <image name="requirements" width="32" height="32"/>
+        <image name="schedule" width="32" height="32"/>
         <image name="second" width="30" height="30"/>
         <image name="small-grid" width="26" height="26"/>
         <image name="warning" width="32" height="32"/>

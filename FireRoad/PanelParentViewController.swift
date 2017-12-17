@@ -70,9 +70,7 @@ extension CourseViewControllerProvider {
     }
     
     func generateURLViewController(for url: URL) -> WebpageViewController? {
-        let webVC = self.storyboard!.instantiateViewController(withIdentifier: "WebpageVC") as! WebpageViewController
-        webVC.url = url
-        return webVC
+        return nil
     }
     
 }
@@ -184,6 +182,7 @@ extension PanelParentViewController {
         guard let panel = self.panelView,
             let browser = self.courseBrowser,
             let webVC = generateURLViewController(for: url) else {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
                 return
         }
         if !panel.isExpanded {
