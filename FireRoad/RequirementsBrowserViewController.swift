@@ -36,6 +36,9 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        if let ip = tableView.indexPathForSelectedRow {
+            tableView.deselectRow(at: ip, animated: true)
+        }
     }
     
     func updateRequirementsStatus() {
@@ -75,10 +78,6 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if let ip = tableView.indexPathForSelectedRow {
-            tableView.deselectRow(at: ip, animated: true)
-        }
-        
         if !CourseManager.shared.isLoaded {
             guard courseLoadingHUD == nil else {
                 return
@@ -130,10 +129,18 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         return organizedRequirementLists[section].0.rawValue
     }
     
+    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if organizedRequirementLists[section].0 == .user {
+            return "Add courses here by finding their requirements below, then toggling the heart icon."
+        }
+        return nil
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: listCellIdentifier, for: indexPath)
         let textLabel = cell.viewWithTag(12) as? UILabel
         let detailTextLabel = cell.viewWithTag(34) as? UILabel
+        let descriptionTextLabel = cell.viewWithTag(78) as? UILabel
         let list = organizedRequirementLists[indexPath.section].1[indexPath.row]
         textLabel?.text = list.mediumTitle ?? "No title"
         if CourseManager.shared.isLoaded {
@@ -151,6 +158,15 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
             }
         } else {
             detailTextLabel?.text = ""
+        }
+        if let colorView = cell.viewWithTag(11) {
+            if let department = list.shortTitle?.components(separatedBy: .punctuationCharacters).first(where: { $0.count > 0 }) {
+                colorView.backgroundColor = CourseManager.shared.color(forDepartment: department)
+                descriptionTextLabel?.text = list.titleNoDegree ?? (list.title ?? "")
+            } else {
+                colorView.backgroundColor = .lightGray
+                descriptionTextLabel?.text = list.title ?? ""
+            }
         }
         return cell
     }

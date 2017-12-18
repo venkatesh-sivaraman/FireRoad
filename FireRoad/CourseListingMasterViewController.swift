@@ -61,9 +61,9 @@ class CourseListingDisplayController: UIViewController, CourseListCellDelegate, 
     func viewCourseDetails(for course: Course, from rect: CGRect?) {
         generateDetailsViewController(for: course) { (details, list) in
             if let detailVC = details {
+                detailVC.displayStandardMode = true
                 detailVC.showsSemesterDialog = true
                 detailVC.delegate = self
-                detailVC.view.backgroundColor = .white
                 self.showInformationalViewController(detailVC, from: rect ?? CGRect.zero)
             } else if let listVC = list {
                 listVC.delegate = self
@@ -130,8 +130,6 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
 
     var recommendedCourses: [Course] = []
     
-    var departments: [(code: String, description: String)] = []
-    
     let headings = [
         "For You",
         "Browse Courses"
@@ -142,12 +140,6 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        loadDepartments()
-        recommendedCourses = [
-            CourseManager.shared.getCourse(withID: "6.046")!,
-            CourseManager.shared.getCourse(withID: "7.03")!,
-            CourseManager.shared.getCourse(withID: "18.03")!
-        ]
         if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
             layout.sectionHeadersPinToVisibleBounds = true
         }
@@ -155,20 +147,15 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         navigationItem.title = "Browse"
     }
     
-    func loadDepartments() {
-        guard let filePath = Bundle.main.path(forResource: "departments", ofType: "txt"),
-            let contents = try? String(contentsOfFile: filePath) else {
-                print("Couldn't load departments")
-                return
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if let rootTab = rootParent as? RootTabViewController,
+            let user = rootTab.currentUser {
+            recommendedCourses = user.userRecommendedCourses()
+        } else {
+            recommendedCourses = []
         }
-        let comps = contents.components(separatedBy: .newlines)
-        departments = comps.flatMap {
-            let subcomps = $0.components(separatedBy: "#,#")
-            guard subcomps.count == 2 else {
-                return nil
-            }
-            return (subcomps[0], subcomps[1])
-        }
+        collectionView.reloadData()
     }
 
     override func didReceiveMemoryWarning() {
@@ -202,7 +189,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         if section == 0 {
             return 1
         } else if section == 1 {
-            return departments.count
+            return CourseManager.shared.departments.count
         }
         return 0
     }
@@ -229,7 +216,8 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         } else {
             if let label = cell.viewWithTag(12) as? UILabel {
                 label.font = label.font.withSize(traitCollection.userInterfaceIdiom == .phone ? 17.0 : 20.0)
-                label.text = "\(departments[indexPath.item].0) – \(departments[indexPath.item].1)"
+                let departments = CourseManager.shared.departments
+                label.text = "\(departments[indexPath.item].code) – \(departments[indexPath.item].description)"
             }
         }
         return cell
@@ -241,9 +229,10 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
             guard let detailVC = self.storyboard?.instantiateViewController(withIdentifier: "CourseListingVC") as? CourseListingViewController else {
                 return
             }
-            detailVC.departmentCode = departments[indexPath.item].0
+            let departments = CourseManager.shared.departments
+            detailVC.departmentCode = departments[indexPath.item].code
             navigationController?.pushViewController(detailVC, animated: true)
-            detailVC.navigationItem.title = departments[indexPath.item].1
+            detailVC.navigationItem.title = departments[indexPath.item].description
         }
     }
     

@@ -273,6 +273,7 @@ class User: NSObject {
     
     private enum RelevanceCacheType: Int {
         case plannedSubjects
+        case ratedSubjects
         case majorSubjects
         case nonMajorSubjects
         case primaryRelatedSubjects
@@ -281,6 +282,7 @@ class User: NSObject {
     
     private static let relevanceCacheWeights: [RelevanceCacheType: Float] = [
         .plannedSubjects: 2.0,
+        .ratedSubjects: 2.0,    //In the future, weight this by rating
         .majorSubjects: 4.0,
         .nonMajorSubjects: 3.0,
         .primaryRelatedSubjects: 0.1   //Because it is going to be additionally weighted by relevance
@@ -298,13 +300,24 @@ class User: NSObject {
         print("Updating relevance cache...")
         relevanceCache = [
             .plannedSubjects: [:],
+            .ratedSubjects: [:],
             .majorSubjects: [:],
             .nonMajorSubjects: [:],
             .primaryRelatedSubjects: [:]
         ]
         
-        for course in allCourses + CourseManager.shared.favoriteCourses {
+        for course in allCourses {
             addCourse(course, toRelevanceCache: .plannedSubjects)
+            for (relatedOne, relevance) in course.relatedSubjects {
+                guard let relatedCourse = CourseManager.shared.getCourse(withID: relatedOne) else {
+                    continue
+                }
+                addCourse(relatedCourse, toRelevanceCache: .primaryRelatedSubjects, weight: relevance)
+            }
+        }
+        
+        for course in CourseManager.shared.favoriteCourses {
+            addCourse(course, toRelevanceCache: .ratedSubjects)
             for (relatedOne, relevance) in course.relatedSubjects {
                 guard let relatedCourse = CourseManager.shared.getCourse(withID: relatedOne) else {
                     continue
@@ -352,6 +365,24 @@ class User: NSObject {
             }
         }
         return relevance
+    }
+    
+    func userRecommendedCourses() -> [Course] {
+        updateRelevanceCache()
+        var courseRelevances: [Course: Float] = [:]
+        for (_, courseSet) in relevanceCache {
+            for (course, relevance) in courseSet {
+                guard !allCourses.contains(course) else {
+                    continue
+                }
+                if courseRelevances[course] != nil {
+                    courseRelevances[course]? += relevance
+                } else {
+                    courseRelevances[course] = relevance
+                }
+            }
+        }
+        return courseRelevances.sorted(by: { $0.value > $1.value })[0..<min(courseRelevances.count, 15)].map({ $0.key })
     }
     
     // MARK: - File Handling

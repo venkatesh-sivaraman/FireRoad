@@ -195,7 +195,7 @@ class CourseCatalogParser: NSObject {
             shouldStop?.pointee = true
             return informationItems
         } else if node.tagText.lowercased() == "span", node.contents.count > 0 {
-            informationItems.append(node.contents)
+            informationItems.append(node.contents.trimmingCharacters(in: .whitespacesAndNewlines))
         } else {
             for child in node.childNodes {
                 informationItems += recursivelyExtractInformationItems(from: child)
@@ -486,7 +486,7 @@ class CourseCatalogParser: NSObject {
             } else if node.contents.count == 0 {
                 informationItems += recursivelyExtractInformationItems(from: node)
             } else {
-                informationItems.append(node.contents)
+                informationItems.append(node.contents.trimmingCharacters(in: .whitespacesAndNewlines))
             }
         }
         //print("Information items: \(informationItems.filter({ $0.count > 0 }).joined(separator: "\n") as NSString)")
@@ -496,10 +496,10 @@ class CourseCatalogParser: NSObject {
             processedItems[.URL] = url.absoluteString + "#\(region.title)"
         }
         for item in informationItems {
-            guard item.count > 0,
-                let escapedItem = String(htmlEncodedString: item) else {
-                    continue
+            guard item.count > 0 else {
+                continue
             }
+            let escapedItem = HTMLNodeExtractor.stripHTMLTags(from: item).replacingOccurrences(of: "\"", with: "'").replacingOccurrences(of: "\n", with: " ")
             processInformationItem(escapedItem, into: &processedItems)
         }
         return processedItems

@@ -467,6 +467,7 @@ class RequirementsList: RequirementsListStatement {
 
     var shortTitle: String?
     var mediumTitle: String?
+    var titleNoDegree: String?
     var listID: String
     
     init(contentsOf file: String) throws {
@@ -495,7 +496,10 @@ class RequirementsList: RequirementsListStatement {
             if headerComps.count > 0 {
                 mediumTitle = headerComps.removeFirst()
             }
-            if headerComps.count > 0 {
+            if headerComps.count > 1 {
+                titleNoDegree = headerComps.removeFirst()
+                title = headerComps.removeFirst()
+            } else if headerComps.count > 0 {
                 title = headerComps.removeFirst()
             }
             for comp in headerComps {

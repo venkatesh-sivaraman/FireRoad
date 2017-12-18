@@ -1,0 +1,31 @@
+6-1#,#6-1 Major#,#Electrical Engineering#,#Bachelor of Science in Electrical Science and Engineering
+The 6-1 program leads to the Bachelor of Science in Electrical Science and Engineering. It is accredited by the Engineering Accreditation Commission of ABET.
+
+dept_reqs
+
+eecs_reqs
+
+electives
+Four electives that must satisfy each of the below categories.  A subject may count toward more than one category.
+cim
+
+
+%% Departmental Requirements
+intro_eecs, "Introductory Courses" := 6.01/6.02/6.03
+
+dept_reqs, "Departmental Requirements" := 6.0001, (18.03/2.087), (6.UAT/6.UAR), intro_eecs
+
+eecs_other := 6.011/6.012/6.013/6.021/6.036{>=3}
+
+eecs_reqs, "Electrical Engineering Requirements" := 6.002, 6.003, (6.004/6.007), eecs_other
+
+aus, "Advanced Undergraduate Subjects" := 6.023/6.025/6.035/6.047/6.061/6.101/6.111/6.115/6.131/6.172/6.175/6.301/6.302/6.602/6.701/6.717/6.801/6.802/6.803/6.804/6.806/6.813/6.814/6.815/6.816/6.819/6.837/6.905{>=2}
+
+dept_lab, "Advanced Departmental Lab" := 6.025/6.035/6.047/6.073/6.101/6.111/6.115/6.129/6.131/6.141/6.152/6.161/6.163/6.170/6.172/6.175/6.182/6.302/6.804/6.806/6.816/6.819/6.837
+ind_inquiry, "Independent Inquiry" := 6.035/6.047/6.100/6.111/6.1151/6.129/6.1311/6.141/6.161/6.163/6.170/6.172/6.182/6.805/6.806/6.811/6.819/6.905
+prob, "Probability" := 6.008/6.041A/18.05/18.600
+
+other_electives, "Other Electives" := dept_lab, ind_inquiry, prob
+electives, "Elective Subjects" := aus, other_electives{>=4}
+
+cim, "Communication-Intensive Subjects" := 6.UAT/6.025/6.101/6.115/6.131/6.025/6.129/6.141/6.152/6.161/6.163/6.182{>=2}

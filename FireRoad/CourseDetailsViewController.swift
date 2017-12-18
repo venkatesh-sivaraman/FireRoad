@@ -68,6 +68,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     var showsSemesterDialog = true
     
     @IBOutlet var tableView: UITableView!
+    @IBOutlet var tableViewBottomConstraint: NSLayoutConstraint?
     
     var displayStandardMode = false {
         didSet {
@@ -119,6 +120,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         navigationController?.setToolbarHidden(true, animated: true)
         
         NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardChangedFrame(_:)), name: .UIKeyboardDidChangeFrame, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardWillChangeFrame(_:)), name: .UIKeyboardWillChangeFrame, object: nil)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -648,6 +650,22 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
         if tableView.cellForRow(at: indexPath)?.viewWithTag(56)?.isFirstResponder == true {
             tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+        }
+    }
+    
+    @objc func keyboardWillChangeFrame(_ sender: Notification) {
+        if displayStandardMode {
+            let endY = self.view.convert((sender.userInfo![UIKeyboardFrameEndUserInfoKey]! as! CGRect), from: nil).origin.y
+
+            if let bottomConstraint = tableViewBottomConstraint {
+                let newConstant: CGFloat = self.view.frame.size.height - endY
+                let curve: UIViewAnimationOptions = UIViewAnimationOptions(rawValue: (sender.userInfo![UIKeyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
+                self.view.setNeedsLayout()
+                UIView.animate(withDuration: sender.userInfo![UIKeyboardAnimationDurationUserInfoKey] as! TimeInterval, delay: 0.0, options: [curve, .beginFromCurrentState], animations: {
+                    bottomConstraint.constant = newConstant
+                    self.view.layoutIfNeeded()
+                }, completion: nil)
+            }
         }
     }
     /*

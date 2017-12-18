@@ -392,6 +392,60 @@ class CourseManager: NSObject {
         return UIColor.lightGray
     }
     
+    func color(forDepartment department: String) -> UIColor {
+        return CourseManager.colorMapping[department] ?? UIColor.lightGray
+    }
+    
+    // MARK: - Departments
+    
+    private var _departments: [(code: String, description: String)] = []
+    var departments: [(code: String, description: String)] {
+        get {
+            if _departments.count == 0 {
+                loadDepartments()
+            }
+            return _departments
+        } set {
+            _departments = newValue
+            _departmentsByCode = [:]
+            for (code, desc) in _departments {
+                _departmentsByCode[code] = desc
+            }
+        }
+    }
+    
+    private var _departmentsByCode: [String: String] = [:]
+    private var departmentsByCode: [String: String] {
+        get {
+            if _departmentsByCode.count == 0 {
+                loadDepartments()
+            }
+            return _departmentsByCode
+        } set {
+            _departmentsByCode = newValue
+        }
+    }
+    
+    func loadDepartments() {
+        guard let filePath = Bundle.main.path(forResource: "departments", ofType: "txt"),
+            let contents = try? String(contentsOfFile: filePath) else {
+                print("Couldn't load departments")
+                return
+        }
+        let comps = contents.components(separatedBy: .newlines)
+        departments = comps.flatMap {
+            let subcomps = $0.components(separatedBy: "#,#")
+            guard subcomps.count == 2 else {
+                return nil
+            }
+            return (subcomps[0], subcomps[1])
+        }
+    }
+    
+    func departmentName(for code: String) -> String? {
+        return departmentsByCode[code]
+    }
+
     // MARK: - Centralized Recents List
     
     let recentlyViewedCoursesDefaultsKey = "RecentlyViewedCourses"

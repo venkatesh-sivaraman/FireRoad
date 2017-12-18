@@ -13,6 +13,17 @@ Use the `%%` symbol for comments.
 This list of top-level sections should be terminated by an empty line.
 5. The subsequent lines should contain variable definitions (see "Variables").
 
+## First Line
+
+The first line may contain the following items:
+* Department code or short title (e.g. "21M")
+* Medium title (e.g. "Music Minor")
+* Title with no degree (e.g. "Mechanical and Ocean Engineering")
+* Long title (e.g. "Bachelor of Science in Computer Science and Molecular Biology")
+* Threshold for the entire requirements list (e.g. "threshold=6" to signify that at least 6 courses must be taken to satisfy the requirements list)
+
+Each item is technically optional, but if an item is included, the preceding components must be indicated by the presence of the `#,#` delimiter, even if those components are empty. For example, to denote the medium title "Foo" without a short title, the following would be **incorrect**: `Foo#,#Title no degree#,#Long title`. Instead, use a delimiter before the medium title to indicate the absence of a short title: `#,#Foo#,#Title no degree#,#Long title`.
+
 ## Requirements List
 The requirements list is built on logical **statements** that define whether or not a user has satisfied given requirements. These are always in the form of a list of courses (or course characteristics) with optional modifications.
 

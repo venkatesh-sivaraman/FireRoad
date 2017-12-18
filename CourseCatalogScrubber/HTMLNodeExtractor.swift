@@ -77,9 +77,7 @@ class HTMLNodeExtractor: NSObject {
             "br", "img", "hr"
         ]
         
-        static let ignoringTags = [
-            "p"
-        ]
+        static let ignoringTags: [String] = []
     }
     
     private class func regexForOpeningTag(_ tag: String) -> NSRegularExpression {
@@ -150,32 +148,61 @@ class HTMLNodeExtractor: NSObject {
                 print("Here")
             }*/
             if closingFragment == "/" {
-                guard let currentNode = nodeStack.last else {
-                    //print("No current node for closing tag \(tagText)")
-                    if ignoreErrors {
+                var shouldRepeat = 1
+                var encounteredError = false
+                while shouldRepeat > 0 {
+                    guard let currentNode = nodeStack.last else {
+                        //print("No current node for closing tag \(tagText)")
+                        shouldRepeat = 0
+                        encounteredError = true
+                        if ignoreErrors {
+                            continue
+                        }
+                        return nil
+                    }
+                    currentNode.contentsRange = NSRange(location: currentNode.contentsRange.location, length: match.range.location - currentNode.contentsRange.location)
+                    currentNode.enclosingRange = NSRange(location: currentNode.enclosingRange.location, length: match.range.location + match.range.length - currentNode.enclosingRange.location)
+                    currentNode.contents = textString.substring(with: currentNode.contentsRange)
+                    
+                    // Update the last node's stripped contents
+                    var lastContentsBound = currentNode.contentsRange.location
+                    if let lastNodesLastNode = currentNode.childNodes.last {
+                        lastContentsBound = lastNodesLastNode.enclosingRange.location + lastNodesLastNode.enclosingRange.length
+                    } else {
+                        currentNode.strippedContents = ""
+                    }
+                    if currentNode.contentsRange.location + currentNode.contentsRange.length > lastContentsBound {
+                        let newStrippedRange = NSRange(location: lastContentsBound, length: currentNode.contentsRange.location + currentNode.contentsRange.length - lastContentsBound)
+                        let newStrippedString = textString.substring(with: newStrippedRange)
+                        if currentNode.childNodes.count > 0 {
+                            let span = HTMLNode(tagText: "span")
+                            span.contentsRange = newStrippedRange
+                            span.enclosingRange = newStrippedRange
+                            span.contents = newStrippedString
+                            span.strippedContents = newStrippedString
+                            currentNode.childNodes.append(span)
+                        } else {
+                            currentNode.strippedContents += newStrippedString
+                        }
+                    }
+                    
+                    if shouldRepeat <= 1,
+                        tagText != currentNode.tagText, currentNode.tagText == "p" {
+                        //print("Mismatched tags, removing paragraph node")
+                        nodeStack.removeLast()
+                        shouldRepeat += 1
+                    } else {
+                        shouldRepeat = 0
+                    }
+                }
+                if !encounteredError {
+                    guard tagText == nodeStack.last?.tagText else {
+                        //print("Tag closing for \(tagText) doesn't match current stack item (\(currentNode.tagText))")
+                        nodeStack.removeLast()
                         continue
                     }
-                    return nil
-                }
-                currentNode.contentsRange = NSRange(location: currentNode.contentsRange.location, length: match.range.location - currentNode.contentsRange.location)
-                currentNode.enclosingRange = NSRange(location: currentNode.enclosingRange.location, length: match.range.location + match.range.length - currentNode.enclosingRange.location)
-                currentNode.contents = textString.substring(with: currentNode.contentsRange)
-                
-                // Update the last node's stripped contents
-                var lastContentsBound = currentNode.contentsRange.location
-                if let lastNodesLastNode = currentNode.childNodes.last {
-                    lastContentsBound = lastNodesLastNode.enclosingRange.location + lastNodesLastNode.enclosingRange.length
-                } else {
-                    currentNode.strippedContents = ""
-                }
-                currentNode.strippedContents += textString.substring(with: NSRange(location: lastContentsBound, length: currentNode.contentsRange.location + currentNode.contentsRange.length - lastContentsBound))
-
-                guard tagText == currentNode.tagText else {
-                    //print("Tag closing for \(tagText) doesn't match current stack item (\(currentNode.tagText))")
                     nodeStack.removeLast()
-                    continue
                 }
-                nodeStack.removeLast()
             } else {
                 let newNode = HTMLNode(tagText: tagText)
                 newNode.attributeText = attributeText
@@ -213,15 +240,17 @@ class HTMLNodeExtractor: NSObject {
                     let newStrippedString = textString.substring(with: newStrippedRange)
                     // All nodes should be either purely contents or purely child nodes.
                     // So, add this text in a <span> node just to be sure.
-                    if newStrippedString.trimmingCharacters(in: .whitespacesAndNewlines).count > 0 {
+                    if lastNode.childNodes.count > 0,
+                        newStrippedString.trimmingCharacters(in: .whitespacesAndNewlines).count > 0 {
                         let span = HTMLNode(tagText: "span")
                         span.contentsRange = newStrippedRange
                         span.enclosingRange = newStrippedRange
                         span.contents = newStrippedString
                         span.strippedContents = newStrippedString
                         lastNode.childNodes.append(span)
+                    } else {
+                        lastNode.strippedContents += newStrippedString
                     }
-                    lastNode.strippedContents += newStrippedString
                     lastNode.childNodes.append(newNode)
                 }
                 
