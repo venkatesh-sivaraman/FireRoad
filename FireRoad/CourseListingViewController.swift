@@ -50,16 +50,12 @@ class CourseListingViewController: CourseListingDisplayController, UICollectionV
                 self.courses = CourseManager.shared.getCourses(forDepartment: self.departmentCode)
                 DispatchQueue.main.async {
                     self.collectionView.reloadData()
-                    self.collectionView.contentOffset = CGPoint(x: 0.0, y: self.searchBarHeight)
                     hud.hide(animated: true)
                 }
             }
         } else {
             self.courses = CourseManager.shared.getCourses(forDepartment: self.departmentCode)
             self.collectionView.reloadData()
-        }
-        if collectionView.contentOffset.y < searchBarHeight {
-            collectionView.contentOffset = CGPoint(x: 0.0, y: searchBarHeight)
         }
     }
     

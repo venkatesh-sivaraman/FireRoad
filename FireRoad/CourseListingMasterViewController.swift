@@ -145,6 +145,11 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         }
         
         navigationItem.title = "Browse"
+        if #available(iOS 11.0, *) {
+            navigationItem.largeTitleDisplayMode = .always
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {

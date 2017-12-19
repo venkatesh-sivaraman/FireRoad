@@ -189,4 +189,24 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         tableView.reloadData()
         tableView.selectRow(at: row, animated: false, scrollPosition: .none)
     }
+    
+    func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController) {
+        let row = tableView.indexPathForSelectedRow
+        let list = row != nil ? organizedRequirementLists[row!.section].1[row!.row] : nil
+        updateRequirementsStatus()
+        UIView.transition(with: self.tableView, duration: 0.2, options: .transitionCrossDissolve, animations: {
+            self.tableView.reloadData()
+        }, completion: { completed in
+            if completed, let selectedList = list {
+                // Find the list in the new organization
+                guard let section = self.organizedRequirementLists.index(where: { $0.1.contains(selectedList) }),
+                    let row = self.organizedRequirementLists[section].1.index(of: selectedList) else {
+                        return
+                }
+                let ip = IndexPath(row: row, section: section)
+                self.tableView.selectRow(at: ip, animated: true, scrollPosition: .middle)
+            }
+        })
+        
+    }
 }

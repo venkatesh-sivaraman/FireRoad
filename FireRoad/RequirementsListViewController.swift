@@ -18,6 +18,7 @@ enum RequirementsListCellType: String {
 
 protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFulfillmentStatus(_ vc: RequirementsListViewController)
+    func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
 class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, UIPopoverPresentationControllerDelegate {
@@ -182,6 +183,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             hud.hide(animated: true)
         }
         updateFavoritesButton()
+        delegate?.requirementsListViewControllerUpdatedFavorites(self)
     }
     
     // MARK: - Table View

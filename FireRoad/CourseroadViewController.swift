@@ -130,18 +130,13 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func updateCollectionViewLayout(with traits: UITraitCollection? = nil) {
-        let collection = traits ?? self.traitCollection
         let layout = self.collectionView.collectionViewLayout as! UICollectionViewFlowLayout
         layout.sectionInset = UIEdgeInsets(top: 10.0, left: 10.0, bottom: 10.0, right: 10.0)
         layout.minimumInteritemSpacing = 12.0
         layout.minimumLineSpacing = 12.0
-        layout.itemSize = CGSize(width: 116.0, height: 112.0)// UICollectionViewFlowLayoutAutomaticSize
+        layout.itemSize = itemSize
         //layout.estimatedItemSize = CGSize(width: 116.0, height: 94.0)
-        if collection.horizontalSizeClass == .compact {
-            collectionView.contentInset = UIEdgeInsets(top: 84.0, left: 0.0, bottom: 0.0, right: 0.0)
-        } else {
-            collectionView.contentInset = UIEdgeInsets(top: 0.0, left: 0.0, bottom: 0.0, right: 0.0)
-        }
+        collectionView.contentInset = UIEdgeInsets(top: 84.0, left: 0.0, bottom: 0.0, right: 0.0)
     }
     
     @objc func handleLongGesture(gesture: UILongPressGestureRecognizer) {
@@ -216,6 +211,14 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         let semester = UserSemester(rawValue: indexPath.section)!
         let course = self.currentUser!.courses(forSemester: semester)[indexPath.item]
         cell.textLabel?.text = course.subjectID
+        if traitCollection.userInterfaceIdiom == .phone {
+            if let font = cell.textLabel?.font {
+                cell.textLabel?.font = font.withSize(19.0)
+            }
+            if let font = cell.detailTextLabel?.font {
+                cell.detailTextLabel?.font = font.withSize(13.0)
+            }
+        }
         let paraStyle = NSMutableParagraphStyle()
         paraStyle.hyphenationFactor = 0.7
         paraStyle.alignment = .center
@@ -292,11 +295,16 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         return CGSize(width: collectionView.frame.size.width, height: 38.0)
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    var itemSize: CGSize {
+        let scaleFactor = CGSize(width: traitCollection.userInterfaceIdiom == .pad ? 1.0 : 0.82, height: traitCollection.userInterfaceIdiom == .pad ? 1.0 : 0.85)
         if isSmallLayoutMode {
-            return CGSize(width: 116.0, height: 48.0)
+            return CGSize(width: 116.0 * scaleFactor.width, height: 48.0 * scaleFactor.height)
         }
-        return CGSize(width: 116.0, height: 112.0)
+        return CGSize(width: 116.0 * scaleFactor.width, height: 112.0 * scaleFactor.height)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return itemSize
     }
         
     func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {

@@ -221,7 +221,7 @@ class CourseCatalogParser: NSObject {
     }()
     
     let instructorRegex: NSRegularExpression = {
-        guard let regex = try? NSRegularExpression(pattern: "[A-Z]\\. \\w+", options: []) else {
+        guard let regex = try? NSRegularExpression(pattern: "(?:^|[^A-z0-9])[A-Z]\\. \\w+", options: []) else {
             fatalError("Couldn't initialize instructor regex")
         }
         return regex

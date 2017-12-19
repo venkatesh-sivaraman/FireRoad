@@ -28,4 +28,4 @@ prob, "Probability" := 6.008/6.041A/18.05/18.600
 other_electives, "Other Electives" := dept_lab, ind_inquiry, prob
 electives, "Elective Subjects" := aus, other_electives{>=4}
 
-cim, "Communication-Intensive Subjects" := 6.UAT/6.025/6.101/6.115/6.131/6.025/6.129/6.141/6.152/6.161/6.163/6.182{>=2}
+cim, "Communication-Intensive Subjects" := 6.UAT/6.025/6.101/6.115/6.131/6.129/6.141/6.152/6.161/6.163/6.182{>=2}
