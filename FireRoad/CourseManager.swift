@@ -52,24 +52,40 @@ class CourseManager: NSObject {
         "MAS", "SCM", "STS", "SWE", "SP"
     ]
     static let colorMapping: [String: UIColor] = {
-        let saturation = CGFloat(0.7)
-        let brightness = CGFloat(0.87)
+        let saturations: [CGFloat] = [0.7]
+        let brightnesses: [CGFloat] = [0.87]
         let stepSize = CGFloat(4.0)  // (Department numbers % step size) should be non-zero
         let startPoint = 1.0 / CGFloat(CourseManager.departmentNumbers.count)
         
+        let hueRegions: [(start: CGFloat, end: CGFloat, mapStart: CGFloat, mapEnd: CGFloat)] = [
+            (0.0, 0.08333, 0.0, 0.181),
+            (0.2778, 0.7778, 0.181, 0.8611),
+            (0.9444, 1.0, 0.8611, 1.0)
+        ]
+        let hueMapping = { (originalHue: CGFloat) -> CGFloat in
+            var ret: CGFloat = 1.0
+            for (i, region) in hueRegions.enumerated() {
+                if originalHue >= region.mapStart, originalHue <= region.mapEnd {
+                    ret = region.start + (originalHue - region.mapStart) * (region.end - region.start) / (region.mapEnd - region.mapStart)
+                    break
+                }
+            }
+            return ret
+        }
+        
         var ret: [String: UIColor] = [:]
         var currentHue = startPoint
-        for number in CourseManager.departmentNumbers {
-            ret[number] = UIColor(hue: currentHue, saturation: saturation, brightness: brightness, alpha: 1.0)
-            currentHue += fmod(stepSize / CGFloat(CourseManager.departmentNumbers.count), 1.0)
+        for (i, number) in CourseManager.departmentNumbers.enumerated() {
+            ret[number] = UIColor(hue: hueMapping(currentHue), saturation: saturations[i % saturations.count], brightness: brightnesses[i % brightnesses.count], alpha: 1.0)
+            currentHue = fmod(currentHue + stepSize / CGFloat(CourseManager.departmentNumbers.count), 1.0)
         }
-        ret["GIR"] = UIColor(hue: 0.05, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
-        ret["HASS"] = UIColor(hue: 0.45, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
-        ret["HASS-A"] = UIColor(hue: 0.55, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
-        ret["HASS-H"] = UIColor(hue: 0.65, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
-        ret["HASS-S"] = UIColor(hue: 0.75, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
-        ret["CI-H"] = UIColor(hue: 0.85, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
-        ret["CI-HW"] = UIColor(hue: 0.95, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
+        ret["GIR"] = UIColor(hue: 0.05, saturation: saturations[0] * 0.75, brightness: brightnesses[0], alpha: 1.0)
+        ret["HASS"] = UIColor(hue: 0.45, saturation: saturations[0] * 0.75, brightness: brightnesses[0], alpha: 1.0)
+        ret["HASS-A"] = UIColor(hue: 0.55, saturation: saturations[0] * 0.75, brightness: brightnesses[0], alpha: 1.0)
+        ret["HASS-H"] = UIColor(hue: 0.65, saturation: saturations[0] * 0.75, brightness: brightnesses[0], alpha: 1.0)
+        ret["HASS-S"] = UIColor(hue: 0.75, saturation: saturations[0] * 0.75, brightness: brightnesses[0], alpha: 1.0)
+        ret["CI-H"] = UIColor(hue: 0.85, saturation: saturations[0] * 0.75, brightness: brightnesses[0], alpha: 1.0)
+        ret["CI-HW"] = UIColor(hue: 0.95, saturation: saturations[0] * 0.75, brightness: brightnesses[0], alpha: 1.0)
         return ret
     }()
     

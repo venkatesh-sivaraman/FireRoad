@@ -24,6 +24,11 @@ class CourseListingViewController: CourseListingDisplayController, UICollectionV
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        if #available(iOS 11.0, *) {
+            navigationItem.largeTitleDisplayMode = .never
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     var courseLoadingHUD: MBProgressHUD?
