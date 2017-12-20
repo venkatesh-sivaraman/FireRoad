@@ -428,9 +428,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     print("Searching again")
                     self.shouldAbortSearch = false
                     self.loadSearchResults(withString: self.searchBar?.text ?? searchTerm, options: options)
+                } else {
+                    self.searchResults = sortedResults
+                    self.updateCourseVisibility()
                 }
-                self.searchResults = sortedResults
-                self.updateCourseVisibility()
             }
         }
     }

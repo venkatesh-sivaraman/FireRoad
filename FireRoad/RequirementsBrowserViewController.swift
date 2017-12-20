@@ -32,11 +32,6 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         splitViewController?.delegate = self
         
         RequirementsListManager.shared.loadRequirementsLists()
-        if #available(iOS 11.0, *) {
-            navigationItem.largeTitleDisplayMode = .always
-        } else {
-            // Fallback on earlier versions
-        }
     }
     
     override func viewWillAppear(_ animated: Bool) {

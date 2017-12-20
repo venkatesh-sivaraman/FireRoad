@@ -37,14 +37,14 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
     
     var cellTitleFontSize: CGFloat {
         if traitCollection.horizontalSizeClass == .regular {
-            return 24.0
+            return 22.0
         }
         return 18.0
     }
     
     var cellDescriptionFontSize: CGFloat {
         if traitCollection.horizontalSizeClass == .regular {
-            return 16.0
+            return 14.0
         }
         return 13.0
     }
@@ -193,7 +193,7 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
                             courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
                             courseCell.textLabel?.text = course.subjectID!
                             courseCell.textLabel?.numberOfLines = 1
-                            courseCell.detailTextLabel?.font = courseCell.detailTextLabel?.font.withSize(cellDescriptionFontSize)
+                            courseCell.detailTextLabel?.font = UIFont.systemFont(ofSize: cellDescriptionFontSize)
                             courseCell.detailTextLabel?.text = (CourseScheduleType.abbreviation(for: type)?.lowercased() ?? type.lowercased()) + (item.location != nil ?  " (\(item.location!))" : "")
                         } else {
                             courseCell.generateLabels(withDetail: false)

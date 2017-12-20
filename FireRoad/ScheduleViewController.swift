@@ -56,13 +56,14 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     var pageViewController: UIPageViewController?
     
     var scheduleOptions: [Schedule] = []
+    
+    var shouldLoadScheduleFromDefaults = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if self.displayedCourses.count == 0,
-            let courses = (self.rootParent as? RootTabViewController)?.currentUser?.courses(forSemester: .FreshmanFall) {
-            self.displayedCourses = courses
+        if self.displayedCourses.count == 0 {
+            shouldLoadScheduleFromDefaults = true
         }
 
         loadingBackgroundView?.layer.cornerRadius = 5.0
@@ -107,6 +108,16 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         }
     }
     
+    static let displayedCoursesDefaultsKey = "ScheduleViewController.displayedCourses"
+    
+    func updateScheduleDefaults() {
+        UserDefaults.standard.set(self.displayedCourses.flatMap({ $0.subjectID }), forKey: ScheduleViewController.displayedCoursesDefaultsKey)
+    }
+    
+    func readCoursesFromDefaults() -> [Course]? {
+        return UserDefaults.standard.stringArray(forKey: ScheduleViewController.displayedCoursesDefaultsKey)?.flatMap({ CourseManager.shared.getCourse(withID: $0) })
+    }
+    
     func updateDisplayedSchedules(completion: (() -> Void)? = nil) {
         loadScheduleOptions {
             if self.scheduleOptions.count > 0 {
@@ -140,11 +151,15 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             while !CourseManager.shared.isLoaded {
                 usleep(100)
             }
+            if self.shouldLoadScheduleFromDefaults {
+                self.displayedCourses = self.readCoursesFromDefaults() ?? []
+            }
             
             for course in self.displayedCourses {
                 CourseManager.shared.loadCourseDetailsSynchronously(about: course)
             }
             self._displayedCourses = self.displayedCourses.filter({ $0.schedule != nil && $0.schedule!.count > 0 })
+            self.updateScheduleDefaults()
             if self.displayedCourses.count > 0 {
                 self.scheduleOptions = self.generateSchedules(from: self.displayedCourses)
                 print(self.scheduleOptions)
@@ -198,30 +213,35 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                     print("No options for \(course.subjectID!) \(section)")
                     continue
                 }
-                scheduleConfigurations.append(allOptions)
+                if section == CourseScheduleType.lecture {
+                    scheduleConfigurations.insert(allOptions, at: 0)
+                } else {
+                    scheduleConfigurations.append(allOptions)
+                }
                 scheduleConfigurationsList += allOptions
             }
         }
         
-        var conflictGroups: [[ScheduleUnit]] = ScheduleSlotManager.slots.map({ _ in [] })
-        var configurationConflictMapping: [ScheduleUnit: Set<Int>] = [:]
+        var conflictGroups: [[[ScheduleUnit]]] = CourseScheduleDay.ordering.map { _ in ScheduleSlotManager.slots.map({ _ in [] }) }
+        var configurationConflictMapping: [ScheduleUnit: [Set<Int>]] = [:]
         for unit in scheduleConfigurationsList {
-            var slotsOccupied = Set<Int>()
+            var slotsOccupied = CourseScheduleDay.ordering.map { _ in Set<Int>() }
             for item in unit.scheduleItems {
                 let startSlot = ScheduleSlotManager.slotIndex(for: item.startTime)
                 let endSlot = ScheduleSlotManager.slotIndex(for: item.endTime)
                 for slot in startSlot..<endSlot {
-                    conflictGroups[slot].append(unit)
-                    slotsOccupied.insert(slot)
+                    for (i, day) in CourseScheduleDay.ordering.enumerated() where item.days.contains(day) {
+                        conflictGroups[i][slot].append(unit)
+                        slotsOccupied[i].insert(slot)
+                    }
                 }
             }
             configurationConflictMapping[unit] = slotsOccupied
         }
 
         print("Schedule configurations: \(scheduleConfigurations)")
-        print("Conflict groups: \(conflictGroups)")
         
-        let results = recursivelyGenerateScheduleConfigurations(with: scheduleConfigurations, conflictMapping: configurationConflictMapping)
+        let results = recursivelyGenerateScheduleConfigurations(with: scheduleConfigurations, conflictGroups: conflictGroups, conflictMapping: configurationConflictMapping)
         let sorted = results.sorted(by: { $0.conflictCount < $1.conflictCount })
         if let minConflicts = sorted.first?.conflictCount {
             return sorted.filter({ $0.conflictCount <= (minConflicts == 0 ? 0 : minConflicts + 1) })
@@ -233,6 +253,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
      - Parameters:
         * configurations: List of lists of schedule units. One schedule unit needs to
             be chosen from each inner list.
+        * conflictGroups: The schedule units occupied by each slot on each day.
         * conflictMapping: The numbers of the slots occupied by each schedule unit.
         * prefixSchedule: The list of schedule units generated so far.
         * conflictCount: The current number of conflicts in the schedule.
@@ -241,20 +262,39 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
      
      - Returns: A list of schedules generated.
      */
-    private func recursivelyGenerateScheduleConfigurations(with configurations: [[ScheduleUnit]], conflictMapping: [ScheduleUnit: Set<Int>], prefixSchedule: [ScheduleUnit] = [], conflictCount: Int = 0, conflictingSlots: Set<Int> = Set<Int>()) -> [Schedule] {
+    private func recursivelyGenerateScheduleConfigurations(with configurations: [[ScheduleUnit]], conflictGroups: [[[ScheduleUnit]]], conflictMapping: [ScheduleUnit: [Set<Int>]], prefixSchedule: [ScheduleUnit] = [], conflictCount: Int = 0, conflictingSlots: [Set<Int>]? = nil) -> [Schedule] {
         if prefixSchedule.count == configurations.count {
             return [Schedule(items: prefixSchedule, conflictCount: conflictCount)]
         }
+        let conflictingSlotSets = conflictingSlots ?? CourseScheduleDay.ordering.map { _ in Set<Int>() }
         // Vary the next configuration in the list
         let changingConfigurationSet = configurations[prefixSchedule.count]
         var results: [Schedule] = []
-        for configuration in changingConfigurationSet {
-            guard let slots = conflictMapping[configuration] else {
-                print("Couldn't find schedule unit in conflict mapping")
-                continue
+        let sets: [(conflicts: Int, newConflicts: Int, union: [Set<Int>])] = changingConfigurationSet.map {
+            guard let slots = conflictMapping[$0] else {
+                return (Int.max, Int.max, [])
             }
-            let newConflictCount = slots.intersection(conflictingSlots).count
-            results += recursivelyGenerateScheduleConfigurations(with: configurations, conflictMapping: conflictMapping, prefixSchedule: prefixSchedule + [configuration], conflictCount: conflictCount + newConflictCount, conflictingSlots: conflictingSlots.union(slots))
+            var allConflicts = 0
+            var newConflictCount = 0
+            var union: [Set<Int>] = []
+            for (i, slot) in slots.enumerated() {
+                allConflicts += slot.reduce(0, { $0 + conflictGroups[i][$1].count })
+                newConflictCount += slot.intersection(conflictingSlotSets[i]).count
+                union.append(slot.union(conflictingSlotSets[i]))
+            }
+            return (allConflicts, newConflictCount, union)
+        }
+        let minConflicts = sets.min(by: { $0.conflicts < $1.conflicts })?.conflicts ?? 0
+        for (i, configuration) in changingConfigurationSet.enumerated() where sets[i].conflicts == minConflicts || sets[i].newConflicts == 0 {
+            let (_, newConflictCount, union) = sets[i]
+            results += recursivelyGenerateScheduleConfigurations(with: configurations, conflictGroups: conflictGroups, conflictMapping: conflictMapping, prefixSchedule: prefixSchedule + [configuration], conflictCount: conflictCount + newConflictCount, conflictingSlots: union)
+        }
+        if results.count == 0 {
+            // Iterate again with the conflicting schedule items
+            for (i, configuration) in changingConfigurationSet.enumerated() {
+                let (_, newConflictCount, union) = sets[i]
+                results += recursivelyGenerateScheduleConfigurations(with: configurations, conflictGroups: conflictGroups, conflictMapping: conflictMapping, prefixSchedule: prefixSchedule + [configuration], conflictCount: conflictCount + newConflictCount, conflictingSlots: union)
+            }
         }
         return results
     }
@@ -304,9 +344,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
         displayedCourses.append(course)
-        if traitCollection.horizontalSizeClass == .compact {
-            self.panelView?.collapseView(to: self.panelView!.collapseHeight)
-        }
+        self.panelView?.collapseView(to: self.panelView!.collapseHeight)
         return nil
     }
 
