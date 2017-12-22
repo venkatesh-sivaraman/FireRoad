@@ -143,6 +143,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         
         categoryControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
         updateFilterButton()
+        
+        if #available(iOS 11.0, *) {
+            self.navigationItem.largeTitleDisplayMode = .never
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {

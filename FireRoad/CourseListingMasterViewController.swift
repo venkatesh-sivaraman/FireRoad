@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseListingDisplayController: UIViewController, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, CourseViewControllerProvider, UIPopoverPresentationControllerDelegate {
+class CourseListingDisplayController: UICollectionViewController, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, CourseViewControllerProvider, UIPopoverPresentationControllerDelegate {
     var popoverNavigationController: UINavigationController?
 
     // MARK: - Course List Cell Delegate
@@ -126,21 +126,19 @@ class CourseListingDisplayController: UIViewController, CourseListCellDelegate, 
     }
 }
 
-class CourseListingMasterViewController: CourseListingDisplayController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+class CourseListingMasterViewController: CourseListingDisplayController, UICollectionViewDelegateFlowLayout {
 
     var recommendedCourses: [Course] = []
     
     let headings = [
         "For You",
-        "Browse Courses"
+        "Departments"
     ]
     
-    @IBOutlet var collectionView: UICollectionView!
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+        if let layout = collectionView?.collectionViewLayout as? UICollectionViewFlowLayout {
             layout.sectionHeadersPinToVisibleBounds = true
         }
         
@@ -155,7 +153,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         } else {
             recommendedCourses = []
         }
-        collectionView.reloadData()
+        collectionView?.reloadData()
     }
 
     override func didReceiveMemoryWarning() {
@@ -165,13 +163,13 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         if isViewLoaded {
-            collectionView.collectionViewLayout.invalidateLayout()
+            collectionView?.collectionViewLayout.invalidateLayout()
         }
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
         if isViewLoaded {
-            collectionView.collectionViewLayout.invalidateLayout()
+            collectionView?.collectionViewLayout.invalidateLayout()
         }
         if popoverNavigationController != nil {
             dismiss(animated: true, completion: nil)
@@ -181,11 +179,11 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     
     // MARK: - Collection View Data Source
     
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
+    override func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 2
     }
 
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if section == 0 {
             return 1
         } else if section == 1 {
@@ -194,7 +192,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         return 0
     }
     
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath)
         if let label = view.viewWithTag(12) as? UILabel {
             label.text = headings[indexPath.section]
@@ -203,7 +201,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         return view
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let identifier = indexPath.section == 0 ? "CourseListCollectionCell" : "DepartmentCell"
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
         if indexPath.section == 0 {
@@ -223,7 +221,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         if indexPath.section == 1 {
             guard let detailVC = self.storyboard?.instantiateViewController(withIdentifier: "CourseListingVC") as? CourseListingViewController else {

@@ -112,6 +112,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(CourseDetailsViewController.addCourseButtonPressed(sender:)))
         }
         updateScrollViewForDisplayMode()
+        
+        if #available(iOS 11.0, *) {
+            self.navigationItem.largeTitleDisplayMode = .never
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {

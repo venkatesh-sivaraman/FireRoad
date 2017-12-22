@@ -8,10 +8,8 @@
 
 import UIKit
 
-class CourseListingViewController: CourseListingDisplayController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UISearchBarDelegate {
+class CourseListingViewController: CourseListingDisplayController, UISearchBarDelegate, UICollectionViewDelegateFlowLayout {
 
-    @IBOutlet var collectionView: UICollectionView!
-    
     var departmentCode: String = "1"
     var courses: [Course] = []
     
@@ -49,22 +47,22 @@ class CourseListingViewController: CourseListingDisplayController, UICollectionV
                 CourseManager.shared.loadCourseDetailsSynchronously(for: self.departmentCode)
                 self.courses = CourseManager.shared.getCourses(forDepartment: self.departmentCode)
                 DispatchQueue.main.async {
-                    self.collectionView.reloadData()
+                    self.collectionView?.reloadData()
                     hud.hide(animated: true)
                 }
             }
         } else {
             self.courses = CourseManager.shared.getCourses(forDepartment: self.departmentCode)
-            self.collectionView.reloadData()
+            self.collectionView?.reloadData()
         }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        collectionView.collectionViewLayout.invalidateLayout()
+        collectionView?.collectionViewLayout.invalidateLayout()
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
-        collectionView.collectionViewLayout.invalidateLayout()
+        collectionView?.collectionViewLayout.invalidateLayout()
         if popoverNavigationController != nil {
             dismiss(animated: true, completion: nil)
             popoverNavigationController = nil
@@ -78,15 +76,15 @@ class CourseListingViewController: CourseListingDisplayController, UICollectionV
     
     // MARK: - Collection View Data Source
     
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
+    override func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 1
     }
     
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return searchCourses?.count ?? courses.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SearchView", for: indexPath)
         if let searchBar = view.viewWithTag(12) as? UISearchBar {
             searchBar.delegate = self
@@ -96,7 +94,7 @@ class CourseListingViewController: CourseListingDisplayController, UICollectionV
         return view
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let identifier = "CourseListingCell"
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
         let course = searchCourses?[indexPath.item] ?? courses[indexPath.item]
@@ -135,7 +133,7 @@ class CourseListingViewController: CourseListingDisplayController, UICollectionV
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         let course = searchCourses?[indexPath.item] ?? courses[indexPath.item]
         guard let cell = collectionView.cellForItem(at: indexPath) else {
@@ -195,13 +193,13 @@ class CourseListingViewController: CourseListingDisplayController, UICollectionV
         let oldCourseCount = searchCourses?.count ?? courses.count
         let newCourses = courses
         searchCourses = nil
-        collectionView.performBatchUpdates({
+        collectionView?.performBatchUpdates({
             if newCourses.count > oldCourseCount {
-                collectionView.insertItems(at: (oldCourseCount..<newCourses.count).map({ IndexPath(item: $0, section: 0) }))
+                collectionView?.insertItems(at: (oldCourseCount..<newCourses.count).map({ IndexPath(item: $0, section: 0) }))
             } else if newCourses.count < oldCourseCount {
-                collectionView.deleteItems(at: (newCourses.count..<oldCourseCount).map({ IndexPath(item: $0, section: 0) }))
+                collectionView?.deleteItems(at: (newCourses.count..<oldCourseCount).map({ IndexPath(item: $0, section: 0) }))
             }
-            collectionView.reloadItems(at: (0..<min(newCourses.count, oldCourseCount)).map({ IndexPath(item: $0, section: 0) }))
+            collectionView?.reloadItems(at: (0..<min(newCourses.count, oldCourseCount)).map({ IndexPath(item: $0, section: 0) }))
         }, completion: nil)
     }
     
@@ -211,13 +209,13 @@ class CourseListingViewController: CourseListingDisplayController, UICollectionV
         let oldCourseCount = searchCourses?.count ?? courses.count
         let newCourses = self.courses.filter({ $0.subjectID?.contains(searchTerm) == true || $0.subjectTitle?.contains(searchTerm) == true })
         searchCourses = newCourses
-        collectionView.performBatchUpdates({
+        collectionView?.performBatchUpdates({
             if newCourses.count > oldCourseCount {
-                collectionView.insertItems(at: (oldCourseCount..<newCourses.count).map({ IndexPath(item: $0, section: 0) }))
+                collectionView?.insertItems(at: (oldCourseCount..<newCourses.count).map({ IndexPath(item: $0, section: 0) }))
             } else if newCourses.count < oldCourseCount {
-                collectionView.deleteItems(at: (newCourses.count..<oldCourseCount).map({ IndexPath(item: $0, section: 0) }))
+                collectionView?.deleteItems(at: (newCourses.count..<oldCourseCount).map({ IndexPath(item: $0, section: 0) }))
             }
-            collectionView.reloadItems(at: (0..<min(newCourses.count, oldCourseCount)).map({ IndexPath(item: $0, section: 0) }))
+            collectionView?.reloadItems(at: (0..<min(newCourses.count, oldCourseCount)).map({ IndexPath(item: $0, section: 0) }))
         }, completion: nil)
         searchBar.becomeFirstResponder()
     }

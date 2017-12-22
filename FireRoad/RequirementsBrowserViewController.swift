@@ -8,9 +8,7 @@
 
 import UIKit
 
-class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISplitViewControllerDelegate, RequirementsListViewControllerDelegate {
-
-    @IBOutlet var tableView: UITableView!
+class RequirementsBrowserViewController: UITableViewController, UISplitViewControllerDelegate, RequirementsListViewControllerDelegate {
     
     enum RequirementBrowserTableSection: String {
         case user = "My Courses"
@@ -32,6 +30,11 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         splitViewController?.delegate = self
         
         RequirementsListManager.shared.loadRequirementsLists()
+        if #available(iOS 11.0, *) {
+            navigationItem.largeTitleDisplayMode = .always
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -117,26 +120,26 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
 
     }
     
-    func numberOfSections(in tableView: UITableView) -> Int {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return organizedRequirementLists.count
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return organizedRequirementLists[section].1.count
     }
     
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return organizedRequirementLists[section].0.rawValue
     }
     
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if organizedRequirementLists[section].0 == .user {
             return "Add courses here by finding their requirements below, then toggling the heart icon."
         }
         return nil
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: listCellIdentifier, for: indexPath)
         let textLabel = cell.viewWithTag(12) as? UILabel
         let detailTextLabel = cell.viewWithTag(34) as? UILabel
@@ -171,7 +174,7 @@ class RequirementsBrowserViewController: UIViewController, UITableViewDelegate, 
         return cell
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let reqList = organizedRequirementLists[indexPath.section].1[indexPath.row]
         guard let nav = storyboard?.instantiateViewController(withIdentifier: listVCIdentifier) as? UINavigationController,
             let listVC = nav.topViewController as? RequirementsListViewController else {
