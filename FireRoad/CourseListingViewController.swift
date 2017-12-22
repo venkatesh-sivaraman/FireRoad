@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseListingViewController: CourseListingDisplayController, UISearchBarDelegate, UICollectionViewDelegateFlowLayout {
+class CourseListingViewController: CourseListingDisplayController, UISearchResultsUpdating, UISearchControllerDelegate, UICollectionViewDelegateFlowLayout {
 
     var departmentCode: String = "1"
     var courses: [Course] = []
@@ -18,10 +18,19 @@ class CourseListingViewController: CourseListingDisplayController, UISearchBarDe
     
     let searchBarHeight = CGFloat(60.0)
     
+    var searchController: UISearchController?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        searchController = UISearchController(searchResultsController: nil)
+        searchController?.searchResultsUpdater = self
+        searchController?.delegate = self
+        searchController?.dimsBackgroundDuringPresentation = false
+        if #available(iOS 11.0, *) {
+            navigationItem.searchController = searchController
+        }
     }
     
     var courseLoadingHUD: MBProgressHUD?
@@ -86,12 +95,27 @@ class CourseListingViewController: CourseListingDisplayController, UISearchBarDe
     
     override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SearchView", for: indexPath)
-        if let searchBar = view.viewWithTag(12) as? UISearchBar {
-            searchBar.delegate = self
-            searchBar.text = currentSearchText ?? ""
+        if #available(iOS 11.0, *) {
+            // Show the search bar in the navigation bar instead
+            view.isHidden = true
+            return view
+        } else {
+            if let searchBar = view.viewWithTag(12) as? UISearchBar, searchBar != searchController?.searchBar,
+                let newBar = searchController?.searchBar {
+                /*searchBar.delegate = self
+                 searchBar.text = currentSearchText ?? ""*/
+                searchBar.removeFromSuperview()
+                view.addSubview(newBar)
+                newBar.tag = 12
+                newBar.placeholder = "Filter courses…"
+                newBar.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+                newBar.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+                newBar.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+                newBar.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+            }
+            view.isHidden = (searchCourses?.count ?? courses.count) == 0
+            return view
         }
-        view.isHidden = (searchCourses?.count ?? courses.count) == 0
-        return view
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -139,6 +163,7 @@ class CourseListingViewController: CourseListingDisplayController, UISearchBarDe
         guard let cell = collectionView.cellForItem(at: indexPath) else {
             return
         }
+        searchController?.dismiss(animated: true, completion: nil)
         viewCourseDetails(for: course, from: cell.convert(cell.bounds, to: self.view))
     }
     
@@ -157,6 +182,9 @@ class CourseListingViewController: CourseListingDisplayController, UISearchBarDe
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        if #available(iOS 11.0, *) {
+            return .zero
+        }
         return CGSize(width: collectionView.frame.size.width, height: searchBarHeight)
     }
     
@@ -218,5 +246,14 @@ class CourseListingViewController: CourseListingDisplayController, UISearchBarDe
             collectionView?.reloadItems(at: (0..<min(newCourses.count, oldCourseCount)).map({ IndexPath(item: $0, section: 0) }))
         }, completion: nil)
         searchBar.becomeFirstResponder()
+    }
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        let searchText = searchController.searchBar.text ?? ""
+        if searchText.count > 0 {
+            filterCourses(with: searchController.searchBar)
+        } else {
+            clearSearch()
+        }
     }
 }
