@@ -31,7 +31,7 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
         if #available(iOS 11.0, *) {
             navigationItem.searchController = searchController
         }
-        searchController?.searchBar.placeholder = "Filter courses…"
+        searchController?.searchBar.placeholder = "Filter subjects…"
     }
     
     var courseLoadingHUD: MBProgressHUD?
@@ -48,7 +48,7 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
             } else {
                 hud.mode = .indeterminate
             }
-            hud.label.text = "Loading courses…"
+            hud.label.text = "Loading subjects…"
             courseLoadingHUD = hud
             DispatchQueue.global(qos: .background).async {
                 let initialProgress = CourseManager.shared.loadingProgress

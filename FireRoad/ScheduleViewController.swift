@@ -34,7 +34,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                     if noSchedCourses.count == 1 {
                         alert = UIAlertController(title: "No Schedule Information", message: "No schedule available for \(noSchedCourses.first!.subjectID!) at this time.", preferredStyle: .alert)
                     } else if noSchedCourses.count > 1 {
-                        alert = UIAlertController(title: "No Schedule for \(noSchedCourses.count) Courses", message: "No schedule available at this time for the following courses: \(noSchedCourses.flatMap({ $0.subjectID }).joined(separator: ", ")).", preferredStyle: .alert)
+                        alert = UIAlertController(title: "No Schedule for \(noSchedCourses.count) Courses", message: "No schedule available at this time for the following subjects: \(noSchedCourses.flatMap({ $0.subjectID }).joined(separator: ", ")).", preferredStyle: .alert)
                     }
                     if let alertController = alert {
                         alertController.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))

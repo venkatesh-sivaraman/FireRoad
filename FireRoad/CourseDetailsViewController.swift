@@ -600,7 +600,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         case .url:
             textLabel?.text = "View on Registrar Site"
         case .courseEvaluations:
-            textLabel?.text = "View Course Evaluations"
+            textLabel?.text = "View Subject Evaluations"
         case .notes:
             guard let textView = cell.viewWithTag(56) as? UITextView else {
                 break

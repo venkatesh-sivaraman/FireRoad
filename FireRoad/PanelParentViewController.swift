@@ -22,7 +22,7 @@ extension CourseViewControllerProvider {
         if !CourseManager.shared.isLoaded {
             let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
             hud.mode = .determinateHorizontalBar
-            hud.label.text = "Loading courses…"
+            hud.label.text = "Loading subjects…"
             DispatchQueue.global(qos: .background).async {
                 let initialProgress = CourseManager.shared.loadingProgress
                 while !CourseManager.shared.isLoaded {
