@@ -31,6 +31,7 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
         if #available(iOS 11.0, *) {
             navigationItem.searchController = searchController
         }
+        searchController?.searchBar.placeholder = "Filter courses…"
     }
     
     var courseLoadingHUD: MBProgressHUD?
@@ -42,7 +43,11 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                 return
             }
             let hud = MBProgressHUD.showAdded(to: self.splitViewController?.view ?? self.view, animated: true)
-            hud.mode = .determinateHorizontalBar
+            if !CourseManager.shared.isLoaded {
+                hud.mode = .determinateHorizontalBar
+            } else {
+                hud.mode = .indeterminate
+            }
             hud.label.text = "Loading courses…"
             courseLoadingHUD = hud
             DispatchQueue.global(qos: .background).async {
@@ -107,7 +112,6 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                 searchBar.removeFromSuperview()
                 view.addSubview(newBar)
                 newBar.tag = 12
-                newBar.placeholder = "Filter courses…"
                 newBar.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
                 newBar.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
                 newBar.topAnchor.constraint(equalTo: view.topAnchor).isActive = true

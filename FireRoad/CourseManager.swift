@@ -418,8 +418,8 @@ class CourseManager: NSObject {
     
     // MARK: - Departments
     
-    private var _departments: [(code: String, description: String)] = []
-    var departments: [(code: String, description: String)] {
+    private var _departments: [(code: String, description: String, shortName: String)] = []
+    var departments: [(code: String, description: String, shortName: String)] {
         get {
             if _departments.count == 0 {
                 loadDepartments()
@@ -428,14 +428,14 @@ class CourseManager: NSObject {
         } set {
             _departments = newValue
             _departmentsByCode = [:]
-            for (code, desc) in _departments {
-                _departmentsByCode[code] = desc
+            for (code, desc, short) in _departments {
+                _departmentsByCode[code] = (desc, short)
             }
         }
     }
     
-    private var _departmentsByCode: [String: String] = [:]
-    private var departmentsByCode: [String: String] {
+    private var _departmentsByCode: [String: (String, String)] = [:]
+    private var departmentsByCode: [String: (String, String)] {
         get {
             if _departmentsByCode.count == 0 {
                 loadDepartments()
@@ -455,15 +455,19 @@ class CourseManager: NSObject {
         let comps = contents.components(separatedBy: .newlines)
         departments = comps.flatMap {
             let subcomps = $0.components(separatedBy: "#,#")
-            guard subcomps.count == 2 else {
+            guard subcomps.count == 3 else {
                 return nil
             }
-            return (subcomps[0], subcomps[1])
+            return (subcomps[0], subcomps[1], subcomps[2])
         }
     }
     
     func departmentName(for code: String) -> String? {
-        return departmentsByCode[code]
+        return departmentsByCode[code]?.0
+    }
+
+    func shortDepartmentName(for code: String) -> String? {
+        return departmentsByCode[code]?.1
     }
 
     // MARK: - Centralized Recents List

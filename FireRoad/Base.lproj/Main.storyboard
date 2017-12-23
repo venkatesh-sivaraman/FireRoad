@@ -1000,11 +1000,11 @@
             </objects>
             <point key="canvasLocation" x="2369" y="1182"/>
         </scene>
-        <!--Browse-->
+        <!--Explore-->
         <scene sceneID="CXY-9C-q7Z">
             <objects>
                 <navigationController id="gDc-Gy-N8G" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Browse" image="browse" id="xee-Ap-GyQ"/>
+                    <tabBarItem key="tabBarItem" title="Explore" image="browse" id="xee-Ap-GyQ"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" largeTitles="YES" id="JKF-mW-KKt">
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -1016,7 +1016,7 @@
             </objects>
             <point key="canvasLocation" x="670" y="2821"/>
         </scene>
-        <!--Browse-->
+        <!--Explore-->
         <scene sceneID="v7o-yG-wqF">
             <objects>
                 <collectionViewController id="l9t-Bi-bif" customClass="CourseListingMasterViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
@@ -1197,7 +1197,7 @@
                             <outlet property="delegate" destination="l9t-Bi-bif" id="rzl-pB-7ON"/>
                         </connections>
                     </collectionView>
-                    <navigationItem key="navigationItem" title="Browse" id="z89-FX-fM9"/>
+                    <navigationItem key="navigationItem" title="Explore" id="z89-FX-fM9"/>
                 </collectionViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fmj-76-Ut9" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -2312,10 +2312,10 @@
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                     </tabBar>
                     <connections>
+                        <segue destination="gDc-Gy-N8G" kind="relationship" relationship="viewControllers" id="bUY-14-Q3i"/>
                         <segue destination="26F-sm-OqV" kind="relationship" relationship="viewControllers" id="2UP-5y-Ryt"/>
                         <segue destination="PVc-iw-TlX" kind="relationship" relationship="viewControllers" id="IuZ-td-y5e"/>
                         <segue destination="Ygt-br-sRO" kind="relationship" relationship="viewControllers" id="htp-KC-fHW"/>
-                        <segue destination="gDc-Gy-N8G" kind="relationship" relationship="viewControllers" id="bUY-14-Q3i"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="HuB-VB-40B" sceneMemberID="firstResponder"/>

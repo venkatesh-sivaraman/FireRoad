@@ -140,9 +140,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
 
         if let layout = collectionView?.collectionViewLayout as? UICollectionViewFlowLayout {
             layout.sectionHeadersPinToVisibleBounds = true
-        }
-        
-        navigationItem.title = "Browse"
+        }        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -230,7 +228,11 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
             let departments = CourseManager.shared.departments
             detailVC.departmentCode = departments[indexPath.item].code
             navigationController?.pushViewController(detailVC, animated: true)
-            detailVC.navigationItem.title = departments[indexPath.item].description
+            if traitCollection.userInterfaceIdiom == .pad {
+                detailVC.navigationItem.title = departments[indexPath.item].description
+            } else {
+                detailVC.navigationItem.title = departments[indexPath.item].shortName
+            }
         }
     }
     
