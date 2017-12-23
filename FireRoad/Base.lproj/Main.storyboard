@@ -16,7 +16,7 @@
         <!--My Road-->
         <scene sceneID="GtG-Nx-8iw">
             <objects>
-                <navigationController navigationBarHidden="YES" id="26F-sm-OqV" sceneMemberID="viewController">
+                <navigationController restorationIdentifier="CourseRoadNav" navigationBarHidden="YES" id="26F-sm-OqV" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="My Road" image="my-road" id="PjE-GE-IJV"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="sjy-s0-Y8r">
                         <autoresizingMask key="autoresizingMask"/>
@@ -32,7 +32,7 @@
         <!--CourseRoad-->
         <scene sceneID="hNz-n2-bh7">
             <objects>
-                <viewController id="9pv-A4-QxB" customClass="CourseroadViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController restorationIdentifier="CourseRoadVC" id="9pv-A4-QxB" customClass="CourseroadViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="tsR-hK-woN">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -322,7 +322,7 @@
         <!--Navigation Controller-->
         <scene sceneID="xvI-GV-2Op">
             <objects>
-                <navigationController storyboardIdentifier="RequirementsListVC" id="KlF-o2-sxU" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="RequirementsListVC" useStoryboardIdentifierAsRestorationIdentifier="YES" id="KlF-o2-sxU" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" largeTitles="YES" id="nnm-rg-9LR">
                         <rect key="frame" x="0.0" y="20" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -338,7 +338,7 @@
         <!--Requirements List View Controller-->
         <scene sceneID="bys-R2-wiK">
             <objects>
-                <viewController storyboardIdentifier="RequirementsList" id="Jhv-by-via" customClass="RequirementsListViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="RequirementsList" useStoryboardIdentifierAsRestorationIdentifier="YES" id="Jhv-by-via" customClass="RequirementsListViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="eEE-vN-kHd">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -906,7 +906,7 @@
         <!--Navigation Controller-->
         <scene sceneID="8Rc-8B-dht">
             <objects>
-                <navigationController id="UA0-r1-I4D" sceneMemberID="viewController">
+                <navigationController restorationIdentifier="RequirementsMasterNav" id="UA0-r1-I4D" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" largeTitles="YES" id="IGI-fv-H4s">
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -921,7 +921,7 @@
         <!--Requirements-->
         <scene sceneID="lit-j7-bgQ">
             <objects>
-                <tableViewController title="Requirements" id="YlC-Yb-mDi" customClass="RequirementsBrowserViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController restorationIdentifier="RequirementsMasterVC" title="Requirements" id="YlC-Yb-mDi" customClass="RequirementsBrowserViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="WVa-P2-VaZ">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1003,7 +1003,7 @@
         <!--Explore-->
         <scene sceneID="CXY-9C-q7Z">
             <objects>
-                <navigationController id="gDc-Gy-N8G" sceneMemberID="viewController">
+                <navigationController restorationIdentifier="CourseListingNav" id="gDc-Gy-N8G" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="Explore" image="browse" id="xee-Ap-GyQ"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" largeTitles="YES" id="JKF-mW-KKt">
                         <autoresizingMask key="autoresizingMask"/>
@@ -1019,7 +1019,7 @@
         <!--Explore-->
         <scene sceneID="v7o-yG-wqF">
             <objects>
-                <collectionViewController id="l9t-Bi-bif" customClass="CourseListingMasterViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <collectionViewController restorationIdentifier="CourseListingMaster" id="l9t-Bi-bif" customClass="CourseListingMasterViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="AZl-p2-D4s">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1206,7 +1206,7 @@
         <!--Course Listing View Controller-->
         <scene sceneID="wYq-Gk-oJ8">
             <objects>
-                <collectionViewController storyboardIdentifier="CourseListingVC" id="3Ai-iR-AV1" customClass="CourseListingViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <collectionViewController storyboardIdentifier="CourseListingVC" useStoryboardIdentifierAsRestorationIdentifier="YES" id="3Ai-iR-AV1" customClass="CourseListingViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="8M1-zr-5iL">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1343,7 +1343,7 @@
         <!--Requirements-->
         <scene sceneID="3as-1G-87V">
             <objects>
-                <splitViewController title="Requirements" id="Ygt-br-sRO" sceneMemberID="viewController">
+                <splitViewController restorationIdentifier="RequirementsSplitVC" title="Requirements" id="Ygt-br-sRO" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="Requirements" image="requirements" id="o4a-k5-clM"/>
                     <connections>
                         <segue destination="UA0-r1-I4D" kind="relationship" relationship="masterViewController" id="woj-gT-6GT"/>
@@ -1357,7 +1357,7 @@
         <!--Schedule-->
         <scene sceneID="g64-Fm-l0k">
             <objects>
-                <navigationController navigationBarHidden="YES" id="PVc-iw-TlX" sceneMemberID="viewController">
+                <navigationController restorationIdentifier="ScheduleNav" navigationBarHidden="YES" id="PVc-iw-TlX" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="Schedule" image="schedule" id="DEc-Sk-Cl2"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="qc7-fx-ITg">
                         <autoresizingMask key="autoresizingMask"/>
@@ -1373,7 +1373,7 @@
         <!--Schedule-->
         <scene sceneID="wg7-f3-ORb">
             <objects>
-                <viewController id="8rJ-Kc-sve" customClass="ScheduleViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController restorationIdentifier="ScheduleVC" id="8rJ-Kc-sve" customClass="ScheduleViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="QS5-Rx-YEW">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2304,7 +2304,7 @@
         <!--Root Tab View Controller-->
         <scene sceneID="yl2-sM-qoP">
             <objects>
-                <tabBarController id="49e-Tb-3d3" customClass="RootTabViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <tabBarController restorationIdentifier="RootTabVC" id="49e-Tb-3d3" customClass="RootTabViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <nil key="simulatedBottomBarMetrics"/>
                     <tabBar key="tabBar" contentMode="scaleToFill" id="W28-zg-YXA">
                         <rect key="frame" x="0.0" y="975" width="768" height="49"/>
@@ -3130,6 +3130,6 @@
         <image name="warning" width="32" height="32"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="EfL-Rb-tAe"/>
+        <segue reference="5m9-3K-xoz"/>
     </inferredMetricsTieBreakers>
 </document>
