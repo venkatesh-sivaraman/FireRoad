@@ -109,6 +109,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 var rows: [PresentationItem] = presentationItems(for: topLevelRequirement)
                 // Remove the title
                 rows.removeFirst()
+                if topLevelRequirement.connectionType != .all, topLevelRequirement.thresholdDescription.count > 0, (topLevelRequirement.contentDescription ?? "").count == 0 {
+                    rows.insert(PresentationItem(cellType: .title2, statement: topLevelRequirement, text: topLevelRequirement.thresholdDescription.capitalizingFirstLetter() + ":"), at: 0)
+                }
                 ret.append((topLevelRequirement.title ?? "", topLevelRequirement, rows))
             }
         }

@@ -5,9 +5,13 @@ reqd
 
 rest_elec
 Substitution of similar subjects may be permitted by petition.
+cims
+
 
 %% Departmental Program
 
 reqd, "Required Subjects" := 3.012, 3.014, (3.016/18.03), 3.022, (3.032/3.044), 3.985, 3.986, 3.987, 3.990, 3.THU, 12.001, 12.119, 21A.00, (1.00/3.021/6.01)
 
 rest_elec, "Restricted Electives" := (3.982/3.983),(3.052/3.07/3.14)
+
+cims, "Communication-Intensive Subjects" := 3.014/3.990{>=2}

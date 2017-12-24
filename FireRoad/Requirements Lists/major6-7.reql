@@ -7,6 +7,8 @@ rest_electives
 
 aup
 
+cims
+
 
 %% Departmental Program
 math_intro, "Mathematics and Introductory" := (6.00/(6.0001,6.0002)/6.031), 6.042
@@ -22,3 +24,5 @@ rest_electives, "Restricted Electives" := comp_bio_rest, bio_rest
 aup, "Advanced Undergraduate Project" := 6.UAT/6.UAR
 
 dept_program, "Departmental Program" := reqd_subjects, rest_electives, aup
+
+cims, "Communication-Intensive Subjects" := 7.02/20.109/6.UAT/6.UAR{>=2}

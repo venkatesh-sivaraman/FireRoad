@@ -5,6 +5,8 @@ gen_dept_reqs
 
 core_subjects
 Select one area of core coursework (54-60 units).
+cims
+
 
 %% Departmental Program
 gen_dept_reqs, "General Department Requirements (GDRs)" := (1.00/1.000), 1.010, 1.013, (1.073/1.074), 18.03
@@ -16,4 +18,4 @@ elect_eng, "Elective Subjects with Engineering Content" := ""48-60 units""
 
 core_subjects, "Core Subjects" := environment/mech_mat/systems/elect_eng{>=54u|<=1}
 
-
+cims, "Communication-Intensive Subjects" := 1.013/1.092/1.011{>=2}

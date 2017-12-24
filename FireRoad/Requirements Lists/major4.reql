@@ -1,9 +1,11 @@
 4#,#4 Major#,#Architecture#,#Bachelor of Science in Architecture
-Course 4 offers a program introducing students to the five discipline areas: art, culture and technology; architectural design and urbanism; building technology; design and computation; and history, theory and criticism of architecture, art and design.\n\nChoose at least two subjects in the major that are designated as communication-intensive (CI-M) to fulfill the Communication Requirement.
+Course 4 offers a program introducing students to the five discipline areas: art, culture and technology; architectural design and urbanism; building technology; design and computation; and history, theory and criticism of architecture, art and design.
 
 reqd
 
 rest_elec
+
+cims
 
 
 reqd, "Required Subjects" := (4.021/4.02A), 4.022, 4.023, 4.024, 4.302, 4.401, 4.440, 4.500, (4.501/4.502), 4.603, (4.605/4.614/4.635)
@@ -15,3 +17,5 @@ hist_theo_crit, "History, Theory, and Criticism of Architecture and Art" := 4.60
 
 rest_elec_list, "Restricted Elective List" := art_cult_tech/build_tech/comp/hist_theo_crit{>=2}
 rest_elec, "Restricted Electives" := 4.025, rest_elec_list
+
+cims, "Communication-Intensive Subjects" := 4.023/4.302{>=2}

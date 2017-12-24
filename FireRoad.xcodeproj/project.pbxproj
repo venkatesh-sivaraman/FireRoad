@@ -459,28 +459,28 @@
 		9659E3901F89C24600E55FA2 /* Requirements Lists */ = {
 			isa = PBXGroup;
 			children = (
-				9626B6E21F80A93F009F6F96 /* major6-7.reql */,
-				960A1F171FDC92B600C53E43 /* girs.reql */,
 				960A1F0B1FDB7C8000C53E43 /* major1.reql */,
-				9659E38E1F89C09F00E55FA2 /* major9.reql */,
+				960A1F111FDC807800C53E43 /* major2.reql */,
 				960A1F0D1FDC7ED300C53E43 /* major2a.reql */,
 				960A1F0E1FDC7ED400C53E43 /* major2oe.reql */,
-				960A1F111FDC807800C53E43 /* major2.reql */,
 				960A1F131FDC8FEB00C53E43 /* major3.reql */,
 				960A1F141FDC8FEB00C53E43 /* major3a.reql */,
 				960A1F1A1FDCDA7000C53E43 /* major3c.reql */,
 				960A1F1D1FDCDA7100C53E43 /* major4.reql */,
 				960A1F191FDCDA7000C53E43 /* major4b.reql */,
-				960A1F1B1FDCDA7000C53E43 /* major5-7.reql */,
 				960A1F1C1FDCDA7000C53E43 /* major5.reql */,
+				960A1F1B1FDCDA7000C53E43 /* major5-7.reql */,
 				96293C451FE86ECB00F1BDFD /* major6-1.reql */,
-				966493C11FD2181100B8D684 /* major16-ENG.reql */,
+				9626B6E21F80A93F009F6F96 /* major6-7.reql */,
+				9659E38E1F89C09F00E55FA2 /* major9.reql */,
 				966493C21FD2181100B8D684 /* major16.reql */,
+				966493C11FD2181100B8D684 /* major16-ENG.reql */,
 				9611CD841F92881600DE2BDE /* minor6.reql */,
 				9669C7B41F904CAD00E60D89 /* minor9.reql */,
+				9659E38C1F89B57700E55FA2 /* minor21m.reql */,
 				966493C01FD2181000B8D684 /* minorJapanese.reql */,
 				966493BE1FD2180F00B8D684 /* minorRussian.reql */,
-				9659E38C1F89B57700E55FA2 /* minor21m.reql */,
+				960A1F171FDC92B600C53E43 /* girs.reql */,
 			);
 			path = "Requirements Lists";
 			sourceTree = "<group>";
