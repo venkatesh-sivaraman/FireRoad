@@ -42,6 +42,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         if let ip = tableView.indexPathForSelectedRow {
             tableView.deselectRow(at: ip, animated: true)
         }
+        loadRequirementsOrDisplay()
     }
     
     func updateRequirementsStatus() {
@@ -79,15 +80,14 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     
     var courseLoadingHUD: MBProgressHUD?
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    func loadRequirementsOrDisplay() {
         if !CourseManager.shared.isLoaded {
             guard courseLoadingHUD == nil else {
                 return
             }
             let hud = MBProgressHUD.showAdded(to: self.splitViewController?.view ?? self.view, animated: true)
             hud.mode = .determinateHorizontalBar
-            hud.label.text = "Loading courses…"
+            hud.label.text = "Loading requirements…"
             courseLoadingHUD = hud
             DispatchQueue.global(qos: .background).async {
                 let initialProgress = CourseManager.shared.loadingProgress
@@ -106,7 +106,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         }
         updateRequirementsStatus()
     }
-    
+
     func splitViewController(_ splitViewController: UISplitViewController, collapseSecondary secondaryViewController: UIViewController, onto primaryViewController: UIViewController) -> Bool {
         guard let secondaryAsNavController = secondaryViewController as? UINavigationController,
             let topAsDetailController = secondaryAsNavController.topViewController as? RequirementsListViewController else {
@@ -119,6 +119,39 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         return false
 
     }
+    
+    // MARK: - State Preservation
+    
+    static let selectedIDRestorationKey = "browser.selectedListID"
+    
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        if let ip = tableView.indexPathForSelectedRow {
+            coder.encode(organizedRequirementLists[ip.section].1[ip.row].listID, forKey: RequirementsBrowserViewController.selectedIDRestorationKey)
+        } else {
+            coder.encode(nil, forKey: RequirementsBrowserViewController.selectedIDRestorationKey)
+        }
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        let selectedID = coder.decodeObject(forKey: RequirementsBrowserViewController.selectedIDRestorationKey) as? String
+        if let splitVC = self.splitViewController {
+            var setList = false
+            splitVC.enumerateChildViewControllers { vc in
+                guard let listVC = vc as? RequirementsListViewController else {
+                    return
+                }
+                listVC.delegate = self
+                if !setList, let id = selectedID {
+                    listVC.requirementsList = RequirementsListManager.shared.requirementList(withID: id)
+                    setList = true
+                }
+            }
+        }
+        super.decodeRestorableState(with: coder)
+    }
+    
+    // MARK: - Table View
     
     override func numberOfSections(in tableView: UITableView) -> Int {
         return organizedRequirementLists.count

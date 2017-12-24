@@ -108,6 +108,21 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         }
     }
     
+    // MARK: - State Restoration
+    
+    static let panelVCRestorationKey = "ScheduleVC.panelVC"
+    
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(panelView, forKey: ScheduleViewController.panelVCRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+    }
+    
+    // MARK: - Schedule Generation
+    
     static let displayedCoursesDefaultsKey = "ScheduleViewController.displayedCourses"
     
     func updateScheduleDefaults() {

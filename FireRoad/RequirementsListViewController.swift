@@ -67,7 +67,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
         
         if level == 0,
-            requirement.title == nil, requirement.thresholdDescription.count > 0 {
+            requirement.title == nil, requirement.thresholdDescription.count > 0,
+            !(requirement.connectionType != .all || alwaysShowTitle) {
             items.append(PresentationItem(cellType: .title2, statement: nil, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
         }
         if requirement.minimumNestDepth <= 1, (requirement.maximumNestDepth <= 2 || level > 0),
@@ -108,9 +109,6 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 var rows: [PresentationItem] = presentationItems(for: topLevelRequirement)
                 // Remove the title
                 rows.removeFirst()
-                if topLevelRequirement.connectionType != .all, topLevelRequirement.thresholdDescription.count > 0, (topLevelRequirement.contentDescription ?? "").count == 0 {
-                    rows.insert(PresentationItem(cellType: .title2, statement: topLevelRequirement, text: topLevelRequirement.thresholdDescription.capitalizingFirstLetter() + ":"), at: 0)
-                }
                 ret.append((topLevelRequirement.title ?? "", topLevelRequirement, rows))
             }
         }
@@ -125,27 +123,97 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         } else {
             presentationItems = []
         }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadRequirementsOrDisplay()
+        selectedIndexPath = nil
+    }
+    
+    func updateRequirementsStatus() {
         if let list = requirementsList as? RequirementsList {
             navigationItem.title = list.mediumTitle
         } else {
             navigationItem.title = requirementsList?.shortDescription
         }
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        updateRequirementsStatus()
-    }
-    
-    func updateRequirementsStatus() {
         if let tabVC = rootParent as? RootTabViewController,
             let currentUser = tabVC.currentUser {
             requirementsList?.computeRequirementStatus(with: currentUser.allCourses)
+            if presentationItems.count == 0, let reqsList = requirementsList {
+                presentationItems = buildPresentationItems(from: reqsList)
+            }
             tableView.reloadData()
         }
         delegate?.requirementsListViewControllerUpdatedFulfillmentStatus(self)
         updateFavoritesButton()
     }
+    
+    var courseLoadingHUD: MBProgressHUD?
+
+    func loadRequirementsOrDisplay() {
+        if !CourseManager.shared.isLoaded {
+            guard courseLoadingHUD == nil else {
+                return
+            }
+            let hud = MBProgressHUD.showAdded(to: self.splitViewController?.view ?? self.view, animated: true)
+            hud.mode = .determinateHorizontalBar
+            hud.label.text = "Loading requirements…"
+            courseLoadingHUD = hud
+            DispatchQueue.global(qos: .background).async {
+                let initialProgress = CourseManager.shared.loadingProgress
+                while !CourseManager.shared.isLoaded {
+                    DispatchQueue.main.async {
+                        hud.progress = (CourseManager.shared.loadingProgress - initialProgress) / (1.0 - initialProgress)
+                    }
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    self.updateRequirementsStatus()
+                    hud.hide(animated: true)
+                }
+            }
+            return
+        }
+        updateRequirementsStatus()
+    }
+    
+    // MARK: - State Preservation
+    
+    static let selectedIndexPathRestorationKey = "requirementsList.selectedIndexPath"
+    var selectedIndexPath: [Int]?
+    
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(selectedIndexPath, forKey: RequirementsListViewController.selectedIndexPathRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        
+        if let reqList = requirementsList,
+            let nav = navigationController,
+            let index = nav.viewControllers.index(of: self),
+            index < nav.viewControllers.count - 1 {
+            
+            if let nextList = nav.viewControllers[index + 1] as? RequirementsListViewController,
+                let selectedIP = coder.decodeObject(forKey: RequirementsListViewController.selectedIndexPathRestorationKey) as? [Int],
+                selectedIP.count == 3 {
+                presentationItems = buildPresentationItems(from: reqList)
+                if let parentStatement = presentationItems[selectedIP[0]].items[selectedIP[1]].statement,
+                    let reqs = parentStatement.requirements,
+                    selectedIP[2] < reqs.count {
+                    nextList.requirementsList = reqs[selectedIP[2]]
+                }
+            } else if let nextDetails = nav.viewControllers[index + 1] as? CourseDetailsViewController {
+                nextDetails.delegate = self
+            } else if let nextBrowser = nav.viewControllers[index + 1] as? CourseBrowserViewController {
+                nextBrowser.delegate = self
+            }
+        }
+    }
+    
+    // MARK: - Favorites
     
     func updateFavoritesButton() {
         if let tabVC = rootParent as? RootTabViewController,
@@ -331,8 +399,12 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 listVC.managesNavigation = false
                 showInformationalViewController(listVC, from: selectedCell.convert(selectedCell.bounds, to: self.view))
             } else {
+                if let tableIP = tableView.indexPath(for: tableCell) {
+                    selectedIndexPath = [tableIP.section, tableIP.row, courseIndex]
+                }
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: listVCIdentifier) as! RequirementsListViewController
                 listVC.requirementsList = requirements[courseIndex]
+                listVC.delegate = self.delegate
                 self.navigationController?.pushViewController(listVC, animated: true)
             }
         }
@@ -362,9 +434,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func courseDetailsRequestedOpen(url: URL) {
-        let webVC = self.storyboard!.instantiateViewController(withIdentifier: "WebpageVC") as! WebpageViewController
-        webVC.url = url
-        showInformationalViewController(webVC)
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
     }
 
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
@@ -399,6 +469,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     func showInformationalViewController(_ vc: UIViewController, from rect: CGRect = CGRect.zero) {
         if traitCollection.horizontalSizeClass == .regular,
             traitCollection.userInterfaceIdiom == .pad {
+            vc.restorationIdentifier = nil
             if let nav = popoverNavigationController {
                 nav.pushViewController(vc, animated: true)
             } else {

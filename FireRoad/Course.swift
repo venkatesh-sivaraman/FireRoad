@@ -678,7 +678,11 @@ class Course: NSObject {
                     print("Unidentified subject level: \(value ?? "nil")")
                 }
             default:
-                super.setValue(value, forKey: key)
+                if let string = value as? String {
+                    super.setValue(string.replacingOccurrences(of: "\\n", with: "\n"), forKey: key)
+                } else {
+                    super.setValue(value, forKey: key)
+                }
             }
         } else {
             super.setValue(value, forKey: key)
@@ -759,7 +763,7 @@ class Course: NSObject {
     func extractCourseListString(_ string: String?) -> [[String]] {
         if let listString = string {
             return listString.components(separatedBy: ";").map { item in
-                item.replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.count > 0 })
+                item.replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.count > 0 })
             }
         }
         return []
@@ -767,7 +771,7 @@ class Course: NSObject {
     
     func extractListString(_ string: String?) -> [String] {
         if let value = string {
-            var modifiedValue: String = value.replacingOccurrences(of: "[J]", with: "")
+            var modifiedValue: String = value.replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "\\n", with: "\n")
             if value.contains("#,#") {
                 modifiedValue = modifiedValue.replacingOccurrences(of: " ", with: "")
             }

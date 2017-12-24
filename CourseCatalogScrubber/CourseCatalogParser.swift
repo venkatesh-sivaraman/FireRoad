@@ -420,15 +420,7 @@ class CourseCatalogParser: NSObject {
         }/* else if let unitsArrangedRange = item.range(of: CourseCatalogConstants.unitsArrangedPrefix, options: .caseInsensitive) {
              attributes[.units] = item.substring(from: unitsArrangedRange.upperBound).trimmingCharacters(in: .whitespacesAndNewlines)
              
-         }*/ else if item.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil {
-            attributes[.offeredFall] = true
-        } else if item.range(of: CourseCatalogConstants.spring, options: .caseInsensitive) != nil {
-            attributes[.offeredSpring] = true
-        } else if item.range(of: CourseCatalogConstants.iap, options: .caseInsensitive) != nil {
-            attributes[.offeredIAP] = true
-        } else if item.range(of: CourseCatalogConstants.summer, options: .caseInsensitive) != nil {
-            attributes[.offeredSummer] = true
-        } else if item.range(of: CourseCatalogConstants.hassH, options: .caseInsensitive) != nil ||
+         }*/ else if item.range(of: CourseCatalogConstants.hassH, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.hassA, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.hassS, options: .caseInsensitive) != nil {
             attributes[.hassRequirement] = CourseCatalogConstants.abbreviation(for: item.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -438,7 +430,20 @@ class CourseCatalogParser: NSObject {
         } else if let girRequirement = CourseCatalogConstants.GIRRequirements[item.trimmingCharacters(in: .whitespacesAndNewlines)] {
             attributes[.GIR] = girRequirement
         } else if instructorRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)) != nil {
-            attributes[.instructors] = item.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: "")
+            let newComponent = item.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: "")
+            if attributes[.instructors] != nil, (attributes[.instructors] as? String)?.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil, newComponent.range(of: CourseCatalogConstants.spring, options: .caseInsensitive) != nil {
+                attributes[.instructors] = (attributes[.instructors] as! String) + "\n" + newComponent
+            } else {
+                attributes[.instructors] = newComponent
+            }
+        } else if item.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil {
+            attributes[.offeredFall] = true
+        } else if item.range(of: CourseCatalogConstants.spring, options: .caseInsensitive) != nil {
+            attributes[.offeredSpring] = true
+        } else if item.range(of: CourseCatalogConstants.iap, options: .caseInsensitive) != nil {
+            attributes[.offeredIAP] = true
+        } else if item.range(of: CourseCatalogConstants.summer, options: .caseInsensitive) != nil {
+            attributes[.offeredSummer] = true
         }
     }
     
@@ -490,7 +495,7 @@ class CourseCatalogParser: NSObject {
             }
         }
         //print("Information items: \(informationItems.filter({ $0.count > 0 }).joined(separator: "\n") as NSString)")
-        
+        informationItems.sort(by: { $0.replacingOccurrences(of: "\n", with: "").count < $1.replacingOccurrences(of: "\n", with: "").count })
         var processedItems: [CourseAttribute: Any] = [.subjectID : region.title]
         if let url = catalogURL {
             processedItems[.URL] = url.absoluteString + "#\(region.title)"
@@ -523,7 +528,7 @@ class CourseCatalogParser: NSObject {
         
         switch item {
         case let string as String:
-            return "\"" + string.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+            return "\"" + string.replacingOccurrences(of: "\"", with: "\"\"").replacingOccurrences(of: "\n", with: "\\n") + "\""
         case let integer as Int:
             return "\(integer)"
         case let float as Float:

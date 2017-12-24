@@ -11,6 +11,16 @@ import UIKit
 class CourseListingDisplayController: UICollectionViewController, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, CourseViewControllerProvider, UIPopoverPresentationControllerDelegate {
     var popoverNavigationController: UINavigationController?
 
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        navigationController?.enumerateChildViewControllers { (vc) in
+            if let listVC = vc as? CourseDetailsViewController {
+                listVC.delegate = self
+            } else if let browserVC = vc as? CourseBrowserViewController {
+                browserVC.delegate = self
+            }
+        }
+    }
     // MARK: - Course List Cell Delegate
     
     func courseListCell(_ cell: CourseListCell, selected course: Course) {
@@ -105,6 +115,7 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
     func showInformationalViewController(_ vc: UIViewController, from rect: CGRect = CGRect.zero) {
         if traitCollection.horizontalSizeClass == .regular,
             traitCollection.userInterfaceIdiom == .pad {
+            vc.restorationIdentifier = nil
             if let nav = popoverNavigationController {
                 nav.pushViewController(vc, animated: true)
             } else {

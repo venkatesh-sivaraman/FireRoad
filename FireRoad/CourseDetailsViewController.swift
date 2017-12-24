@@ -107,10 +107,6 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
-        if self.course != nil {
-            self.navigationItem.title = self.course!.subjectID
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(CourseDetailsViewController.addCourseButtonPressed(sender:)))
-        }
         updateScrollViewForDisplayMode()
         
         if #available(iOS 11.0, *) {
@@ -125,10 +121,62 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         
         NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardChangedFrame(_:)), name: .UIKeyboardDidChangeFrame, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardWillChangeFrame(_:)), name: .UIKeyboardWillChangeFrame, object: nil)
+        
+        loadSubjectsOrDisplay()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         NotificationCenter.default.removeObserver(self)
+    }
+    
+    var courseLoadingHUD: MBProgressHUD?
+    
+    var restoredCourseID: String?
+    
+    func loadSubjectsOrDisplay() {
+        self.navigationItem.title = self.restoredCourseID ?? self.course?.subjectID
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(CourseDetailsViewController.addCourseButtonPressed(sender:)))
+        if !CourseManager.shared.isLoaded, restoredCourseID != nil {
+            self.navigationItem.rightBarButtonItem?.isEnabled = false
+            guard courseLoadingHUD == nil else {
+                return
+            }
+            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+            hud.mode = .determinateHorizontalBar
+            hud.label.text = "Loading subjects…"
+            courseLoadingHUD = hud
+            DispatchQueue.global(qos: .background).async {
+                let initialProgress = CourseManager.shared.loadingProgress
+                while !CourseManager.shared.isLoaded {
+                    DispatchQueue.main.async {
+                        hud.progress = (CourseManager.shared.loadingProgress - initialProgress) / (1.0 - initialProgress)
+                    }
+                    usleep(100)
+                }
+                let newCourse = self.restoredCourseID != nil ? CourseManager.shared.getCourse(withID: self.restoredCourseID!) : nil
+                if let course = newCourse {
+                    CourseManager.shared.loadCourseDetailsSynchronously(about: course)
+                }
+                self.restoredCourseID = nil
+                DispatchQueue.main.async {
+                    self.navigationItem.rightBarButtonItem?.isEnabled = true
+                    self.course = newCourse
+                    self.tableView.reloadData()
+                    hud.hide(animated: true)
+                }
+            }
+            return
+        }
+        self.navigationItem.rightBarButtonItem?.isEnabled = true
+        if course == nil, let id = restoredCourseID,
+            let newCourse = CourseManager.shared.getCourse(withID: id) {
+            self.course = newCourse
+            self.tableView.reloadData()
+            CourseManager.shared.loadCourseDetails(about: newCourse, { _ in
+                self.course = newCourse
+                self.tableView.reloadData()
+            })
+        }
     }
     
     @objc func addCourseButtonPressed(sender: AnyObject) {
@@ -158,6 +206,28 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             delegate?.courseDetails(added: self.course!, to: nil)
         }
     }
+    
+    // MARK: - State Preservation
+    
+    static let courseIDRestorationKey = "CourseDetails.courseID"
+    static let showsSemesterDialogRestorationKey = "CourseDetails.showsSemesterDialog"
+    static let displayStandardRestorationKey = "CourseDetails.displayStandard"
+
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(course?.subjectID, forKey: CourseDetailsViewController.courseIDRestorationKey)
+        coder.encode(showsSemesterDialog, forKey: CourseDetailsViewController.showsSemesterDialogRestorationKey)
+        coder.encode(displayStandardMode, forKey: CourseDetailsViewController.displayStandardRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        restoredCourseID = coder.decodeObject(forKey: CourseDetailsViewController.courseIDRestorationKey) as? String
+        showsSemesterDialog = coder.decodeBool(forKey: CourseDetailsViewController.showsSemesterDialogRestorationKey)
+        displayStandardMode = coder.decodeBool(forKey: CourseDetailsViewController.displayStandardRestorationKey)
+    }
+    
+    // MARK: - Pop Down Table Menu
     
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
         if CourseManager.shared.favoriteCourses.contains(course) {

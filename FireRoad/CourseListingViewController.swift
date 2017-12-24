@@ -88,6 +88,23 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
         // Dispose of any resources that can be recreated.
     }
     
+    // MARK: - State Preservation
+    
+    static let departmentCodeRestorationKey = "CourseListingVC.departmentCode"
+    static let navigationTitleRestorationKey = "CourseListingVC.navTitle"
+
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(departmentCode, forKey: CourseListingViewController.departmentCodeRestorationKey)
+        coder.encode(navigationItem.title, forKey: CourseListingViewController.navigationTitleRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        departmentCode = (coder.decodeObject(forKey: CourseListingViewController.departmentCodeRestorationKey) as? String) ?? ""
+        navigationItem.title = (coder.decodeObject(forKey: CourseListingViewController.navigationTitleRestorationKey) as? String) ?? departmentCode
+    }
+    
     // MARK: - Collection View Data Source
     
     override func numberOfSections(in collectionView: UICollectionView) -> Int {

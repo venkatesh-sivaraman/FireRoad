@@ -128,7 +128,6 @@
 		96EBE56A1FBFDE5600FABE1E /* ScheduleGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */; };
 		96EBE56C1FBFDF0900FABE1E /* ScheduleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE56B1FBFDF0900FABE1E /* ScheduleModel.swift */; };
 		96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */; };
-		96FF1F8D1FB65797007F4A7C /* IS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F881FB65796007F4A7C /* IS.txt */; };
 		96FF1F8E1FB65797007F4A7C /* condensed_2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F891FB65796007F4A7C /* condensed_2.txt */; };
 		96FF1F8F1FB65797007F4A7C /* condensed_3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8A1FB65797007F4A7C /* condensed_3.txt */; };
 		96FF1F901FB65797007F4A7C /* condensed_0.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8B1FB65797007F4A7C /* condensed_0.txt */; };
@@ -694,7 +693,6 @@
 				9636DE051F7894F300117A82 /* HST.txt in Resources */,
 				9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */,
 				9636DDFD1F7894F300117A82 /* CC.txt in Resources */,
-				96FF1F8D1FB65797007F4A7C /* IS.txt in Resources */,
 				9636DDFB1F7894F300117A82 /* 9.txt in Resources */,
 				960A1F101FDC7ED400C53E43 /* major2oe.reql in Resources */,
 				9636DDF41F7894F300117A82 /* 24.txt in Resources */,

@@ -130,10 +130,6 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         super.viewDidLoad()
 
         self.searchBar?.tintColor = self.view.tintColor
-        if managesNavigation {
-            self.navigationController?.delegate = self
-        }
-        navigationItem.title = searchTerm ?? ""
         
         if let panel = panelViewController {
             NotificationCenter.default.addObserver(self, selector: #selector(panelViewControllerWillCollapse(_:)), name: .PanelViewControllerWillCollapse, object: panel)
@@ -142,8 +138,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         nonSearchViewMode = ViewMode(rawValue: UserDefaults.standard.integer(forKey: nonSearchViewModeDefaultsKey)) ?? .recents
         
         categoryControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
-        updateFilterButton()
-        
+
         if #available(iOS 11.0, *) {
             self.navigationItem.largeTitleDisplayMode = .never
         }
@@ -151,14 +146,21 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationItem.title = showsHeaderBar ? "" : (searchTerm ?? "")
         if managesNavigation {
+            self.navigationController?.delegate = self
             self.navigationController?.setNavigationBarHidden(true, animated: true)
+        } else {
+            self.navigationController?.setNavigationBarHidden(false, animated: true)
+            self.navigationController?.setToolbarHidden(true, animated: true)
         }
         
         if let searchBar = searchBar,
             searchBar.text?.count == 0 {
             clearSearch()
-        } else if let initialSearch = searchTerm {
+        }
+        if let initialSearch = searchTerm {
+            searchBar?.text = initialSearch
             loadSearchResults(withString: initialSearch, options: searchOptions)
         }
         
@@ -214,6 +216,14 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         }
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if shouldMakeSearchBarFirstResponder {
+            searchBar?.becomeFirstResponder()
+        }
+        shouldMakeSearchBarFirstResponder = false
+    }
+    
     func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationControllerOperation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         if operation == .push {
             return FlatPushAnimator()
@@ -233,6 +243,42 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    // MARK: - State Preservation
+    
+    var shouldMakeSearchBarFirstResponder = false
+    
+    static let showsHeaderBarRestorationKey = "CourseBrowser.showsHeaderBar"
+    static let backgroundColorRestorationKey = "CourseBrowser.backgroundColor"
+    static let managesNavigationRestorationKey = "CourseBrowser.managesNavigation"
+    static let searchBarRespondingRestorationKey = "CourseBrowser.searchBarFirstResponder"
+    static let searchTermRestorationKey = "CourseBrowser.searchTerm"
+    static let searchOptionsRestorationKey = "CourseBrowser.searchOptions"
+
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(searchBar?.isFirstResponder ?? false, forKey: CourseBrowserViewController.searchBarRespondingRestorationKey)
+        coder.encode(showsHeaderBar, forKey: CourseBrowserViewController.showsHeaderBarRestorationKey)
+        coder.encode(managesNavigation, forKey: CourseBrowserViewController.managesNavigationRestorationKey)
+        coder.encode(searchTerm, forKey: CourseBrowserViewController.searchTermRestorationKey)
+        coder.encode(searchOptions.rawValue, forKey: CourseBrowserViewController.searchOptionsRestorationKey)
+        coder.encode(view.backgroundColor, forKey: CourseBrowserViewController.backgroundColorRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        managesNavigation = coder.decodeBool(forKey: CourseBrowserViewController.managesNavigationRestorationKey)
+        showsHeaderBar = coder.decodeBool(forKey: CourseBrowserViewController.showsHeaderBarRestorationKey)
+        view.backgroundColor = (coder.decodeObject(forKey: CourseBrowserViewController.backgroundColorRestorationKey) as? UIColor) ?? UIColor.clear
+        searchTerm = coder.decodeObject(forKey: CourseBrowserViewController.searchTermRestorationKey) as? String
+        let options = coder.decodeInteger(forKey: CourseBrowserViewController.searchOptionsRestorationKey)
+        if options != 0 {
+            searchOptions = SearchOptions(rawValue: options)
+        }
+        shouldMakeSearchBarFirstResponder = coder.decodeBool(forKey: CourseBrowserViewController.searchBarRespondingRestorationKey)
+    }
+    
+    // MARK: - Panel
     
     @objc func panelViewControllerWillCollapse(_ note: Notification) {
         searchBar?.resignFirstResponder()
@@ -423,6 +469,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             return
         }
         isShowingSearchResults = true
+        self.searchTerm = searchTerm
         DispatchQueue.global(qos: .userInitiated).async {
             self.isSearching = true
             let sortedResults = self.searchResults(for: searchTerm, options: options)

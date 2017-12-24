@@ -42,4 +42,11 @@ extension UIViewController {
         }
         return false
     }
+    
+    func enumerateChildViewControllers(with action: (UIViewController) -> Void) {
+        for child in childViewControllers {
+            action(child)
+            child.enumerateChildViewControllers(with: action)
+        }
+    }
 }

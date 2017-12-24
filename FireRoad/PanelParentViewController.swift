@@ -64,7 +64,7 @@ extension CourseViewControllerProvider {
         if let gir = course.girAttribute, gir != .lab, gir != .rest {
             listVC.searchTerm = (listVC.searchTerm ?? "") + " " + gir.descriptionText()
         }
-        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .anyRequirement, .searchPrereqs]
+        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .anyRequirement, .searchPrereqs]
         listVC.showsHeaderBar = false
         completion(listVC)
     }
@@ -134,6 +134,9 @@ extension PanelParentViewController {
             if let detailVC = details {
                 detailVC.showsSemesterDialog = self.showsSemesterDialogs
                 detailVC.delegate = self
+                if let vcs = browser.navigationController?.viewControllers {
+                    detailVC.restorationIdentifier? += "\(vcs.count)"
+                }
                 browser.navigationController?.pushViewController(detailVC, animated: true)
                 browser.navigationController?.view.setNeedsLayout()
             } else if let listVC = list {
@@ -141,6 +144,9 @@ extension PanelParentViewController {
                 listVC.managesNavigation = false
                 listVC.showsSemesterDialog = self.showsSemesterDialogs
                 listVC.view.backgroundColor = UIColor.clear
+                if let vcs = browser.navigationController?.viewControllers {
+                    listVC.restorationIdentifier? += "\(vcs.count)"
+                }
                 browser.navigationController?.pushViewController(listVC, animated: true)
                 browser.navigationController?.view.setNeedsLayout()
             }
@@ -173,6 +179,9 @@ extension PanelParentViewController {
             listVC.managesNavigation = false
             listVC.showsSemesterDialog = self.showsSemesterDialogs
             listVC.view.backgroundColor = UIColor.clear
+            if let vcs = browser.navigationController?.viewControllers {
+                listVC.restorationIdentifier? += "\(vcs.count)"
+            }
             browser.navigationController?.pushViewController(listVC, animated: true)
             browser.navigationController?.view.setNeedsLayout()
         }

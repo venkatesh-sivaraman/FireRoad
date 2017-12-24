@@ -80,6 +80,35 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         NotificationCenter.default.removeObserver(self)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if self.view.frame.size.height > 0.0 {
+            collapseHeight = self.view.frame.size.height
+        }
+        if shouldExpandOnAppear {
+            expandView()
+        }
+        shouldExpandOnAppear = false
+    }
+    
+    // MARK: - State Restoration
+    
+    var shouldExpandOnAppear = false
+    
+    static let isExpandedRestorationKey = "PanelView.isExpanded"
+    static let childNavRestorationKey = "PanelView.childNav"
+
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(isExpanded, forKey: PanelViewController.isExpandedRestorationKey)
+        coder.encode(childNavigationController, forKey: PanelViewController.childNavRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        shouldExpandOnAppear = coder.decodeBool(forKey: PanelViewController.isExpandedRestorationKey)
+    }
+    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         return touch.location(in: self.view).y >= self.view.frame.size.height - 30.0
     }

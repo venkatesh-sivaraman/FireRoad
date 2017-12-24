@@ -624,7 +624,7 @@
         <!--Course Browser View Controller-->
         <scene sceneID="eb5-9c-Evg">
             <objects>
-                <viewController storyboardIdentifier="CourseListVC" id="GJ8-OC-I7b" customClass="CourseBrowserViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="CourseListVC" useStoryboardIdentifierAsRestorationIdentifier="YES" id="GJ8-OC-I7b" customClass="CourseBrowserViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="QAK-RK-Uae">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2325,7 +2325,7 @@
         <!--Panel View Controller-->
         <scene sceneID="LVl-dy-Q1k">
             <objects>
-                <viewController id="Dfz-bt-fZR" customClass="PanelViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController restorationIdentifier="PanelParent" id="Dfz-bt-fZR" customClass="PanelViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="rd5-Sk-cm0" customClass="RoundedToolbarView" customModule="FireRoad" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="0.0" width="351" height="300"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2414,7 +2414,7 @@
         <!--Course Details View Controller-->
         <scene sceneID="NFJ-7V-w9T">
             <objects>
-                <viewController storyboardIdentifier="CourseDetails" id="2K1-2M-t84" customClass="CourseDetailsViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="CourseDetails" useStoryboardIdentifierAsRestorationIdentifier="YES" id="2K1-2M-t84" customClass="CourseDetailsViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="JAX-oT-wpT">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -2817,7 +2817,7 @@
         <!--Navigation Controller-->
         <scene sceneID="uDF-7v-cPg">
             <objects>
-                <navigationController navigationBarHidden="YES" id="3h6-a2-6iH" sceneMemberID="viewController">
+                <navigationController restorationIdentifier="PanelNav" navigationBarHidden="YES" id="3h6-a2-6iH" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="b02-YG-cHn">
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -2832,12 +2832,12 @@
         <!--Course Browser View Controller-->
         <scene sceneID="bKy-gI-9Lo">
             <objects>
-                <viewController id="f08-wX-Ff9" customClass="CourseBrowserViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController restorationIdentifier="PanelBrowserVC" id="f08-wX-Ff9" customClass="CourseBrowserViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="M25-h0-EN4">
                         <rect key="frame" x="0.0" y="0.0" width="351" height="300"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <searchBar contentMode="redraw" verticalCompressionResistancePriority="1000" searchBarStyle="minimal" placeholder="Search courses…" translatesAutoresizingMaskIntoConstraints="NO" id="C4N-lp-ru4">
+                            <searchBar contentMode="redraw" verticalCompressionResistancePriority="1000" searchBarStyle="minimal" placeholder="Search subjects…" translatesAutoresizingMaskIntoConstraints="NO" id="C4N-lp-ru4">
                                 <rect key="frame" x="0.0" y="0.0" width="351" height="56"/>
                                 <textInputTraits key="textInputTraits" returnKeyType="search"/>
                                 <connections>

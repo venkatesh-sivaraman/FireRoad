@@ -180,6 +180,19 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         // Dispose of any resources that can be recreated.
     }
     
+    // MARK: - State Restoration
+    
+    static let panelVCRestorationKey = "CourseroadVC.panelVC"
+    
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(panelView, forKey: CourseroadViewController.panelVCRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+    }
+    
     // MARK: - Collection View
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
