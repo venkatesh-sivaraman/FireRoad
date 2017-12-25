@@ -187,9 +187,10 @@ class User: NSObject {
     
     // MARK: - Courseroad Error Checking
     
-    enum CourseWarningType {
-        case unsatisfiedPrerequisites
-        case unsatisfiedCorequisites
+    enum CourseWarningType: String {
+        case unsatisfiedPrerequisites = "Unsatisfied Prerequisite"
+        case unsatisfiedCorequisites = "Unsatisfied Corequisite"
+        case notOffered = "Not Offered"
     }
     
     struct CourseWarning {
@@ -198,6 +199,8 @@ class User: NSObject {
     }
     
     var warningsCache: [Course: [CourseWarning]] = [:]
+    
+    var overrides: [Course: Bool] = [:]
     
     func warningsForCourse(_ course: Course, in semester: UserSemester) -> [CourseWarning] {
         guard semester != .PreviousCredit else {
@@ -259,14 +262,50 @@ class User: NSObject {
             }
         }
         var warnings: [CourseWarning] = []
+        if semester.isFall(), !course.isOfferedFall {
+            warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered in the fall."))
+        } else if semester.isIAP(), !course.isOfferedIAP {
+            warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered over IAP."))
+        } else if semester.isSpring(), !course.isOfferedSpring {
+            warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered in the spring."))
+        }
         if unsatisfiedPrereqs.count > 0 {
-            warnings.append(CourseWarning(type: .unsatisfiedPrerequisites, message: nil))
+            warnings.append(CourseWarning(type: .unsatisfiedPrerequisites, message: formatUnsatisfiedRequirements(label: "prerequisites", unsatisfiedItems: unsatisfiedPrereqs, requirements: course.prerequisites)))
         }
         if unsatisfiedCoreqs.count > 0 {
-            warnings.append(CourseWarning(type: .unsatisfiedCorequisites, message: nil))
+            warnings.append(CourseWarning(type: .unsatisfiedCorequisites, message: formatUnsatisfiedRequirements(label: "corequisites", unsatisfiedItems: unsatisfiedCoreqs, requirements: course.corequisites)))
         }
         warningsCache[course] = warnings
         return warnings
+    }
+    
+    private func formatUnsatisfiedRequirements(label: String, unsatisfiedItems: [String], requirements: [[String]]) -> String {
+        var message = "One or more \(label) is not satisfied"
+        if requirements.count == requirements.flatMap({ $0 }).count {
+            var prereqStrings = unsatisfiedItems
+            if prereqStrings.count >= 2 {
+                prereqStrings[prereqStrings.count - 1] = "and " + prereqStrings[prereqStrings.count - 1]
+            }
+            message += ": " + prereqStrings.joined(separator: ", ") + "."
+        } else if requirements.count == 1 {
+            var prereqStrings = unsatisfiedItems
+            if prereqStrings.count >= 2 {
+                prereqStrings[prereqStrings.count - 1] = "or " + prereqStrings[prereqStrings.count - 1]
+            }
+            message += ": " + prereqStrings.joined(separator: ", ") + "."
+        } else {
+            message += "."
+        }
+        return message
+    }
+    
+    func overridesWarnings(for course: Course) -> Bool {
+        return overrides[course] ?? false
+    }
+    
+    func setOverridesWarnings(_ override: Bool, for course: Course) {
+        overrides[course] = override
+        setNeedsSave()
     }
     
     // MARK: - Global Relevance Calculation
@@ -418,6 +457,7 @@ class User: NSObject {
         lines.removeFirst()
         
         selectedSubjects = [:]
+        overrides = [:]
         for subjectLine in lines where subjectLine.count > 0 {
             let comps = subjectLine.components(separatedBy: subjectComponentSeparator)
             guard comps.count >= 4 else {
@@ -441,6 +481,11 @@ class User: NSObject {
             }
             
             add(course, toSemester: semester)
+            
+            if comps.count >= 5,
+                let override = Int(comps[4]) {
+                overrides[course] = (override >= 1)
+            }
         }
         
         if !CourseManager.shared.isLoaded {
@@ -467,7 +512,7 @@ class User: NSObject {
                         continue
                 }
                 let units = subject.totalUnits
-                contentsString += ["\(semester.rawValue)", id, title, "\(units)"].joined(separator: subjectComponentSeparator) + "\n"
+                contentsString += ["\(semester.rawValue)", id, title, "\(units)", overridesWarnings(for: subject) ? "1" : "0"].joined(separator: subjectComponentSeparator) + "\n"
             }
         }
         

@@ -89,6 +89,13 @@ class RootTabViewController: UITabBarController {
     }
     
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
+        guard currentUser?.allCourses.contains(course) == false else {
+            let alert = UIAlertController(title: "Course Already Added", message: "\(course.subjectID!) is already in your course list.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            present(alert, animated: true, completion: nil)
+            return nil
+        }
+
         guard let courseRoadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController else {
             return nil
         }
@@ -112,7 +119,9 @@ class RootTabViewController: UITabBarController {
             print("Couldn't get schedule view controller")
             return
         }
-        scheduleVC.displayedCourses.append(course)
+        if !scheduleVC.displayedCourses.contains(course) {
+            scheduleVC.displayedCourses.append(course)
+        }
         if let tab = viewControllers?.first(where: { scheduleVC.isDescendant(of: $0) }) {
             selectedViewController = tab
         }

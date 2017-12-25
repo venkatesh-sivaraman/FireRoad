@@ -12,6 +12,7 @@ protocol CourseThumbnailCellDelegate: class {
     func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell)
 }
 
 extension CourseThumbnailCellDelegate {
@@ -24,6 +25,9 @@ extension CourseThumbnailCellDelegate {
     func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell) {
         
     }
+    func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell) {
+        
+    }
 }
 
 class CourseThumbnailCell: UICollectionViewCell {
@@ -33,7 +37,8 @@ class CourseThumbnailCell: UICollectionViewCell {
     var course: Course?
     
     var showsConstraintMenuItem = false
-    
+    var showsWarningsMenuItem = false
+
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
     
@@ -225,6 +230,8 @@ class CourseThumbnailCell: UICollectionViewCell {
             return delegate != nil
         } else if action == #selector(constrain(_:)) {
             return delegate != nil && showsConstraintMenuItem
+        } else if action == #selector(showWarnings(_:)) {
+            return delegate != nil && showsWarningsMenuItem
         }
         return false
     }
@@ -239,6 +246,10 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     @objc func constrain(_ sender: AnyObject) {
         delegate?.courseThumbnailCellWantsConstrain(self)
+    }
+    
+    @objc func showWarnings(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsShowWarnings(self)
     }
     
     // MARK: - Requirement Fulfillment

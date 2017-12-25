@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate {
+class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
@@ -30,7 +30,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     @IBOutlet var layoutToggleButton: UIButton?
     var isSmallLayoutMode = false
-    
+    @IBOutlet var warningsButton: UIButton?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         NotificationCenter.default.addObserver(self, selector: #selector(courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
@@ -45,7 +46,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         
         let menu = UIMenuController.shared
         menu.menuItems = [
-            UIMenuItem(title: MenuItemStrings.view, action: #selector(CourseThumbnailCell.viewDetails(_:)))
+            UIMenuItem(title: MenuItemStrings.view, action: #selector(CourseThumbnailCell.viewDetails(_:))),
+            UIMenuItem(title: MenuItemStrings.warnings, action: #selector(CourseThumbnailCell.showWarnings(_:)))
         ]
         
         updateLayoutToggleButton()
@@ -182,6 +184,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     @objc func courseManagerFinishedLoading(_ note: Notification) {
         updateCourseWarningStatus()
+        updateLayoutToggleButton()
     }
     
     // MARK: - State Restoration
@@ -242,7 +245,18 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             cell.detailTextLabel?.attributedText = NSAttributedString(string: title, attributes: [.paragraphStyle: paraStyle])
         }
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
-        cell.showsWarningIcon = (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0
+        if CourseManager.shared.isLoaded,
+            (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0 {
+            if currentUser?.overridesWarnings(for: course) == false {
+                cell.showsWarningIcon = true
+            } else {
+                cell.showsWarningIcon = false
+            }
+            cell.showsWarningsMenuItem = true
+        } else {
+            cell.showsWarningIcon = false
+            cell.showsWarningsMenuItem = false
+        }
         
         return cell
     }
@@ -395,6 +409,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         deleteCourse(course, from: semester)
     }
     
+    func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell) {
+        showWarnings(cell)
+    }
+    
     // MARK: - Section Actions
     
     @objc func showActionMenuForSection(_ sender: UIButton) {
@@ -441,6 +459,16 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     // MARK: - Model Interaction
         
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
+        guard currentUser?.allCourses.contains(course) == false else {
+            let alert = UIAlertController(title: "Course Already Added", message: "\(course.subjectID!) is already in your course list.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            if self.presentedViewController != nil {
+                self.presentedViewController?.present(alert, animated: true, completion: nil)
+            } else {
+                present(alert, animated: true, completion: nil)
+            }
+            return nil
+        }
         var selectedSemester: UserSemester? = semester
         if selectedSemester == nil {
             for sem in UserSemester.allEnrolledSemesters {
@@ -518,7 +546,18 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                     continue
             }
             let course = courses[indexPath.item]
-            cell.showsWarningIcon = (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0
+            if CourseManager.shared.isLoaded,
+                (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0 {
+                if currentUser?.overridesWarnings(for: course) == false {
+                    cell.showsWarningIcon = true
+                } else {
+                    cell.showsWarningIcon = false
+                }
+                cell.showsWarningsMenuItem = true
+            } else {
+                cell.showsWarningIcon = false
+                cell.showsWarningsMenuItem = false
+            }
         }
     }
     
@@ -527,6 +566,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     func updateLayoutToggleButton() {
         layoutToggleButton?.imageView?.contentMode = .center
         layoutToggleButton?.setImage(UIImage(named: isSmallLayoutMode ? "large-grid" : "small-grid")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        warningsButton?.setImage(warningsButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        warningsButton?.isEnabled = CourseManager.shared.isLoaded
     }
     
     @IBAction func toggleViewLayoutMode(_ sender: AnyObject) {
@@ -536,5 +577,56 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         collectionView.collectionViewLayout.invalidateLayout()
         updateLayoutToggleButton()
+    }
+    
+    // MARK: - Warnings
+    
+    @IBAction func showWarnings(_ sender: AnyObject?) {
+        guard let warningVC = self.storyboard?.instantiateViewController(withIdentifier: "WarningsVC") as? CourseroadWarningsViewController else {
+            return
+        }
+        warningVC.delegate = self
+        if let user = currentUser {
+            var warnings: [(Course, [User.CourseWarning], Bool)] = []
+            for semester in UserSemester.allEnrolledSemesters {
+                let courses = user.courses(forSemester: semester)
+                for course in courses {
+                    let courseWarnings = user.warningsForCourse(course, in: semester)
+                    if courseWarnings.count > 0 {
+                        warnings.append((course, courseWarnings, user.overridesWarnings(for: course)))
+                    }
+                }
+            }
+            warningVC.allWarnings = warnings
+        }
+        let nav = UINavigationController(rootViewController: warningVC)
+        nav.modalPresentationStyle = .formSheet
+        self.present(nav, animated: true, completion: nil)
+    }
+    
+    func warningsControllerDismissed(_ warningsController: CourseroadWarningsViewController) {
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    func warningsController(_ warningsController: CourseroadWarningsViewController, requestedDetailsAbout course: Course) {
+        generateDetailsViewController(for: course) { (details, list) in
+            if let detailVC = details {
+                detailVC.displayStandardMode = true
+                detailVC.showsSemesterDialog = true
+                detailVC.delegate = self
+                warningsController.navigationController?.pushViewController(detailVC, animated: true)
+            } else if let listVC = list {
+                listVC.delegate = self
+                listVC.managesNavigation = false
+                listVC.showsSemesterDialog = true
+                listVC.view.backgroundColor = .white
+                warningsController.navigationController?.pushViewController(listVC, animated: true)
+            }
+        }
+    }
+    
+    func warningsController(_ warningsController: CourseroadWarningsViewController, setOverride override: Bool, for course: Course) {
+        currentUser?.setOverridesWarnings(override, for: course)
+        collectionView.reloadData()
     }
 }

@@ -75,6 +75,7 @@
 		96C776A51FDF717B00157F2D /* UIResponderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A41FDF717B00157F2D /* UIResponderExtension.swift */; };
 		96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */; };
 		96D055251FB80B6700BD18A8 /* CourseFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */; };
+		96DF60D91FF1856F006F1C6A /* CourseroadWarningsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF60D81FF1856F006F1C6A /* CourseroadWarningsViewController.swift */; };
 		96EBE5661FBF9B8500FABE1E /* ScheduleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5651FBF9B8500FABE1E /* ScheduleViewController.swift */; };
 		96EBE5681FBF9E2B00FABE1E /* PanelParentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */; };
 		96EBE56A1FBFDE5600FABE1E /* ScheduleGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */; };
@@ -184,6 +185,7 @@
 		96C776A41FDF717B00157F2D /* UIResponderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIResponderExtension.swift; sourceTree = "<group>"; };
 		96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseThumbnailCell.swift; sourceTree = "<group>"; };
 		96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseFilterViewController.swift; sourceTree = "<group>"; };
+		96DF60D81FF1856F006F1C6A /* CourseroadWarningsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseroadWarningsViewController.swift; sourceTree = "<group>"; };
 		96EBE5651FBF9B8500FABE1E /* ScheduleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleViewController.swift; sourceTree = "<group>"; };
 		96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelParentViewController.swift; sourceTree = "<group>"; };
 		96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleGridViewController.swift; sourceTree = "<group>"; };
@@ -352,6 +354,7 @@
 				9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */,
 				961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */,
 				96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */,
+				96DF60D81FF1856F006F1C6A /* CourseroadWarningsViewController.swift */,
 			);
 			name = "Course Road";
 			sourceTree = "<group>";
@@ -568,6 +571,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				96DF60D91FF1856F006F1C6A /* CourseroadWarningsViewController.swift in Sources */,
 				9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */,
 				960A1F0A1FDA21A500C53E43 /* CourseDisplayManager.swift in Sources */,
 				968F2A191FE223480082EE40 /* ScheduleConstraintViewController.swift in Sources */,
