@@ -22,6 +22,52 @@ class CourseManager: NSObject {
     static let shared: CourseManager = CourseManager()
     var loadedDepartments: [String] = []
     
+    enum SemesterSeason {
+        static let fall = "fall"
+        static let spring = "spring"
+    }
+    struct Semester {
+        var season: String
+        var year: Int
+        
+        var stringValue: String {
+            return season + "," + "\(year)"
+        }
+        
+        var pathValue: String {
+            return season + "-" + "\(year)"
+        }
+    }
+    
+    var catalogSemester = Semester(season: SemesterSeason.spring, year: 2018)
+    
+    func directory(forSemester semester: Semester) -> String? {
+        guard let documents = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first else {
+            return nil
+        }
+        return URL(fileURLWithPath: documents).appendingPathComponent(catalogSemester.pathValue).path
+    }
+    
+    private static let catalogVersionDefaultsKey = "CourseManager.catalogVersion"
+    var catalogVersion: Int {
+        get {
+            return UserDefaults.standard.integer(forKey: CourseManager.catalogVersionDefaultsKey + ":" + catalogSemester.stringValue)
+        } set {
+            UserDefaults.standard.set(newValue, forKey: CourseManager.catalogVersionDefaultsKey + ":" + catalogSemester.stringValue)
+        }
+    }
+    
+    /**
+     - Parameter name: The name of the resource, minus the path extension (assumed
+        .txt).
+     */
+    func pathForCatalogResource(named name: String) -> String? {
+        guard let base = directory(forSemester: catalogSemester) else {
+            return nil
+        }
+        return URL(fileURLWithPath: base).appendingPathComponent(name + ".txt").path
+    }
+    
     var isLoaded = false
     var loadingProgress: Float = 0.0
     
@@ -95,7 +141,7 @@ class CourseManager: NSObject {
     
     typealias DispatchJob = ((Bool) -> Void) -> Void
     
-    func loadCourses(completion: @escaping ((Bool) -> Void)) {
+    func loadCourses(completion: ((Bool) -> Void)? = nil) {
         
         DispatchQueue.global(qos: .background).async {
             self.courses = []
@@ -105,7 +151,7 @@ class CourseManager: NSObject {
             
             self.dispatch(jobs: [Int](0..<4).map({ num -> DispatchJob in
                 return { [weak self] (taskCompletion) in
-                    guard let path = Bundle.main.path(forResource: "condensed_\(num)", ofType: "txt") else {
+                    guard let path = self?.pathForCatalogResource(named: "condensed_\(num)") else {
                         print("Failed")
                         taskCompletion(false)
                         return
@@ -117,7 +163,7 @@ class CourseManager: NSObject {
                 }
             }), completion: { (summarySuccess) in
                 guard summarySuccess else {
-                    completion(false)
+                    completion?(false)
                     return
                 }
                 
@@ -133,7 +179,7 @@ class CourseManager: NSObject {
                     if success {
                         NotificationCenter.default.post(name: .CourseManagerFinishedLoading, object: self)
                     }
-                    completion(success)
+                    completion?(success)
                 }, totalProgress: 0.1)
             }, totalProgress: 0.0)
         }
@@ -166,7 +212,8 @@ class CourseManager: NSObject {
     }
     
     func readSummaryFile(at path: String, updateBlock: ((Float) -> Void)? = nil) {
-        guard let text = try? String(contentsOfFile: path) else {
+        guard let text = try? String(contentsOfFile: path),
+            text.range(of: "<html") == nil else {
             print("Error loading summary file")
             return
         }
@@ -218,8 +265,9 @@ class CourseManager: NSObject {
     }
     
     func loadEnrollment(taskCompletion: (Bool) -> Void) {
-        guard let enrollPath = Bundle.main.path(forResource: "enrollment", ofType: "txt"),
-            let text = try? String(contentsOfFile: enrollPath) else {
+        guard let enrollPath = self.pathForCatalogResource(named: "enrollment"),
+            let text = try? String(contentsOfFile: enrollPath),
+            text.range(of: "<html") == nil else {
                 print("Failed with enrollment")
                 taskCompletion(false)
                 return
@@ -251,8 +299,9 @@ class CourseManager: NSObject {
     }
     
     func loadRelatedCourses(taskCompletion: (Bool) -> Void) {
-        guard let relatedPath = Bundle.main.path(forResource: "related", ofType: "txt"),
-            let text = try? String(contentsOfFile: relatedPath) else {
+        guard let relatedPath = self.pathForCatalogResource(named: "related"),
+            let text = try? String(contentsOfFile: relatedPath),
+            text.range(of: "<html") == nil else {
                 print("Failed with related")
                 taskCompletion(false)
                 return
@@ -275,7 +324,7 @@ class CourseManager: NSObject {
         if self.loadedDepartments.contains(department) {
             return
         }
-        guard let path = Bundle.main.path(forResource: department, ofType: "txt") else {
+        guard let path = self.pathForCatalogResource(named: department) else {
             print("Failed to load details for \(department)")
             return
         }
@@ -290,7 +339,7 @@ class CourseManager: NSObject {
         if self.loadedDepartments.contains(course.subjectCode!) {
             return
         }
-        guard let path = Bundle.main.path(forResource: course.subjectCode!, ofType: "txt") else {
+        guard let path = self.pathForCatalogResource(named: course.subjectCode!) else {
             print("Failed to load details for \(course.subjectID!)")
             return
         }
@@ -307,7 +356,7 @@ class CourseManager: NSObject {
             completion(true)
             return
         }
-        guard let path = Bundle.main.path(forResource: course.subjectCode!, ofType: "txt") else {
+        guard let path = self.pathForCatalogResource(named: course.subjectCode!) else {
             print("Failed")
             completion(false)
             return
@@ -447,7 +496,7 @@ class CourseManager: NSObject {
     }
     
     func loadDepartments() {
-        guard let filePath = Bundle.main.path(forResource: "departments", ofType: "txt"),
+        guard let filePath = self.pathForCatalogResource(named: "departments"),
             let contents = try? String(contentsOfFile: filePath) else {
                 print("Couldn't load departments")
                 return
@@ -618,5 +667,140 @@ class CourseManager: NSObject {
         /*DispatchQueue.global(qos: .utility).async {
             self.indexSearchableItems(for: department)
         }*/
+    }
+    
+    // MARK: - Updating Course Database
+    
+    private let baseUpdateURL = "http://venkats.scripts.mit.edu/fireroad/courseupdater/check/"
+    private let baseStaticURL = "http://venkats.scripts.mit.edu/catalogs/"
+
+    func checkForCourseCatalogUpdates(withResult resultBlock: ((Bool) -> Void)? = nil, updaterBlock: ((Float) -> Void)? = nil, errorBlock: ((Error?, Int?) -> Void)? = nil) {
+        clearTemporaryDownloads()
+        guard var comps = URLComponents(string: baseUpdateURL) else {
+            return
+        }
+        comps.queryItems = [
+            URLQueryItem(name: "sem", value: catalogSemester.stringValue),
+            URLQueryItem(name: "v", value: "\(catalogVersion)")
+        ]
+        guard let url = comps.url else {
+            print("Couldn't get URL")
+            return
+        }
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 10.0)
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            guard error == nil, let receivedData = data,
+                let httpResponse = response as? HTTPURLResponse,
+                httpResponse.statusCode == 200 else {
+                print("Error retrieving data updates")
+                if error != nil {
+                    print("\(error!)")
+                }
+                return
+            }
+            do {
+                if let dict = (try JSONSerialization.jsonObject(with: receivedData, options: [])) as? [String: Any],
+                    let newVersion = dict["v"] as? Int,
+                    let updateFiles = dict["delta"] as? [String],
+                    updateFiles.count > 0 {
+                    
+                    guard let dest = self.directory(forSemester: self.catalogSemester) else {
+                        print("Couldn't get destination")
+                        return
+                    }
+                    resultBlock?(true)
+                    self.updateCourseCatalog(with: updateFiles, destinationDirectory: URL(fileURLWithPath: dest), newVersion: newVersion, updaterBlock: updaterBlock, errorBlock: errorBlock)
+                } else {
+                    resultBlock?(false)
+                }
+            } catch {
+                print("Error decoding JSON: \(error)")
+            }
+        }
+        task.resume()
+    }
+    
+    var temporaryDownloadDirectory: String? {
+        guard let docs = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first else {
+            return nil
+        }
+        let path = URL(fileURLWithPath: docs).appendingPathComponent("temp_dl").path
+        if !FileManager.default.fileExists(atPath: path) {
+            try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
+        }
+        return path
+    }
+    
+    func clearTemporaryDownloads() {
+        guard let temp = temporaryDownloadDirectory else {
+            return
+        }
+        do {
+            try FileManager.default.removeItem(atPath: temp)
+        } catch {
+            print("Couldn't clear temporary downloads: \(error)")
+        }
+    }
+    
+    func updateCourseCatalog(with fileNames: [String], destinationDirectory: URL, newVersion: Int = 0, downloadIndex: Int = 0, updaterBlock: ((Float) -> Void)? = nil, errorBlock: ((Error?, Int?) -> Void)? = nil) {
+        guard let url = URL(string: baseStaticURL) else {
+            return
+        }
+        guard let temp = temporaryDownloadDirectory else {
+            return
+        }
+        let tempDestination = URL(fileURLWithPath: temp)
+        if fileNames.count <= downloadIndex {
+            do {
+                if FileManager.default.fileExists(atPath: destinationDirectory.path) {
+                    for content in try FileManager.default.contentsOfDirectory(atPath: tempDestination.path) {
+                        let oldPath = tempDestination.appendingPathComponent(content)
+                        let newPath = destinationDirectory.appendingPathComponent(content)
+                        if FileManager.default.fileExists(atPath: newPath.path) {
+                            _ = try FileManager.default.replaceItemAt(newPath, withItemAt: oldPath)
+                        } else {
+                            try FileManager.default.moveItem(at: oldPath, to: newPath)
+                        }
+                    }
+                } else {
+                    try FileManager.default.moveItem(at: tempDestination, to: destinationDirectory)
+                }
+                clearTemporaryDownloads()
+                self.catalogVersion = newVersion
+                updaterBlock?(1.0)
+            } catch {
+                errorBlock?(error, nil)
+            }
+            return
+        } else {
+            let currentFile = fileNames[downloadIndex]
+            let request = URLRequest(url: url.appendingPathComponent(currentFile), cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 5.0)
+            let task = URLSession.shared.downloadTask(with: request, completionHandler: { (downloadURL, response, error) in
+                guard error == nil,
+                    let httpResponse = response as? HTTPURLResponse,
+                    httpResponse.statusCode == 200 else {
+                    if error != nil {
+                        print("Error retrieving file: \(error!)")
+                    } else {
+                        print("Error in response: \(response)")
+                    }
+                    errorBlock?(error, (response as? HTTPURLResponse)?.statusCode)
+                    return
+                }
+                guard let url = downloadURL else {
+                    print("No download URL given")
+                    return
+                }
+                do {
+                    try FileManager.default.moveItem(at: url, to: tempDestination.appendingPathComponent((currentFile as NSString).lastPathComponent))
+                    updaterBlock?(Float(downloadIndex + 1) / Float(fileNames.count + 1))
+                    self.updateCourseCatalog(with: fileNames, destinationDirectory: destinationDirectory, newVersion: 1, downloadIndex: downloadIndex + 1, updaterBlock: updaterBlock, errorBlock: errorBlock)
+                } catch {
+                    print("Error moving file: \(error)")
+                    errorBlock?(error, nil)
+                }
+            })
+            task.resume()
+        }
     }
 }

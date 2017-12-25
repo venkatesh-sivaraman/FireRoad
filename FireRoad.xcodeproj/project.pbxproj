@@ -25,7 +25,6 @@
 		9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */; };
 		9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9611CD821F9287CE00DE2BDE /* acknowledgements.txt */; };
 		961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */; };
-		961E49941EC6938F002BABB9 /* course_processor.py in Resources */ = {isa = PBXBuildFile; fileRef = 961E49931EC6938F002BABB9 /* course_processor.py */; };
 		961E49FD1EC6A8CB002BABB9 /* CourseDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */; };
 		961E49FF1EC7771D002BABB9 /* enrollment.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49FE1EC7771D002BABB9 /* enrollment.txt */; };
 		961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */; };
@@ -38,53 +37,6 @@
 		96293C461FE86ECB00F1BDFD /* major6-1.reql in Resources */ = {isa = PBXBuildFile; fileRef = 96293C451FE86ECB00F1BDFD /* major6-1.reql */; };
 		96293C481FEAD21300F1BDFD /* color_checker.py in Resources */ = {isa = PBXBuildFile; fileRef = 96293C471FEAD21300F1BDFD /* color_checker.py */; };
 		962DAD661F89A6180011D96F /* RootTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962DAD651F89A6180011D96F /* RootTabViewController.swift */; };
-		9636DDE11F7894F300117A82 /* 1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB21F7894F300117A82 /* 1.txt */; };
-		9636DDE21F7894F300117A82 /* 10.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB31F7894F300117A82 /* 10.txt */; };
-		9636DDE31F7894F300117A82 /* 11.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB41F7894F300117A82 /* 11.txt */; };
-		9636DDE41F7894F300117A82 /* 12.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB51F7894F300117A82 /* 12.txt */; };
-		9636DDE51F7894F300117A82 /* 14.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB61F7894F300117A82 /* 14.txt */; };
-		9636DDE61F7894F300117A82 /* 15.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB71F7894F300117A82 /* 15.txt */; };
-		9636DDE71F7894F300117A82 /* 16.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB81F7894F300117A82 /* 16.txt */; };
-		9636DDE81F7894F300117A82 /* 17.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB91F7894F300117A82 /* 17.txt */; };
-		9636DDE91F7894F300117A82 /* 18.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBA1F7894F300117A82 /* 18.txt */; };
-		9636DDEA1F7894F300117A82 /* 2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBB1F7894F300117A82 /* 2.txt */; };
-		9636DDEB1F7894F300117A82 /* 20.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBC1F7894F300117A82 /* 20.txt */; };
-		9636DDEC1F7894F300117A82 /* 21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBD1F7894F300117A82 /* 21.txt */; };
-		9636DDED1F7894F300117A82 /* 21A.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBE1F7894F300117A82 /* 21A.txt */; };
-		9636DDEE1F7894F300117A82 /* 21G.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBF1F7894F300117A82 /* 21G.txt */; };
-		9636DDEF1F7894F300117A82 /* 21H.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC01F7894F300117A82 /* 21H.txt */; };
-		9636DDF01F7894F300117A82 /* 21L.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC11F7894F300117A82 /* 21L.txt */; };
-		9636DDF11F7894F300117A82 /* 21M.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC21F7894F300117A82 /* 21M.txt */; };
-		9636DDF21F7894F300117A82 /* 21W.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC31F7894F300117A82 /* 21W.txt */; };
-		9636DDF31F7894F300117A82 /* 22.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC41F7894F300117A82 /* 22.txt */; };
-		9636DDF41F7894F300117A82 /* 24.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC51F7894F300117A82 /* 24.txt */; };
-		9636DDF51F7894F300117A82 /* 3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC61F7894F300117A82 /* 3.txt */; };
-		9636DDF61F7894F300117A82 /* 4.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC71F7894F300117A82 /* 4.txt */; };
-		9636DDF71F7894F300117A82 /* 5.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC81F7894F300117A82 /* 5.txt */; };
-		9636DDF81F7894F300117A82 /* 6.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC91F7894F300117A82 /* 6.txt */; };
-		9636DDF91F7894F300117A82 /* 7.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCA1F7894F300117A82 /* 7.txt */; };
-		9636DDFA1F7894F300117A82 /* 8.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCB1F7894F300117A82 /* 8.txt */; };
-		9636DDFB1F7894F300117A82 /* 9.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCC1F7894F300117A82 /* 9.txt */; };
-		9636DDFC1F7894F300117A82 /* AS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCD1F7894F300117A82 /* AS.txt */; };
-		9636DDFD1F7894F300117A82 /* CC.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCE1F7894F300117A82 /* CC.txt */; };
-		9636DDFE1F7894F300117A82 /* CMS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCF1F7894F300117A82 /* CMS.txt */; };
-		9636DDFF1F7894F300117A82 /* condensed.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD01F7894F300117A82 /* condensed.txt */; };
-		9636DE001F7894F300117A82 /* courses.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD11F7894F300117A82 /* courses.txt */; };
-		9636DE011F7894F300117A82 /* CSB.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD21F7894F300117A82 /* CSB.txt */; };
-		9636DE021F7894F300117A82 /* EC.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD31F7894F300117A82 /* EC.txt */; };
-		9636DE031F7894F300117A82 /* EM.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD41F7894F300117A82 /* EM.txt */; };
-		9636DE041F7894F300117A82 /* ES.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD51F7894F300117A82 /* ES.txt */; };
-		9636DE051F7894F300117A82 /* HST.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD61F7894F300117A82 /* HST.txt */; };
-		9636DE061F7894F300117A82 /* IDS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD71F7894F300117A82 /* IDS.txt */; };
-		9636DE071F7894F300117A82 /* MAS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD81F7894F300117A82 /* MAS.txt */; };
-		9636DE081F7894F300117A82 /* MS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD91F7894F300117A82 /* MS.txt */; };
-		9636DE091F7894F300117A82 /* NS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDA1F7894F300117A82 /* NS.txt */; };
-		9636DE0A1F7894F300117A82 /* related.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDB1F7894F300117A82 /* related.txt */; };
-		9636DE0B1F7894F300117A82 /* SCM.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDC1F7894F300117A82 /* SCM.txt */; };
-		9636DE0C1F7894F300117A82 /* SP.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDD1F7894F300117A82 /* SP.txt */; };
-		9636DE0D1F7894F300117A82 /* STS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDE1F7894F300117A82 /* STS.txt */; };
-		9636DE0E1F7894F400117A82 /* SWE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDF1F7894F300117A82 /* SWE.txt */; };
-		9636DE0F1F7894F400117A82 /* WGS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDE01F7894F300117A82 /* WGS.txt */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
 		9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* CatalogViewController.swift */; };
 		9646CFD71EB921FE005F87CB /* CourseroadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */; };
@@ -128,10 +80,6 @@
 		96EBE56A1FBFDE5600FABE1E /* ScheduleGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */; };
 		96EBE56C1FBFDF0900FABE1E /* ScheduleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE56B1FBFDF0900FABE1E /* ScheduleModel.swift */; };
 		96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */; };
-		96FF1F8E1FB65797007F4A7C /* condensed_2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F891FB65796007F4A7C /* condensed_2.txt */; };
-		96FF1F8F1FB65797007F4A7C /* condensed_3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8A1FB65797007F4A7C /* condensed_3.txt */; };
-		96FF1F901FB65797007F4A7C /* condensed_0.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8B1FB65797007F4A7C /* condensed_0.txt */; };
-		96FF1F911FB65797007F4A7C /* condensed_1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8C1FB65797007F4A7C /* condensed_1.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -176,7 +124,6 @@
 		9611CD821F9287CE00DE2BDE /* acknowledgements.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = acknowledgements.txt; sourceTree = "<group>"; };
 		9611CD841F92881600DE2BDE /* minor6.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = minor6.reql; sourceTree = "<group>"; };
 		961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserCell.swift; sourceTree = "<group>"; };
-		961E49931EC6938F002BABB9 /* course_processor.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = course_processor.py; sourceTree = "<group>"; };
 		961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseDetailsViewController.swift; sourceTree = "<group>"; };
 		961E49FE1EC7771D002BABB9 /* enrollment.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = enrollment.txt; sourceTree = "<group>"; };
 		961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PanelViewController.swift; sourceTree = "<group>"; };
@@ -190,53 +137,6 @@
 		96293C451FE86ECB00F1BDFD /* major6-1.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "major6-1.reql"; sourceTree = "<group>"; };
 		96293C471FEAD21300F1BDFD /* color_checker.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = color_checker.py; sourceTree = "<group>"; };
 		962DAD651F89A6180011D96F /* RootTabViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabViewController.swift; sourceTree = "<group>"; };
-		9636DDB21F7894F300117A82 /* 1.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 1.txt; sourceTree = "<group>"; };
-		9636DDB31F7894F300117A82 /* 10.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 10.txt; sourceTree = "<group>"; };
-		9636DDB41F7894F300117A82 /* 11.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 11.txt; sourceTree = "<group>"; };
-		9636DDB51F7894F300117A82 /* 12.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 12.txt; sourceTree = "<group>"; };
-		9636DDB61F7894F300117A82 /* 14.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 14.txt; sourceTree = "<group>"; };
-		9636DDB71F7894F300117A82 /* 15.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 15.txt; sourceTree = "<group>"; };
-		9636DDB81F7894F300117A82 /* 16.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 16.txt; sourceTree = "<group>"; };
-		9636DDB91F7894F300117A82 /* 17.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 17.txt; sourceTree = "<group>"; };
-		9636DDBA1F7894F300117A82 /* 18.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 18.txt; sourceTree = "<group>"; };
-		9636DDBB1F7894F300117A82 /* 2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 2.txt; sourceTree = "<group>"; };
-		9636DDBC1F7894F300117A82 /* 20.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 20.txt; sourceTree = "<group>"; };
-		9636DDBD1F7894F300117A82 /* 21.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21.txt; sourceTree = "<group>"; };
-		9636DDBE1F7894F300117A82 /* 21A.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21A.txt; sourceTree = "<group>"; };
-		9636DDBF1F7894F300117A82 /* 21G.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21G.txt; sourceTree = "<group>"; };
-		9636DDC01F7894F300117A82 /* 21H.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21H.txt; sourceTree = "<group>"; };
-		9636DDC11F7894F300117A82 /* 21L.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21L.txt; sourceTree = "<group>"; };
-		9636DDC21F7894F300117A82 /* 21M.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21M.txt; sourceTree = "<group>"; };
-		9636DDC31F7894F300117A82 /* 21W.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 21W.txt; sourceTree = "<group>"; };
-		9636DDC41F7894F300117A82 /* 22.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 22.txt; sourceTree = "<group>"; };
-		9636DDC51F7894F300117A82 /* 24.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 24.txt; sourceTree = "<group>"; };
-		9636DDC61F7894F300117A82 /* 3.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 3.txt; sourceTree = "<group>"; };
-		9636DDC71F7894F300117A82 /* 4.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 4.txt; sourceTree = "<group>"; };
-		9636DDC81F7894F300117A82 /* 5.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 5.txt; sourceTree = "<group>"; };
-		9636DDC91F7894F300117A82 /* 6.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 6.txt; sourceTree = "<group>"; };
-		9636DDCA1F7894F300117A82 /* 7.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 7.txt; sourceTree = "<group>"; };
-		9636DDCB1F7894F300117A82 /* 8.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 8.txt; sourceTree = "<group>"; };
-		9636DDCC1F7894F300117A82 /* 9.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 9.txt; sourceTree = "<group>"; };
-		9636DDCD1F7894F300117A82 /* AS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = AS.txt; sourceTree = "<group>"; };
-		9636DDCE1F7894F300117A82 /* CC.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CC.txt; sourceTree = "<group>"; };
-		9636DDCF1F7894F300117A82 /* CMS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMS.txt; sourceTree = "<group>"; };
-		9636DDD01F7894F300117A82 /* condensed.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed.txt; sourceTree = "<group>"; };
-		9636DDD11F7894F300117A82 /* courses.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = courses.txt; sourceTree = "<group>"; };
-		9636DDD21F7894F300117A82 /* CSB.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CSB.txt; sourceTree = "<group>"; };
-		9636DDD31F7894F300117A82 /* EC.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = EC.txt; sourceTree = "<group>"; };
-		9636DDD41F7894F300117A82 /* EM.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = EM.txt; sourceTree = "<group>"; };
-		9636DDD51F7894F300117A82 /* ES.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ES.txt; sourceTree = "<group>"; };
-		9636DDD61F7894F300117A82 /* HST.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = HST.txt; sourceTree = "<group>"; };
-		9636DDD71F7894F300117A82 /* IDS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IDS.txt; sourceTree = "<group>"; };
-		9636DDD81F7894F300117A82 /* MAS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MAS.txt; sourceTree = "<group>"; };
-		9636DDD91F7894F300117A82 /* MS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = MS.txt; sourceTree = "<group>"; };
-		9636DDDA1F7894F300117A82 /* NS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NS.txt; sourceTree = "<group>"; };
-		9636DDDB1F7894F300117A82 /* related.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = related.txt; sourceTree = "<group>"; };
-		9636DDDC1F7894F300117A82 /* SCM.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SCM.txt; sourceTree = "<group>"; };
-		9636DDDD1F7894F300117A82 /* SP.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SP.txt; sourceTree = "<group>"; };
-		9636DDDE1F7894F300117A82 /* STS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = STS.txt; sourceTree = "<group>"; };
-		9636DDDF1F7894F300117A82 /* SWE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SWE.txt; sourceTree = "<group>"; };
-		9636DDE01F7894F300117A82 /* WGS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = WGS.txt; sourceTree = "<group>"; };
 		963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FireRoad-Bridging-Header.h"; sourceTree = "<group>"; };
 		9646CFCF1EB921FE005F87CB /* FireRoad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireRoad.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9646CFD21EB921FE005F87CB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -289,11 +189,6 @@
 		96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleGridViewController.swift; sourceTree = "<group>"; };
 		96EBE56B1FBFDF0900FABE1E /* ScheduleModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleModel.swift; sourceTree = "<group>"; };
 		96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseCatalogParser.swift; sourceTree = "<group>"; };
-		96FF1F881FB65796007F4A7C /* IS.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IS.txt; sourceTree = "<group>"; };
-		96FF1F891FB65796007F4A7C /* condensed_2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed_2.txt; sourceTree = "<group>"; };
-		96FF1F8A1FB65797007F4A7C /* condensed_3.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed_3.txt; sourceTree = "<group>"; };
-		96FF1F8B1FB65797007F4A7C /* condensed_0.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed_0.txt; sourceTree = "<group>"; };
-		96FF1F8C1FB65797007F4A7C /* condensed_1.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = condensed_1.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -323,65 +218,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		9636DDB11F7894F300117A82 /* scraped_course_data */ = {
-			isa = PBXGroup;
-			children = (
-				9636DDB21F7894F300117A82 /* 1.txt */,
-				9636DDB31F7894F300117A82 /* 10.txt */,
-				9636DDB41F7894F300117A82 /* 11.txt */,
-				9636DDB51F7894F300117A82 /* 12.txt */,
-				9636DDB61F7894F300117A82 /* 14.txt */,
-				9636DDB71F7894F300117A82 /* 15.txt */,
-				9636DDB81F7894F300117A82 /* 16.txt */,
-				9636DDB91F7894F300117A82 /* 17.txt */,
-				9636DDBA1F7894F300117A82 /* 18.txt */,
-				9636DDBB1F7894F300117A82 /* 2.txt */,
-				9636DDBC1F7894F300117A82 /* 20.txt */,
-				9636DDBD1F7894F300117A82 /* 21.txt */,
-				9636DDBE1F7894F300117A82 /* 21A.txt */,
-				9636DDBF1F7894F300117A82 /* 21G.txt */,
-				9636DDC01F7894F300117A82 /* 21H.txt */,
-				9636DDC11F7894F300117A82 /* 21L.txt */,
-				9636DDC21F7894F300117A82 /* 21M.txt */,
-				9636DDC31F7894F300117A82 /* 21W.txt */,
-				9636DDC41F7894F300117A82 /* 22.txt */,
-				9636DDC51F7894F300117A82 /* 24.txt */,
-				9636DDC61F7894F300117A82 /* 3.txt */,
-				9636DDC71F7894F300117A82 /* 4.txt */,
-				9636DDC81F7894F300117A82 /* 5.txt */,
-				9636DDC91F7894F300117A82 /* 6.txt */,
-				9636DDCA1F7894F300117A82 /* 7.txt */,
-				9636DDCB1F7894F300117A82 /* 8.txt */,
-				9636DDCC1F7894F300117A82 /* 9.txt */,
-				9636DDCD1F7894F300117A82 /* AS.txt */,
-				9636DDCE1F7894F300117A82 /* CC.txt */,
-				9636DDCF1F7894F300117A82 /* CMS.txt */,
-				9636DDD01F7894F300117A82 /* condensed.txt */,
-				96FF1F8B1FB65797007F4A7C /* condensed_0.txt */,
-				96FF1F8C1FB65797007F4A7C /* condensed_1.txt */,
-				96FF1F891FB65796007F4A7C /* condensed_2.txt */,
-				96FF1F8A1FB65797007F4A7C /* condensed_3.txt */,
-				96FF1F881FB65796007F4A7C /* IS.txt */,
-				9636DDD11F7894F300117A82 /* courses.txt */,
-				9636DDD21F7894F300117A82 /* CSB.txt */,
-				9636DDD31F7894F300117A82 /* EC.txt */,
-				9636DDD41F7894F300117A82 /* EM.txt */,
-				9636DDD51F7894F300117A82 /* ES.txt */,
-				9636DDD61F7894F300117A82 /* HST.txt */,
-				9636DDD71F7894F300117A82 /* IDS.txt */,
-				9636DDD81F7894F300117A82 /* MAS.txt */,
-				9636DDD91F7894F300117A82 /* MS.txt */,
-				9636DDDA1F7894F300117A82 /* NS.txt */,
-				9636DDDB1F7894F300117A82 /* related.txt */,
-				9636DDDC1F7894F300117A82 /* SCM.txt */,
-				9636DDDD1F7894F300117A82 /* SP.txt */,
-				9636DDDE1F7894F300117A82 /* STS.txt */,
-				9636DDDF1F7894F300117A82 /* SWE.txt */,
-				9636DDE01F7894F300117A82 /* WGS.txt */,
-			);
-			path = scraped_course_data;
-			sourceTree = "<group>";
-		};
 		9646CFC61EB921FE005F87CB = {
 			isa = PBXGroup;
 			children = (
@@ -430,8 +266,6 @@
 				9611CD821F9287CE00DE2BDE /* acknowledgements.txt */,
 				9626B6E41F80AF1F009F6F96 /* course_requirements_spec.md */,
 				968F2A1D1FE5A36E0082EE40 /* departments.txt */,
-				9636DDB11F7894F300117A82 /* scraped_course_data */,
-				961E49931EC6938F002BABB9 /* course_processor.py */,
 				96293C471FEAD21300F1BDFD /* color_checker.py */,
 				963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */,
 			);
@@ -689,86 +523,34 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9636DE0D1F7894F300117A82 /* STS.txt in Resources */,
-				9636DE051F7894F300117A82 /* HST.txt in Resources */,
 				9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */,
-				9636DDFD1F7894F300117A82 /* CC.txt in Resources */,
-				9636DDFB1F7894F300117A82 /* 9.txt in Resources */,
 				960A1F101FDC7ED400C53E43 /* major2oe.reql in Resources */,
-				9636DDF41F7894F300117A82 /* 24.txt in Resources */,
-				9636DDE71F7894F300117A82 /* 16.txt in Resources */,
-				9636DE061F7894F300117A82 /* IDS.txt in Resources */,
 				968F2A1E1FE5A36E0082EE40 /* departments.txt in Resources */,
-				9636DE071F7894F300117A82 /* MAS.txt in Resources */,
-				9636DDEC1F7894F300117A82 /* 21.txt in Resources */,
-				9636DDF71F7894F300117A82 /* 5.txt in Resources */,
 				9646CFDF1EB921FE005F87CB /* LaunchScreen.storyboard in Resources */,
-				9636DE0A1F7894F300117A82 /* related.txt in Resources */,
-				9636DDEE1F7894F300117A82 /* 21G.txt in Resources */,
-				961E49941EC6938F002BABB9 /* course_processor.py in Resources */,
-				9636DDE61F7894F300117A82 /* 15.txt in Resources */,
-				9636DDF91F7894F300117A82 /* 7.txt in Resources */,
 				966493C51FD2181100B8D684 /* minorJapanese.reql in Resources */,
-				96FF1F8F1FB65797007F4A7C /* condensed_3.txt in Resources */,
 				960A1F1E1FDCDA7100C53E43 /* major4b.reql in Resources */,
 				96293C481FEAD21300F1BDFD /* color_checker.py in Resources */,
-				9636DDE11F7894F300117A82 /* 1.txt in Resources */,
-				9636DDFE1F7894F300117A82 /* CMS.txt in Resources */,
-				9636DDEA1F7894F300117A82 /* 2.txt in Resources */,
-				9636DDFA1F7894F300117A82 /* 8.txt in Resources */,
-				9636DDE91F7894F300117A82 /* 18.txt in Resources */,
-				9636DDF61F7894F300117A82 /* 4.txt in Resources */,
 				9646CFDC1EB921FE005F87CB /* Assets.xcassets in Resources */,
-				9636DDE41F7894F300117A82 /* 12.txt in Resources */,
-				9636DE021F7894F300117A82 /* EC.txt in Resources */,
-				9636DDE51F7894F300117A82 /* 14.txt in Resources */,
-				9636DE091F7894F300117A82 /* NS.txt in Resources */,
-				9636DDE21F7894F300117A82 /* 10.txt in Resources */,
-				9636DDE31F7894F300117A82 /* 11.txt in Resources */,
-				9636DDF21F7894F300117A82 /* 21W.txt in Resources */,
-				9636DE011F7894F300117A82 /* CSB.txt in Resources */,
-				9636DDF11F7894F300117A82 /* 21M.txt in Resources */,
-				9636DE031F7894F300117A82 /* EM.txt in Resources */,
 				960A1F0C1FDB7C8000C53E43 /* major1.reql in Resources */,
 				960A1F221FDCDA7100C53E43 /* major4.reql in Resources */,
 				960A1F1F1FDCDA7100C53E43 /* major3c.reql in Resources */,
-				9636DDF51F7894F300117A82 /* 3.txt in Resources */,
 				9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */,
 				966493C71FD2181100B8D684 /* major16.reql in Resources */,
-				9636DDFF1F7894F300117A82 /* condensed.txt in Resources */,
 				960A1F211FDCDA7100C53E43 /* major5.reql in Resources */,
 				960A1F161FDC8FEB00C53E43 /* major3a.reql in Resources */,
-				9636DE0C1F7894F300117A82 /* SP.txt in Resources */,
-				9636DDFC1F7894F300117A82 /* AS.txt in Resources */,
-				96FF1F8E1FB65797007F4A7C /* condensed_2.txt in Resources */,
-				96FF1F911FB65797007F4A7C /* condensed_1.txt in Resources */,
 				960A1F181FDC92B600C53E43 /* girs.reql in Resources */,
-				9636DDF81F7894F300117A82 /* 6.txt in Resources */,
 				9659E38D1F89B57700E55FA2 /* minor21m.reql in Resources */,
-				9636DDEF1F7894F300117A82 /* 21H.txt in Resources */,
-				9636DDF01F7894F300117A82 /* 21L.txt in Resources */,
-				9636DE041F7894F300117A82 /* ES.txt in Resources */,
 				966493C31FD2181100B8D684 /* minorRussian.reql in Resources */,
 				96293C461FE86ECB00F1BDFD /* major6-1.reql in Resources */,
 				961E49FF1EC7771D002BABB9 /* enrollment.txt in Resources */,
-				9636DDF31F7894F300117A82 /* 22.txt in Resources */,
 				960A1F0F1FDC7ED400C53E43 /* major2a.reql in Resources */,
 				960A1F121FDC807800C53E43 /* major2.reql in Resources */,
 				960A1F201FDCDA7100C53E43 /* major5-7.reql in Resources */,
 				966493C61FD2181100B8D684 /* major16-ENG.reql in Resources */,
-				9636DE001F7894F300117A82 /* courses.txt in Resources */,
 				9626B6E31F80A93F009F6F96 /* major6-7.reql in Resources */,
-				9636DDED1F7894F300117A82 /* 21A.txt in Resources */,
 				960A1F151FDC8FEB00C53E43 /* major3.reql in Resources */,
-				9636DE081F7894F300117A82 /* MS.txt in Resources */,
-				9636DDE81F7894F300117A82 /* 17.txt in Resources */,
-				9636DE0F1F7894F400117A82 /* WGS.txt in Resources */,
 				9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */,
-				96FF1F901FB65797007F4A7C /* condensed_0.txt in Resources */,
-				9636DE0E1F7894F400117A82 /* SWE.txt in Resources */,
 				9646CFDA1EB921FE005F87CB /* Main.storyboard in Resources */,
-				9636DE0B1F7894F300117A82 /* SCM.txt in Resources */,
-				9636DDEB1F7894F300117A82 /* 20.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

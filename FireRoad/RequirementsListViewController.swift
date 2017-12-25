@@ -126,6 +126,12 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         } else {
             presentationItems = []
         }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(RequirementsListViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -179,6 +185,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             return
         }
         updateRequirementsStatus()
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        loadRequirementsOrDisplay()
     }
     
     // MARK: - State Preservation

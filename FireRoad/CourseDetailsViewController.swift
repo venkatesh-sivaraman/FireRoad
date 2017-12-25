@@ -112,6 +112,12 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         if #available(iOS 11.0, *) {
             self.navigationItem.largeTitleDisplayMode = .never
         }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -127,6 +133,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     override func viewWillDisappear(_ animated: Bool) {
         NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        loadSubjectsOrDisplay()
     }
     
     var courseLoadingHUD: MBProgressHUD?

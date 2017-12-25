@@ -35,6 +35,12 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         } else {
             // Fallback on earlier versions
         }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(RequirementsBrowserViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -118,6 +124,10 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         }
         return false
 
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        loadRequirementsOrDisplay()
     }
     
     // MARK: - State Preservation

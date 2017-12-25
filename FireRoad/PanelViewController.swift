@@ -82,7 +82,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        if self.view.frame.size.height > 0.0 {
+        if self.view.frame.size.height > 0.0, collapseHeight == 0.0 {
             collapseHeight = self.view.frame.size.height
         }
         if shouldExpandOnAppear {

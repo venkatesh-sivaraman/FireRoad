@@ -127,7 +127,7 @@ func writeFullCourses(_ courses: [[CourseAttribute: Any]], to file: String) {
     }
 }
 
-var outputDirectory: String = "/Users/venkatesh-sivaraman/Documents/ScrapedCourses/"
+var outputDirectory: String = CommandLine.arguments.count >= 2 ? CommandLine.arguments[1] : "/Users/venkatesh-sivaraman/Documents/ScrapedCourses/"
 
 var allCourses: [[CourseAttribute: Any]] = []
 var departmentCourses: [[CourseAttribute: Any]] = []

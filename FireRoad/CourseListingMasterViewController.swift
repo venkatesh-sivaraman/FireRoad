@@ -151,11 +151,21 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
 
         if let layout = collectionView?.collectionViewLayout as? UICollectionViewFlowLayout {
             layout.sectionHeadersPinToVisibleBounds = true
-        }        
+        }
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseListingMasterViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        setupCollectionViewData()
+    }
+    
+    func setupCollectionViewData() {
         if let rootTab = rootParent as? RootTabViewController,
             let user = rootTab.currentUser {
             recommendedCourses = user.userRecommendedCourses()
@@ -184,6 +194,10 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
             dismiss(animated: true, completion: nil)
             popoverNavigationController = nil
         }
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        setupCollectionViewData()
     }
     
     // MARK: - Collection View Data Source

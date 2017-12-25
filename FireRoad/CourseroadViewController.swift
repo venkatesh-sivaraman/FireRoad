@@ -33,11 +33,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if !CourseManager.shared.isLoaded {
-            CourseManager.shared.loadCourses { (success: Bool) in
-                self.updateCourseWarningStatus()
-            }
-        }
+        NotificationCenter.default.addObserver(self, selector: #selector(courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
         
         self.collectionView.collectionViewLayout = UICollectionViewFlowLayout() //CustomCollectionViewFlowLayout() //LeftAlignedCollectionViewFlowLayout()
         self.collectionView.allowsSelection = true
@@ -171,6 +167,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         updatePanelViewCollapseHeight()
     }
     
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
     override func viewWillLayoutSubviews() {
         self.collectionView.collectionViewLayout.invalidateLayout()
     }
@@ -178,6 +178,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        updateCourseWarningStatus()
     }
     
     // MARK: - State Restoration

@@ -32,8 +32,14 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
             navigationItem.searchController = searchController
         }
         searchController?.searchBar.placeholder = "Filter subjects…"
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseListingViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
     }
     
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     var courseLoadingHUD: MBProgressHUD?
 
     override func viewWillAppear(_ animated: Bool) {
@@ -59,15 +65,13 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                     usleep(100)
                 }
                 CourseManager.shared.loadCourseDetailsSynchronously(for: self.departmentCode)
-                self.courses = CourseManager.shared.getCourses(forDepartment: self.departmentCode)
                 DispatchQueue.main.async {
-                    self.collectionView?.reloadData()
                     hud.hide(animated: true)
+                    self.setupCollectionViewData()
                 }
             }
         } else {
-            self.courses = CourseManager.shared.getCourses(forDepartment: self.departmentCode)
-            self.collectionView?.reloadData()
+            setupCollectionViewData()
         }
     }
     
@@ -86,6 +90,15 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func setupCollectionViewData() {
+        self.courses = CourseManager.shared.getCourses(forDepartment: self.departmentCode)
+        self.collectionView?.reloadData()
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        setupCollectionViewData()
     }
     
     // MARK: - State Preservation

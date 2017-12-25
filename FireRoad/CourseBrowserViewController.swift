@@ -142,6 +142,12 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         if #available(iOS 11.0, *) {
             self.navigationItem.largeTitleDisplayMode = .never
         }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseBrowserViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -235,13 +241,15 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return nil
     }
     
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        if let search = searchTerm {
+            loadSearchResults(withString: search, options: searchOptions)
+        }
     }
     
     // MARK: - State Preservation

@@ -83,6 +83,12 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         menu.menuItems = (menu.menuItems ?? []) + [
             UIMenuItem(title: MenuItemStrings.constrain, action: #selector(CourseThumbnailCell.constrain(_:)))
         ]
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(ScheduleViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     override func didReceiveMemoryWarning() {
@@ -106,6 +112,10 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         if newHiddenValue != navigationController?.isNavigationBarHidden {
             navigationController?.setNavigationBarHidden(newHiddenValue, animated: animated)
         }
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        updateDisplayedSchedules()
     }
     
     // MARK: - State Restoration

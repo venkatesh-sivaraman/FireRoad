@@ -10,6 +10,84 @@ import UIKit
 
 class RootTabViewController: UITabBarController {
     
+    var blurView: UIVisualEffectView?
+    var courseUpdatingHUD: MBProgressHUD?
+    
+    func hideHUD() {
+        self.courseUpdatingHUD?.hide(animated: true)
+        UIView.animate(withDuration: 0.3, animations: {
+            self.blurView?.effect = nil
+        }, completion: { completed in
+            if completed {
+                self.blurView?.removeFromSuperview()
+            }
+        })
+    }
+    
+    override func viewDidLoad() {
+        if !CourseManager.shared.isLoaded {
+            CourseManager.shared.loadCourses()
+        }
+
+        CourseManager.shared.checkForCourseCatalogUpdates(withResult: { (willShow) in
+            DispatchQueue.main.async {
+                guard self.courseUpdatingHUD == nil, willShow else {
+                    return
+                }
+                let blur = UIVisualEffectView(effect: nil)
+                blur.frame = self.view.bounds
+                self.blurView = blur
+                self.view.addSubview(blur)
+                blur.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+                blur.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+                blur.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+                blur.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+                
+                let hud = MBProgressHUD.showAdded(to: blur.contentView, animated: true)
+                hud.mode = .determinateHorizontalBar
+                hud.label.text = "Updating subject catalog…"
+                self.courseUpdatingHUD = hud
+                
+                UIView.animate(withDuration: 0.3, animations: {
+                    blur.effect = UIBlurEffect(style: .light)
+                })
+            }
+        }, updaterBlock: { (progress) in
+            DispatchQueue.main.async {
+                self.courseUpdatingHUD?.progress = progress
+                if progress == 1.0 {
+                    self.hideHUD()
+                }
+            }
+            if progress == 1.0 {
+                print("Loading courses")
+                DispatchQueue.global().async {
+                    while CourseManager.shared.loadingProgress > 0.0 && CourseManager.shared.loadingProgress < 1.0 {
+                        usleep(100)
+                    }
+                    DispatchQueue.main.async {
+                        CourseManager.shared.loadCourses()
+                    }
+                }
+            }
+        }) { (error, code) in
+            DispatchQueue.main.async {
+                self.hideHUD()
+                var errorMessage = ""
+                if let err = error {
+                    errorMessage += err.localizedDescription + "\n\n"
+                } else if let errorCode = code {
+                    errorMessage += "Received HTTP error code \(errorCode).\n\n"
+                }
+                errorMessage += "Update will try again on the next launch."
+                let alert = UIAlertController(title: "Error Updating Subjects", message: errorMessage, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                self.present(alert, animated: true, completion: nil)
+                CourseManager.shared.loadCourses()
+            }
+        }
+    }
+    
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
         guard let courseRoadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController else {
             return nil
