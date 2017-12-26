@@ -57,17 +57,9 @@ class RootTabViewController: UITabBarController {
                 self.courseUpdatingHUD?.progress = progress
                 if progress == 1.0 {
                     self.hideHUD()
-                }
-            }
-            if progress == 1.0 {
-                print("Loading courses")
-                DispatchQueue.global().async {
-                    while CourseManager.shared.loadingProgress > 0.0 && CourseManager.shared.loadingProgress < 1.0 {
-                        usleep(100)
-                    }
-                    DispatchQueue.main.async {
-                        CourseManager.shared.loadCourses()
-                    }
+                    print("Loading courses")
+                    CourseManager.shared.loadCourses()
+                    self.reloadRequirementsView()
                 }
             }
         }) { (error, code) in
@@ -84,6 +76,7 @@ class RootTabViewController: UITabBarController {
                 alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
                 self.present(alert, animated: true, completion: nil)
                 CourseManager.shared.loadCourses()
+                self.reloadRequirementsView()
             }
         }
     }
@@ -143,5 +136,14 @@ class RootTabViewController: UITabBarController {
         if let tab = viewControllers?.first(where: { scheduleVC.isDescendant(of: $0) }) {
             selectedViewController = tab
         }
+    }
+    
+    func reloadRequirementsView() {
+        RequirementsListManager.shared.clearRequirementsLists()
+        guard let browserVC = childViewController(where: { $0 is RequirementsBrowserViewController }) as? RequirementsBrowserViewController else {
+            print("Couldn't get requirements view controller")
+            return
+        }
+        browserVC.reloadRequirements()
     }
 }

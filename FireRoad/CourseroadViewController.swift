@@ -231,6 +231,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         cell.delegate = self
         let semester = UserSemester(rawValue: indexPath.section)!
         let course = self.currentUser!.courses(forSemester: semester)[indexPath.item]
+        cell.course = course
         cell.textLabel?.text = course.subjectID
         if traitCollection.userInterfaceIdiom == .phone {
             if let font = cell.textLabel?.font {
@@ -410,7 +411,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell) {
-        showWarnings(cell)
+        showWarningsViewController(with: cell.course)
     }
     
     // MARK: - Section Actions
@@ -581,11 +582,12 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     // MARK: - Warnings
     
-    @IBAction func showWarnings(_ sender: AnyObject?) {
+    func showWarningsViewController(with focusedCourse: Course? = nil) {
         guard let warningVC = self.storyboard?.instantiateViewController(withIdentifier: "WarningsVC") as? CourseroadWarningsViewController else {
             return
         }
         warningVC.delegate = self
+        warningVC.focusedCourse = focusedCourse
         if let user = currentUser {
             var warnings: [(Course, [User.CourseWarning], Bool)] = []
             for semester in UserSemester.allEnrolledSemesters {
@@ -602,6 +604,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         let nav = UINavigationController(rootViewController: warningVC)
         nav.modalPresentationStyle = .formSheet
         self.present(nav, animated: true, completion: nil)
+    }
+    
+    @IBAction func showWarnings(_ sender: AnyObject?) {
+        showWarningsViewController()
     }
     
     func warningsControllerDismissed(_ warningsController: CourseroadWarningsViewController) {

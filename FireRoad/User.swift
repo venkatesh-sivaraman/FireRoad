@@ -127,6 +127,7 @@ class User: NSObject {
             semesterCourses.remove(at: delIdx)
         }
         self.selectedSubjects[semester] = semesterCourses
+        overrides[course] = nil
         setNeedsSave()
     }
     

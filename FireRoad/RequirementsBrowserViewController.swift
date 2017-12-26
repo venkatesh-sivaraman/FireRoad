@@ -51,6 +51,15 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         loadRequirementsOrDisplay()
     }
     
+    func reloadRequirements() {
+        DispatchQueue.global().async {
+            RequirementsListManager.shared.reloadRequirementsLists()
+            DispatchQueue.main.async {
+                self.loadRequirementsOrDisplay()
+            }
+        }
+    }
+    
     func updateRequirementsStatus() {
         if let tabVC = rootParent as? RootTabViewController,
             let currentUser = tabVC.currentUser {

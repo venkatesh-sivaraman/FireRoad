@@ -18,6 +18,8 @@ class CourseroadWarningsViewController: UITableViewController {
 
     var allWarnings: [(course: Course, warnings: [User.CourseWarning], overridden: Bool)] = []
     
+    var focusedCourse: Course?
+    
     weak var delegate: CourseroadWarningsDelegate?
     
     override func viewDidLoad() {
@@ -28,6 +30,14 @@ class CourseroadWarningsViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if let course = focusedCourse,
+            let index = allWarnings.index(where: { $0.course == course }) {
+            tableView.scrollToRow(at: IndexPath(row: 0, section: index), at: .middle, animated: true)
+        }
     }
 
     override func didReceiveMemoryWarning() {

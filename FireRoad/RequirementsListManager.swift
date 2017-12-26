@@ -8,6 +8,8 @@
 
 import UIKit
 
+let RequirementsDirectoryName = "requirements"
+
 class RequirementsListManager: NSObject {
     static let shared: RequirementsListManager = RequirementsListManager()
     
@@ -15,13 +17,33 @@ class RequirementsListManager: NSObject {
     
     private var requirementsListsByID: [String: RequirementsList] = [:]
     
+    func clearRequirementsLists() {
+        requirementsLists = []
+        requirementsListsByID = [:]
+    }
+
+    func reloadRequirementsLists() {
+        requirementsLists = []
+        requirementsListsByID = [:]
+        loadRequirementsLists()
+    }
+    
+    private static let requirementsVersionDefaultsKey = "RequirementsListManager.requirementsVersion"
+    var requirementsVersion: Int {
+        get {
+            return UserDefaults.standard.integer(forKey: RequirementsListManager.requirementsVersionDefaultsKey)
+        } set {
+            UserDefaults.standard.set(newValue, forKey: RequirementsListManager.requirementsVersionDefaultsKey)
+        }
+    }
+    
     func loadRequirementsLists() {
         // We only want to load these lists once
         guard requirementsLists.count == 0 else {
             return
         }
         requirementsListsByID = [:]
-        if let resourcePath = Bundle.main.resourcePath,
+        if let resourcePath = (NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first as NSString?)?.appendingPathComponent(RequirementsDirectoryName),
             let contents = try? FileManager.default.contentsOfDirectory(atPath: resourcePath) {
             for pathName in contents where pathName.contains(".reql") {
                 let fullPath = URL(fileURLWithPath: resourcePath).appendingPathComponent(pathName).path
@@ -35,6 +57,9 @@ class RequirementsListManager: NSObject {
     }
     
     func requirementList(withID id: String) -> RequirementsList? {
+        if requirementsLists.count == 0 {
+            loadRequirementsLists()
+        }
         return requirementsListsByID[id]
     }
 }

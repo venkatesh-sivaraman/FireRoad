@@ -56,7 +56,7 @@ class CourseManager: NSObject {
             UserDefaults.standard.set(newValue, forKey: CourseManager.catalogVersionDefaultsKey + ":" + catalogSemester.stringValue)
         }
     }
-    
+
     /**
      - Parameter name: The name of the resource, minus the path extension (assumed
         .txt).
@@ -681,7 +681,8 @@ class CourseManager: NSObject {
         }
         comps.queryItems = [
             URLQueryItem(name: "sem", value: catalogSemester.stringValue),
-            URLQueryItem(name: "v", value: "\(catalogVersion)")
+            URLQueryItem(name: "v", value: "\(catalogVersion)"),
+            URLQueryItem(name: "rv", value: "\(RequirementsListManager.shared.requirementsVersion)")
         ]
         guard let url = comps.url else {
             print("Couldn't get URL")
@@ -701,15 +702,30 @@ class CourseManager: NSObject {
             do {
                 if let dict = (try JSONSerialization.jsonObject(with: receivedData, options: [])) as? [String: Any],
                     let newVersion = dict["v"] as? Int,
-                    let updateFiles = dict["delta"] as? [String],
-                    updateFiles.count > 0 {
+                    let updateFiles = dict["delta"] as? [String] {
                     
-                    guard let dest = self.directory(forSemester: self.catalogSemester) else {
-                        print("Couldn't get destination")
-                        return
+                    if updateFiles.count > 0 {
+                        resultBlock?(true)
+                        let updateReqVersion = dict["rv"] as? Int
+                        let updateReqFiles = dict["r_delta"] as? [String]
+
+                        self.updateCourseCatalog(with: updateFiles, newVersion: newVersion, updaterBlock: { (progress) in
+                            updaterBlock?(progress * Float(updateFiles.count) / Float(updateFiles.count + (updateReqFiles?.count ?? 0)))
+                        }, errorBlock: errorBlock, completion: {
+                            guard let reqVersion = updateReqVersion,
+                                let reqFiles = updateReqFiles else {
+                                return
+                            }
+                            self.updateRequirementsCatalog(with: reqFiles, newVersion: reqVersion, updaterBlock: { (progress) in
+                                updaterBlock?((Float(updateFiles.count) + progress * Float(reqFiles.count)) / Float(updateFiles.count + reqFiles.count))
+                            }, errorBlock: errorBlock)
+                        })
+                    } else if let reqVersion = dict["rv"] as? Int,
+                        let reqFiles = dict["r_delta"] as? [String],
+                        reqFiles.count > 0 {
+                        resultBlock?(true)
+                        self.updateRequirementsCatalog(with: reqFiles, newVersion: reqVersion, updaterBlock: updaterBlock, errorBlock: errorBlock)
                     }
-                    resultBlock?(true)
-                    self.updateCourseCatalog(with: updateFiles, destinationDirectory: URL(fileURLWithPath: dest), newVersion: newVersion, updaterBlock: updaterBlock, errorBlock: errorBlock)
                 } else {
                     resultBlock?(false)
                 }
@@ -742,7 +758,37 @@ class CourseManager: NSObject {
         }
     }
     
-    func updateCourseCatalog(with fileNames: [String], destinationDirectory: URL, newVersion: Int = 0, downloadIndex: Int = 0, updaterBlock: ((Float) -> Void)? = nil, errorBlock: ((Error?, Int?) -> Void)? = nil) {
+    private func updateCourseCatalog(with updateFiles: [String], newVersion: Int, updaterBlock: ((Float) -> Void)? = nil, errorBlock: ((Error?, Int?) -> Void)? = nil, completion: (() -> Void)? = nil) {
+        guard let dest = self.directory(forSemester: self.catalogSemester) else {
+            print("Couldn't get destination")
+            return
+        }
+        let destURL = URL(fileURLWithPath: dest)
+        self.updateCatalogFiles(with: updateFiles, destinationDirectory: destURL, updaterBlock: { progress in
+            if progress == 1.0 {
+                self.catalogVersion = newVersion
+                completion?()
+            }
+            updaterBlock?(progress)
+        }, errorBlock: errorBlock)
+    }
+    
+    private func updateRequirementsCatalog(with updateFiles: [String], newVersion: Int, updaterBlock: ((Float) -> Void)? = nil, errorBlock: ((Error?, Int?) -> Void)? = nil, completion: (() -> Void)? = nil) {
+        guard let dest = self.directory(forSemester: self.catalogSemester) else {
+            print("Couldn't get destination")
+            return
+        }
+        let destURL = URL(fileURLWithPath: dest).deletingLastPathComponent().appendingPathComponent(RequirementsDirectoryName)
+        self.updateCatalogFiles(with: updateFiles, destinationDirectory: destURL, updaterBlock: { reqProgress in
+            if reqProgress == 1.0 {
+                RequirementsListManager.shared.requirementsVersion = newVersion
+                completion?()
+            }
+            updaterBlock?(reqProgress)
+        }, errorBlock: errorBlock)
+    }
+    
+    private func updateCatalogFiles(with fileNames: [String], destinationDirectory: URL, downloadIndex: Int = 0, updaterBlock: ((Float) -> Void)? = nil, errorBlock: ((Error?, Int?) -> Void)? = nil) {
         guard let url = URL(string: baseStaticURL) else {
             return
         }
@@ -766,7 +812,6 @@ class CourseManager: NSObject {
                     try FileManager.default.moveItem(at: tempDestination, to: destinationDirectory)
                 }
                 clearTemporaryDownloads()
-                self.catalogVersion = newVersion
                 updaterBlock?(1.0)
             } catch {
                 errorBlock?(error, nil)
@@ -781,7 +826,7 @@ class CourseManager: NSObject {
                     httpResponse.statusCode == 200 else {
                     if error != nil {
                         print("Error retrieving file: \(error!)")
-                    } else {
+                    } else if let response = response {
                         print("Error in response: \(response)")
                     }
                     errorBlock?(error, (response as? HTTPURLResponse)?.statusCode)
@@ -794,7 +839,7 @@ class CourseManager: NSObject {
                 do {
                     try FileManager.default.moveItem(at: url, to: tempDestination.appendingPathComponent((currentFile as NSString).lastPathComponent))
                     updaterBlock?(Float(downloadIndex + 1) / Float(fileNames.count + 1))
-                    self.updateCourseCatalog(with: fileNames, destinationDirectory: destinationDirectory, newVersion: 1, downloadIndex: downloadIndex + 1, updaterBlock: updaterBlock, errorBlock: errorBlock)
+                    self.updateCatalogFiles(with: fileNames, destinationDirectory: destinationDirectory, downloadIndex: downloadIndex + 1, updaterBlock: updaterBlock, errorBlock: errorBlock)
                 } catch {
                     print("Error moving file: \(error)")
                     errorBlock?(error, nil)
