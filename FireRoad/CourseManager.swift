@@ -718,7 +718,7 @@ class CourseManager: NSObject {
 
     // MARK: - Updating Course Database
     
-    private let semesterUpdateURL = "http://localhost:8000/courseupdater/semesters/" //"http://venkats.scripts.mit.edu/fireroad/courseupdater/semesters/"
+    private let semesterUpdateURL = "http://venkats.scripts.mit.edu/fireroad/courseupdater/semesters/"
     private let baseUpdateURL = "http://venkats.scripts.mit.edu/fireroad/courseupdater/check/"
     private let baseStaticURL = "http://venkats.scripts.mit.edu/catalogs/"
 
