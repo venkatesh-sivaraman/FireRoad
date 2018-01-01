@@ -29,54 +29,112 @@ class RootTabViewController: UITabBarController {
             CourseManager.shared.loadCourses()
         }
 
-        CourseManager.shared.checkForCourseCatalogUpdates(withResult: { (willShow) in
+        updateSemesters()
+    }
+    
+    func updateSemesters() {
+        let oldAvailableSemesters = CourseManager.shared.availableCatalogSemesters
+        CourseManager.shared.checkForCatalogSemesterUpdates { (state, _, error, code) in
             DispatchQueue.main.async {
-                guard self.courseUpdatingHUD == nil, willShow else {
-                    return
+                switch state {
+                case .completed:
+                    if (CourseManager.shared.catalogSemester == nil ||
+                        CourseManager.shared.catalogSemester?.pathValue == oldAvailableSemesters.last?.pathValue),
+                        let currentSemester = CourseManager.shared.availableCatalogSemesters.last {
+                        print("Setting current semester to \(currentSemester.stringValue)")
+                        CourseManager.shared.catalogSemester = currentSemester
+                        self.updateCourseCatalog()
+                    } else if let newVersion = CourseManager.shared.availableCatalogSemesters.last {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                            // Prompt the user about updating the course catalog to the new semester
+                            let alert = UIAlertController(title: "\(newVersion.season.capitalized) \(newVersion.year) Catalog Available", message: "Would you like to switch to the new catalog?", preferredStyle: .alert)
+                            alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { _ in
+                                CourseManager.shared.catalogSemester = newVersion
+                                self.updateCourseCatalog()
+                            }))
+                            alert.addAction(UIAlertAction(title: "Not Now", style: .cancel, handler: nil))
+                            self.present(alert, animated: true, completion: nil)
+                        })
+                    }
+                case .error:
+                    if CourseManager.shared.catalogSemester == nil {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                            var message = ""
+                            if let codeNum = code {
+                                message = "The request received error code \(codeNum). Please try again later."
+                            } else if let error = error {
+                                message = error.localizedDescription
+                            } else {
+                                message = "Couldn't load initial course catalog. Please try again later."
+                            }
+                            let alert = UIAlertController(title: "Error Loading Catalog", message: message, preferredStyle: .alert)
+                            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                            alert.addAction(UIAlertAction(title: "Retry", style: .default, handler: { _ in
+                                self.updateSemesters()
+                            }))
+                            self.present(alert, animated: true, completion: nil)
+                        })
+                    }
+                    break
+                default:
+                    print("Shouldn't have gotten \(state) from catalog semester updater")
                 }
-                let blur = UIVisualEffectView(effect: nil)
-                blur.frame = self.view.bounds
-                self.blurView = blur
-                self.view.addSubview(blur)
-                blur.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-                blur.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-                blur.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-                blur.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
-                
-                let hud = MBProgressHUD.showAdded(to: blur.contentView, animated: true)
-                hud.mode = .determinateHorizontalBar
-                hud.label.text = "Updating subject catalog…"
-                self.courseUpdatingHUD = hud
-                
-                UIView.animate(withDuration: 0.3, animations: {
-                    blur.effect = UIBlurEffect(style: .light)
-                })
             }
-        }, updaterBlock: { (progress) in
+        }
+    }
+    
+    func updateCourseCatalog() {
+        CourseManager.shared.checkForCourseCatalogUpdates { (state, progressOpt, error, code) in
             DispatchQueue.main.async {
-                self.courseUpdatingHUD?.progress = progress
-                if progress == 1.0 {
+                switch state {
+                case .newVersionAvailable:
+                    guard self.courseUpdatingHUD == nil else {
+                        break
+                    }
+                    let blur = UIVisualEffectView(effect: nil)
+                    blur.frame = self.view.bounds
+                    self.blurView = blur
+                    self.view.addSubview(blur)
+                    blur.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+                    blur.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+                    blur.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+                    blur.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+                    
+                    let hud = MBProgressHUD.showAdded(to: blur.contentView, animated: true)
+                    hud.mode = .determinateHorizontalBar
+                    hud.label.text = "Updating subject catalog…"
+                    self.courseUpdatingHUD = hud
+                    
+                    UIView.animate(withDuration: 0.3, animations: {
+                        blur.effect = UIBlurEffect(style: .light)
+                    })
+                case .noUpdatesAvailable:
+                    break
+                case .downloading:
+                    guard let progress = progressOpt else {
+                        break
+                    }
+                    self.courseUpdatingHUD?.progress = progress
+                case .completed:
                     self.hideHUD()
                     print("Loading courses")
                     CourseManager.shared.loadCourses()
                     self.reloadRequirementsView()
+                case .error:
+                    self.hideHUD()
+                    var errorMessage = ""
+                    if let err = error {
+                        errorMessage += err.localizedDescription + "\n\n"
+                    } else if let errorCode = code {
+                        errorMessage += "Received HTTP error code \(errorCode).\n\n"
+                    }
+                    errorMessage += "Update will try again on the next launch."
+                    let alert = UIAlertController(title: "Error Updating Subjects", message: errorMessage, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                    self.present(alert, animated: true, completion: nil)
+                    CourseManager.shared.loadCourses()
+                    self.reloadRequirementsView()
                 }
-            }
-        }) { (error, code) in
-            DispatchQueue.main.async {
-                self.hideHUD()
-                var errorMessage = ""
-                if let err = error {
-                    errorMessage += err.localizedDescription + "\n\n"
-                } else if let errorCode = code {
-                    errorMessage += "Received HTTP error code \(errorCode).\n\n"
-                }
-                errorMessage += "Update will try again on the next launch."
-                let alert = UIAlertController(title: "Error Updating Subjects", message: errorMessage, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-                self.present(alert, animated: true, completion: nil)
-                CourseManager.shared.loadCourses()
-                self.reloadRequirementsView()
             }
         }
     }

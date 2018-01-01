@@ -22,47 +22,13 @@ class CourseManager: NSObject {
     static let shared: CourseManager = CourseManager()
     var loadedDepartments: [String] = []
     
-    enum SemesterSeason {
-        static let fall = "fall"
-        static let spring = "spring"
-    }
-    struct Semester {
-        var season: String
-        var year: Int
-        
-        var stringValue: String {
-            return season + "," + "\(year)"
-        }
-        
-        var pathValue: String {
-            return season + "-" + "\(year)"
-        }
-    }
-    
-    var catalogSemester = Semester(season: SemesterSeason.spring, year: 2018)
-    
-    func directory(forSemester semester: Semester) -> String? {
-        guard let documents = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first else {
-            return nil
-        }
-        return URL(fileURLWithPath: documents).appendingPathComponent(catalogSemester.pathValue).path
-    }
-    
-    private static let catalogVersionDefaultsKey = "CourseManager.catalogVersion"
-    var catalogVersion: Int {
-        get {
-            return UserDefaults.standard.integer(forKey: CourseManager.catalogVersionDefaultsKey + ":" + catalogSemester.stringValue)
-        } set {
-            UserDefaults.standard.set(newValue, forKey: CourseManager.catalogVersionDefaultsKey + ":" + catalogSemester.stringValue)
-        }
-    }
-
     /**
      - Parameter name: The name of the resource, minus the path extension (assumed
         .txt).
      */
     func pathForCatalogResource(named name: String) -> String? {
-        guard let base = directory(forSemester: catalogSemester) else {
+        guard let catalogSemester = catalogSemester,
+            let base = directory(forSemester: catalogSemester) else {
             return nil
         }
         return URL(fileURLWithPath: base).appendingPathComponent(name + ".txt").path
@@ -669,16 +635,151 @@ class CourseManager: NSObject {
         }*/
     }
     
+    // MARK: - Catalog Version Management
+    
+    enum SemesterSeason {
+        static let fall = "fall"
+        static let spring = "spring"
+    }
+    struct Semester: Equatable {
+        var season: String
+        var year: Int
+        
+        init(season: String, year: Int) {
+            self.season = season
+            self.year = year
+        }
+        
+        init(path: String) {
+            let comps = path.components(separatedBy: "-")
+            self.season = comps[0]
+            self.year = Int(comps[1])!
+        }
+        
+        var stringValue: String {
+            return season + "," + "\(year)"
+        }
+        
+        var pathValue: String {
+            return season + "-" + "\(year)"
+        }
+        
+        static func ==(lhs: CourseManager.Semester, rhs: CourseManager.Semester) -> Bool {
+            return lhs.season.lowercased() == rhs.season.lowercased() && lhs.year == rhs.year
+        }
+    }
+    
+    private static let catalogVersionDefaultsKey = "CourseManager.catalogVersion"
+    private static let catalogSemesterDefaultsKey = "CourseManager.catalogSemester"
+    private static let availableCatalogSemestersDefaultsKey = "CourseManager.availableCatalogSemesters"
+
+    private var _catalogSemester: Semester?
+    var catalogSemester: Semester? {
+        get {
+            if _catalogSemester == nil,
+                let defaultValue = UserDefaults.standard.string(forKey: CourseManager.catalogSemesterDefaultsKey) {
+                _catalogSemester = Semester(path: defaultValue)
+            }
+            return _catalogSemester
+        } set {
+            _catalogSemester = newValue
+            UserDefaults.standard.set(_catalogSemester?.pathValue, forKey: CourseManager.catalogSemesterDefaultsKey)
+        }
+    }
+    
+    func directory(forSemester semester: Semester) -> String? {
+        guard let documents = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first else {
+            return nil
+        }
+        return URL(fileURLWithPath: documents).appendingPathComponent(semester.pathValue).path
+    }
+    
+    func catalogVersion(for semester: Semester) -> Int {
+        return UserDefaults.standard.integer(forKey: CourseManager.catalogVersionDefaultsKey + ":" + semester.stringValue)
+    }
+    
+    func setCatalogVersion(_ version: Int, for semester: Semester) {
+        UserDefaults.standard.set(version, forKey: CourseManager.catalogVersionDefaultsKey + ":" + semester.stringValue)
+    }
+    
+    private var _availableCatalogSemesters: [Semester] = []
+    var availableCatalogSemesters: [Semester] {
+        get {
+            if _availableCatalogSemesters.count == 0,
+                let defaultValue = UserDefaults.standard.stringArray(forKey: CourseManager.availableCatalogSemestersDefaultsKey) {
+                _availableCatalogSemesters = defaultValue.map({ Semester(path: $0) })
+            }
+            return _availableCatalogSemesters
+        } set {
+            _availableCatalogSemesters = newValue
+            UserDefaults.standard.set(_availableCatalogSemesters.map({ $0.pathValue }), forKey: CourseManager.availableCatalogSemestersDefaultsKey)
+        }
+    }
+
     // MARK: - Updating Course Database
     
+    private let semesterUpdateURL = "http://localhost:8000/courseupdater/semesters/" //"http://venkats.scripts.mit.edu/fireroad/courseupdater/semesters/"
     private let baseUpdateURL = "http://venkats.scripts.mit.edu/fireroad/courseupdater/check/"
     private let baseStaticURL = "http://venkats.scripts.mit.edu/catalogs/"
 
-    func checkForCourseCatalogUpdates(withResult resultBlock: ((Bool) -> Void)? = nil, updaterBlock: ((Float) -> Void)? = nil, errorBlock: ((Error?, Int?) -> Void)? = nil) {
+    enum CatalogUpdateState {
+        case newVersionAvailable
+        case noUpdatesAvailable
+        case downloading
+        case completed
+        case error
+    }
+    
+    typealias CatalogUpdateResultBlock = ((CatalogUpdateState, Float?, Error?, Int?) -> Void)
+    
+    func checkForCatalogSemesterUpdates(withResult resultBlock: CatalogUpdateResultBlock?) {
         clearTemporaryDownloads()
+        guard let url = URL(string: semesterUpdateURL) else {
+            return
+        }
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 10.0)
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            guard error == nil, let receivedData = data,
+                let httpResponse = response as? HTTPURLResponse,
+                httpResponse.statusCode == 200 else {
+                    print("Error retrieving data updates")
+                    if error != nil {
+                        print("\(error!)")
+                    }
+                    resultBlock?(.error, nil, error, (response as? HTTPURLResponse)?.statusCode)
+                    return
+            }
+            do {
+                guard let semesters = (try JSONSerialization.jsonObject(with: receivedData, options: [])) as? [[String: Any]] else {
+                    return
+                }
+                var newSemesters: [Semester] = []
+                for sem in semesters {
+                    guard let semPath = sem["sem"] as? String else {
+                        print("Invalid semester format: \(sem)")
+                        continue
+                    }
+                    newSemesters.append(Semester(path: semPath))
+                }
+                self.availableCatalogSemesters = newSemesters
+                resultBlock?(.completed, nil, nil, nil)
+            } catch {
+                print("Error decoding JSON: \(error)")
+            }
+        }
+        task.resume()
+    }
+    
+    func checkForCourseCatalogUpdates(withResult resultBlock: CatalogUpdateResultBlock?) {
+        clearTemporaryDownloads()
+        guard let catalogSemester = catalogSemester else {
+            print("No catalog semester set! Did you check for semester updates first?")
+            return
+        }
         guard var comps = URLComponents(string: baseUpdateURL) else {
             return
         }
+        let catalogVersion = self.catalogVersion(for: catalogSemester)
         comps.queryItems = [
             URLQueryItem(name: "sem", value: catalogSemester.stringValue),
             URLQueryItem(name: "v", value: "\(catalogVersion)"),
@@ -687,6 +788,9 @@ class CourseManager: NSObject {
         guard let url = comps.url else {
             print("Couldn't get URL")
             return
+        }
+        let errorBlock: (Error?, Int?) -> Void = { (error, code) in
+            resultBlock?(.error, nil, error, code)
         }
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 10.0)
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
@@ -705,29 +809,45 @@ class CourseManager: NSObject {
                     let updateFiles = dict["delta"] as? [String] {
                     
                     if updateFiles.count > 0 {
-                        resultBlock?(true)
+                        resultBlock?(.newVersionAvailable, nil, nil, nil)
                         let updateReqVersion = dict["rv"] as? Int
                         let updateReqFiles = dict["r_delta"] as? [String]
 
                         self.updateCourseCatalog(with: updateFiles, newVersion: newVersion, updaterBlock: { (progress) in
-                            updaterBlock?(progress * Float(updateFiles.count) / Float(updateFiles.count + (updateReqFiles?.count ?? 0)))
+                            let overallProg = progress * Float(updateFiles.count) / Float(updateFiles.count + (updateReqFiles?.count ?? 0))
+                            if overallProg > 1.0 - 0.0001 {
+                                resultBlock?(.completed, overallProg, nil, nil)
+                            } else {
+                                resultBlock?(.downloading, overallProg, nil, nil)
+                            }
                         }, errorBlock: errorBlock, completion: {
                             guard let reqVersion = updateReqVersion,
                                 let reqFiles = updateReqFiles else {
                                 return
                             }
                             self.updateRequirementsCatalog(with: reqFiles, newVersion: reqVersion, updaterBlock: { (progress) in
-                                updaterBlock?((Float(updateFiles.count) + progress * Float(reqFiles.count)) / Float(updateFiles.count + reqFiles.count))
+                                let overallProg = (Float(updateFiles.count) + progress * Float(reqFiles.count)) / Float(updateFiles.count + reqFiles.count)
+                                if overallProg > 1.0 - 0.0001 {
+                                    resultBlock?(.completed, overallProg, nil, nil)
+                                } else {
+                                    resultBlock?(.downloading, overallProg, nil, nil)
+                                }
                             }, errorBlock: errorBlock)
                         })
                     } else if let reqVersion = dict["rv"] as? Int,
                         let reqFiles = dict["r_delta"] as? [String],
                         reqFiles.count > 0 {
-                        resultBlock?(true)
-                        self.updateRequirementsCatalog(with: reqFiles, newVersion: reqVersion, updaterBlock: updaterBlock, errorBlock: errorBlock)
+                        resultBlock?(.newVersionAvailable, nil, nil, nil)
+                        self.updateRequirementsCatalog(with: reqFiles, newVersion: reqVersion, updaterBlock: { (progress) in
+                            if progress > 1.0 - 0.0001 {
+                                resultBlock?(.completed, progress, nil, nil)
+                            } else {
+                                resultBlock?(.downloading, progress, nil, nil)
+                            }
+                        }, errorBlock: errorBlock)
                     }
                 } else {
-                    resultBlock?(false)
+                    resultBlock?(.noUpdatesAvailable, nil, nil, nil)
                 }
             } catch {
                 print("Error decoding JSON: \(error)")
@@ -759,14 +879,15 @@ class CourseManager: NSObject {
     }
     
     private func updateCourseCatalog(with updateFiles: [String], newVersion: Int, updaterBlock: ((Float) -> Void)? = nil, errorBlock: ((Error?, Int?) -> Void)? = nil, completion: (() -> Void)? = nil) {
-        guard let dest = self.directory(forSemester: self.catalogSemester) else {
+        guard let semester = self.catalogSemester,
+            let dest = self.directory(forSemester: semester) else {
             print("Couldn't get destination")
             return
         }
         let destURL = URL(fileURLWithPath: dest)
         self.updateCatalogFiles(with: updateFiles, destinationDirectory: destURL, updaterBlock: { progress in
             if progress == 1.0 {
-                self.catalogVersion = newVersion
+                self.setCatalogVersion(newVersion, for: semester)
                 completion?()
             }
             updaterBlock?(progress)
@@ -774,7 +895,8 @@ class CourseManager: NSObject {
     }
     
     private func updateRequirementsCatalog(with updateFiles: [String], newVersion: Int, updaterBlock: ((Float) -> Void)? = nil, errorBlock: ((Error?, Int?) -> Void)? = nil, completion: (() -> Void)? = nil) {
-        guard let dest = self.directory(forSemester: self.catalogSemester) else {
+        guard let semester = self.catalogSemester,
+            let dest = self.directory(forSemester: semester) else {
             print("Couldn't get destination")
             return
         }
