@@ -173,7 +173,7 @@
                                                                 <rect key="frame" x="4" y="4" width="32" height="32"/>
                                                                 <state key="normal" image="warning-outline"/>
                                                                 <connections>
-                                                                    <action selector="showWarnings:" destination="9pv-A4-QxB" eventType="touchUpInside" id="NV7-On-Ux2"/>
+                                                                    <action selector="showWarningsFromButton:" destination="9pv-A4-QxB" eventType="touchUpInside" id="lNc-WF-4oY"/>
                                                                 </connections>
                                                             </button>
                                                         </subviews>

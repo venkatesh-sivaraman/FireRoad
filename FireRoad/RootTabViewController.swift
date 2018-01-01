@@ -109,6 +109,9 @@ class RootTabViewController: UITabBarController {
                         blur.effect = UIBlurEffect(style: .light)
                     })
                 case .noUpdatesAvailable:
+                    if !CourseManager.shared.isLoaded {
+                        CourseManager.shared.loadCourses()
+                    }
                     break
                 case .downloading:
                     guard let progress = progressOpt else {

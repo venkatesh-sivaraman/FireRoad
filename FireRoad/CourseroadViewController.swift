@@ -606,7 +606,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         self.present(nav, animated: true, completion: nil)
     }
     
-    @IBAction func showWarnings(_ sender: AnyObject?) {
+    @IBAction func showWarningsFromButton(_ sender: AnyObject?) {
         showWarningsViewController()
     }
     
