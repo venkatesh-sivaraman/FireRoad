@@ -198,7 +198,11 @@ class CourseCatalogParser: NSObject {
             informationItems.append(node.contents.trimmingCharacters(in: .whitespacesAndNewlines))
         } else {
             for child in node.childNodes {
-                informationItems += recursivelyExtractInformationItems(from: child)
+                var shouldStopNow = false
+                informationItems += recursivelyExtractInformationItems(from: child, shouldStop: &shouldStopNow)
+                if shouldStopNow {
+                    break
+                }
             }
         }
         shouldStop?.pointee = false
@@ -481,15 +485,20 @@ class CourseCatalogParser: NSObject {
                     }
                 }
                 
+                informationItems += childItems
                 if shouldStop {
                     break
                 }
-                
-                informationItems += childItems
-            } else if nodeIsDelimitingATag(node), informationItems.count > 0 {
-                break
+            } else if nodeIsDelimitingATag(node) {
+                if informationItems.count > 0 {
+                    break
+                }
             } else if node.contents.count == 0 {
-                informationItems += recursivelyExtractInformationItems(from: node)
+                var shouldStop = false
+                informationItems += recursivelyExtractInformationItems(from: node, shouldStop: &shouldStop)
+                if shouldStop {
+                    break
+                }
             } else {
                 informationItems.append(node.contents.trimmingCharacters(in: .whitespacesAndNewlines))
             }
