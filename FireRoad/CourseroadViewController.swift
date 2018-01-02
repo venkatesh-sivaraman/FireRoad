@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate {
+class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
@@ -31,6 +31,12 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     @IBOutlet var layoutToggleButton: UIButton?
     var isSmallLayoutMode = false
     @IBOutlet var warningsButton: UIButton?
+    @IBOutlet var openButton: UIButton?
+
+    @IBOutlet var layoutToggleItem: UIBarButtonItem?
+    @IBOutlet var warningsItem: UIBarButtonItem?
+    @IBOutlet var openItem: UIBarButtonItem?
+    @IBOutlet var toolbarTitleLabel: UILabel?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -119,12 +125,12 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func updateNavigationBar(animated: Bool = true, newTraits: UITraitCollection? = nil) {
-        let traits = newTraits ?? traitCollection
+        /*let traits = newTraits ?? traitCollection
         navigationItem.title = "FireRoad"
         let newHiddenValue = traits.horizontalSizeClass != .regular || traits.verticalSizeClass != .regular || traits.userInterfaceIdiom != .pad
         if newHiddenValue != navigationController?.isNavigationBarHidden {
             navigationController?.setNavigationBarHidden(newHiddenValue, animated: animated)
-        }
+        }*/
     }
     
     func updateCollectionViewLayout(with traits: UITraitCollection? = nil) {
@@ -135,7 +141,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         layout.minimumLineSpacing = 12.0
         layout.itemSize = itemSize
         //layout.estimatedItemSize = CGSize(width: 116.0, height: 94.0)
-        collectionView.contentInset = UIEdgeInsets(top: 84.0, left: 0.0, bottom: 0.0, right: 0.0)
+        let top: CGFloat = 84.0 + (collection.horizontalSizeClass == .regular && collection.verticalSizeClass == .regular ? 44.0 : 0.0)
+        collectionView.contentInset = UIEdgeInsets(top: top, left: 0.0, bottom: 0.0, right: 0.0)
     }
     
     @objc func handleLongGesture(gesture: UILongPressGestureRecognizer) {
@@ -185,6 +192,14 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     @objc func courseManagerFinishedLoading(_ note: Notification) {
         updateCourseWarningStatus()
         updateLayoutToggleButton()
+    }
+    
+    func position(for bar: UIBarPositioning) -> UIBarPosition {
+        guard traitCollection.horizontalSizeClass == .regular,
+            traitCollection.verticalSizeClass == .regular else {
+                return .any
+        }
+        return .topAttached
     }
     
     // MARK: - State Restoration
@@ -566,9 +581,15 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func updateLayoutToggleButton() {
         layoutToggleButton?.imageView?.contentMode = .center
-        layoutToggleButton?.setImage(UIImage(named: isSmallLayoutMode ? "large-grid" : "small-grid")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        let toggleImage = UIImage(named: isSmallLayoutMode ? "large-grid" : "small-grid")
+        layoutToggleButton?.setImage(toggleImage?.withRenderingMode(.alwaysTemplate), for: .normal)
+        layoutToggleItem?.image = toggleImage
+        
         warningsButton?.setImage(warningsButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
         warningsButton?.isEnabled = CourseManager.shared.isLoaded
+        warningsItem?.isEnabled = CourseManager.shared.isLoaded
+        
+        openButton?.setImage(openButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
     
     @IBAction func toggleViewLayoutMode(_ sender: AnyObject) {
@@ -578,6 +599,12 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         collectionView.collectionViewLayout.invalidateLayout()
         updateLayoutToggleButton()
+    }
+    
+    // MARK: - Loading Different Roads
+    
+    @IBAction func openButtonPressed(_ sender: AnyObject) {
+        
     }
     
     // MARK: - Warnings
