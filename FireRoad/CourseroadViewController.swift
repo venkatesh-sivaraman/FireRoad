@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate {
+class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
@@ -63,62 +63,6 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         updateNavigationBar(animated: false)
     }
     
-    let recentCourseroadPathDefaultsKey = "recent-courseroad-filepath"
-    
-    func loadRecentCourseroad() {
-        var loaded = false
-        if let recentPath = UserDefaults.standard.string(forKey: recentCourseroadPathDefaultsKey),
-            let dirPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first {
-            let url = URL(fileURLWithPath: dirPath)
-            do {
-                currentUser = try User(contentsOfFile: url.appendingPathComponent(recentPath).path)
-                loaded = true
-            } catch {
-                print("Error loading user: \(error)")
-            }
-        }
-        if !loaded {
-            if !CourseManager.shared.isLoaded {
-                loadingView?.isHidden = false
-                loadingIndicator?.startAnimating()
-            }
-            DispatchQueue.global().async {
-                while !CourseManager.shared.isLoaded {
-                    usleep(100)
-                }
-                DispatchQueue.main.async {
-                    self.currentUser = User()
-                    if let dirPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first {
-                        let url = URL(fileURLWithPath: dirPath)
-                        self.currentUser?.filePath = url.appendingPathComponent("first_steps.road").path
-                    }
-                    self.currentUser?.coursesOfStudy = [ "girs" ]
-                    self.currentUser?.autosave()
-                    if let path = self.currentUser?.filePath {
-                        UserDefaults.standard.set((path as NSString).lastPathComponent, forKey: self.recentCourseroadPathDefaultsKey)
-                    }
-                    if let loadingView = self.loadingView,
-                        let collectionView = self.collectionView {
-                        collectionView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                        collectionView.alpha = 0.0
-                        UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
-                            collectionView.alpha = 1.0
-                            collectionView.transform = CGAffineTransform.identity
-                            loadingView.alpha = 0.0
-                            loadingView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
-                        }, completion: { (completed) in
-                            if completed {
-                                loadingView.isHidden = true
-                                self.loadingIndicator?.stopAnimating()
-                            }
-                        })
-                    }
-                }
-            }
-        }
-
-    }
-    
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
         updateCollectionViewLayout(with: newCollection)
         updateNavigationBar(newTraits: newCollection)
@@ -126,11 +70,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func updateNavigationBar(animated: Bool = true, newTraits: UITraitCollection? = nil) {
         /*let traits = newTraits ?? traitCollection
-        navigationItem.title = "FireRoad"
-        let newHiddenValue = traits.horizontalSizeClass != .regular || traits.verticalSizeClass != .regular || traits.userInterfaceIdiom != .pad
-        if newHiddenValue != navigationController?.isNavigationBarHidden {
-            navigationController?.setNavigationBarHidden(newHiddenValue, animated: animated)
-        }*/
+         navigationItem.title = "FireRoad"
+         let newHiddenValue = traits.horizontalSizeClass != .regular || traits.verticalSizeClass != .regular || traits.userInterfaceIdiom != .pad
+         if newHiddenValue != navigationController?.isNavigationBarHidden {
+         navigationController?.setNavigationBarHidden(newHiddenValue, animated: animated)
+         }*/
     }
     
     func updateCollectionViewLayout(with traits: UITraitCollection? = nil) {
@@ -167,7 +111,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateNavigationBar()
-
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -183,7 +127,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     override func viewWillLayoutSubviews() {
         self.collectionView.collectionViewLayout.invalidateLayout()
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -200,6 +144,94 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 return .any
         }
         return .topAttached
+    }
+    
+    // MARK: - Handling Courseroads
+    
+    let recentCourseroadPathDefaultsKey = "recent-courseroad-filepath"
+    
+    var courseroadDirectory: String? {
+        return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first
+    }
+    
+    func urlForCourseroad(named name: String) -> URL? {
+        guard let dirPath = courseroadDirectory else {
+            return nil
+        }
+        let url = URL(fileURLWithPath: dirPath).appendingPathComponent(name)
+        return url
+    }
+    
+    func loadCourseroad(named name: String) {
+        guard let url = urlForCourseroad(named: name) else {
+            return
+        }
+        do {
+            currentUser = try User(contentsOfFile: url.path)
+            collectionView.reloadData()
+            collectionView.scrollRectToVisible(CGRect(x: 0.0, y: 0.0, width: 4.0, height: 4.0), animated: true)
+            UserDefaults.standard.set(url.lastPathComponent, forKey: recentCourseroadPathDefaultsKey)
+        } catch {
+            print("Error loading user: \(error)")
+        }
+    }
+    
+    func loadNewCourseroad(named name: String) {
+        self.currentUser = User()
+        if let url = self.urlForCourseroad(named: name) {
+            self.currentUser?.filePath = url.path
+        }
+        self.currentUser?.coursesOfStudy = [ "girs" ]
+        self.currentUser?.autosave()
+        if let path = self.currentUser?.filePath {
+            UserDefaults.standard.set((path as NSString).lastPathComponent, forKey: self.recentCourseroadPathDefaultsKey)
+        }
+        collectionView.reloadData()
+        collectionView.scrollRectToVisible(CGRect(x: 0.0, y: 0.0, width: 4.0, height: 4.0), animated: true)
+    }
+    
+    func loadRecentCourseroad() {
+        var loaded = false
+        if let recentPath = UserDefaults.standard.string(forKey: recentCourseroadPathDefaultsKey),
+            let url = urlForCourseroad(named: recentPath) {
+            do {
+                currentUser = try User(contentsOfFile: url.path)
+                loaded = true
+            } catch {
+                print("Error loading user: \(error)")
+            }
+        }
+        if !loaded {
+            if !CourseManager.shared.isLoaded {
+                loadingView?.isHidden = false
+                loadingIndicator?.startAnimating()
+            }
+            DispatchQueue.global().async {
+                while !CourseManager.shared.isLoaded {
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    self.loadNewCourseroad(named: "First Steps.road")
+                    if let loadingView = self.loadingView,
+                        let collectionView = self.collectionView {
+                        collectionView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                        collectionView.alpha = 0.0
+                        UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
+                            collectionView.alpha = 1.0
+                            collectionView.transform = CGAffineTransform.identity
+                            loadingView.alpha = 0.0
+                            loadingView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+                        }, completion: { (completed) in
+                            if completed {
+                                loadingView.isHidden = true
+                                self.loadingIndicator?.stopAnimating()
+                            }
+                        })
+                    }
+                }
+            }
+        }
+
     }
     
     // MARK: - State Restoration
@@ -233,7 +265,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseCell", for: indexPath) as! CourseThumbnailCell
-        if self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
+        if self.currentUser?.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
             cell.alpha = 0.0
             cell.backgroundColor = UIColor.white
             cell.shadowEnabled = false
@@ -281,7 +313,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     var indexPathOfMovedCell: IndexPath?
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
+        if self.currentUser?.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
             cell.alpha = 0.0
             cell.layer.opacity = 0.0
         } else {
@@ -354,7 +386,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
         
     func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
-        if self.currentUser!.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
+        if self.currentUser?.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
             return false
         }
         return true
@@ -475,6 +507,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     // MARK: - Model Interaction
         
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
+        guard currentUser != nil else {
+            return nil
+        }
         guard currentUser?.allCourses.contains(course) == false else {
             let alert = UIAlertController(title: "Course Already Added", message: "\(course.subjectID!) is already in your course list.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
@@ -604,7 +639,96 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     // MARK: - Loading Different Roads
     
     @IBAction func openButtonPressed(_ sender: AnyObject) {
+        guard let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
+            let roadDir = courseroadDirectory,
+            let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {
+                return
+        }
+        browser.delegate = self
+        // Generate items
+        var items: [DocumentBrowseViewController.Item] = []
+        for path in dirContents {
+            guard path.range(of: ".road")?.upperBound == path.endIndex,
+                path[path.startIndex] != Character("."),
+                let tempUser = try? User(contentsOfFile: (roadDir as NSString).appendingPathComponent(path), readOnly: true) else {
+                    continue
+            }
+            let courses = tempUser.coursesOfStudy.flatMap({ RequirementsListManager.shared.requirementList(withID: $0)?.mediumTitle }).joined(separator: ", ")
+            items.append(DocumentBrowseViewController.Item(identifier: path, title: (path as NSString).deletingPathExtension, description: courses, image: tempUser.generateThumbnailImage()))
+        }
+        browser.items = items
         
+        let nav = UINavigationController(rootViewController: browser)
+        browser.navigationItem.title = "My Roads"
+        if let barItem = sender as? UIBarButtonItem {
+            browser.showsCancelButton = false
+            nav.modalPresentationStyle = .popover
+            nav.popoverPresentationController?.barButtonItem = barItem
+            present(nav, animated: true, completion: nil)
+        } else {
+            browser.navigationItem.prompt = "Select an existing road or add a new one."
+            browser.showsCancelButton = true
+            present(nav, animated: true, completion: nil)
+        }
+    }
+    
+    func documentBrowserDismissed(_ browser: DocumentBrowseViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func documentBrowserAddedItem(_ browser: DocumentBrowseViewController) {
+        let alert = UIAlertController(title: "New Road", message: "Choose a title:", preferredStyle: .alert)
+        let presenter = self.presentedViewController ?? self
+        alert.addTextField { (tf) in
+            tf.placeholder = "Title"
+            tf.enablesReturnKeyAutomatically = true
+            tf.clearButtonMode = .always
+            tf.autocapitalizationType = .words
+        }
+        alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { _ in
+            guard let text = alert.textFields?.first?.text,
+                text.count > 0 else {
+                    let errorAlert = UIAlertController(title: "No Title", message: "You must choose a title in order to create the new road.", preferredStyle: .alert)
+                    errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                    presenter.present(errorAlert, animated: true, completion: nil)
+                    return
+            }
+            
+            self.dismiss(animated: true, completion: nil)
+            self.loadNewCourseroad(named: text + ".road")
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        presenter.present(alert, animated: true, completion: nil)
+    }
+    
+    func documentBrowser(_ browser: DocumentBrowseViewController, deletedItem item: DocumentBrowseViewController.Item) {
+        guard let url = urlForCourseroad(named: item.identifier) else {
+            return
+        }
+        do {
+            try FileManager.default.removeItem(at: url)
+            if currentUser?.filePath == url.path {
+                if let firstItem = browser.items.first {
+                    loadCourseroad(named: firstItem.identifier)
+                } else if browser.navigationController?.modalPresentationStyle == .popover {
+                    loadNewCourseroad(named: "Road.road")
+                    dismiss(animated: true, completion: nil)
+                } else {
+                    currentUser = nil
+                    collectionView.reloadData()
+                }
+            }
+        } catch {
+            let presenter = self.presentedViewController ?? self
+            let alert = UIAlertController(title: "Could Not Delete Road", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            presenter.present(alert, animated: true, completion: nil)
+        }
+    }
+    
+    func documentBrowser(_ browser: DocumentBrowseViewController, selectedItem item: DocumentBrowseViewController.Item) {
+        loadCourseroad(named: item.identifier)
+        dismiss(animated: true, completion: nil)
     }
     
     // MARK: - Warnings
