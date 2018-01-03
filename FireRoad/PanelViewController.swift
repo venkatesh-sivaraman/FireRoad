@@ -87,6 +87,8 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         }
         if shouldExpandOnAppear {
             expandView()
+        } else if !isExpanded {
+            childNavigationController?.popToRootViewController(animated: false)
         }
         shouldExpandOnAppear = false
     }

@@ -239,6 +239,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     // MARK: - Pop Down Table Menu
     
+    var popDownOldNavigationTitle: String?
+    
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
         if CourseManager.shared.favoriteCourses.contains(course) {
             CourseManager.shared.markCourseAsNotFavorite(course)
@@ -260,6 +262,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController) {
         navigationItem.rightBarButtonItem?.isEnabled = true
+        if let oldTitle = popDownOldNavigationTitle {
+            navigationItem.title = oldTitle
+        }
         tableMenu.hide(animated: true) {
             tableMenu.willMove(toParentViewController: nil)
             tableMenu.view.removeFromSuperview()
@@ -689,6 +694,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             textView.placeholder = "Take notes here…"
             textView.delegate = self
         }
+        if showsSemesterDialog {
+            (cell as? CourseListTableCell)?.longPressTarget = self
+            (cell as? CourseListTableCell)?.longPressAction = #selector(CourseDetailsViewController.longPressOnCourseCell(_:))
+        }
 
         return cell
     }
@@ -711,6 +720,38 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         } else if detailItemType == .courseEvaluations,
             let url = URL(string: "https://edu-apps.mit.edu/ose-rpt/subjectEvaluationSearch.htm?search=Search&subjectCode=\(course!.subjectID!)") {
             delegate?.courseDetailsRequestedOpen(url: url)
+        }
+    }
+    
+    @objc func longPressOnCourseCell(_ sender: UILongPressGestureRecognizer) {
+        guard sender.state == .began,
+            showsSemesterDialog,
+            let cell = sender.view as? CourseThumbnailCell,
+            let id = cell.course?.subjectID,
+            CourseManager.shared.getCourse(withID: id) != nil else {
+            return
+        }
+        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
+            print("No pop down table menu in storyboard!")
+            return
+        }
+        navigationItem.rightBarButtonItem?.isEnabled = false
+        popDownOldNavigationTitle = navigationItem.title
+        navigationItem.title = "(\(id))"
+        popDown.course = cell.course
+        popDown.delegate = self
+        let containingView: UIView = self.view
+        containingView.addSubview(popDown.view)
+        popDown.view.translatesAutoresizingMaskIntoConstraints = false
+        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor, constant: navigationController?.navigationBar.frame.size.height ?? 0.0).isActive = true
+        popDown.willMove(toParentViewController: self)
+        self.addChildViewController(popDown)
+        popDown.didMove(toParentViewController: self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            popDown.show(animated: true)
         }
     }
     

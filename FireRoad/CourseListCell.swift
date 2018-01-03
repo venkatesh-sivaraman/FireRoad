@@ -16,6 +16,8 @@ protocol CourseListCell: UICollectionViewDataSource, UICollectionViewDelegate {
     var courses: [Course] { get set }
     var collectionView: UICollectionView! { get set }
     var delegate: CourseListCellDelegate? { get set }
+    var longPressTarget: Any? { get set }
+    var longPressAction: Selector? { get set }
 }
 
 class CourseListTableCell: UITableViewCell, CourseListCell {
@@ -30,6 +32,9 @@ class CourseListTableCell: UITableViewCell, CourseListCell {
     
     @IBOutlet var collectionView: UICollectionView! = nil
     weak var delegate: CourseListCellDelegate? = nil
+    
+    var longPressTarget: Any?
+    var longPressAction: Selector?
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -53,6 +58,7 @@ class CourseListTableCell: UITableViewCell, CourseListCell {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseListItem", for: indexPath) as! CourseThumbnailCell
         let course = self.courses[indexPath.item]
+        cell.course = course
         cell.textLabel?.text = course.subjectID
         let paraStyle = NSMutableParagraphStyle()
         paraStyle.hyphenationFactor = 0.7
@@ -65,8 +71,9 @@ class CourseListTableCell: UITableViewCell, CourseListCell {
             cell.fulfillmentLevel = fulfillmentIndications[indexPath.item].0
             cell.fulfillmentThreshold = fulfillmentIndications[indexPath.item].1
         }
+        cell.longPressTarget = longPressTarget
+        cell.longPressAction = longPressAction
         return cell
-
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -93,6 +100,9 @@ class CourseListCollectionCell: UICollectionViewCell, CourseListCell {
     @IBOutlet var collectionView: UICollectionView! = nil
     weak var delegate: CourseListCellDelegate? = nil
     
+    var longPressTarget: Any?
+    var longPressAction: Selector?
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
@@ -109,6 +119,7 @@ class CourseListCollectionCell: UICollectionViewCell, CourseListCell {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseListItem", for: indexPath) as! CourseThumbnailCell
         let course = self.courses[indexPath.item]
+        cell.course = course
         cell.textLabel?.text = course.subjectID
         let paraStyle = NSMutableParagraphStyle()
         paraStyle.hyphenationFactor = 0.7
@@ -117,6 +128,8 @@ class CourseListCollectionCell: UICollectionViewCell, CourseListCell {
             cell.detailTextLabel?.attributedText = NSAttributedString(string: title, attributes: [.paragraphStyle: paraStyle])
         }
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
+        cell.longPressTarget = longPressTarget
+        cell.longPressAction = longPressAction
         return cell
         
     }

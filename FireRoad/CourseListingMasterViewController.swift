@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseListingDisplayController: UICollectionViewController, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, CourseViewControllerProvider, UIPopoverPresentationControllerDelegate {
+class CourseListingDisplayController: UICollectionViewController, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, CourseViewControllerProvider, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate {
     var popoverNavigationController: UINavigationController?
 
     override func decodeRestorableState(with coder: NSCoder) {
@@ -135,6 +135,42 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
     func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
         popoverNavigationController = nil
     }
+    
+    // MARK: - Pop Down Table Menu
+    
+    var popDownOldNavigationTitle: String?
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
+        if CourseManager.shared.favoriteCourses.contains(course) {
+            CourseManager.shared.markCourseAsNotFavorite(course)
+        } else {
+            CourseManager.shared.markCourseAsFavorite(course)
+        }
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToSchedule course: Course) {
+        addCourseToSchedule(course)
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester) {
+        _ = addCourse(course, to: semester)
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController) {
+        navigationItem.rightBarButtonItem?.isEnabled = true
+        if let oldTitle = popDownOldNavigationTitle {
+            navigationItem.title = oldTitle
+        }
+        tableMenu.hide(animated: true) {
+            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.view.removeFromSuperview()
+            tableMenu.removeFromParentViewController()
+            tableMenu.didMove(toParentViewController: nil)
+        }
+    }
 }
 
 class CourseListingMasterViewController: CourseListingDisplayController, UICollectionViewDelegateFlowLayout {
@@ -234,6 +270,8 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
             }
             listCell.courses = recommendedCourses
             listCell.delegate = self
+            listCell.longPressTarget = self
+            listCell.longPressAction = #selector(CourseListingMasterViewController.longPressOnListCell(_:))
         } else {
             if let label = cell.viewWithTag(12) as? UILabel {
                 label.font = label.font.withSize(traitCollection.userInterfaceIdiom == .phone ? 17.0 : 20.0)
@@ -282,5 +320,32 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
         return CGSize.zero
+    }
+    
+    // MARK: - Pop Down Table Menu
+    
+    @objc func longPressOnListCell(_ sender: UILongPressGestureRecognizer) {
+        guard sender.state == .began,
+            let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
+            let cell = sender.view as? CourseThumbnailCell,
+            let id = cell.course?.subjectID,
+            CourseManager.shared.getCourse(withID: id) != nil else {
+                return
+        }
+        popDown.course = cell.course
+        popDown.delegate = self
+        let containingView: UIView = self.view
+        containingView.addSubview(popDown.view)
+        popDown.view.translatesAutoresizingMaskIntoConstraints = false
+        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
+        popDown.willMove(toParentViewController: self)
+        self.addChildViewController(popDown)
+        popDown.didMove(toParentViewController: self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            popDown.show(animated: true)
+        }
     }
 }

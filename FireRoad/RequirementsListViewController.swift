@@ -21,7 +21,7 @@ protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, UIPopoverPresentationControllerDelegate {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -350,7 +350,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
             
             courseListCell.delegate = self
-            
+            courseListCell.longPressTarget = self
+            courseListCell.longPressAction = #selector(RequirementsListViewController.longPressOnRequirementsCell(_:))
         } else {
             textLabel?.text = item.text ?? ""
             let fulfillmentIndicator = cell.viewWithTag(56)
@@ -538,5 +539,69 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
         popoverNavigationController = nil
+    }
+    
+    // MARK: - Pop Down Table Menu
+    
+    var popDownOldNavigationTitle: String?
+
+    @objc func longPressOnRequirementsCell(_ sender: UILongPressGestureRecognizer) {
+        guard sender.state == .began,
+            let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
+            let cell = sender.view as? CourseThumbnailCell,
+            let id = cell.course?.subjectID,
+            CourseManager.shared.getCourse(withID: id) != nil else {
+                return
+        }
+        navigationItem.rightBarButtonItem?.isEnabled = false
+        popDownOldNavigationTitle = navigationItem.title
+        navigationItem.title = "(\(id))"
+        popDown.course = cell.course
+        popDown.delegate = self
+        let containingView: UIView = self.view
+        containingView.addSubview(popDown.view)
+        popDown.view.translatesAutoresizingMaskIntoConstraints = false
+        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
+        popDown.willMove(toParentViewController: self)
+        self.addChildViewController(popDown)
+        popDown.didMove(toParentViewController: self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            popDown.show(animated: true)
+        }
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
+        if CourseManager.shared.favoriteCourses.contains(course) {
+            CourseManager.shared.markCourseAsNotFavorite(course)
+        } else {
+            CourseManager.shared.markCourseAsFavorite(course)
+        }
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToSchedule course: Course) {
+        addCourseToSchedule(course)
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester) {
+        _ = addCourse(course, to: semester)
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController) {
+        navigationItem.rightBarButtonItem?.isEnabled = true
+        if let oldTitle = popDownOldNavigationTitle {
+            navigationItem.title = oldTitle
+        }
+        tableMenu.hide(animated: true) {
+            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.view.removeFromSuperview()
+            tableMenu.removeFromParentViewController()
+            tableMenu.didMove(toParentViewController: nil)
+        }
     }
 }

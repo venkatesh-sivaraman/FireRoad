@@ -52,6 +52,28 @@ class CourseThumbnailCell: UICollectionViewCell {
     @IBOutlet var bigLayoutConstraints: [NSLayoutConstraint]?
     @IBOutlet var smallLayoutConstraints: [NSLayoutConstraint]?
     
+    var longPressTarget: Any? {
+        didSet {
+            updateLongPressGestureRecognizer()
+        }
+    }
+    var longPressAction: Selector? {
+        didSet {
+            updateLongPressGestureRecognizer()
+        }
+    }
+    
+    func updateLongPressGestureRecognizer() {
+        if let longPress = gestureRecognizers?.first(where: { $0 is UILongPressGestureRecognizer }) {
+            removeGestureRecognizer(longPress)
+        }
+        if let target = longPressTarget, let selector = longPressAction {
+            let longPress = UILongPressGestureRecognizer(target: target, action: selector)
+            longPress.minimumPressDuration = 0.5
+            addGestureRecognizer(longPress)
+        }
+    }
+    
     func generateHighlightView() -> UIView? {
         let view = UIView(frame: self.bounds)
         view.backgroundColor = UIColor.black.withAlphaComponent(0.2)

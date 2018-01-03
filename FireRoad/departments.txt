@@ -28,7 +28,7 @@ WGS#,#Women's and Gender Studies#,#WGS
 22#,#Nuclear Science and Engineering#,#Nuclear Eng.
 24#,#Linguistics and Philosophy#,#Linguistics and Philosophy
 CC#,#Concourse Program#,#Concourse
-CSB#,#Computational and Systems Biology#,#CSBi
+CSB#,#Computational and Systems Biology#,#CSB
 EC#,#Edgerton Center#,#Edgerton
 EM#,#Engineering Management#,#Engineering Management
 ES#,#Experimental Study Group#,#ESG

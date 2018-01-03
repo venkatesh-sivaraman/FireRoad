@@ -188,6 +188,14 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
         if let descriptionLabel = cell.viewWithTag(56) as? UILabel {
             descriptionLabel.text = course.subjectDescription ?? "No description available."
         }
+        
+        if let longPress = cell.gestureRecognizers?.first(where: { $0 is UILongPressGestureRecognizer }) {
+            cell.removeGestureRecognizer(longPress)
+        }
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(CourseListingViewController.longPressOnListingCell(_:)))
+        longPress.minimumPressDuration = 0.5
+        cell.addGestureRecognizer(longPress)
+
         return cell
     }
     
@@ -288,6 +296,33 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
             filterCourses(with: searchController.searchBar)
         } else {
             clearSearch()
+        }
+    }
+    
+    // MARK: - Pop Down Table Menu
+    
+    @objc func longPressOnListingCell(_ sender: UILongPressGestureRecognizer) {
+        guard sender.state == .began,
+            let cell = sender.view as? UICollectionViewCell,
+            let indexPath = collectionView?.indexPath(for: cell),
+            let id = courses[indexPath.item].subjectID,
+            let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
+                return
+        }
+        popDown.course = courses[indexPath.item]
+        popDown.delegate = self
+        let containingView: UIView = self.view
+        containingView.addSubview(popDown.view)
+        popDown.view.translatesAutoresizingMaskIntoConstraints = false
+        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
+        popDown.willMove(toParentViewController: self)
+        self.addChildViewController(popDown)
+        popDown.didMove(toParentViewController: self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            popDown.show(animated: true)
         }
     }
 }

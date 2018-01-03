@@ -168,7 +168,7 @@ class RootTabViewController: UITabBarController {
         hud.customView = imageView
         hud.label.text = "Added \(course.subjectID!)"
         hud.isSquare = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
             hud.hide(animated: true)
         }
         return ret
