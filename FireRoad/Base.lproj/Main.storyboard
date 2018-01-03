@@ -73,7 +73,7 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="warning" translatesAutoresizingMaskIntoConstraints="NO" id="cOM-MM-bIm">
-                                                    <rect key="frame" x="102" y="-12" width="26" height="26"/>
+                                                    <rect key="frame" x="99" y="-9" width="26" height="26"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="26" id="JtO-Qi-Oxl"/>
                                                         <constraint firstAttribute="height" constant="26" id="c2h-gp-DxU"/>
@@ -86,12 +86,12 @@
                                             <constraint firstAttribute="bottomMargin" secondItem="8dy-I6-nZD" secondAttribute="bottom" id="7yj-J2-jLe"/>
                                             <constraint firstItem="zyu-hP-Bts" firstAttribute="top" secondItem="Y9V-QU-diS" secondAttribute="topMargin" constant="1" id="9MR-6N-wcE"/>
                                             <constraint firstItem="zyu-hP-Bts" firstAttribute="centerY" secondItem="Y9V-QU-diS" secondAttribute="centerY" id="LAs-TR-x6p"/>
-                                            <constraint firstItem="cOM-MM-bIm" firstAttribute="top" secondItem="Y9V-QU-diS" secondAttribute="top" constant="-12" id="OpI-OS-po8"/>
+                                            <constraint firstItem="cOM-MM-bIm" firstAttribute="top" secondItem="Y9V-QU-diS" secondAttribute="top" constant="-9" id="OpI-OS-po8"/>
                                             <constraint firstItem="8dy-I6-nZD" firstAttribute="top" secondItem="zyu-hP-Bts" secondAttribute="bottom" id="rDa-ux-aeU"/>
                                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="8dy-I6-nZD" secondAttribute="trailing" constant="6" id="raT-oB-xTx"/>
                                             <constraint firstItem="8dy-I6-nZD" firstAttribute="centerX" secondItem="zyu-hP-Bts" secondAttribute="centerX" id="rk4-wm-w2t"/>
                                             <constraint firstItem="8dy-I6-nZD" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Y9V-QU-diS" secondAttribute="leading" constant="6" id="sZC-5z-uVe"/>
-                                            <constraint firstAttribute="trailing" secondItem="cOM-MM-bIm" secondAttribute="trailing" constant="-12" id="uPr-lD-MKg"/>
+                                            <constraint firstAttribute="trailing" secondItem="cOM-MM-bIm" secondAttribute="trailing" constant="-9" id="uPr-lD-MKg"/>
                                             <constraint firstItem="zyu-hP-Bts" firstAttribute="centerX" secondItem="Y9V-QU-diS" secondAttribute="centerX" id="zU8-0R-zLf"/>
                                         </constraints>
                                         <size key="customSize" width="116" height="94"/>

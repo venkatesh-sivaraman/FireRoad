@@ -674,17 +674,44 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         browser.delegate = self
         // Generate items
-        var items: [DocumentBrowseViewController.Item] = []
+        var items: [(DocumentBrowseViewController.Item, Date?)] = []
+        let todayFormatter = DateFormatter()
+        todayFormatter.dateStyle = .none
+        todayFormatter.timeStyle = .short
+        let otherFormatter = DateFormatter()
+        otherFormatter.dateStyle = .medium
+        otherFormatter.timeStyle = .none
         for path in dirContents {
+            let fullPath = (roadDir as NSString).appendingPathComponent(path)
             guard path.range(of: ".road")?.upperBound == path.endIndex,
                 path[path.startIndex] != Character("."),
-                let tempUser = try? User(contentsOfFile: (roadDir as NSString).appendingPathComponent(path), readOnly: true) else {
+                let tempUser = try? User(contentsOfFile: fullPath, readOnly: true) else {
                     continue
             }
             let courses = tempUser.coursesOfStudy.flatMap({ RequirementsListManager.shared.requirementList(withID: $0)?.mediumTitle }).joined(separator: ", ")
-            items.append(DocumentBrowseViewController.Item(identifier: path, title: (path as NSString).deletingPathExtension, description: courses, image: tempUser.generateThumbnailImage()))
+            let attr = try? FileManager.default.attributesOfItem(atPath: fullPath)
+            let modDate = attr?[FileAttributeKey.modificationDate] as? Date
+            var components: [String] = []
+            if let date = modDate {
+                if Calendar.current.isDateInToday(date) {
+                    components.append(todayFormatter.string(from: date))
+                } else {
+                    components.append(otherFormatter.string(from: date))
+                }
+            }
+            components.append(courses)
+            items.append((DocumentBrowseViewController.Item(identifier: path, title: (path as NSString).deletingPathExtension, description: components.joined(separator: " • "), image: tempUser.generateThumbnailImage()), modDate))
         }
-        browser.items = items
+        browser.items = items.sorted(by: {
+            if $1.1 == nil && $0.1 == nil {
+                return false
+            } else if $1.1 == nil {
+                return true
+            } else if $0.1 == nil {
+                return false
+            }
+            return $0.1!.compare($1.1!) == .orderedDescending
+        }).map({ $0.0 })
         
         let nav = UINavigationController(rootViewController: browser)
         browser.navigationItem.title = "My Roads"

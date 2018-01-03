@@ -9,18 +9,6 @@
 /* Begin PBXBuildFile section */
 		960A1F081FDA1FCC00C53E43 /* CommonStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */; };
 		960A1F0A1FDA21A500C53E43 /* CourseDisplayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960A1F091FDA21A500C53E43 /* CourseDisplayManager.swift */; };
-		960A1F0C1FDB7C8000C53E43 /* major1.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F0B1FDB7C8000C53E43 /* major1.reql */; };
-		960A1F0F1FDC7ED400C53E43 /* major2a.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F0D1FDC7ED300C53E43 /* major2a.reql */; };
-		960A1F101FDC7ED400C53E43 /* major2oe.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F0E1FDC7ED400C53E43 /* major2oe.reql */; };
-		960A1F121FDC807800C53E43 /* major2.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F111FDC807800C53E43 /* major2.reql */; };
-		960A1F151FDC8FEB00C53E43 /* major3.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F131FDC8FEB00C53E43 /* major3.reql */; };
-		960A1F161FDC8FEB00C53E43 /* major3a.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F141FDC8FEB00C53E43 /* major3a.reql */; };
-		960A1F181FDC92B600C53E43 /* girs.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F171FDC92B600C53E43 /* girs.reql */; };
-		960A1F1E1FDCDA7100C53E43 /* major4b.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F191FDCDA7000C53E43 /* major4b.reql */; };
-		960A1F1F1FDCDA7100C53E43 /* major3c.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1A1FDCDA7000C53E43 /* major3c.reql */; };
-		960A1F201FDCDA7100C53E43 /* major5-7.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1B1FDCDA7000C53E43 /* major5-7.reql */; };
-		960A1F211FDCDA7100C53E43 /* major5.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1C1FDCDA7000C53E43 /* major5.reql */; };
-		960A1F221FDCDA7100C53E43 /* major4.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1D1FDCDA7100C53E43 /* major4.reql */; };
 		9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611BE331F7EE43C0090137E /* ArrayExtension.swift */; };
 		9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */; };
 		9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9611CD821F9287CE00DE2BDE /* acknowledgements.txt */; };
@@ -30,11 +18,9 @@
 		961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */; };
 		961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */; };
 		9626B6E11F8070EB009F6F96 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E01F8070EB009F6F96 /* StringExtension.swift */; };
-		9626B6E31F80A93F009F6F96 /* major6-7.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9626B6E21F80A93F009F6F96 /* major6-7.reql */; };
 		9626B6E61F815686009F6F96 /* RequirementsBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E51F815686009F6F96 /* RequirementsBrowserViewController.swift */; };
 		9626B6E81F815692009F6F96 /* RequirementsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */; };
 		9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E91F815917009F6F96 /* RequirementsList.swift */; };
-		96293C461FE86ECB00F1BDFD /* major6-1.reql in Resources */ = {isa = PBXBuildFile; fileRef = 96293C451FE86ECB00F1BDFD /* major6-1.reql */; };
 		96293C481FEAD21300F1BDFD /* color_checker.py in Resources */ = {isa = PBXBuildFile; fileRef = 96293C471FEAD21300F1BDFD /* color_checker.py */; };
 		962DAD661F89A6180011D96F /* RootTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962DAD651F89A6180011D96F /* RootTabViewController.swift */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
@@ -51,14 +37,7 @@
 		96500EB11F7C91C500872F82 /* CoreSpotlight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB01F7C91C400872F82 /* CoreSpotlight.framework */; };
 		96500EB31F7C91CA00872F82 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */; };
 		9659E38B1F89A93F00E55FA2 /* UIViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */; };
-		9659E38D1F89B57700E55FA2 /* minor21m.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9659E38C1F89B57700E55FA2 /* minor21m.reql */; };
-		9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9659E38E1F89C09F00E55FA2 /* major9.reql */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
-		966493C31FD2181100B8D684 /* minorRussian.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493BE1FD2180F00B8D684 /* minorRussian.reql */; };
-		966493C51FD2181100B8D684 /* minorJapanese.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493C01FD2181000B8D684 /* minorJapanese.reql */; };
-		966493C61FD2181100B8D684 /* major16-ENG.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493C11FD2181100B8D684 /* major16-ENG.reql */; };
-		966493C71FD2181100B8D684 /* major16.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493C21FD2181100B8D684 /* major16.reql */; };
-		9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9669C7B41F904CAD00E60D89 /* minor9.reql */; };
 		9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 9669C7C71F90628300E60D89 /* MBProgressHUD.m */; };
 		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
 		968F2A191FE223480082EE40 /* ScheduleConstraintViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968F2A181FE223480082EE40 /* ScheduleConstraintViewController.swift */; };
@@ -109,34 +88,19 @@
 /* Begin PBXFileReference section */
 		960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonStrings.swift; sourceTree = "<group>"; };
 		960A1F091FDA21A500C53E43 /* CourseDisplayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseDisplayManager.swift; sourceTree = "<group>"; };
-		960A1F0B1FDB7C8000C53E43 /* major1.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = major1.reql; sourceTree = "<group>"; };
-		960A1F0D1FDC7ED300C53E43 /* major2a.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major2a.reql; sourceTree = "<group>"; };
-		960A1F0E1FDC7ED400C53E43 /* major2oe.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major2oe.reql; sourceTree = "<group>"; };
-		960A1F111FDC807800C53E43 /* major2.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major2.reql; sourceTree = "<group>"; };
-		960A1F131FDC8FEB00C53E43 /* major3.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major3.reql; sourceTree = "<group>"; };
-		960A1F141FDC8FEB00C53E43 /* major3a.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major3a.reql; sourceTree = "<group>"; };
-		960A1F171FDC92B600C53E43 /* girs.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = girs.reql; sourceTree = "<group>"; };
-		960A1F191FDCDA7000C53E43 /* major4b.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major4b.reql; sourceTree = "<group>"; };
-		960A1F1A1FDCDA7000C53E43 /* major3c.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major3c.reql; sourceTree = "<group>"; };
-		960A1F1B1FDCDA7000C53E43 /* major5-7.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "major5-7.reql"; sourceTree = "<group>"; };
-		960A1F1C1FDCDA7000C53E43 /* major5.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major5.reql; sourceTree = "<group>"; };
-		960A1F1D1FDCDA7100C53E43 /* major4.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major4.reql; sourceTree = "<group>"; };
 		9611BE331F7EE43C0090137E /* ArrayExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtension.swift; sourceTree = "<group>"; };
 		9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopDownTableMenuController.swift; sourceTree = "<group>"; };
 		9611CD821F9287CE00DE2BDE /* acknowledgements.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = acknowledgements.txt; sourceTree = "<group>"; };
-		9611CD841F92881600DE2BDE /* minor6.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = minor6.reql; sourceTree = "<group>"; };
 		961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserCell.swift; sourceTree = "<group>"; };
 		961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseDetailsViewController.swift; sourceTree = "<group>"; };
 		961E49FE1EC7771D002BABB9 /* enrollment.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = enrollment.txt; sourceTree = "<group>"; };
 		961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PanelViewController.swift; sourceTree = "<group>"; };
 		961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlatPushAnimator.swift; sourceTree = "<group>"; };
 		9626B6E01F8070EB009F6F96 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
-		9626B6E21F80A93F009F6F96 /* major6-7.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = "major6-7.reql"; sourceTree = "<group>"; };
 		9626B6E41F80AF1F009F6F96 /* course_requirements_spec.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = course_requirements_spec.md; sourceTree = "<group>"; };
 		9626B6E51F815686009F6F96 /* RequirementsBrowserViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsBrowserViewController.swift; sourceTree = "<group>"; };
 		9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListViewController.swift; sourceTree = "<group>"; };
 		9626B6E91F815917009F6F96 /* RequirementsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsList.swift; sourceTree = "<group>"; };
-		96293C451FE86ECB00F1BDFD /* major6-1.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "major6-1.reql"; sourceTree = "<group>"; };
 		96293C471FEAD21300F1BDFD /* color_checker.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = color_checker.py; sourceTree = "<group>"; };
 		962DAD651F89A6180011D96F /* RootTabViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabViewController.swift; sourceTree = "<group>"; };
 		963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FireRoad-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -158,14 +122,7 @@
 		96500EB01F7C91C400872F82 /* CoreSpotlight.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreSpotlight.framework; path = System/Library/Frameworks/CoreSpotlight.framework; sourceTree = SDKROOT; };
 		96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtension.swift; sourceTree = "<group>"; };
-		9659E38C1F89B57700E55FA2 /* minor21m.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = minor21m.reql; sourceTree = "<group>"; };
-		9659E38E1F89C09F00E55FA2 /* major9.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = major9.reql; sourceTree = "<group>"; };
 		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
-		966493BE1FD2180F00B8D684 /* minorRussian.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = minorRussian.reql; sourceTree = "<group>"; };
-		966493C01FD2181000B8D684 /* minorJapanese.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = minorJapanese.reql; sourceTree = "<group>"; };
-		966493C11FD2181100B8D684 /* major16-ENG.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "major16-ENG.reql"; sourceTree = "<group>"; };
-		966493C21FD2181100B8D684 /* major16.reql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = major16.reql; sourceTree = "<group>"; };
-		9669C7B41F904CAD00E60D89 /* minor9.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = minor9.reql; sourceTree = "<group>"; };
 		9669C7C71F90628300E60D89 /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
 		9669C7C81F90628300E60D89 /* MBProgressHUD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		96897B171EC8F5500011E572 /* CourseListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseListCell.swift; sourceTree = "<group>"; };
@@ -294,35 +251,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		9659E3901F89C24600E55FA2 /* Requirements Lists */ = {
-			isa = PBXGroup;
-			children = (
-				960A1F0B1FDB7C8000C53E43 /* major1.reql */,
-				960A1F111FDC807800C53E43 /* major2.reql */,
-				960A1F0D1FDC7ED300C53E43 /* major2a.reql */,
-				960A1F0E1FDC7ED400C53E43 /* major2oe.reql */,
-				960A1F131FDC8FEB00C53E43 /* major3.reql */,
-				960A1F141FDC8FEB00C53E43 /* major3a.reql */,
-				960A1F1A1FDCDA7000C53E43 /* major3c.reql */,
-				960A1F1D1FDCDA7100C53E43 /* major4.reql */,
-				960A1F191FDCDA7000C53E43 /* major4b.reql */,
-				960A1F1C1FDCDA7000C53E43 /* major5.reql */,
-				960A1F1B1FDCDA7000C53E43 /* major5-7.reql */,
-				96293C451FE86ECB00F1BDFD /* major6-1.reql */,
-				9626B6E21F80A93F009F6F96 /* major6-7.reql */,
-				9659E38E1F89C09F00E55FA2 /* major9.reql */,
-				966493C21FD2181100B8D684 /* major16.reql */,
-				966493C11FD2181100B8D684 /* major16-ENG.reql */,
-				9611CD841F92881600DE2BDE /* minor6.reql */,
-				9669C7B41F904CAD00E60D89 /* minor9.reql */,
-				9659E38C1F89B57700E55FA2 /* minor21m.reql */,
-				966493C01FD2181000B8D684 /* minorJapanese.reql */,
-				966493BE1FD2180F00B8D684 /* minorRussian.reql */,
-				960A1F171FDC92B600C53E43 /* girs.reql */,
-			);
-			path = "Requirements Lists";
-			sourceTree = "<group>";
-		};
 		9669C7B81F9061E700E60D89 /* Requirements Browser */ = {
 			isa = PBXGroup;
 			children = (
@@ -330,7 +258,6 @@
 				9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */,
 				9626B6E91F815917009F6F96 /* RequirementsList.swift */,
 				96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */,
-				9659E3901F89C24600E55FA2 /* Requirements Lists */,
 			);
 			name = "Requirements Browser";
 			sourceTree = "<group>";
@@ -529,33 +456,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */,
-				960A1F101FDC7ED400C53E43 /* major2oe.reql in Resources */,
 				968F2A1E1FE5A36E0082EE40 /* departments.txt in Resources */,
 				9646CFDF1EB921FE005F87CB /* LaunchScreen.storyboard in Resources */,
-				966493C51FD2181100B8D684 /* minorJapanese.reql in Resources */,
-				960A1F1E1FDCDA7100C53E43 /* major4b.reql in Resources */,
 				96293C481FEAD21300F1BDFD /* color_checker.py in Resources */,
 				9646CFDC1EB921FE005F87CB /* Assets.xcassets in Resources */,
-				960A1F0C1FDB7C8000C53E43 /* major1.reql in Resources */,
-				960A1F221FDCDA7100C53E43 /* major4.reql in Resources */,
-				960A1F1F1FDCDA7100C53E43 /* major3c.reql in Resources */,
 				9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */,
-				966493C71FD2181100B8D684 /* major16.reql in Resources */,
-				960A1F211FDCDA7100C53E43 /* major5.reql in Resources */,
-				960A1F161FDC8FEB00C53E43 /* major3a.reql in Resources */,
-				960A1F181FDC92B600C53E43 /* girs.reql in Resources */,
-				9659E38D1F89B57700E55FA2 /* minor21m.reql in Resources */,
-				966493C31FD2181100B8D684 /* minorRussian.reql in Resources */,
-				96293C461FE86ECB00F1BDFD /* major6-1.reql in Resources */,
 				961E49FF1EC7771D002BABB9 /* enrollment.txt in Resources */,
-				960A1F0F1FDC7ED400C53E43 /* major2a.reql in Resources */,
-				960A1F121FDC807800C53E43 /* major2.reql in Resources */,
-				960A1F201FDCDA7100C53E43 /* major5-7.reql in Resources */,
-				966493C61FD2181100B8D684 /* major16-ENG.reql in Resources */,
-				9626B6E31F80A93F009F6F96 /* major6-7.reql in Resources */,
-				960A1F151FDC8FEB00C53E43 /* major3.reql in Resources */,
-				9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */,
 				9646CFDA1EB921FE005F87CB /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

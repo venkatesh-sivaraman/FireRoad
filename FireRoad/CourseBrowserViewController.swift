@@ -169,6 +169,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             searchBar?.text = initialSearch
             loadSearchResults(withString: initialSearch, options: searchOptions)
         }
+        updateFilterButton()
         
         // Show the loading view if necessary
         if !CourseManager.shared.isLoaded {
