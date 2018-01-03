@@ -125,10 +125,12 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     let nonSearchViewModeDefaultsKey = "CourseBrowserNonSearchViewMode"
+    var justLoaded = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        justLoaded = true
+        
         self.searchBar?.tintColor = self.view.tintColor
         
         if let panel = panelViewController {
@@ -161,66 +163,70 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             self.navigationController?.setToolbarHidden(true, animated: true)
         }
         
-        if let searchBar = searchBar,
-            searchBar.text?.count == 0 {
-            clearSearch()
-        }
-        if let initialSearch = searchTerm {
-            searchBar?.text = initialSearch
-            loadSearchResults(withString: initialSearch, options: searchOptions)
-        }
-        updateFilterButton()
-        
-        // Show the loading view if necessary
-        if !CourseManager.shared.isLoaded {
-            if let loadingView = self.loadingView {
-                loadingView.alpha = 0.0
-                loadingView.isHidden = false
-                self.loadingIndicator?.startAnimating()
-                UIView.animate(withDuration: 0.2, animations: {
-                    self.tableView.alpha = 0.0
-                    self.headerBar?.alpha = 0.0
-                    loadingView.alpha = 1.0
-                }, completion: { (completed) in
-                    if completed {
-                        self.tableView.isHidden = true
-                        self.headerBar?.isHidden = true
-                    }
-                })
+        if justLoaded {
+            if let searchBar = searchBar,
+                searchBar.text?.count == 0 {
+                clearSearch()
             }
-            loadingIndicator?.startAnimating()
-        }
-        DispatchQueue.global().async {
-            while !CourseManager.shared.isLoaded {
-                usleep(100)
+            if let initialSearch = searchTerm {
+                searchBar?.text = initialSearch
+                loadSearchResults(withString: initialSearch, options: searchOptions)
             }
-            DispatchQueue.main.async {
-                self.tableView.isHidden = false
-                self.headerBar?.isHidden = false
+            
+            // Show the loading view if necessary
+            if !CourseManager.shared.isLoaded {
                 if let loadingView = self.loadingView {
+                    loadingView.alpha = 0.0
+                    loadingView.isHidden = false
+                    self.loadingIndicator?.startAnimating()
                     UIView.animate(withDuration: 0.2, animations: {
-                        self.tableView.alpha = 1.0
-                        self.headerBar?.alpha = 1.0
-                        loadingView.alpha = 0.0
+                        self.tableView.alpha = 0.0
+                        self.headerBar?.alpha = 0.0
+                        loadingView.alpha = 1.0
                     }, completion: { (completed) in
                         if completed {
-                            loadingView.isHidden = true
-                            self.loadingIndicator?.stopAnimating()
+                            self.tableView.isHidden = true
+                            self.headerBar?.isHidden = true
                         }
                     })
                 }
-                
-                if let searchText = self.searchBar?.text {
-                    if searchText.count > 0 {
-                        self.loadSearchResults(withString: searchText, options: self.searchOptions)
-                    } else {
-                        self.clearSearch()
+                loadingIndicator?.startAnimating()
+            }
+            DispatchQueue.global().async {
+                while !CourseManager.shared.isLoaded {
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    self.tableView.isHidden = false
+                    self.headerBar?.isHidden = false
+                    if let loadingView = self.loadingView {
+                        UIView.animate(withDuration: 0.2, animations: {
+                            self.tableView.alpha = 1.0
+                            self.headerBar?.alpha = 1.0
+                            loadingView.alpha = 0.0
+                        }, completion: { (completed) in
+                            if completed {
+                                loadingView.isHidden = true
+                                self.loadingIndicator?.stopAnimating()
+                            }
+                        })
                     }
-                } else if let initialSearch = self.searchTerm {
-                    self.loadSearchResults(withString: initialSearch, options: self.searchOptions)
+                    
+                    if let searchText = self.searchBar?.text {
+                        if searchText.count > 0 {
+                            self.loadSearchResults(withString: searchText, options: self.searchOptions)
+                        } else {
+                            self.clearSearch()
+                        }
+                    } else if let initialSearch = self.searchTerm {
+                        self.loadSearchResults(withString: initialSearch, options: self.searchOptions)
+                    }
                 }
             }
+            
+            justLoaded = false
         }
+        updateFilterButton()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -390,7 +396,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     private func searchText(for course: Course, options: SearchOptions) -> String {
         var courseComps: [String?] = []
         if options.contains(.searchID) {
-            courseComps += [course.subjectID, course.subjectID, course.subjectID]
+            courseComps += [course.subjectID, course.subjectID, course.subjectID, course.subjectID, course.subjectID]
         }
         if options.contains(.searchTitle) {
             courseComps.append(course.subjectTitle)
@@ -438,8 +444,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             
             var relevance: Float = 0.0
             let courseText = searchText(for: course, options: options)
-            for comp in comps {
-                let regex = searchRegex(for: comp, options: options)
+            let searchTools = comps.map {
+                ($0, searchRegex(for: $0, options: options))
+            }
+            for (comp, regex) in searchTools {
                 for match in regex.matches(in: courseText, options: [], range: NSRange(location: 0, length: courseText.count)) {
                     var multiplier: Float = 1.0
                     if match.numberOfRanges > 1 {
@@ -460,7 +468,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             if relevance > 0.0 {
                 relevance *= log(Float(max(2, course.enrollmentNumber)))
                 if let user = (self.rootParent as? RootTabViewController)?.currentUser {
-                    relevance *= user.userRelevance(for: course)
+                    relevance *= max(1.0, user.userRelevance(for: course) * 0.1)
                 }
                 newResults[course] = relevance
             }

@@ -56,11 +56,13 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     var pageViewController: UIPageViewController?
     
     var scheduleOptions: [Schedule] = []
+    var displayedScheduleIndex = 0
     
     var shouldLoadScheduleFromDefaults = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        justLoaded = true
 
         if self.displayedCourses.count == 0 {
             shouldLoadScheduleFromDefaults = true
@@ -87,6 +89,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         NotificationCenter.default.addObserver(self, selector: #selector(ScheduleViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
     }
     
+    var justLoaded = false
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -99,6 +103,10 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         updatePanelViewCollapseHeight()
+        if justLoaded, scheduleOptions.count > 0 {
+            showScheduleAfterUpdate()
+        }
+        justLoaded = false
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -121,14 +129,17 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     // MARK: - State Restoration
     
     static let panelVCRestorationKey = "ScheduleVC.panelVC"
-    
+    static let scheduleIndexRestorationKey = "ScheduleVC.scheduleIndex"
+
     override func encodeRestorableState(with coder: NSCoder) {
         super.encodeRestorableState(with: coder)
         coder.encode(panelView, forKey: ScheduleViewController.panelVCRestorationKey)
+        coder.encode(displayedScheduleIndex, forKey: ScheduleViewController.scheduleIndexRestorationKey)
     }
     
     override func decodeRestorableState(with coder: NSCoder) {
         super.decodeRestorableState(with: coder)
+        displayedScheduleIndex = coder.decodeInteger(forKey: ScheduleViewController.scheduleIndexRestorationKey)
     }
     
     // MARK: - Schedule Generation
@@ -143,15 +154,24 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         return UserDefaults.standard.stringArray(forKey: ScheduleViewController.displayedCoursesDefaultsKey)?.flatMap({ CourseManager.shared.getCourse(withID: $0) })
     }
     
+    func showScheduleAfterUpdate() {
+        if self.scheduleOptions.count > 0 {
+            let pageNumber = displayedScheduleIndex < self.scheduleOptions.count ? displayedScheduleIndex : 0
+            self.pageViewController?.setViewControllers([self.scheduleGrid(for: pageNumber)].flatMap({ $0 }), direction: .forward, animated: false, completion: nil)
+            self.scheduleNumberLabel?.text = "\(pageNumber + 1) of \(self.scheduleOptions.count)"
+        } else if let noSchedulesView = self.storyboard?.instantiateViewController(withIdentifier: "NoSchedulesView") {
+            self.pageViewController?.setViewControllers([noSchedulesView], direction: .forward, animated: false, completion: nil)
+            self.scheduleNumberLabel?.text = "--"
+        }
+    }
+    
     func updateDisplayedSchedules(completion: (() -> Void)? = nil) {
+        let justNowLoaded = justLoaded
         loadScheduleOptions {
-            if self.scheduleOptions.count > 0 {
-                self.pageViewController?.setViewControllers([self.scheduleGrid(for: 0)].flatMap({ $0 }), direction: .forward, animated: false, completion: nil)
-                self.scheduleNumberLabel?.text = "\(1) of \(self.scheduleOptions.count)"
-            } else if let noSchedulesView = self.storyboard?.instantiateViewController(withIdentifier: "NoSchedulesView") {
-                self.pageViewController?.setViewControllers([noSchedulesView], direction: .forward, animated: false, completion: nil)
-                self.scheduleNumberLabel?.text = "--"
+            if !justNowLoaded {
+                self.displayedScheduleIndex = 0
             }
+            self.showScheduleAfterUpdate()
             completion?()
         }
     }
@@ -178,6 +198,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             }
             if self.shouldLoadScheduleFromDefaults {
                 self.displayedCourses = self.readCoursesFromDefaults() ?? []
+                self.shouldLoadScheduleFromDefaults = false
             }
             
             for course in self.displayedCourses {
@@ -263,8 +284,6 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             }
             configurationConflictMapping[unit] = slotsOccupied
         }
-
-        print("Schedule configurations: \(scheduleConfigurations)")
         
         let results = recursivelyGenerateScheduleConfigurations(with: scheduleConfigurations, conflictGroups: conflictGroups, conflictMapping: configurationConflictMapping)
         let sorted = results.sorted(by: { $0.conflictCount < $1.conflictCount })
@@ -361,6 +380,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
         if pendingPage != -1 {
+            displayedScheduleIndex = pendingPage
             scheduleNumberLabel?.text = "\(pendingPage + 1) of \(scheduleOptions.count)"
         }
     }
