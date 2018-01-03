@@ -177,6 +177,14 @@ class User: NSObject {
             selectedSubjects[semester] = courses.map({ CourseManager.shared.getCourse(withID: $0.subjectID!) ?? $0 })
         }
         warningsCache.removeAll()
+        var newOverrides: [Course: Bool] = [:]
+        for (course, over) in overrides {
+            guard let newCourse = CourseManager.shared.getCourse(withID: course.subjectID!) else {
+                continue
+            }
+            newOverrides[newCourse] = over
+        }
+        overrides = newOverrides
     }
     
     // MARK: - Courses of Study
@@ -201,9 +209,13 @@ class User: NSObject {
         case notOffered = "Not Offered"
     }
     
-    struct CourseWarning {
+    struct CourseWarning: Equatable {
         var type: CourseWarningType
         var message: String?
+        
+        static func ==(lhs: CourseWarning, rhs: CourseWarning) -> Bool {
+            return lhs.type == rhs.type && lhs.message == rhs.message
+        }
     }
     
     var warningsCache: [Course: [CourseWarning]] = [:]

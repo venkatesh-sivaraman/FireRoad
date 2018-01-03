@@ -72,6 +72,7 @@ func writeCondensedCourses(_ courses: [[CourseAttribute: Any]], to file: String)
             .subjectID,
             .title,
             .subjectLevel,
+            .totalUnits,
             .prerequisites,
             .corequisites,
             .jointSubjects,

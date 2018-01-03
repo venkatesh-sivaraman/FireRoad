@@ -377,16 +377,27 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SemesterHeader", for: indexPath)
         if kind == UICollectionElementKindSectionHeader {
-            if let titleView = view.viewWithTag(10) as? UILabel {
-                titleView.text = UserSemester(rawValue: indexPath.section)?.toString()
-            }
-            if let button = view.viewWithTag(20) as? UIButton {
-                button.setImage(UIImage(named: "ellipsis")?.withRenderingMode(.alwaysTemplate), for: .normal)
-                button.removeTarget(nil, action: nil, for: .touchUpInside)
-                button.addTarget(self, action: #selector(showActionMenuForSection(_:)), for: .touchUpInside)
-            }
+            initializeSectionHeaderView(view, for: indexPath)
         }
         return view
+    }
+    
+    func initializeSectionHeaderView(_ view: UIView, for indexPath: IndexPath) {
+        if let titleView = view.viewWithTag(10) as? UILabel {
+            titleView.text = UserSemester(rawValue: indexPath.section)?.toString()
+        }
+        if let button = view.viewWithTag(20) as? UIButton {
+            button.setImage(UIImage(named: "ellipsis")?.withRenderingMode(.alwaysTemplate), for: .normal)
+            button.removeTarget(nil, action: nil, for: .touchUpInside)
+            button.addTarget(self, action: #selector(showActionMenuForSection(_:)), for: .touchUpInside)
+        }
+        if let unitsLabel = view.viewWithTag(30) as? UILabel,
+            let semester = UserSemester(rawValue: indexPath.section),
+            let semesterCourses = currentUser?.courses(forSemester: semester) {
+            let totalUnits = semesterCourses.reduce(0, { $0 + $1.totalUnits })
+            unitsLabel.text = "\(totalUnits) units"
+            unitsLabel.isHidden = (totalUnits == 0)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
@@ -538,16 +549,6 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         guard currentUser != nil else {
             return nil
         }
-        guard currentUser?.allCourses.contains(course) == false else {
-            let alert = UIAlertController(title: "Course Already Added", message: "\(course.subjectID!) is already in your course list.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-            if self.presentedViewController != nil {
-                self.presentedViewController?.present(alert, animated: true, completion: nil)
-            } else {
-                present(alert, animated: true, completion: nil)
-            }
-            return nil
-        }
         var selectedSemester: UserSemester? = semester
         if selectedSemester == nil {
             for sem in UserSemester.allEnrolledSemesters {
@@ -637,6 +638,14 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 cell.showsWarningIcon = false
                 cell.showsWarningsMenuItem = false
             }
+        }
+        
+        // Update headers
+        for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: UICollectionElementKindSectionHeader) {
+            guard let view = collectionView.supplementaryView(forElementKind: UICollectionElementKindSectionHeader, at: indexPath) else {
+                continue
+            }
+            initializeSectionHeaderView(view, for: indexPath)
         }
     }
     
@@ -856,12 +865,19 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         warningVC.focusedCourse = focusedCourse
         if let user = currentUser {
             var warnings: [(Course, [User.CourseWarning], Bool)] = []
+            // Make sure there aren't duplicate sets of warnings in the warnings list
+            var addedCourses: [Course: Int] = [:]
             for semester in UserSemester.allEnrolledSemesters {
                 let courses = user.courses(forSemester: semester)
                 for course in courses {
                     let courseWarnings = user.warningsForCourse(course, in: semester)
                     if courseWarnings.count > 0 {
+                        if let existing = addedCourses[course],
+                            warnings[existing].1 == courseWarnings {
+                            continue
+                        }
                         warnings.append((course, courseWarnings, user.overridesWarnings(for: course)))
+                        addedCourses[course] = warnings.count - 1
                     }
                 }
             }

@@ -149,13 +149,6 @@ class RootTabViewController: UITabBarController {
     }
     
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
-        guard currentUser?.allCourses.contains(course) == false else {
-            let alert = UIAlertController(title: "Course Already Added", message: "\(course.subjectID!) is already in your course list.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-            present(alert, animated: true, completion: nil)
-            return nil
-        }
-
         guard let courseRoadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController else {
             return nil
         }

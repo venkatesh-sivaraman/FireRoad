@@ -71,6 +71,9 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
             let cell = tableView.dequeueReusableCell(withIdentifier: PopDownTableMenuController.oneButtonCellIdentifier, for: indexPath)
             if let imageView = cell.viewWithTag(34) as? UIImageView,
                 let label = cell.viewWithTag(12) as? UILabel {
+                label.alpha = 1.0
+                imageView.alpha = 1.0
+                cell.selectionStyle = .default
                 
                 if indexPath.row == 0, let course = course {
                     let isInFavorites = CourseManager.shared.favoriteCourses.contains(course)
@@ -82,10 +85,18 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
                     label.text = "Add to Schedule"
                 } else if indexPath.row == 2 {
                     imageView.image = UIImage(named: "prior-credit")?.withRenderingMode(.alwaysTemplate)
-                    label.text = "Prior Credit"
+                    if let rootTab = rootParent as? RootTabViewController,
+                        let currentCourse = course,
+                        rootTab.currentUser?.courses(forSemester: .PreviousCredit).contains(currentCourse) == true {
+                        label.text = "Added to Prior Credit"
+                        label.alpha = 0.3
+                        imageView.alpha = 0.3
+                        cell.selectionStyle = .none
+                    } else {
+                        label.text = "Prior Credit"
+                    }
                 }
             }
-            cell.selectionStyle = .default
             return cell
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: PopDownTableMenuController.buttonCellIdentifier, for: indexPath)
@@ -97,15 +108,31 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
             if let button = view as? UIButton {
                 button.removeTarget(nil, action: nil, for: .touchUpInside)
                 button.addTarget(self, action: #selector(semesterButtonTapped(_:)), for: .touchUpInside)
+                
+                var semesterContainsCourse = false
+                if let rootTab = rootParent as? RootTabViewController,
+                    let currentCourse = course,
+                    let semester = semester(forButtonAt: indexPath, tag: button.tag),
+                    rootTab.currentUser?.courses(forSemester: semester).contains(currentCourse) == true {
+                    semesterContainsCourse = true
+                }
+
                 switch button.tag {
                 case 1:
-                    button.isEnabled = (course?.isOfferedFall == true)
+                    button.isEnabled = (course?.isOfferedFall == true) && !semesterContainsCourse
+                    button.setTitle("Fall", for: .normal)
                 case 2:
-                    button.isEnabled = (course?.isOfferedIAP == true)
+                    button.isEnabled = (course?.isOfferedIAP == true) && !semesterContainsCourse
+                    button.setTitle("IAP", for: .normal)
                 case 3:
-                    button.isEnabled = (course?.isOfferedSpring == true)
+                    button.isEnabled = (course?.isOfferedSpring == true) && !semesterContainsCourse
+                    button.setTitle("Spring", for: .normal)
                 default:
                     button.isEnabled = false
+                }
+                
+                if semesterContainsCourse {
+                    button.setTitle("Added", for: .normal)
                 }
             }
         }
@@ -121,7 +148,11 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
         } else if indexPath.row == 1 {
             delegate?.popDownTableMenu(self, addedCourseToSchedule: course)
         } else if indexPath.row == 2 {
-            delegate?.popDownTableMenu(self, addedCourse: course, to: .PreviousCredit)
+            if let rootTab = rootParent as? RootTabViewController,
+                rootTab.currentUser?.courses(forSemester: .PreviousCredit).contains(course) == true {
+            } else {
+                delegate?.popDownTableMenu(self, addedCourse: course, to: .PreviousCredit)
+            }
         }
     }
     
