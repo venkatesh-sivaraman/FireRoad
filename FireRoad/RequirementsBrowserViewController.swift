@@ -186,7 +186,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if organizedRequirementLists[section].0 == .user {
-            return "Add courses here by finding their requirements below, then toggling the heart icon."
+            return "Courses of study are saved along with your roads in the My Road tab. Add courses by finding their requirements below, then toggling the heart icon."
         }
         return nil
     }

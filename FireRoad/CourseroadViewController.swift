@@ -13,7 +13,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
         didSet {
-            collectionView.reloadData()
+            reloadCollectionView()
         }
     }
     var panelView: PanelViewController? = nil
@@ -37,6 +37,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     @IBOutlet var warningsItem: UIBarButtonItem?
     @IBOutlet var openItem: UIBarButtonItem?
     @IBOutlet var toolbarTitleLabel: UILabel?
+    
+    @IBOutlet var placeholderView: UIView?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -97,6 +99,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             guard let selectedIndexPath = self.collectionView!.indexPathForItem(at: gesture.location(in: self.collectionView)) else {
                 break
             }
+            if UIMenuController.shared.isMenuVisible {
+                UIMenuController.shared.setMenuVisible(false, animated: true)
+            }
             collectionView!.beginInteractiveMovementForItem(at: selectedIndexPath)
         case UIGestureRecognizerState.changed:
             let loc = gesture.location(in: gesture.view!)
@@ -111,16 +116,16 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateNavigationBar()
-        
-        if let offset = collectionViewOffsetWhenLoaded {
-            collectionView.contentOffset = offset
-            collectionViewOffsetWhenLoaded = nil
-        }
+        reloadViewAfterCollectionViewUpdate()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.collectionView.reloadData()
+        self.reloadCollectionView()
+        if let offset = collectionViewOffsetWhenLoaded {
+            collectionView.setContentOffset(offset, animated: false)
+            collectionViewOffsetWhenLoaded = nil
+        }
         updatePanelViewCollapseHeight()        
     }
     
@@ -138,7 +143,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     @objc func courseManagerFinishedLoading(_ note: Notification) {
-        updateCourseWarningStatus()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            self.updateCourseWarningStatus()
+        }
         updateLayoutToggleButton()
     }
     
@@ -148,6 +155,16 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 return .any
         }
         return .topAttached
+    }
+    
+    func reloadCollectionView() {
+        collectionView.reloadData()
+        reloadViewAfterCollectionViewUpdate()
+    }
+    
+    func reloadViewAfterCollectionViewUpdate() {
+        placeholderView?.isHidden = !(currentUser == nil || currentUser?.allCourses.count == 0)
+        updateCourseWarningStatus()
     }
     
     // MARK: - Handling Courseroads
@@ -172,7 +189,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         do {
             currentUser = try User(contentsOfFile: url.path)
-            collectionView.reloadData()
+            reloadCollectionView()
             collectionView.scrollRectToVisible(CGRect(x: 0.0, y: 0.0, width: 4.0, height: 4.0), animated: true)
             UserDefaults.standard.set(url.lastPathComponent, forKey: recentCourseroadPathDefaultsKey)
         } catch {
@@ -190,7 +207,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         if let path = self.currentUser?.filePath {
             UserDefaults.standard.set((path as NSString).lastPathComponent, forKey: self.recentCourseroadPathDefaultsKey)
         }
-        collectionView.reloadData()
+        reloadCollectionView()
         collectionView.scrollRectToVisible(CGRect(x: 0.0, y: 0.0, width: 4.0, height: 4.0), animated: true)
     }
     
@@ -419,7 +436,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 self.collectionView.insertItems(at: [IndexPath(item: 0, section: sourceIndexPath.section)])
             }
         }, completion: { _ in
-            self.updateCourseWarningStatus()
+            self.reloadViewAfterCollectionViewUpdate()
         })
     }
     
@@ -505,7 +522,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 user.delete(course, fromSemester: semester)
             }
             UIView.transition(with: self.collectionView, duration: 0.2, options: .transitionCrossDissolve, animations: {
-                self.collectionView.reloadData()
+                self.reloadCollectionView()
             }, completion: nil)
         }))
         actionMenu.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -558,7 +575,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             }
         }
         self.panelView?.collapseView(to: self.panelView!.collapseHeight)
-        updateCourseWarningStatus()
+        self.reloadViewAfterCollectionViewUpdate()
         return selectedSemester
     }
     
@@ -596,7 +613,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 self.collectionView.deleteItems(at: [indexPath])
             }
         }
-        updateCourseWarningStatus()
+        reloadViewAfterCollectionViewUpdate()
     }
     
     func updateCourseWarningStatus() {
@@ -688,7 +705,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func documentBrowserAddedItem(_ browser: DocumentBrowseViewController) {
-        let alert = UIAlertController(title: "New Road", message: "Choose a title:", preferredStyle: .alert)
+        let alert = UIAlertController(title: "New Road", message: "Choose a title for your new road:", preferredStyle: .alert)
         let presenter = self.presentedViewController ?? self
         alert.addTextField { (tf) in
             tf.placeholder = "Title"
@@ -735,7 +752,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                     dismiss(animated: true, completion: nil)
                 } else {
                     currentUser = nil
-                    collectionView.reloadData()
+                    reloadCollectionView()
                 }
             }
         } catch {
@@ -855,6 +872,6 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func warningsController(_ warningsController: CourseroadWarningsViewController, setOverride override: Bool, for course: Course) {
         currentUser?.setOverridesWarnings(override, for: course)
-        collectionView.reloadData()
+        reloadCollectionView()
     }
 }

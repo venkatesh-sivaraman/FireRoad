@@ -590,7 +590,7 @@ class User: NSObject {
     
     private func cropThumbnailImage(_ image: UIImage) -> UIImage? {
         let size = CGSize(width: User.thumbnailDimension, height: User.thumbnailDimension)
-        UIGraphicsBeginImageContext(size)
+        UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
         let bounds = CGRect(x: 0.0, y: 0.0, width: size.width, height: size.height)
         defer { UIGraphicsEndImageContext() }
         UIBezierPath(roundedRect: bounds, cornerRadius: size.width * 0.2).addClip()
@@ -600,7 +600,7 @@ class User: NSObject {
     
     func generateThumbnailImage() -> UIImage? {
         let startImageSize = CGSize(width: User.thumbnailDimension * 2.0, height: User.thumbnailDimension * 2.0)
-        UIGraphicsBeginImageContext(startImageSize)
+        UIGraphicsBeginImageContextWithOptions(startImageSize, false, 0.0)
         // Draw radial pie slices
         guard let context = UIGraphicsGetCurrentContext() else {
             return nil

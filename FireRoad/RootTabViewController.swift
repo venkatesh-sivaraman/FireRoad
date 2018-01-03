@@ -24,12 +24,18 @@ class RootTabViewController: UITabBarController {
         })
     }
     
+    var justLoaded = false
     override func viewDidLoad() {
-        if !CourseManager.shared.isLoaded {
+        updateSemesters()
+        justLoaded = true
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if justLoaded, !CourseManager.shared.isLoaded {
             CourseManager.shared.loadCourses()
         }
-
-        updateSemesters()
+        justLoaded = false
     }
     
     func updateSemesters() {
