@@ -112,12 +112,16 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         super.viewWillAppear(animated)
         updateNavigationBar()
         
+        if let offset = collectionViewOffsetWhenLoaded {
+            collectionView.contentOffset = offset
+            collectionViewOffsetWhenLoaded = nil
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.collectionView.reloadData()
-        updatePanelViewCollapseHeight()
+        updatePanelViewCollapseHeight()        
     }
     
     deinit {
@@ -236,15 +240,22 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     // MARK: - State Restoration
     
-    static let panelVCRestorationKey = "CourseroadVC.panelVC"
+    var collectionViewOffsetWhenLoaded: CGPoint?
     
+    static let panelVCRestorationKey = "CourseroadVC.panelVC"
+    static let collectionViewOffsetRestorationKey = "CourseroadVC.collectionViewOffset"
+
     override func encodeRestorableState(with coder: NSCoder) {
         super.encodeRestorableState(with: coder)
         coder.encode(panelView, forKey: CourseroadViewController.panelVCRestorationKey)
+        if collectionView.contentOffset.y >= collectionView.contentInset.top {
+            coder.encode(collectionView.contentOffset, forKey: CourseroadViewController.collectionViewOffsetRestorationKey)
+        }
     }
     
     override func decodeRestorableState(with coder: NSCoder) {
         super.decodeRestorableState(with: coder)
+        collectionViewOffsetWhenLoaded = coder.decodeCGPoint(forKey: CourseroadViewController.collectionViewOffsetRestorationKey)
     }
     
     // MARK: - Collection View
@@ -694,8 +705,17 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                     return
             }
             
+            let newID = text + ".road"
+            guard let newURL = self.urlForCourseroad(named: newID),
+                !FileManager.default.fileExists(atPath: newURL.path) else {
+                    let errorAlert = UIAlertController(title: "Road Already Exists", message: "Please choose another title.", preferredStyle: .alert)
+                    errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                    presenter.present(errorAlert, animated: true, completion: nil)
+                    return
+            }
+
             self.dismiss(animated: true, completion: nil)
-            self.loadNewCourseroad(named: text + ".road")
+            self.loadNewCourseroad(named: newID)
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         presenter.present(alert, animated: true, completion: nil)
@@ -724,6 +744,57 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
             presenter.present(alert, animated: true, completion: nil)
         }
+    }
+    
+    func documentBrowser(_ browser: DocumentBrowseViewController, wantsRename item: DocumentBrowseViewController.Item, completion: @escaping ((DocumentBrowseViewController.Item?) -> Void)) {
+        let alert = UIAlertController(title: "Rename Road", message: "Choose a new title:", preferredStyle: .alert)
+        let presenter = self.presentedViewController ?? self
+        alert.addTextField { (tf) in
+            tf.placeholder = "Title"
+            tf.text = item.title
+            tf.enablesReturnKeyAutomatically = true
+            tf.clearButtonMode = .always
+            tf.autocapitalizationType = .words
+        }
+        alert.addAction(UIAlertAction(title: "Rename", style: .default, handler: { _ in
+            guard let text = alert.textFields?.first?.text,
+                text.count > 0 else {
+                    completion(nil)
+                    return
+            }
+            
+            let newID = text + ".road"
+            guard let oldURL = self.urlForCourseroad(named: item.identifier),
+                let newURL = self.urlForCourseroad(named: newID),
+                !FileManager.default.fileExists(atPath: newURL.path) else {
+                    let errorAlert = UIAlertController(title: "Road Already Exists", message: "Please choose another title.", preferredStyle: .alert)
+                    errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                    presenter.present(errorAlert, animated: true, completion: nil)
+                    completion(nil)
+                    return
+            }
+            
+            do {
+                let newItem = DocumentBrowseViewController.Item(identifier: text + ".road", title: text, description: item.description, image: item.image)
+                var shouldOpenNewRoad = false
+                if (self.currentUser?.filePath as NSString?)?.lastPathComponent == item.identifier {
+                    self.currentUser = nil
+                    shouldOpenNewRoad = true
+                }
+                try FileManager.default.moveItem(at: oldURL, to: newURL)
+                if shouldOpenNewRoad {
+                    self.loadCourseroad(named: newItem.identifier)
+                }
+                completion(newItem)
+            } catch {
+                let alert = UIAlertController(title: "Could Not Rename Road", message: error.localizedDescription, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                presenter.present(alert, animated: true, completion: nil)
+                completion(nil)
+            }
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        presenter.present(alert, animated: true, completion: nil)
     }
     
     func documentBrowser(_ browser: DocumentBrowseViewController, selectedItem item: DocumentBrowseViewController.Item) {

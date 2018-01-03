@@ -12,6 +12,7 @@ protocol DocumentBrowseDelegate: class {
     func documentBrowserAddedItem(_ browser: DocumentBrowseViewController)
     func documentBrowser(_ browser: DocumentBrowseViewController, deletedItem item: DocumentBrowseViewController.Item)
     func documentBrowser(_ browser: DocumentBrowseViewController, selectedItem item: DocumentBrowseViewController.Item)
+    func documentBrowser(_ browser: DocumentBrowseViewController, wantsRename item: DocumentBrowseViewController.Item, completion: @escaping ((DocumentBrowseViewController.Item?) -> Void))
     func documentBrowserDismissed(_ browser: DocumentBrowseViewController)
 }
 
@@ -117,11 +118,22 @@ class DocumentBrowseViewController: UITableViewController {
     
     @available(iOS 11.0, *)
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let delete = UIContextualAction(style: .destructive, title: "Delete") { (action, sourceView, completionHandler) in
+        let delete = UIContextualAction(style: .destructive, title: "Delete") { (_, _, completionHandler) in
             self.deleteItem(at: indexPath)
             completionHandler(true)
         }
-        let swipeAction = UISwipeActionsConfiguration(actions: [delete])
+        let rename = UIContextualAction(style: .normal, title: "Rename") { (_, _, completionHandler) in
+            self.delegate?.documentBrowser(self, wantsRename: self.items[indexPath.row], completion: { (newItem) in
+                if let item = newItem {
+                    self.items[indexPath.row] = item
+                    self.tableView.reloadRows(at: [indexPath], with: .fade)
+                    completionHandler(true)
+                } else {
+                    completionHandler(false)
+                }
+            })
+        }
+        let swipeAction = UISwipeActionsConfiguration(actions: [delete, rename])
         swipeAction.performsFirstActionWithFullSwipe = false
         return swipeAction
     }
