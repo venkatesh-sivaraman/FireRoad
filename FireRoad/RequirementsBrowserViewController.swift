@@ -19,6 +19,19 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         static let ordering: [RequirementBrowserTableSection] = [.user, .majors, .minors, .other]
     }
     
+    enum SortMode: String {
+        case alphabetical = "By Name"
+        case byProgress = "By Progress"
+    }
+    
+    private static let sortModeDefaultsKey = "RequirementsBrowser.SortMode"
+    
+    var sortMode: SortMode = .alphabetical {
+        didSet {
+            UserDefaults.standard.set(sortMode.rawValue, forKey: RequirementsBrowserViewController.sortModeDefaultsKey)
+        }
+    }
+    
     var organizedRequirementLists: [(RequirementBrowserTableSection, [RequirementsList])] = []
     
     let listCellIdentifier = "RequirementsListCell"
@@ -35,6 +48,8 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         } else {
             // Fallback on earlier versions
         }
+        
+        sortMode = SortMode(rawValue: UserDefaults.standard.string(forKey: RequirementsBrowserViewController.sortModeDefaultsKey) ?? "") ?? .alphabetical
 
         NotificationCenter.default.addObserver(self, selector: #selector(RequirementsBrowserViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
     }
@@ -60,35 +75,60 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         }
     }
     
-    func updateRequirementsStatus() {
-        if let tabVC = rootParent as? RootTabViewController,
-            let currentUser = tabVC.currentUser {
-            let courses = currentUser.allCourses
-            var organizedCategories: [RequirementBrowserTableSection: [RequirementsList]] = [:]
-            for reqList in RequirementsListManager.shared.requirementsLists {
-                reqList.computeRequirementStatus(with: courses)
-                var category: RequirementBrowserTableSection = .other
-                if currentUser.coursesOfStudy.contains(reqList.listID) {
-                    category = .user
-                } else if reqList.listID.range(of: "major", options: .caseInsensitive) != nil {
-                    category = .majors
-                } else if reqList.listID.range(of: "minor", options: .caseInsensitive) != nil {
-                    category = .minors
-                }
-                if organizedCategories[category] == nil {
-                    organizedCategories[category] = [reqList]
-                } else {
-                    organizedCategories[category]?.append(reqList)
-                }
+    func updateRequirementsStatus(keepingSelectedRow: Bool = false) {
+        guard let tabVC = rootParent as? RootTabViewController,
+            let currentUser = tabVC.currentUser else {
+                return
+        }
+        var selectedList: RequirementsList?
+        
+        if keepingSelectedRow {
+            let row = tableView.indexPathForSelectedRow
+            selectedList = row != nil ? organizedRequirementLists[row!.section].1[row!.row] : nil
+        }
+        
+        let courses = currentUser.allCourses
+        var organizedCategories: [RequirementBrowserTableSection: [RequirementsList]] = [:]
+        for reqList in RequirementsListManager.shared.requirementsLists {
+            reqList.computeRequirementStatus(with: courses)
+            var category: RequirementBrowserTableSection = .other
+            if currentUser.coursesOfStudy.contains(reqList.listID) {
+                category = .user
+            } else if reqList.listID.range(of: "major", options: .caseInsensitive) != nil {
+                category = .majors
+            } else if reqList.listID.range(of: "minor", options: .caseInsensitive) != nil {
+                category = .minors
             }
-            organizedRequirementLists = []
-            
-            for key in RequirementBrowserTableSection.ordering {
-                guard let lists = organizedCategories[key], lists.count > 0 else {
-                    continue
-                }
-                organizedRequirementLists.append((key, lists.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled })))
+            if organizedCategories[category] == nil {
+                organizedCategories[category] = [reqList]
+            } else {
+                organizedCategories[category]?.append(reqList)
             }
+        }
+        organizedRequirementLists = []
+        
+        for key in RequirementBrowserTableSection.ordering {
+            guard let lists = organizedCategories[key], lists.count > 0 else {
+                continue
+            }
+            organizedRequirementLists.append((key, lists.sorted(by: { sortMode == .alphabetical ? (($0.mediumTitle ?? "").localizedStandardCompare($1.mediumTitle ?? "") == .orderedAscending) : ($0.percentageFulfilled > $1.percentageFulfilled) })))
+        }
+        
+        if keepingSelectedRow {
+            UIView.transition(with: self.tableView, duration: 0.2, options: .transitionCrossDissolve, animations: {
+                self.tableView.reloadData()
+            }, completion: { completed in
+                if completed, let selectedList = selectedList {
+                    // Find the list in the new organization
+                    guard let section = self.organizedRequirementLists.index(where: { $0.1.contains(selectedList) }),
+                        let row = self.organizedRequirementLists[section].1.index(of: selectedList) else {
+                            return
+                    }
+                    let ip = IndexPath(row: row, section: section)
+                    self.tableView.selectRow(at: ip, animated: true, scrollPosition: .middle)
+                }
+            })
+        } else {
             tableView.reloadData()
         }
     }
@@ -137,6 +177,27 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     
     @objc func courseManagerFinishedLoading(_ note: Notification) {
         loadRequirementsOrDisplay()
+    }
+    
+    // MARK: - Sorting
+    
+    @IBAction func sortButtonPressed(_ sender: UIBarButtonItem) {
+        let action = UIAlertController(title: "Sort requirements…", message: nil, preferredStyle: .actionSheet)
+        let handler = { (action: UIAlertAction) in
+            self.sortMode = SortMode(rawValue: action.title ?? "") ?? self.sortMode
+            self.updateRequirementsStatus(keepingSelectedRow: true)
+        }
+        action.addAction(UIAlertAction(title: SortMode.alphabetical.rawValue, style: .default, handler: handler))
+        action.addAction(UIAlertAction(title: SortMode.byProgress.rawValue, style: .default, handler: handler))
+        
+        if traitCollection.userInterfaceIdiom == .pad {
+            action.modalPresentationStyle = .popover
+            action.popoverPresentationController?.barButtonItem = sender
+            present(action, animated: true, completion: nil)
+        } else {
+            action.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            present(action, animated: true, completion: nil)
+        }
     }
     
     // MARK: - State Preservation

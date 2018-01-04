@@ -38,6 +38,8 @@ If the number x is followed by the character `u`, then the given criterion must 
 
 List modifications may only be applied to the top level of an expression. For example, the modifier in `variable_name := req1, req2 {>=3}` applies to the entire variable declaration; the modifier in `variable_name := (req1{>=3}), req2` would *still* be parsed as belonging to the entire variable declaration.
 
+In an *or* statement, you can specify that the satisfying classes must come from a thresholded number of distinct substituents of the statement. To do so, enter a list modification with a vertical bar (`|`). For instance, if `req1` and `req2` are two variables containing requirements, specifying `variable := req1/req2{>=3|>=2}` indicates that of the three satisfying courses, they must come from at least two of the sets `req1` and `req2`.
+
 ## Variables
 Variables can be assigned using the syntax `variable_name := statement` or `variable_name, "title" := statement`. The title of the statement, if provided, must be human-readable and wrapped in double quotes.
 

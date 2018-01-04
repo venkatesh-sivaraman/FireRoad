@@ -421,6 +421,7 @@ class CourseManager: NSObject {
             }
         }
         if let id = course.subjectID,
+            Int(id) == nil,
             let color = CourseManager.colorMapping[id] {
             return color
         }

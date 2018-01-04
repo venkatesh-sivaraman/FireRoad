@@ -334,7 +334,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 } else if let gir = GIRAttribute(rawValue: $0) {
                     return Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: "")
                 }
-                if let whitespaceRange = $0.rangeOfCharacter(from: .whitespaces) {
+                if let whitespaceRange = $0.rangeOfCharacter(from: .whitespaces),
+                    Int(String($0[$0.startIndex..<whitespaceRange.lowerBound])) != nil ||
+                        String($0[$0.startIndex..<whitespaceRange.lowerBound]).contains(".") {
                     return Course(courseID: String($0[$0.startIndex..<whitespaceRange.lowerBound]), courseTitle: String($0[whitespaceRange.upperBound..<$0.endIndex]), courseDescription: "")
                 } else if $0.count > 8 {
                     return Course(courseID: "", courseTitle: $0, courseDescription: "")

@@ -608,8 +608,10 @@
                                                                 <constraint firstItem="R9l-I4-AdU" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Bmg-zB-UvK" secondAttribute="leading" constant="13" id="7SA-dx-inN"/>
                                                                 <constraint firstItem="fEG-Jx-BXM" firstAttribute="top" secondItem="Bmg-zB-UvK" secondAttribute="top" constant="6" id="8ud-0d-Vi9"/>
                                                                 <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="R9l-I4-AdU" secondAttribute="trailing" constant="13" id="CSQ-WF-Gwf"/>
+                                                                <constraint firstItem="fEG-Jx-BXM" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Bmg-zB-UvK" secondAttribute="leading" constant="2" id="SDZ-Hn-Qd2"/>
                                                                 <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="R9l-I4-AdU" secondAttribute="bottom" constant="4" id="Zeo-ak-1eK"/>
                                                                 <constraint firstItem="R9l-I4-AdU" firstAttribute="centerX" secondItem="fEG-Jx-BXM" secondAttribute="centerX" id="dEA-M7-gDC"/>
+                                                                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="fEG-Jx-BXM" secondAttribute="trailing" constant="2" id="qPx-dE-cS5"/>
                                                                 <constraint firstItem="R9l-I4-AdU" firstAttribute="top" secondItem="fEG-Jx-BXM" secondAttribute="bottom" id="syf-u0-2pq"/>
                                                             </constraints>
                                                         </collectionViewCell>
@@ -1122,7 +1124,13 @@
                             <outlet property="delegate" destination="YlC-Yb-mDi" id="2D7-6N-TF4"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Requirements" id="SMc-MR-d2z"/>
+                    <navigationItem key="navigationItem" title="Requirements" id="SMc-MR-d2z">
+                        <barButtonItem key="rightBarButtonItem" image="sort" id="c2F-vc-TJL">
+                            <connections>
+                                <action selector="sortButtonPressed:" destination="YlC-Yb-mDi" id="2vr-sp-gNv"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4ug-0l-Ejo" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -3389,6 +3397,7 @@
         <image name="schedule" width="32" height="32"/>
         <image name="second" width="30" height="30"/>
         <image name="small-grid" width="26" height="26"/>
+        <image name="sort" width="32" height="32"/>
         <image name="warning" width="32" height="32"/>
         <image name="warning-outline" width="32" height="32"/>
     </resources>
