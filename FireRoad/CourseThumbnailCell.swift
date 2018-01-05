@@ -13,6 +13,7 @@ protocol CourseThumbnailCellDelegate: class {
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell)
 }
 
 extension CourseThumbnailCellDelegate {
@@ -26,6 +27,9 @@ extension CourseThumbnailCellDelegate {
         
     }
     func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell) {
+        
+    }
+    func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell) {
         
     }
 }
@@ -254,6 +258,8 @@ class CourseThumbnailCell: UICollectionViewCell {
             return delegate != nil && showsConstraintMenuItem
         } else if action == #selector(showWarnings(_:)) {
             return delegate != nil && showsWarningsMenuItem
+        } else if action == #selector(rate(_:)) {
+            return delegate != nil
         }
         return false
     }
@@ -272,6 +278,10 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     @objc func showWarnings(_ sender: AnyObject) {
         delegate?.courseThumbnailCellWantsShowWarnings(self)
+    }
+    
+    @objc func rate(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsRate(self)
     }
     
     // MARK: - Requirement Fulfillment

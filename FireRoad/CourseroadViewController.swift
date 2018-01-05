@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate {
+class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate, UIPopoverPresentationControllerDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
@@ -58,6 +58,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         let menu = UIMenuController.shared
         menu.menuItems = [
             UIMenuItem(title: MenuItemStrings.view, action: #selector(CourseThumbnailCell.viewDetails(_:))),
+            UIMenuItem(title: MenuItemStrings.rate, action: #selector(CourseThumbnailCell.rate(_:))),
             UIMenuItem(title: MenuItemStrings.warnings, action: #selector(CourseThumbnailCell.showWarnings(_:)))
         ]
         
@@ -502,6 +503,22 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell) {
         showWarningsViewController(with: cell.course)
+    }
+    
+    func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell) {
+        guard let rater = storyboard?.instantiateViewController(withIdentifier: "RatePopover") as? RateIndividualViewController else {
+            return
+        }
+        rater.course = cell.course
+        rater.modalPresentationStyle = .popover
+        rater.popoverPresentationController?.delegate = self
+        rater.popoverPresentationController?.sourceRect = cell.bounds
+        rater.popoverPresentationController?.sourceView = cell
+        self.present(rater, animated: true, completion: nil)
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
+        return .none
     }
     
     // MARK: - Section Actions

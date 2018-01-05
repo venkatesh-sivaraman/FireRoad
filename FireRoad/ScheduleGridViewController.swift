@@ -13,7 +13,7 @@ protocol ScheduleGridDelegate: CourseDisplayManager {
     func scheduleGrid(_ gridVC: ScheduleGridViewController, wantsConstraintMenuFor course: Course, sender: UIView?)
 }
 
-class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate {
+class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate, UIPopoverPresentationControllerDelegate {
 
     var schedule: Schedule? {
         didSet {
@@ -260,6 +260,22 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
             return
         }
         delegate?.scheduleGrid(self, wantsConstraintMenuFor: course, sender: cell)
+    }
+    
+    func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell) {
+        guard let rater = storyboard?.instantiateViewController(withIdentifier: "RatePopover") as? RateIndividualViewController else {
+            return
+        }
+        rater.course = cell.course
+        rater.modalPresentationStyle = .popover
+        rater.popoverPresentationController?.delegate = self
+        rater.popoverPresentationController?.sourceRect = cell.bounds
+        rater.popoverPresentationController?.sourceView = cell
+        self.present(rater, animated: true, completion: nil)
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
+        return .none
     }
     
     /*

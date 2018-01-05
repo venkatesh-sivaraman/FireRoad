@@ -35,6 +35,7 @@ enum CourseDetailItem {
     case url
     case courseEvaluations
     case notes
+    case rate
 }
 
 enum CourseDetailSectionTitle {
@@ -298,7 +299,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
         mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
         rowIndex += 1
-        
+        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .rate
+        rowIndex += 1
+
         rowIndex = 0
         sectionIndex += 1
 
@@ -422,6 +425,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "URLCell"
         case .notes:
             id = "NotesCell"
+        case .rate:
+            id = "RateCell"
         }
         return id
     }
@@ -440,7 +445,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let dataType = self.detailMapping[indexPath]!
         let cellType = self.cellType(for: dataType)
-        if cellType == "DescriptionCell" || cellType == "MetadataCell" {
+        if cellType == "DescriptionCell" || cellType == "MetadataCell" || cellType == "RateCell" {
             if sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites || sectionTitles[indexPath.section] == CourseDetailSectionTitle.corequisites {
                 return 32.0
             }
@@ -686,6 +691,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             textLabel?.text = "View on Registrar Site"
         case .courseEvaluations:
             textLabel?.text = "View Subject Evaluations"
+        case .rate:
+            textLabel?.text = "My Rating"
+            (cell.viewWithTag(34) as? RatingView)?.course = self.course
         case .notes:
             guard let textView = cell.viewWithTag(56) as? UITextView else {
                 break
