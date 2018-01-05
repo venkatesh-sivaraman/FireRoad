@@ -1241,8 +1241,55 @@
                                     <outlet property="collectionView" destination="Oeu-Ah-vR1" id="4JS-XA-7Go"/>
                                 </connections>
                             </collectionViewCell>
+                            <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="LoadingCoursesCell" id="kqD-Zf-oWa">
+                                <rect key="frame" x="0.0" y="162" width="375" height="112"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="112"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <activityIndicatorView opaque="NO" tag="12" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="5mc-Po-KQ9">
+                                            <rect key="frame" x="177.5" y="36" width="20" height="20"/>
+                                        </activityIndicatorView>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Loading recommendations…" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bK3-zP-itC">
+                                            <rect key="frame" x="102" y="64" width="171" height="16"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                            <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="calibratedWhite"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                </view>
+                                <constraints>
+                                    <constraint firstItem="5mc-Po-KQ9" firstAttribute="centerY" secondItem="kqD-Zf-oWa" secondAttribute="centerY" constant="-10" id="LfO-co-Jf1"/>
+                                    <constraint firstItem="bK3-zP-itC" firstAttribute="centerX" secondItem="5mc-Po-KQ9" secondAttribute="centerX" id="Y4Z-5h-1OS"/>
+                                    <constraint firstItem="bK3-zP-itC" firstAttribute="top" secondItem="5mc-Po-KQ9" secondAttribute="bottom" constant="8" id="qs8-KM-y5B"/>
+                                    <constraint firstItem="5mc-Po-KQ9" firstAttribute="centerX" secondItem="kqD-Zf-oWa" secondAttribute="centerX" id="xAa-BX-9sQ"/>
+                                </constraints>
+                            </collectionViewCell>
+                            <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="ErrorCell" id="mUR-Hy-WTN">
+                                <rect key="frame" x="0.0" y="274" width="375" height="112"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="112"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" userInteractionEnabled="NO" tag="12" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Your recommendations could not be loaded at this time. Please try again later." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qga-Hm-Fe0">
+                                            <rect key="frame" x="28" y="38" width="320" height="36"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                            <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="calibratedWhite"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                </view>
+                                <constraints>
+                                    <constraint firstItem="qga-Hm-Fe0" firstAttribute="centerY" secondItem="mUR-Hy-WTN" secondAttribute="centerY" id="7Eo-bF-aqD"/>
+                                    <constraint firstItem="qga-Hm-Fe0" firstAttribute="centerX" secondItem="mUR-Hy-WTN" secondAttribute="centerX" id="9RK-6z-3rB"/>
+                                    <constraint firstItem="qga-Hm-Fe0" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="mUR-Hy-WTN" secondAttribute="leading" constant="20" id="Koj-XM-EyV"/>
+                                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="qga-Hm-Fe0" secondAttribute="trailing" constant="20" id="VYJ-7F-hgb"/>
+                                </constraints>
+                            </collectionViewCell>
                             <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="DepartmentCell" id="Kpv-LI-5jn" customClass="HighlightCollectionCell" customModule="FireRoad" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="162" width="375" height="52"/>
+                                <rect key="frame" x="0.0" y="386" width="375" height="52"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
                                     <rect key="frame" x="0.0" y="0.0" width="375" height="52"/>

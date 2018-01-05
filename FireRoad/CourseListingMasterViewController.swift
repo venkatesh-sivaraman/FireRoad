@@ -176,6 +176,7 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
 class CourseListingMasterViewController: CourseListingDisplayController, UICollectionViewDelegateFlowLayout {
 
     var recommendedCourses: [Course] = []
+    var recommendationMessage: String?
     
     let headings = [
         "For You",
@@ -202,13 +203,29 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     }
     
     func setupCollectionViewData() {
-        if let rootTab = rootParent as? RootTabViewController,
-            let user = rootTab.currentUser {
-            recommendedCourses = user.userRecommendedCourses()
+        recommendedCourses = []
+        if let recs = CourseManager.shared.subjectRecommendations {
+            setRecommendedCourses(from: recs)
         } else {
-            recommendedCourses = []
+            CourseManager.shared.fetchSubjectRecommendations { (recs, message) in
+                DispatchQueue.main.async {
+                    if let message = message {
+                        self.recommendationMessage = message
+                    }
+                    if let recs = recs {
+                        self.setRecommendedCourses(from: recs)
+                    }
+                    self.collectionView?.reloadItems(at: [IndexPath(item: 0, section: 0)])
+                }
+            }
         }
         collectionView?.reloadData()
+    }
+    
+    func setRecommendedCourses(from subjectRecs: [String: [Course: Float]]) {
+        if let forYou = subjectRecs["for-you"] {
+            self.recommendedCourses = forYou.sorted(by: { $0.value > $1.value }).map { $0.key }
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -261,25 +278,42 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let identifier = indexPath.section == 0 ? "CourseListCollectionCell" : "DepartmentCell"
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
         if indexPath.section == 0 {
-            guard let listCell = cell as? CourseListCollectionCell else {
-                print("Invalid course list cell")
+            if CourseManager.shared.isLoadingSubjectRecommendations || !CourseManager.shared.isLoaded {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "LoadingCoursesCell", for: indexPath)
+                (cell.viewWithTag(12) as? UIActivityIndicatorView)?.startAnimating()
                 return cell
+            } else if recommendedCourses.count == 0 {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ErrorCell", for: indexPath)
+                if let label = cell.viewWithTag(12) as? UILabel {
+                    if let message = recommendationMessage {
+                        label.text = message
+                    } else {
+                        label.text = "You don't have any recommendations at the moment. Try again later!"
+                    }
+                }
+                return cell
+            } else {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseListCollectionCell", for: indexPath)
+                guard let listCell = cell as? CourseListCollectionCell else {
+                    print("Invalid course list cell")
+                    return cell
+                }
+                listCell.courses = recommendedCourses
+                listCell.delegate = self
+                listCell.longPressTarget = self
+                listCell.longPressAction = #selector(CourseListingMasterViewController.longPressOnListCell(_:))
+                return listCell
             }
-            listCell.courses = recommendedCourses
-            listCell.delegate = self
-            listCell.longPressTarget = self
-            listCell.longPressAction = #selector(CourseListingMasterViewController.longPressOnListCell(_:))
         } else {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DepartmentCell", for: indexPath)
             if let label = cell.viewWithTag(12) as? UILabel {
                 label.font = label.font.withSize(traitCollection.userInterfaceIdiom == .phone ? 17.0 : 20.0)
                 let departments = CourseManager.shared.departments
                 label.text = "\(departments[indexPath.item].code) – \(departments[indexPath.item].description)"
             }
+            return cell
         }
-        return cell
     }
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

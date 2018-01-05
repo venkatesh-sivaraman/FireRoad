@@ -14,6 +14,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     var currentUser: User? {
         didSet {
             reloadCollectionView()
+            if CourseManager.shared.isLoaded {
+                currentUser?.setBaselineRatings()
+            }
         }
     }
     var panelView: PanelViewController? = nil
@@ -145,6 +148,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     @objc func courseManagerFinishedLoading(_ note: Notification) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
             self.updateCourseWarningStatus()
+            self.currentUser?.setBaselineRatings()
         }
         updateLayoutToggleButton()
     }
