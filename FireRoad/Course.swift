@@ -128,7 +128,11 @@ enum CourseOfferingPattern: String {
     case never = "Never"
 }
 
-struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable {
+struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable, Hashable {
+    var hashValue: Int {
+        return rawValue
+    }
+    
     var rawValue: Int
     
     static let none = CourseScheduleDay(rawValue: 0)
@@ -140,6 +144,15 @@ struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable {
     static let saturday = CourseScheduleDay(rawValue: 1 << 1)
     static let sunday = CourseScheduleDay(rawValue: 1 << 0)
     
+    static let gregorianOrdering: [CourseScheduleDay: Int] = [
+        .sunday: 1,
+        .monday: 2,
+        .tuesday: 3,
+        .wednesday: 4,
+        .thursday: 5,
+        .friday: 6,
+        .saturday: 7
+    ]
     static let ordering: [CourseScheduleDay] = [
         .monday,
         .tuesday,
@@ -196,6 +209,15 @@ struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable {
     
     func minDay() -> CourseScheduleDay {
         for day in CourseScheduleDay.ordering {
+            if contains(day) {
+                return day
+            }
+        }
+        return .none
+    }
+    
+    func maxDay() -> CourseScheduleDay {
+        for day in CourseScheduleDay.ordering.reversed() {
             if contains(day) {
                 return day
             }

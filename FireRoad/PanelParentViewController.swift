@@ -11,6 +11,7 @@ import UIKit
 protocol CourseViewControllerProvider {
     var view: UIView! { get }
     var storyboard: UIStoryboard? { get }
+    var presentedViewController: UIViewController? { get }
 
     func generateDetailsViewController(for course: Course, completion: @escaping ((CourseDetailsViewController?, CourseBrowserViewController?) -> Void))
     func generatePostReqsViewController(for course: Course, completion: (CourseBrowserViewController?) -> Void)
@@ -124,31 +125,38 @@ extension PanelParentViewController {
     
     func viewDetails(for course: Course) {
         generateDetailsViewController(for: course) { (details, list) in
-            guard let panel = self.panelView,
-                let browser = self.courseBrowser else {
-                    return
-            }
-            if !panel.isExpanded {
-                panel.expandView()
+            if self.panelView?.isExpanded == false {
+                self.panelView?.expandView()
             }
             if let detailVC = details {
                 detailVC.showsSemesterDialog = self.showsSemesterDialogs
                 detailVC.delegate = self
-                if let vcs = browser.navigationController?.viewControllers {
-                    detailVC.restorationIdentifier? += "\(vcs.count)"
+                if let presented = self.presentedViewController as? UINavigationController {
+                    detailVC.view.backgroundColor = UIColor.white
+                    presented.pushViewController(detailVC, animated: true)
+                } else if let browser = self.courseBrowser {
+                    detailVC.view.backgroundColor = UIColor.clear
+                    if let vcs = browser.navigationController?.viewControllers {
+                        detailVC.restorationIdentifier? += "\(vcs.count)"
+                    }
+                    browser.navigationController?.pushViewController(detailVC, animated: true)
+                    browser.navigationController?.view.setNeedsLayout()
                 }
-                browser.navigationController?.pushViewController(detailVC, animated: true)
-                browser.navigationController?.view.setNeedsLayout()
             } else if let listVC = list {
                 listVC.delegate = self
                 listVC.managesNavigation = false
                 listVC.showsSemesterDialog = self.showsSemesterDialogs
-                listVC.view.backgroundColor = UIColor.clear
-                if let vcs = browser.navigationController?.viewControllers {
-                    listVC.restorationIdentifier? += "\(vcs.count)"
+                if let presented = self.presentedViewController as? UINavigationController {
+                    listVC.view.backgroundColor = UIColor.white
+                    presented.pushViewController(listVC, animated: true)
+                } else if let browser = self.courseBrowser {
+                    listVC.view.backgroundColor = UIColor.clear
+                    if let vcs = browser.navigationController?.viewControllers {
+                        listVC.restorationIdentifier? += "\(vcs.count)"
+                    }
+                    browser.navigationController?.pushViewController(listVC, animated: true)
+                    browser.navigationController?.view.setNeedsLayout()
                 }
-                browser.navigationController?.pushViewController(listVC, animated: true)
-                browser.navigationController?.view.setNeedsLayout()
             }
         }
     }
@@ -166,40 +174,46 @@ extension PanelParentViewController {
     
     func courseDetailsRequestedPostReqs(for course: Course) {
         generatePostReqsViewController(for: course) { (list) in
-            guard let panel = self.panelView,
-                let browser = self.courseBrowser,
-                let listVC = list else {
-                    return
+            guard let listVC = list else {
+                return
             }
-            if !panel.isExpanded {
-                panel.expandView()
+            if self.panelView?.isExpanded == false {
+                self.panelView?.expandView()
             }
-            
+
             listVC.delegate = self
             listVC.managesNavigation = false
             listVC.showsSemesterDialog = self.showsSemesterDialogs
-            listVC.view.backgroundColor = UIColor.clear
-            if let vcs = browser.navigationController?.viewControllers {
-                listVC.restorationIdentifier? += "\(vcs.count)"
+            if let presented = self.presentedViewController as? UINavigationController {
+                listVC.view.backgroundColor = UIColor.white
+                presented.pushViewController(listVC, animated: true)
+            } else if let browser = self.courseBrowser {
+                listVC.view.backgroundColor = UIColor.clear
+                if let vcs = browser.navigationController?.viewControllers {
+                    listVC.restorationIdentifier? += "\(vcs.count)"
+                }
+                browser.navigationController?.pushViewController(listVC, animated: true)
+                browser.navigationController?.view.setNeedsLayout()
             }
-            browser.navigationController?.pushViewController(listVC, animated: true)
-            browser.navigationController?.view.setNeedsLayout()
         }
     }
     
     func courseDetailsRequestedOpen(url: URL) {
-        guard let panel = self.panelView,
-            let browser = self.courseBrowser,
-            let webVC = generateURLViewController(for: url) else {
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                return
+        guard let webVC = generateURLViewController(for: url) else {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            return
         }
-        if !panel.isExpanded {
-            panel.expandView()
+        if self.panelView?.isExpanded == false {
+            self.panelView?.expandView()
         }
-        
-        webVC.view.backgroundColor = UIColor.clear
-        browser.navigationController?.pushViewController(webVC, animated: true)
-        browser.navigationController?.view.setNeedsLayout()
+
+        if let presented = self.presentedViewController as? UINavigationController {
+            webVC.view.backgroundColor = UIColor.white
+            presented.pushViewController(webVC, animated: true)
+        } else if let browser = self.courseBrowser {
+            webVC.view.backgroundColor = UIColor.clear
+            browser.navigationController?.pushViewController(webVC, animated: true)
+            browser.navigationController?.view.setNeedsLayout()
+        }
     }
 }

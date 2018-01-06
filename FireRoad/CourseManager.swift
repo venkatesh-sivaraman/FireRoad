@@ -745,16 +745,13 @@ class CourseManager: NSObject {
         }
         if userRatingsToSubmit != nil {
             userRatingsToSubmit?.merge(ratings, uniquingKeysWith: { $1 })
-            print("Received submit request")
         } else {
-            print("Received initial submit request")
             userRatingsToSubmit = ratings
             DispatchQueue.global().asyncAfter(deadline: .now() + 0.5, execute: {
                 guard let toSubmit = self.userRatingsToSubmit else {
                     return
                 }
                 self.userRatingsToSubmit = nil
-                print("Submitting")
                 self.submitUserRatingsImmediately(ratings: toSubmit, completion: completion, tryOnce: tryOnce)
             })
         }

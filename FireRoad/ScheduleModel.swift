@@ -72,4 +72,26 @@ class Schedule: NSObject {
         
         return allItems.sorted(by: { $0.item.startTime < $1.item.startTime })
     }
+    
+    func userStringRepresentation() -> String {
+        var courses: [Course: [ScheduleUnit]] = [:]
+        for item in scheduleItems {
+            if courses[item.course] != nil {
+                courses[item.course]?.append(item)
+            } else {
+                courses[item.course] = [item]
+            }
+        }
+        var ret = ""
+        let sortedCourses = courses.sorted(by: { ($0.key.subjectID ?? "").localizedStandardCompare($1.key.subjectID ?? "") == .orderedAscending })
+        for (course, units) in sortedCourses {
+            ret += course.subjectID ?? ""
+            ret += "\n"
+            let sortedUnits = units.sorted(by: { (CourseScheduleType.ordering.index(of: $0.sectionType) ?? 0) < (CourseScheduleType.ordering.index(of: $1.sectionType) ?? 0) })
+            for unit in sortedUnits {
+                ret += "\t" + unit.sectionType + ": " + unit.scheduleItems.map({ $0.stringEquivalent() }).joined(separator: ", ") + "\n"
+            }
+        }
+        return ret.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }

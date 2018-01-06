@@ -12,6 +12,7 @@ class RootTabViewController: UITabBarController {
     
     var blurView: UIVisualEffectView?
     var courseUpdatingHUD: MBProgressHUD?
+    var successHUD: MBProgressHUD?
     
     func hideHUD() {
         self.courseUpdatingHUD?.hide(animated: true)
@@ -161,8 +162,12 @@ class RootTabViewController: UITabBarController {
         hud.customView = imageView
         hud.label.text = "Added \(course.subjectID!)"
         hud.isSquare = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+        successHUD = hud
+        let tapper = UITapGestureRecognizer(target: self, action: #selector(RootTabViewController.tapOnHUD(_:)))
+        hud.addGestureRecognizer(tapper)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             hud.hide(animated: true)
+            self.successHUD = nil
         }
         return ret
     }
@@ -205,5 +210,10 @@ class RootTabViewController: UITabBarController {
             return
         }
         browserVC.reloadRequirements()
+    }
+    
+    @objc func tapOnHUD(_ sender: UITapGestureRecognizer) {
+        successHUD?.hide(animated: true)
+        successHUD = nil
     }
 }

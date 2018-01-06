@@ -85,7 +85,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func updateCollectionViewLayout(with traits: UITraitCollection? = nil) {
         let collection = traits ?? traitCollection
-        let layout = self.collectionView.collectionViewLayout as! UICollectionViewFlowLayout
+        guard isViewLoaded,
+            let layout = self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {
+            return
+        }
         layout.sectionInset = UIEdgeInsets(top: 10.0, left: 10.0, bottom: 10.0, right: 10.0)
         layout.minimumInteritemSpacing = collection.userInterfaceIdiom == .phone ? 8.0 : 12.0
         layout.minimumLineSpacing = 12.0

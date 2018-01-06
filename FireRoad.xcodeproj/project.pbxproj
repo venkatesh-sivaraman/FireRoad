@@ -54,6 +54,9 @@
 		96C776A51FDF717B00157F2D /* UIResponderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A41FDF717B00157F2D /* UIResponderExtension.swift */; };
 		96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */; };
 		96D055251FB80B6700BD18A8 /* CourseFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */; };
+		96DD97342000916200E45F5F /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96DD97322000916100E45F5F /* EventKit.framework */; };
+		96DD97352000916200E45F5F /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96DD97332000916200E45F5F /* EventKitUI.framework */; };
+		96DD9737200095B100E45F5F /* CustomActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DD9736200095B100E45F5F /* CustomActivity.swift */; };
 		96DF60D91FF1856F006F1C6A /* CourseroadWarningsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF60D81FF1856F006F1C6A /* CourseroadWarningsViewController.swift */; };
 		96DF60DB1FFBF5DB006F1C6A /* DocumentBrowseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF60DA1FFBF5DB006F1C6A /* DocumentBrowseViewController.swift */; };
 		96DF60DF20002481006F1C6A /* RateIndividualViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF60DE20002481006F1C6A /* RateIndividualViewController.swift */; };
@@ -145,6 +148,9 @@
 		96C776A41FDF717B00157F2D /* UIResponderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIResponderExtension.swift; sourceTree = "<group>"; };
 		96C82F191EDB222900423C53 /* CourseThumbnailCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseThumbnailCell.swift; sourceTree = "<group>"; };
 		96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseFilterViewController.swift; sourceTree = "<group>"; };
+		96DD97322000916100E45F5F /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
+		96DD97332000916200E45F5F /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
+		96DD9736200095B100E45F5F /* CustomActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomActivity.swift; sourceTree = "<group>"; };
 		96DF60D81FF1856F006F1C6A /* CourseroadWarningsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseroadWarningsViewController.swift; sourceTree = "<group>"; };
 		96DF60DA1FFBF5DB006F1C6A /* DocumentBrowseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentBrowseViewController.swift; sourceTree = "<group>"; };
 		96DF60DE20002481006F1C6A /* RateIndividualViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateIndividualViewController.swift; sourceTree = "<group>"; };
@@ -161,6 +167,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				96DD97342000916200E45F5F /* EventKit.framework in Frameworks */,
+				96DD97352000916200E45F5F /* EventKitUI.framework in Frameworks */,
 				96500EB31F7C91CA00872F82 /* MobileCoreServices.framework in Frameworks */,
 				96500EB11F7C91C500872F82 /* CoreSpotlight.framework in Frameworks */,
 			);
@@ -249,6 +257,8 @@
 		96500EAF1F7C91C400872F82 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				96DD97322000916100E45F5F /* EventKit.framework */,
+				96DD97332000916200E45F5F /* EventKitUI.framework */,
 				96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */,
 				96500EB01F7C91C400872F82 /* CoreSpotlight.framework */,
 			);
@@ -277,6 +287,7 @@
 				9669C7C81F90628300E60D89 /* MBProgressHUD.h */,
 				9669C7C71F90628300E60D89 /* MBProgressHUD.m */,
 				96C776A41FDF717B00157F2D /* UIResponderExtension.swift */,
+				96DD9736200095B100E45F5F /* CustomActivity.swift */,
 			);
 			name = Helpers;
 			sourceTree = "<group>";
@@ -529,6 +540,7 @@
 				961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */,
 				96C776A51FDF717B00157F2D /* UIResponderExtension.swift in Sources */,
 				968F2A201FE5B2B80082EE40 /* HighlightCollectionCell.swift in Sources */,
+				96DD9737200095B100E45F5F /* CustomActivity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

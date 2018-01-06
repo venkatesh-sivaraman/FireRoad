@@ -7,8 +7,10 @@
 //
 
 import UIKit
+import EventKit
+import EventKitUI
 
-class ScheduleViewController: UIViewController, PanelParentViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ScheduleGridDelegate, ScheduleConstraintDelegate {
+class ScheduleViewController: UIViewController, PanelParentViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ScheduleGridDelegate, ScheduleConstraintDelegate, EKCalendarChooserDelegate {
     var panelView: PanelViewController?
     var courseBrowser: CourseBrowserViewController?
     var showsSemesterDialogs: Bool {
@@ -52,6 +54,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     @IBOutlet var loadingBackgroundView: UIView?
     
     @IBOutlet var scheduleNumberLabel: UILabel?
+    @IBOutlet var shareButton: UIButton?
+    @IBOutlet var shareItem: UIBarButtonItem?
     
     var pageViewController: UIPageViewController?
     
@@ -78,6 +82,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         pageViewController?.delegate = self
         
         updateDisplayedSchedules()
+        updateToolbarButtons()
         
         updateNavigationBar(animated: false)
         
@@ -87,6 +92,10 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         ]
         
         NotificationCenter.default.addObserver(self, selector: #selector(ScheduleViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    func updateToolbarButtons() {
+        shareButton?.setImage(shareButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
     
     var justLoaded = false
@@ -431,5 +440,194 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         }
         allowedSections?[course] = newAllowedSections
         updateDisplayedSchedules()
+    }
+    
+    // MARK: - Share
+    
+    @IBAction func shareButtonTapped(_ sender: AnyObject) {
+        guard displayedScheduleIndex >= 0, displayedScheduleIndex < scheduleOptions.count else {
+            return
+        }
+        let scheduleString = scheduleOptions[displayedScheduleIndex].userStringRepresentation()
+        let customItem = CustomActivity(title: "Add to Calendar", image: UIImage(named: "schedule")) {
+            self.addCurrentScheduleToCalendar()
+        }
+        let actionVC = UIActivityViewController(activityItems: [scheduleString], applicationActivities: [customItem])
+        if traitCollection.userInterfaceIdiom == .pad,
+            let barItem = sender as? UIBarButtonItem {
+            actionVC.modalPresentationStyle = .popover
+            actionVC.popoverPresentationController?.barButtonItem = barItem
+        }
+        present(actionVC, animated: true, completion: nil)
+    }
+    
+    var eventStore: EKEventStore?
+    
+    func addCurrentScheduleToCalendar() {
+        print("Adding to calendar")
+        eventStore = EKEventStore()
+        guard let store = eventStore else {
+            return
+        }
+        store.requestAccess(to: .event) { (success, error) in
+            if success {
+                let options = UIAlertController(title: "Calendar Options", message: nil, preferredStyle: .alert)
+                options.addAction(UIAlertAction(title: "Save to An Existing Calendar", style: .default, handler: { _ in
+                    let calendarChooser = EKCalendarChooser(selectionStyle: .single, displayStyle: .writableCalendarsOnly, eventStore: store)
+                    calendarChooser.showsCancelButton = true
+                    calendarChooser.showsDoneButton = true
+                    calendarChooser.delegate = self
+                    let nav = UINavigationController(rootViewController: calendarChooser)
+                    calendarChooser.navigationItem.prompt = "Choose a destination calendar for your schedule."
+                    nav.modalPresentationStyle = .formSheet
+                    self.present(nav, animated: true, completion: nil)
+                }))
+                options.addAction(UIAlertAction(title: "Save to Separate Calendars", style: .default, handler: { _ in
+                    self.addScheduleToCalendar(separate: true)
+                }))
+                options.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+                self.present(options, animated: true, completion: nil)
+            } else {
+                let alert = UIAlertController(title: "Could Not Save to Calendar", message: "To give FireRoad calendar access, please go to Settings > Privacy.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                self.present(alert, animated: true, completion: nil)
+            }
+        }
+    }
+    
+    func calendarChooserDidCancel(_ calendarChooser: EKCalendarChooser) {
+        dismiss(animated: true, completion: nil)
+        eventStore = nil
+    }
+    
+    private func getStartDate(for scheduleItem: CourseScheduleItem, semester: CourseManager.Semester) -> Date? {
+        var components = DateComponents()
+        if semester.season == CourseManager.SemesterSeason.spring {
+            components.month = 2
+            components.weekday = 3
+            components.weekdayOrdinal = 1
+        } else {
+            components.month = 9
+            components.weekday = 4
+            components.weekdayOrdinal = 1
+        }
+        components.year = semester.year
+        guard let beginningOfSemester = Calendar.current.nextDate(after: Date.distantPast, matching: components, matchingPolicy: .nextTime, repeatedTimePolicy: .last, direction: .forward) else {
+            return nil
+        }
+        
+        let compCandidates = CourseScheduleDay.ordering.flatMap { day -> DateComponents? in
+            guard scheduleItem.days.contains(day) else {
+                return nil
+            }
+            var comps = DateComponents()
+            comps.weekday = CourseScheduleDay.gregorianOrdering[day]
+            comps.hour = scheduleItem.startTime.hour24
+            comps.minute = scheduleItem.startTime.minute
+            return comps
+        }
+        let candidates = compCandidates.flatMap {
+            Calendar.current.nextDate(after: beginningOfSemester, matching: $0, matchingPolicy: .nextTime)
+        }
+        return candidates.min()
+    }
+    
+    private func getRepeatEndDate(for scheduleItem: CourseScheduleItem, semester: CourseManager.Semester) -> Date? {
+        var components = DateComponents()
+        if semester.season == CourseManager.SemesterSeason.spring {
+            components.month = 5
+            components.weekday = 5
+            components.weekdayOrdinal = 3
+        } else {
+            components.month = 9
+            components.weekday = 4
+            components.weekdayOrdinal = 2
+        }
+        components.year = semester.year
+        return Calendar.current.nextDate(after: Date.distantPast, matching: components, matchingPolicy: .nextTime, repeatedTimePolicy: .last, direction: .forward)
+    }
+    
+    private func eventKitDays(for days: CourseScheduleDay) -> [EKRecurrenceDayOfWeek] {
+        var ret: [EKRecurrenceDayOfWeek] = []
+        let mapping: [(CourseScheduleDay, EKWeekday)] = [
+            (.monday, .monday),
+            (.tuesday, .tuesday),
+            (.wednesday, .wednesday),
+            (.thursday, .thursday),
+            (.friday, .friday),
+            (.saturday, .saturday),
+            (.sunday, .sunday)
+        ]
+        for (day, ekDay) in mapping {
+            if days.contains(day) {
+                ret.append(EKRecurrenceDayOfWeek(ekDay))
+            }
+        }
+        
+        return ret
+    }
+
+    func calendarChooserDidFinish(_ calendarChooser: EKCalendarChooser) {
+        dismiss(animated: true, completion: nil)
+        guard let calendar = calendarChooser.selectedCalendars.first,
+            let store = eventStore else {
+                return
+        }
+        addScheduleToCalendar(separate: false, calendar: calendar)
+    }
+    
+    func addScheduleToCalendar(separate: Bool, calendar: EKCalendar? = nil) {
+        guard displayedScheduleIndex >= 0, displayedScheduleIndex < scheduleOptions.count,
+            let semester = CourseManager.shared.catalogSemester,
+            let store = eventStore else {
+                return
+        }
+        do {
+            let items = scheduleOptions[displayedScheduleIndex].scheduleItems
+            var courseCalendars: [Course: EKCalendar] = [:]
+            let existingCalendars = store.calendars(for: .event)
+            for item in items {
+                if separate {
+                    if courseCalendars[item.course] == nil {
+                        courseCalendars[item.course] = existingCalendars.first(where: { $0.title == (item.course.subjectID ?? "FireRoad") })
+                    }
+                    if courseCalendars[item.course] == nil {
+                        let newCal = EKCalendar(for: .event, eventStore: store)
+                        newCal.title = item.course.subjectID ?? "FireRoad"
+                        newCal.source = store.defaultCalendarForNewEvents?.source
+                        try store.saveCalendar(newCal, commit: true)
+                        courseCalendars[item.course] = newCal
+                    }
+                }
+                for scheduleTime in item.scheduleItems {
+                    guard let start = getStartDate(for: scheduleTime, semester: semester),
+                        let end = getRepeatEndDate(for: scheduleTime, semester: semester) else {
+                            continue
+                    }
+                    let event = EKEvent(eventStore: store)
+                    event.title = [item.course.subjectID ?? "", item.sectionType].joined(separator: " ")
+                    event.location = scheduleTime.location
+                    if !separate, let calendar = calendar {
+                        event.calendar = calendar
+                    } else if let cal = courseCalendars[item.course] {
+                        event.calendar = cal
+                    }
+                    event.startDate = start
+                    let (hours, minutes) = scheduleTime.startTime.delta(to: scheduleTime.endTime)
+                    event.endDate = event.startDate.addingTimeInterval(Double(hours) * 3600.0 + Double(minutes) * 60.0)
+                    event.addRecurrenceRule(EKRecurrenceRule(recurrenceWith: .weekly, interval: 1, daysOfTheWeek: eventKitDays(for: scheduleTime.days), daysOfTheMonth: nil, monthsOfTheYear: nil, weeksOfTheYear: nil, daysOfTheYear: nil, setPositions: nil, end: EKRecurrenceEnd(end: end)))
+                    try store.save(event, span: EKSpan.futureEvents, commit: false)
+                }
+            }
+            try store.commit()
+            let alert = UIAlertController(title: "Saved to Calendar", message: "The schedule has been saved to your calendar!", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            present(alert, animated: true, completion: nil)
+        } catch {
+            print("Couldn't save to calendar: \(error)")
+            let alert = UIAlertController(title: "Could Not Save to Calendar", message: "An error occurred - please try again later.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            present(alert, animated: true, completion: nil)
+        }
     }
 }
