@@ -273,7 +273,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     override func encodeRestorableState(with coder: NSCoder) {
         super.encodeRestorableState(with: coder)
         coder.encode(panelView, forKey: CourseroadViewController.panelVCRestorationKey)
-        if collectionView.contentOffset.y >= collectionView.contentInset.top {
+        if isViewLoaded, collectionView.contentOffset.y >= collectionView.contentInset.top {
             coder.encode(collectionView.contentOffset, forKey: CourseroadViewController.collectionViewOffsetRestorationKey)
         }
     }

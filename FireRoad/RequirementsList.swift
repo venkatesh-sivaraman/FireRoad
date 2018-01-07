@@ -112,7 +112,8 @@ class RequirementsListStatement: NSObject {
     }
     
     override var debugDescription: String {
-        let fulfillmentString = fulfillmentProgress > 0 ? "(\(fulfillmentProgress) - \(percentageFulfilled)%) " : ""
+        let prog = fulfillmentProgress(for: threshold.criterion)
+        let fulfillmentString = prog > 0 ? "(\(prog) - \(percentageFulfilled)%) " : ""
         if let req = requirement {
             return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title != nil ? title! + ": " : "")\(req)\(thresholdDescription.count > 0 ? " (" + thresholdDescription + ")" : "")>"
         } else if let reqList = requirements {
@@ -340,7 +341,7 @@ class RequirementsListStatement: NSObject {
     // MARK: - Requirement Status
     
     var isFulfilled = false
-    var fulfillmentProgress = 0
+    var fulfillmentProgress = (0, 0)
     var satisfyingCourses: Set<Course>?
     
     func coursesSatisfyingRequirement(in courses: [Course]) -> [Course] {
@@ -409,20 +410,24 @@ class RequirementsListStatement: NSObject {
         } else {
             isFulfilled = (distinctNumSatisfying >= (requirements?.count ?? 1))
         }
-        fulfillmentProgress = threshold.criterion == .subjects ? numSatisfying.0 : numSatisfying.1
+        fulfillmentProgress = numSatisfying
         return totalSatisfyingCourses
     }
     
-    private var fulfilledFraction: (Int, Int) {
+    func fulfillmentProgress(for criterion: ThresholdCriterion) -> Int {
+        return criterion == .subjects ? fulfillmentProgress.0 : fulfillmentProgress.1
+    }
+    
+    private func fulfilledFraction(for criterion: ThresholdCriterion) -> (Int, Int) {
         if let reqs = requirements {
             if distinctThreshold.cutoff > 0 || (connectionType == .all && threshold.cutoff > 1) {
-                return (fulfillmentProgress, threshold.cutoff)
+                return (fulfillmentProgress(for: criterion), threshold.cutoff)
             }
-            let progresses = reqs.map({ $0.fulfilledFraction })
+            let progresses = reqs.map({ $0.fulfilledFraction(for: criterion) })
             if connectionType == .all {
                 return progresses.reduce((0, 0), { ($0.0 + min($1.0, $1.1), $0.1 + $1.1) })
             }
-            let sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled }).map({ $0.fulfilledFraction })
+            let sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled }).map({ $0.fulfilledFraction(for: criterion) })
             if threshold.cutoff > 1 {
                 let tempResult = sortedProgresses[0..<min(threshold.cutoff, sortedProgresses.count)].reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
                 return (min(threshold.cutoff, tempResult.0), threshold.cutoff)
@@ -432,14 +437,14 @@ class RequirementsListStatement: NSObject {
                 return (sortedProgresses.reduce(0, { $0 + $1.0 }), 0)
             }
         }
-        return (fulfillmentProgress, threshold.cutoff)
+        return (fulfillmentProgress(for: criterion), threshold.cutoff)
     }
     
     var percentageFulfilled: Float {
         if connectionType == .none {
             return 0.0
         }
-        let fulfilled = fulfilledFraction
+        let fulfilled = fulfilledFraction(for: threshold.criterion)
         if fulfilled.0 == 0, fulfilled.1 == 0 {
             return 0.0
         }

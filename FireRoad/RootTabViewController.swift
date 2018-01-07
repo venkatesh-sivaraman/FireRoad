@@ -39,6 +39,20 @@ class RootTabViewController: UITabBarController {
         justLoaded = false
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if CourseManager.shared.allowsRecommendations == nil {
+            let consentAlert = UIAlertController(title: "Ratings and Recommendations", message: "Do you agree to let FireRoad send your anonymized subject ratings to an MIT server in order to provide you and other users with recommendations? Note that at the moment, it is not possible to undo this decision." , preferredStyle: .alert)
+            consentAlert.addAction(UIAlertAction(title: "Allow", style: .default, handler: { _ in
+                CourseManager.shared.allowsRecommendations = true
+            }))
+            consentAlert.addAction(UIAlertAction(title: "Deny", style: .destructive, handler: { _ in
+                CourseManager.shared.allowsRecommendations = false
+            }))
+            self.present(consentAlert, animated: true, completion: nil)
+        }
+    }
+    
     func updateSemesters() {
         let oldAvailableSemesters = CourseManager.shared.availableCatalogSemesters
         CourseManager.shared.checkForCatalogSemesterUpdates { (state, _, error, code) in

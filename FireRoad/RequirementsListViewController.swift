@@ -345,10 +345,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
             if let reqs = statement.requirements {
                 courseListCell.fulfillmentIndications = reqs.map {
-                    ($0.fulfillmentProgress, $0.threshold.cutoff)
+                    ($0.fulfillmentProgress(for: $0.threshold.criterion), $0.threshold.cutoff)
                 }
             } else {
-                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress, statement.threshold.cutoff)]
+                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress(for: statement.threshold.criterion), statement.threshold.cutoff)]
             }
             
             courseListCell.delegate = self
