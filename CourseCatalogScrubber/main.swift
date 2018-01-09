@@ -104,6 +104,8 @@ func writeFullCourses(_ courses: [[CourseAttribute: Any]], to file: String) {
             .labUnits,
             .preparationUnits,
             .totalUnits,
+            .isVariableUnits,
+            .hasFinal,
             .GIR,
             .communicationRequirement,
             .hassRequirement,

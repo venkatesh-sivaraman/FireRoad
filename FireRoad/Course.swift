@@ -394,6 +394,8 @@ enum CourseAttribute: String {
     case lectureUnits
     case designUnits
     case preparationUnits
+    case pdfOption
+    case hasFinal
     case notOfferedYear
     case onlinePageNumber
     case schoolWideElectives
@@ -435,6 +437,8 @@ enum CourseAttribute: String {
         "Lecture Units": .lectureUnits,
         "Design Units": .designUnits,
         "Preparation Units": .preparationUnits,
+        "PDF Option": .pdfOption,
+        "Has Final": .hasFinal,
         "Not Offered Year": .notOfferedYear,
         "On Line Page Number": .onlinePageNumber,
         "School Wide Electives": .schoolWideElectives,
@@ -572,6 +576,8 @@ class Course: NSObject {
     @objc dynamic var lectureUnits: Int = 0
     @objc dynamic var designUnits: Int = 0
     @objc dynamic var preparationUnits: Int = 0
+    @objc dynamic var hasFinal: Bool = false
+    @objc dynamic var pdfOption: Bool = false
     @objc dynamic var notOfferedYear: String? {
         didSet {
             updateOfferingPattern()
@@ -660,7 +666,7 @@ class Course: NSObject {
                     parseDeferredValues[attribute] = value as? String
                 }
             case .isOfferedFall, .isOfferedIAP, .isOfferedSpring, .isOfferedSummer, .isOfferedThisYear,
-                 .isVariableUnits:
+                 .isVariableUnits, .hasFinal, .pdfOption:
                 if (value as? Bool) != nil {
                     super.setValue(value, forKey: key)
                 } else {

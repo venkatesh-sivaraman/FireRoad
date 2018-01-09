@@ -1118,6 +1118,37 @@
                                     </constraints>
                                 </tableViewCellContentView>
                             </tableViewCell>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="NoCoursesCell" rowHeight="56" id="0X3-e8-G9A" customClass="RequirementsBrowserTableCell" customModule="FireRoad" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="111.5" width="375" height="56"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="0X3-e8-G9A" id="bkn-xh-Iv8">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="55.5"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" multipleTouchEnabled="YES" tag="12" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="No courses of study yet." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="V1b-aL-dhh">
+                                            <rect key="frame" x="24" y="17.5" width="186.5" height="20.5"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <color key="textColor" white="0.59999999999999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                        <view alpha="0.69999998807907104" tag="11" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="04k-cZ-qCC">
+                                            <rect key="frame" x="0.0" y="0.0" width="3" height="55.5"/>
+                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="3" id="5s5-6c-pBy"/>
+                                            </constraints>
+                                        </view>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="04k-cZ-qCC" firstAttribute="leading" secondItem="bkn-xh-Iv8" secondAttribute="leading" id="4Mq-um-2Mb"/>
+                                        <constraint firstItem="V1b-aL-dhh" firstAttribute="leading" secondItem="bkn-xh-Iv8" secondAttribute="leading" constant="24" id="FT2-Qg-mH1"/>
+                                        <constraint firstItem="04k-cZ-qCC" firstAttribute="top" secondItem="bkn-xh-Iv8" secondAttribute="top" id="ge4-6q-uRl"/>
+                                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="V1b-aL-dhh" secondAttribute="trailing" constant="8" id="mBn-y7-aoI"/>
+                                        <constraint firstItem="V1b-aL-dhh" firstAttribute="centerY" secondItem="bkn-xh-Iv8" secondAttribute="centerY" id="pqE-uu-3Qb"/>
+                                        <constraint firstAttribute="bottom" secondItem="04k-cZ-qCC" secondAttribute="bottom" id="r6G-Xx-Rwa"/>
+                                    </constraints>
+                                </tableViewCellContentView>
+                            </tableViewCell>
                         </prototypes>
                         <connections>
                             <outlet property="dataSource" destination="YlC-Yb-mDi" id="N1R-gN-7Yv"/>

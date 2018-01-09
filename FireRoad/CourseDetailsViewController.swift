@@ -519,7 +519,19 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             }
         case .units:
             textLabel?.text = "Units"
-            detailTextLabel?.text = "\(self.course!.totalUnits) total\n(\(self.course!.lectureUnits)-\(self.course!.labUnits)-\(self.course!.preparationUnits))"
+            var message = ""
+            if self.course?.isVariableUnits == true {
+                message = "arranged"
+            } else {
+                message = "\(self.course!.totalUnits) total\n(\(self.course!.lectureUnits)-\(self.course!.labUnits)-\(self.course!.preparationUnits))"
+            }
+            if self.course?.hasFinal == true {
+                message += "\nHas final"
+            }
+            if self.course?.pdfOption == true {
+                message += "\n[P/D/F]"
+            }
+            detailTextLabel?.text = message
         case .instructors:
             textLabel?.text = "Instructor\(self.course!.instructors.count != 1 ? "s" : "")"
             detailTextLabel?.text = self.course!.instructors.joined(separator: ",")
@@ -634,7 +646,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 if equivCourse != nil {
                     (cell as! CourseListTableCell).courses.append(equivCourse!)
                 } else if myID.lowercased().contains("permission of instructor") {
-                    (cell as! CourseListTableCell).courses.append(Course(courseID: "--", courseTitle: "(Permission of Instructor)", courseDescription: ""))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "--", courseTitle: "Permission of Instructor", courseDescription: ""))
                 } else if let gir = GIRAttribute(rawValue: myID) {
                     (cell as! CourseListTableCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 } else {

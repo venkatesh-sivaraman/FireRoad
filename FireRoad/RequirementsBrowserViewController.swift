@@ -35,6 +35,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     var organizedRequirementLists: [(RequirementBrowserTableSection, [RequirementsList])] = []
     
     let listCellIdentifier = "RequirementsListCell"
+    let noCoursesCellIdentifier = "NoCoursesCell"
     let listVCIdentifier = "RequirementsListVC"
     
     override func viewDidLoad() {
@@ -108,7 +109,8 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         organizedRequirementLists = []
         
         for key in RequirementBrowserTableSection.ordering {
-            guard let lists = organizedCategories[key], lists.count > 0 else {
+            let lists = organizedCategories[key] ?? []
+            guard lists.count > 0 || key == .user else {
                 continue
             }
             organizedRequirementLists.append((key, lists.sorted(by: { sortMode == .alphabetical ? (($0.mediumTitle ?? "").localizedStandardCompare($1.mediumTitle ?? "") == .orderedAscending) : ($0.percentageFulfilled > $1.percentageFulfilled) })))
@@ -238,6 +240,9 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if section == 0, organizedRequirementLists[section].1.count == 0 {
+            return 1
+        }
         return organizedRequirementLists[section].1.count
     }
     
@@ -253,6 +258,10 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if indexPath.section == 0, organizedRequirementLists[indexPath.section].1.count == 0 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: noCoursesCellIdentifier, for: indexPath)
+            return cell
+        }
         let cell = tableView.dequeueReusableCell(withIdentifier: listCellIdentifier, for: indexPath)
         let textLabel = cell.viewWithTag(12) as? UILabel
         let detailTextLabel = cell.viewWithTag(34) as? UILabel

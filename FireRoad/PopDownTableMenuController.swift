@@ -119,13 +119,13 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
 
                 switch button.tag {
                 case 1:
-                    button.isEnabled = (course?.isOfferedFall == true) && !semesterContainsCourse
+                    button.alpha = ((course?.isOfferedFall == true) && !semesterContainsCourse) ? 1.0 : 0.3
                     button.setTitle("Fall", for: .normal)
                 case 2:
-                    button.isEnabled = (course?.isOfferedIAP == true) && !semesterContainsCourse
+                    button.alpha = ((course?.isOfferedIAP == true) && !semesterContainsCourse) ? 1.0 : 0.3
                     button.setTitle("IAP", for: .normal)
                 case 3:
-                    button.isEnabled = (course?.isOfferedSpring == true) && !semesterContainsCourse
+                    button.alpha = ((course?.isOfferedSpring == true) && !semesterContainsCourse) ? 1.0 : 0.3
                     button.setTitle("Spring", for: .normal)
                 default:
                     button.isEnabled = false

@@ -154,13 +154,31 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     // MARK: - Schedule Generation
     
     static let displayedCoursesDefaultsKey = "ScheduleViewController.displayedCourses"
-    
+    static let scheduleConstraintsDefaultsKey = "ScheduleViewController.scheduleConstraints"
+
     func updateScheduleDefaults() {
         UserDefaults.standard.set(self.displayedCourses.flatMap({ $0.subjectID }), forKey: ScheduleViewController.displayedCoursesDefaultsKey)
+        if let sections = allowedSections {
+            var sectionMapping: [String: [String: [Int]]] = [:]
+            for (course, value) in sections {
+                sectionMapping[course.subjectID!] = value
+            }
+            UserDefaults.standard.set(sectionMapping, forKey: ScheduleViewController.scheduleConstraintsDefaultsKey)
+        }
     }
     
-    func readCoursesFromDefaults() -> [Course]? {
-        return UserDefaults.standard.stringArray(forKey: ScheduleViewController.displayedCoursesDefaultsKey)?.flatMap({ CourseManager.shared.getCourse(withID: $0) })
+    func readCoursesFromDefaults() {
+        self.displayedCourses = UserDefaults.standard.stringArray(forKey: ScheduleViewController.displayedCoursesDefaultsKey)?.flatMap({ CourseManager.shared.getCourse(withID: $0) }) ?? []
+        if let sections = UserDefaults.standard.dictionary(forKey: ScheduleViewController.scheduleConstraintsDefaultsKey) {
+            var sectionMapping: [Course: [String: [Int]]] = [:]
+            for (subjectID, value) in sections {
+                guard let course = CourseManager.shared.getCourse(withID: subjectID) else {
+                    continue
+                }
+                sectionMapping[course] = value as? [String: [Int]]
+            }
+            self.allowedSections = sectionMapping
+        }
     }
     
     func showScheduleAfterUpdate() {
@@ -206,7 +224,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                 usleep(100)
             }
             if self.shouldLoadScheduleFromDefaults {
-                self.displayedCourses = self.readCoursesFromDefaults() ?? []
+                self.readCoursesFromDefaults()
                 self.shouldLoadScheduleFromDefaults = false
             }
             

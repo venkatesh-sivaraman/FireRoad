@@ -17,6 +17,7 @@ enum CourseCatalogConstants {
     static let corequisitesPrefix = "coreq:"
     static let meetsWithPrefix = "subject meets with"
     static let jointSubjectsPrefix = "same subject as"
+    static let pdfString = "P/D/F"
     
     static let undergrad = "undergrad"
     static let graduate = "graduate"
@@ -86,6 +87,8 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
     case labUnits
     case preparationUnits
     case totalUnits
+    case isVariableUnits
+    case pdfOption
     case instructors
     case prerequisites
     case corequisites
@@ -119,6 +122,9 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
         .labUnits: "Lab Units",
         .preparationUnits: "Preparation Units",
         .totalUnits: "Total Units",
+        .isVariableUnits: "Is Variable Units",
+        .pdfOption: "PDF Option",
+        .hasFinal: "Has Final",
         .instructors: "Instructors",
         .prerequisites: "Prerequisites",
         .corequisites: "Corequisites",
@@ -412,19 +418,19 @@ class CourseCatalogParser: NSObject {
         } else if let notOfferedRange = item.range(of: CourseCatalogConstants.notOfferedPrefix, options: .caseInsensitive) {
             attributes[.notOfferedYear] = String(item[notOfferedRange.upperBound..<item.endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
             
+        } else if item.range(of: CourseCatalogConstants.unitsArrangedPrefix, options: .caseInsensitive) != nil {
+            attributes[.isVariableUnits] = true
         } else if let unitsRange = item.range(of: CourseCatalogConstants.unitsPrefix, options: .caseInsensitive) {
             let unitsString = String(item[unitsRange.upperBound..<item.endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
-            let components = unitsString.components(separatedBy: .punctuationCharacters).flatMap({ Int($0) })
-            if components.count == 3 {
+            if let components = unitsString.components(separatedBy: .whitespaces).first?.components(separatedBy: .punctuationCharacters).flatMap({ Int($0) }),
+                components.count >= 3 {
                 attributes[.lectureUnits] = components[0]
                 attributes[.labUnits] = components[1]
                 attributes[.preparationUnits] = components[2]
+                attributes[.totalUnits] = components[0..<3].reduce(0, +)
             }
-            attributes[.totalUnits] = components.reduce(0, +)
-        }/* else if let unitsArrangedRange = item.range(of: CourseCatalogConstants.unitsArrangedPrefix, options: .caseInsensitive) {
-             attributes[.units] = item.substring(from: unitsArrangedRange.upperBound).trimmingCharacters(in: .whitespacesAndNewlines)
-             
-         }*/ else if item.range(of: CourseCatalogConstants.hassH, options: .caseInsensitive) != nil ||
+            attributes[.pdfOption] = unitsString.contains(CourseCatalogConstants.pdfString)
+        } else if item.range(of: CourseCatalogConstants.hassH, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.hassA, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.hassS, options: .caseInsensitive) != nil {
             attributes[.hassRequirement] = CourseCatalogConstants.abbreviation(for: item.trimmingCharacters(in: .whitespacesAndNewlines))
