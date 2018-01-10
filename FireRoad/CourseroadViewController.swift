@@ -12,12 +12,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
-        didSet {
-            reloadCollectionView()
-            if CourseManager.shared.isLoaded {
-                currentUser?.setBaselineRatings()
-            }
+        guard let rootTab = rootParent as? RootTabViewController else {
+            return nil
         }
+        return rootTab.currentUser
     }
     var panelView: PanelViewController? = nil
     var courseBrowser: CourseBrowserViewController? = nil
@@ -63,9 +61,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         ]
         
         updateLayoutToggleButton()
-        
-        loadRecentCourseroad()
-        
+                
         updateNavigationBar(animated: false)
     }
     
@@ -177,70 +173,42 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     // MARK: - Handling Courseroads
     
-    let recentCourseroadPathDefaultsKey = "recent-courseroad-filepath"
-    
-    var courseroadDirectory: String? {
-        return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first
-    }
-    
-    func urlForCourseroad(named name: String) -> URL? {
-        guard let dirPath = courseroadDirectory else {
-            return nil
-        }
-        let url = URL(fileURLWithPath: dirPath).appendingPathComponent(name)
-        return url
-    }
-    
     func loadCourseroad(named name: String) {
-        guard let url = urlForCourseroad(named: name) else {
+        guard let rootTab = rootParent as? RootTabViewController else {
             return
         }
-        do {
-            currentUser = try User(contentsOfFile: url.path)
-            reloadCollectionView()
-            collectionView.scrollRectToVisible(CGRect(x: 0.0, y: 0.0, width: 4.0, height: 4.0), animated: true)
-            UserDefaults.standard.set(url.lastPathComponent, forKey: recentCourseroadPathDefaultsKey)
-        } catch {
-            print("Error loading user: \(error)")
-        }
-    }
-    
-    func loadNewCourseroad(named name: String) {
-        self.currentUser = User()
-        if let url = self.urlForCourseroad(named: name) {
-            self.currentUser?.filePath = url.path
-        }
-        self.currentUser?.coursesOfStudy = [ "girs" ]
-        self.currentUser?.autosave()
-        if let path = self.currentUser?.filePath {
-            UserDefaults.standard.set((path as NSString).lastPathComponent, forKey: self.recentCourseroadPathDefaultsKey)
-        }
+        rootTab.loadCourseroad(named: name)
         reloadCollectionView()
         collectionView.scrollRectToVisible(CGRect(x: 0.0, y: 0.0, width: 4.0, height: 4.0), animated: true)
     }
     
-    func loadRecentCourseroad() {
-        var loaded = false
-        if let recentPath = UserDefaults.standard.string(forKey: recentCourseroadPathDefaultsKey),
-            let url = urlForCourseroad(named: recentPath) {
-            do {
-                currentUser = try User(contentsOfFile: url.path)
-                loaded = true
-            } catch {
-                print("Error loading user: \(error)")
-            }
+    func loadNewCourseroad(named name: String) {
+        guard let rootTab = rootParent as? RootTabViewController else {
+            return
         }
-        if !loaded {
+        rootTab.loadNewCourseroad(named: name)
+        reloadCollectionView()
+        collectionView.scrollRectToVisible(CGRect(x: 0.0, y: 0.0, width: 4.0, height: 4.0), animated: true)
+    }
+    
+    func waitForUser() {
+        guard let rootTab = rootParent as? RootTabViewController else {
+            return
+        }
+        if !rootTab.isLoadingUser {
+            reloadCollectionView()
+            collectionView.scrollRectToVisible(CGRect(x: 0.0, y: 0.0, width: 4.0, height: 4.0), animated: true)
+        } else {
             if !CourseManager.shared.isLoaded {
                 loadingView?.isHidden = false
                 loadingIndicator?.startAnimating()
             }
             DispatchQueue.global().async {
-                while !CourseManager.shared.isLoaded {
+                while rootTab.isLoadingUser {
                     usleep(100)
                 }
                 DispatchQueue.main.async {
-                    self.loadNewCourseroad(named: "First Steps.road")
+                    self.reloadCollectionView()
                     if let loadingView = self.loadingView,
                         let collectionView = self.collectionView {
                         collectionView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
@@ -701,7 +669,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     @IBAction func openButtonPressed(_ sender: AnyObject) {
         guard let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
-            let roadDir = courseroadDirectory,
+            let rootTab = rootParent as? RootTabViewController,
+            let roadDir = rootTab.courseroadDirectory,
             let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {
                 return
         }
@@ -783,7 +752,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             }
             
             let newID = text + ".road"
-            guard let newURL = self.urlForCourseroad(named: newID),
+            guard let rootTab = self.rootParent as? RootTabViewController,
+                let newURL = rootTab.urlForCourseroad(named: newID),
                 !FileManager.default.fileExists(atPath: newURL.path) else {
                     let errorAlert = UIAlertController(title: "Road Already Exists", message: "Please choose another title.", preferredStyle: .alert)
                     errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
@@ -799,7 +769,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func documentBrowser(_ browser: DocumentBrowseViewController, deletedItem item: DocumentBrowseViewController.Item) {
-        guard let url = urlForCourseroad(named: item.identifier) else {
+        guard let rootTab = rootParent as? RootTabViewController,
+            let url = rootTab.urlForCourseroad(named: item.identifier) else {
             return
         }
         do {
@@ -811,7 +782,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                     loadNewCourseroad(named: "Road.road")
                     dismiss(animated: true, completion: nil)
                 } else {
-                    currentUser = nil
+                    rootTab.currentUser = nil
                     reloadCollectionView()
                 }
             }
@@ -841,8 +812,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             }
             
             let newID = text + ".road"
-            guard let oldURL = self.urlForCourseroad(named: item.identifier),
-                let newURL = self.urlForCourseroad(named: newID),
+            guard let rootTab = self.rootParent as? RootTabViewController,
+                let oldURL = rootTab.urlForCourseroad(named: item.identifier),
+                let newURL = rootTab.urlForCourseroad(named: newID),
                 !FileManager.default.fileExists(atPath: newURL.path) else {
                     let errorAlert = UIAlertController(title: "Road Already Exists", message: "Please choose another title.", preferredStyle: .alert)
                     errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
@@ -855,7 +827,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 let newItem = DocumentBrowseViewController.Item(identifier: text + ".road", title: text, description: item.description, image: item.image)
                 var shouldOpenNewRoad = false
                 if (self.currentUser?.filePath as NSString?)?.lastPathComponent == item.identifier {
-                    self.currentUser = nil
+                    rootTab.currentUser = nil
                     shouldOpenNewRoad = true
                 }
                 try FileManager.default.moveItem(at: oldURL, to: newURL)

@@ -29,6 +29,8 @@ class RootTabViewController: UITabBarController {
     override func viewDidLoad() {
         updateSemesters()
         justLoaded = true
+        
+        loadRecentCourseroad()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -200,10 +202,11 @@ class RootTabViewController: UITabBarController {
     }
 
     var currentUser: User? {
-        guard let courseRoadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController else {
-                return nil
+        didSet {
+            if CourseManager.shared.isLoaded {
+                currentUser?.setBaselineRatings()
+            }
         }
-        return courseRoadVC.currentUser
     }
     
     func displaySchedule(with courses: [Course]) {
@@ -229,5 +232,72 @@ class RootTabViewController: UITabBarController {
     @objc func tapOnHUD(_ sender: UITapGestureRecognizer) {
         successHUD?.hide(animated: true)
         successHUD = nil
+    }
+    
+    // MARK: - Handling Courseroads
+    
+    let recentCourseroadPathDefaultsKey = "recent-courseroad-filepath"
+    
+    var courseroadDirectory: String? {
+        return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first
+    }
+    
+    func urlForCourseroad(named name: String) -> URL? {
+        guard let dirPath = courseroadDirectory else {
+            return nil
+        }
+        let url = URL(fileURLWithPath: dirPath).appendingPathComponent(name)
+        return url
+    }
+    
+    func loadCourseroad(named name: String) {
+        guard let url = urlForCourseroad(named: name) else {
+            return
+        }
+        do {
+            currentUser = try User(contentsOfFile: url.path)
+            UserDefaults.standard.set(url.lastPathComponent, forKey: recentCourseroadPathDefaultsKey)
+        } catch {
+            print("Error loading user: \(error)")
+        }
+    }
+    
+    func loadNewCourseroad(named name: String) {
+        self.currentUser = User()
+        if let url = self.urlForCourseroad(named: name) {
+            self.currentUser?.filePath = url.path
+        }
+        self.currentUser?.coursesOfStudy = [ "girs" ]
+        self.currentUser?.autosave()
+        if let path = self.currentUser?.filePath {
+            UserDefaults.standard.set((path as NSString).lastPathComponent, forKey: self.recentCourseroadPathDefaultsKey)
+        }
+    }
+    
+    var isLoadingUser = false
+    
+    func loadRecentCourseroad() {
+        var loaded = false
+        if let recentPath = UserDefaults.standard.string(forKey: recentCourseroadPathDefaultsKey),
+            let url = urlForCourseroad(named: recentPath) {
+            do {
+                currentUser = try User(contentsOfFile: url.path)
+                loaded = true
+            } catch {
+                print("Error loading user: \(error)")
+            }
+        }
+        if !loaded {
+            isLoadingUser = true
+            DispatchQueue.global().async {
+                while !CourseManager.shared.isLoaded {
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    self.loadNewCourseroad(named: "First Steps.road")
+                    self.isLoadingUser = false
+                }
+            }
+        }
     }
 }
