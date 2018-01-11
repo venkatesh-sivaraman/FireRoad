@@ -57,6 +57,7 @@
 		96DD97342000916200E45F5F /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96DD97322000916100E45F5F /* EventKit.framework */; };
 		96DD97352000916200E45F5F /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96DD97332000916200E45F5F /* EventKitUI.framework */; };
 		96DD9737200095B100E45F5F /* CustomActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DD9736200095B100E45F5F /* CustomActivity.swift */; };
+		96DD973A2005CCB000E45F5F /* ComputeQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DD97392005CCB000E45F5F /* ComputeQueue.swift */; };
 		96DF60D91FF1856F006F1C6A /* CourseroadWarningsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF60D81FF1856F006F1C6A /* CourseroadWarningsViewController.swift */; };
 		96DF60DB1FFBF5DB006F1C6A /* DocumentBrowseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF60DA1FFBF5DB006F1C6A /* DocumentBrowseViewController.swift */; };
 		96DF60DF20002481006F1C6A /* RateIndividualViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DF60DE20002481006F1C6A /* RateIndividualViewController.swift */; };
@@ -152,6 +153,7 @@
 		96DD97332000916200E45F5F /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
 		96DD9736200095B100E45F5F /* CustomActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomActivity.swift; sourceTree = "<group>"; };
 		96DD97382000B36800E45F5F /* FireRoad.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FireRoad.entitlements; sourceTree = "<group>"; };
+		96DD97392005CCB000E45F5F /* ComputeQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputeQueue.swift; sourceTree = "<group>"; };
 		96DF60D81FF1856F006F1C6A /* CourseroadWarningsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseroadWarningsViewController.swift; sourceTree = "<group>"; };
 		96DF60DA1FFBF5DB006F1C6A /* DocumentBrowseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentBrowseViewController.swift; sourceTree = "<group>"; };
 		96DF60DE20002481006F1C6A /* RateIndividualViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateIndividualViewController.swift; sourceTree = "<group>"; };
@@ -290,6 +292,7 @@
 				9669C7C71F90628300E60D89 /* MBProgressHUD.m */,
 				96C776A41FDF717B00157F2D /* UIResponderExtension.swift */,
 				96DD9736200095B100E45F5F /* CustomActivity.swift */,
+				96DD97392005CCB000E45F5F /* ComputeQueue.swift */,
 			);
 			name = Helpers;
 			sourceTree = "<group>";
@@ -506,6 +509,7 @@
 			files = (
 				96DF60D91FF1856F006F1C6A /* CourseroadWarningsViewController.swift in Sources */,
 				9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */,
+				96DD973A2005CCB000E45F5F /* ComputeQueue.swift in Sources */,
 				960A1F0A1FDA21A500C53E43 /* CourseDisplayManager.swift in Sources */,
 				968F2A191FE223480082EE40 /* ScheduleConstraintViewController.swift in Sources */,
 				968F2A221FE5C4BE0082EE40 /* CourseListingViewController.swift in Sources */,

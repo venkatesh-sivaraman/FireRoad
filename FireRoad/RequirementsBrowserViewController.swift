@@ -50,7 +50,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             // Fallback on earlier versions
         }
         
-        sortMode = SortMode(rawValue: UserDefaults.standard.string(forKey: RequirementsBrowserViewController.sortModeDefaultsKey) ?? "") ?? .alphabetical
+        sortMode = .alphabetical
 
         NotificationCenter.default.addObserver(self, selector: #selector(RequirementsBrowserViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
     }
@@ -65,6 +65,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             tableView.deselectRow(at: ip, animated: true)
         }
         loadRequirementsOrDisplay()
+        self.computedLists.removeAll()
     }
     
     func reloadRequirements() {
@@ -88,10 +89,9 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             selectedList = row != nil ? organizedRequirementLists[row!.section].1[row!.row] : nil
         }
         
-        let courses = currentUser.allCourses
         var organizedCategories: [RequirementBrowserTableSection: [RequirementsList]] = [:]
         for reqList in RequirementsListManager.shared.requirementsLists {
-            reqList.computeRequirementStatus(with: courses)
+            //reqList.computeRequirementStatus(with: courses)
             var category: RequirementBrowserTableSection = .other
             if currentUser.coursesOfStudy.contains(reqList.listID) {
                 category = .user
@@ -252,10 +252,13 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if organizedRequirementLists[section].0 == .user {
-            return "Courses of study are saved along with your roads in the My Road tab. Add courses by finding their requirements below, then toggling the heart icon."
+            return "Add courses of study by finding their requirements below, then toggling the heart icon. These courses are saved along with your roads in the My Road tab."
         }
         return nil
     }
+    
+    lazy var progressComputeQueue = ComputeQueue(label: "RequirementsBrowser.computeProgress")
+    var computedLists = Set<String>()
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0, organizedRequirementLists[indexPath.section].1.count == 0 {
@@ -267,20 +270,37 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         let detailTextLabel = cell.viewWithTag(34) as? UILabel
         let descriptionTextLabel = cell.viewWithTag(78) as? UILabel
         let list = organizedRequirementLists[indexPath.section].1[indexPath.row]
-        textLabel?.text = list.mediumTitle ?? "No title"
-        if CourseManager.shared.isLoaded {
-            let progress = list.percentageFulfilled
+        let titleText = list.mediumTitle ?? "No title"
+        textLabel?.text = titleText
+        if CourseManager.shared.isLoaded, !progressComputeQueue.contains(list.listID) {
             let fulfillmentIndicator = cell.viewWithTag(56)
-            if progress > 0.0 {
-                detailTextLabel?.text = "\(Int(round(progress)))%"
-                detailTextLabel?.textColor = UIColor.white
-                fulfillmentIndicator?.backgroundColor = UIColor(hue: 0.005 * CGFloat(progress), saturation: 0.9, brightness: 0.7, alpha: 1.0)
-                fulfillmentIndicator?.layer.cornerRadius = RequirementsListViewController.fulfillmentIndicatorCornerRadius
-                fulfillmentIndicator?.layer.masksToBounds = true
-            } else {
-                detailTextLabel?.text = ""
-                fulfillmentIndicator?.backgroundColor = UIColor.clear
+            progressComputeQueue.async(taskName: list.listID) {
+                if !self.computedLists.contains(list.listID),
+                    let user = (self.rootParent as? RootTabViewController)?.currentUser {
+                    list.computeRequirementStatus(with: user.allCourses)
+                    self.computedLists.insert(list.listID)
+                }
+                let progress = list.percentageFulfilled
+                DispatchQueue.main.async {
+                    guard textLabel?.text == titleText else {
+                        return
+                    }
+                    if progress > 0.0 {
+                        UIView.transition(with: cell, duration: 0.1, options: .transitionCrossDissolve, animations: {
+                            detailTextLabel?.text = "\(Int(round(progress)))%"
+                            detailTextLabel?.textColor = UIColor.white
+                            fulfillmentIndicator?.backgroundColor = UIColor(hue: 0.005 * CGFloat(progress), saturation: 0.9, brightness: 0.7, alpha: 1.0)
+                            fulfillmentIndicator?.layer.cornerRadius = RequirementsListViewController.fulfillmentIndicatorCornerRadius
+                            fulfillmentIndicator?.layer.masksToBounds = true
+                        }, completion: nil)
+                    } else {
+                        detailTextLabel?.text = ""
+                        fulfillmentIndicator?.backgroundColor = UIColor.clear
+                    }
+                }
             }
+            detailTextLabel?.text = ""
+            fulfillmentIndicator?.backgroundColor = UIColor.clear
         } else {
             detailTextLabel?.text = ""
         }

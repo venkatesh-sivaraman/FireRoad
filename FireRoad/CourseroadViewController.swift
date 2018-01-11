@@ -667,6 +667,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     // MARK: - Loading Different Roads
     
+    lazy var thumbnailImageComputeQueue = ComputeQueue(label: "CourseroadVC.thumbnailImage")
+    
     @IBAction func openButtonPressed(_ sender: AnyObject) {
         guard let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
             let rootTab = rootParent as? RootTabViewController,
@@ -702,7 +704,14 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 }
             }
             components.append(courses)
-            items.append((DocumentBrowseViewController.Item(identifier: path, title: (path as NSString).deletingPathExtension, description: components.joined(separator: " • "), image: tempUser.generateThumbnailImage()), modDate))
+            var item = DocumentBrowseViewController.Item(identifier: path, title: (path as NSString).deletingPathExtension, description: components.joined(separator: " • "), image: tempUser.emptyThumbnailImage())
+            thumbnailImageComputeQueue.async {
+                item.image = tempUser.generateThumbnailImage()
+                DispatchQueue.main.async {
+                    browser.update(item: item)
+                }
+            }
+            items.append((item, modDate))
         }
         browser.items = items.sorted(by: {
             if $1.1 == nil && $0.1 == nil {
@@ -714,6 +723,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             }
             return $0.1!.compare($1.1!) == .orderedDescending
         }).map({ $0.0 })
+        if browser.items.count > 1 {
+            browser.itemToHighlight = browser.items.first(where: { $0.identifier == (rootTab.currentUser?.filePath as NSString?)?.lastPathComponent })
+        }
         
         let nav = UINavigationController(rootViewController: browser)
         browser.navigationItem.title = "My Roads"

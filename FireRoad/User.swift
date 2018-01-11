@@ -662,6 +662,14 @@ class User: NSObject {
         return UIGraphicsGetImageFromCurrentImageContext()
     }
     
+    func emptyThumbnailImage() -> UIImage? {
+        let size = CGSize(width: User.thumbnailDimension, height: User.thumbnailDimension)
+        UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+        let bounds = CGRect(x: 0.0, y: 0.0, width: size.width, height: size.height)
+        defer { UIGraphicsEndImageContext() }
+        return UIGraphicsGetImageFromCurrentImageContext()
+    }
+    
     func generateThumbnailImage() -> UIImage? {
         let startImageSize = CGSize(width: User.thumbnailDimension * 2.0, height: User.thumbnailDimension * 2.0)
         UIGraphicsBeginImageContextWithOptions(startImageSize, false, 0.0)

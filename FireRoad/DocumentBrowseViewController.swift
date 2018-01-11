@@ -31,6 +31,7 @@ class DocumentBrowseViewController: UITableViewController {
     
     var items: [Item] = []
     var showsCancelButton = false
+    var itemToHighlight: Item? = nil
     
     weak var delegate: DocumentBrowseDelegate?
     
@@ -44,6 +45,23 @@ class DocumentBrowseViewController: UITableViewController {
         
         preferredContentSize = CGSize(width: 320.0, height: 500.0)
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if let item = itemToHighlight,
+            let index = items.index(of: item) {
+            self.tableView.selectRow(at: IndexPath(row: index, section: 0), animated: false, scrollPosition: .none)
+        }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if let item = itemToHighlight,
+            let index = items.index(of: item) {
+            self.tableView.deselectRow(at: IndexPath(row: index, section: 0), animated: true)
+            itemToHighlight = nil
+        }
+    }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -56,6 +74,16 @@ class DocumentBrowseViewController: UITableViewController {
     
     @objc func addButtonTapped(_ sender: AnyObject) {
         delegate?.documentBrowserAddedItem(self)
+    }
+    
+    func update(item: Item) {
+        guard let index = items.index(where: { $0.identifier == item.identifier }) else {
+            return
+        }
+        let selection = self.tableView.indexPathForSelectedRow
+        items[index] = item
+        self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: selection?.row == index ? .none : .fade)
+        self.tableView.selectRow(at: selection, animated: false, scrollPosition: .none)
     }
 
     // MARK: - Table View Data Source
