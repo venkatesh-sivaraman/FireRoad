@@ -644,6 +644,7 @@ class CourseManager: NSObject {
     static let recommenderVerifyURL = "https://venkats.scripts.mit.edu/fireroad/recommend/verify"
     static let recommenderNewUserURL = "https://venkats.scripts.mit.edu/fireroad/recommend/new_user"
     static let recommenderSubmitURL = "https://venkats.scripts.mit.edu/fireroad/recommend/rate/"
+    static let recommenderSignupURL = "https://venkats.scripts.mit.edu/fireroad/recommend/signup/"
     static let recommenderFetchURL = "https://venkats.scripts.mit.edu/fireroad/recommend/get/"
 
     private func verifyRecommender(completion: @escaping () -> Void) {
@@ -684,8 +685,8 @@ class CourseManager: NSObject {
         task.resume()
     }
     
-    private func getRecommenderUserID(completion: @escaping (Int?) -> Void) {
-        guard allowsRecommendations == true, let url = URL(string: CourseManager.recommenderNewUserURL) else {
+    func getRecommenderUserID(completion: @escaping (Int?) -> Void) {
+        guard let url = URL(string: CourseManager.recommenderNewUserURL) else {
             return
         }
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 10.0)
@@ -711,6 +712,31 @@ class CourseManager: NSObject {
             }
         }
         task.resume()
+    }
+    
+    func generateRandomPassword() -> String {
+        let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-+"
+        let len = UInt32(letters.length)
+        
+        var randomString = ""
+        
+        for _ in 0..<20 {
+            let rand = arc4random_uniform(len)
+            var nextChar = letters.character(at: Int(rand))
+            randomString += NSString(characters: &nextChar, length: 1) as String
+        }
+        
+        return randomString
+    }
+    
+    func savePassword(_ password: String) {
+        let keychain = KeychainItemWrapper(identifier: "FireRoadRecommendationUser", accessGroup: nil)
+        keychain["password"] = password as AnyObject?
+    }
+    
+    func loadPassword() -> String? {
+        let keychain = KeychainItemWrapper(identifier: "FireRoadRecommendationUser", accessGroup: nil)
+        return keychain["password"] as? String
     }
     
     private var userRatingsToSubmit: [String: Int]?
@@ -749,6 +775,8 @@ class CourseManager: NSObject {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         
+        applyBasicAuthentication(to: &request)
+
         let task = URLSession.shared.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) in
             guard error == nil, data != nil,
                 let httpResponse = response as? HTTPURLResponse,
@@ -783,6 +811,20 @@ class CourseManager: NSObject {
         }
     }
     
+    func applyBasicAuthentication(to request: inout URLRequest) {
+        let username = "\(recommenderUserID ?? 0)"
+        guard let password = loadPassword() else {
+            print("No password")
+            return
+        }
+        let loginString = "\(username):\(password)"
+        guard let loginData = loginString.data(using: .utf8) else {
+            return
+        }
+        let base64LoginString = loginData.base64EncodedString()
+        request.setValue("Basic \(base64LoginString)", forHTTPHeaderField: "Authorization")
+    }
+    
     var subjectRecommendations: [String: [Course: Float]]?
     
     var isLoadingSubjectRecommendations = false
@@ -800,7 +842,8 @@ class CourseManager: NSObject {
             print("Couldn't get URL")
             return
         }
-        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 10.0)
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 10.0)
+        applyBasicAuthentication(to: &request)
         isLoadingSubjectRecommendations = true
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             self.isLoadingSubjectRecommendations = false

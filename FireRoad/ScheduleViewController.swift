@@ -587,9 +587,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
 
     func calendarChooserDidFinish(_ calendarChooser: EKCalendarChooser) {
         dismiss(animated: true, completion: nil)
-        guard let calendar = calendarChooser.selectedCalendars.first,
-            let store = eventStore else {
-                return
+        guard let calendar = calendarChooser.selectedCalendars.first else {
+            return
         }
         addScheduleToCalendar(separate: false, calendar: calendar)
     }

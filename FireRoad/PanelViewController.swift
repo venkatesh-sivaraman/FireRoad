@@ -206,6 +206,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         if self.childNavigationController != nil && self.childNavigationController!.viewControllers.count > 1 {
             self.childNavigationController?.popToRootViewController(animated: true)
         }
+        (self.childNavigationController?.viewControllers.first(where: { $0 is CourseBrowserViewController }) as? CourseBrowserViewController)?.dismissPopDownTableMenu()
         self.collapseHeight = newHeight
         bottomConstraint?.constant = 12.0
         for constraint in container.constraints {

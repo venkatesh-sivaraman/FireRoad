@@ -8,7 +8,7 @@
 
 import UIKit
 
-class RootTabViewController: UITabBarController {
+class RootTabViewController: UITabBarController, AuthenticationViewControllerDelegate {
     
     var blurView: UIVisualEffectView?
     var courseUpdatingHUD: MBProgressHUD?
@@ -43,15 +43,11 @@ class RootTabViewController: UITabBarController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if CourseManager.shared.allowsRecommendations == nil {
-            let consentAlert = UIAlertController(title: "Ratings and Recommendations", message: "Do you agree to let FireRoad send your anonymized subject ratings to an MIT server in order to provide you and other users with recommendations? Note that at the moment, it is not possible to undo this decision." , preferredStyle: .alert)
-            consentAlert.addAction(UIAlertAction(title: "Allow", style: .default, handler: { _ in
-                CourseManager.shared.allowsRecommendations = true
-            }))
-            consentAlert.addAction(UIAlertAction(title: "Deny", style: .destructive, handler: { _ in
-                CourseManager.shared.allowsRecommendations = false
-            }))
-            self.present(consentAlert, animated: true, completion: nil)
+        if CourseManager.shared.allowsRecommendations == nil ||
+            (CourseManager.shared.allowsRecommendations == true &&
+                (CourseManager.shared.recommenderUserID == nil ||
+                    CourseManager.shared.loadPassword() == nil)) {
+            showAuthenticationView()
         }
     }
     
@@ -232,6 +228,40 @@ class RootTabViewController: UITabBarController {
     @objc func tapOnHUD(_ sender: UITapGestureRecognizer) {
         successHUD?.hide(animated: true)
         successHUD = nil
+    }
+    
+    // MARK: - Authentication
+    
+    func showAuthenticationView() {
+        CourseManager.shared.getRecommenderUserID { (userID: Int?) in
+            DispatchQueue.main.async {
+                guard let id = userID,
+                    let auth = self.storyboard?.instantiateViewController(withIdentifier: "AuthenticationVC") as? AuthenticationViewController else {
+                        return
+                }
+                auth.delegate = self
+                auth.username = "\(id)"
+                auth.password = CourseManager.shared.generateRandomPassword()
+                if let url = URL(string: CourseManager.recommenderSignupURL) {
+                    auth.request = URLRequest(url: url)
+                }
+                let nav = UINavigationController(rootViewController: auth)
+                self.present(nav, animated: true, completion: nil)
+            }
+        }
+    }
+    
+    func authenticationViewControllerCanceled(_ auth: AuthenticationViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func authenticationViewController(_ auth: AuthenticationViewController, finishedSuccessfully success: Bool) {
+        CourseManager.shared.allowsRecommendations = success
+        if success {
+            CourseManager.shared.recommenderUserID = Int(auth.username)
+            CourseManager.shared.savePassword(auth.password)
+        }
+        dismiss(animated: true, completion: nil)
     }
     
     // MARK: - Handling Courseroads

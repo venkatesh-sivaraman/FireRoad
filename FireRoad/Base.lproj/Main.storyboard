@@ -13,6 +13,40 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
+        <!--Authentication View Controller-->
+        <scene sceneID="4eX-Uv-HXT">
+            <objects>
+                <viewController storyboardIdentifier="AuthenticationVC" id="KpA-Ji-KvP" customClass="AuthenticationViewController" customModule="FireRoad" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="lW3-XK-zVp">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <webView contentMode="scaleToFill" scalesPageToFit="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KCm-H7-vpv">
+                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                                <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <connections>
+                                    <outlet property="delegate" destination="KpA-Ji-KvP" id="zVT-f6-f2G"/>
+                                </connections>
+                            </webView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="KCm-H7-vpv" firstAttribute="trailing" secondItem="ZO5-Ab-jMl" secondAttribute="trailing" id="JCy-6t-XkT"/>
+                            <constraint firstItem="KCm-H7-vpv" firstAttribute="leading" secondItem="ZO5-Ab-jMl" secondAttribute="leading" id="jig-LN-0La"/>
+                            <constraint firstItem="KCm-H7-vpv" firstAttribute="top" secondItem="ZO5-Ab-jMl" secondAttribute="top" id="peh-0W-WZB"/>
+                            <constraint firstItem="KCm-H7-vpv" firstAttribute="bottom" secondItem="ZO5-Ab-jMl" secondAttribute="bottom" id="xo2-xp-Pab"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="ZO5-Ab-jMl"/>
+                    </view>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
+                    <connections>
+                        <outlet property="webView" destination="KCm-H7-vpv" id="S8j-sw-QmC"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="eem-0g-Zy3" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="432.80000000000001" y="-1116.7916041979011"/>
+        </scene>
         <!--My Road-->
         <scene sceneID="GtG-Nx-8iw">
             <objects>
@@ -1657,10 +1691,10 @@
                                                                 <exclude reference="noG-HR-g8h"/>
                                                             </mask>
                                                             <mask key="constraints">
-                                                                <exclude reference="gyd-4E-Iqe"/>
                                                                 <exclude reference="SXp-tU-den"/>
                                                                 <exclude reference="fOb-nb-Gbg"/>
                                                                 <exclude reference="tZG-IE-ylq"/>
+                                                                <exclude reference="gyd-4E-Iqe"/>
                                                             </mask>
                                                         </variation>
                                                     </view>

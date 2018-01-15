@@ -48,6 +48,8 @@
 		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
 		968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */; };
 		96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */; };
+		96AC5F12200B047E00D80839 /* AuthenticationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AC5F11200B047E00D80839 /* AuthenticationViewController.swift */; };
+		96AC5F14200B125700D80839 /* KeychainItemWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AC5F13200B125700D80839 /* KeychainItemWrapper.swift */; };
 		96C7769F1FDEDCBF00157F2D /* RequirementsListManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */; };
 		96C776A11FDF411600157F2D /* WebpageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A01FDF411600157F2D /* WebpageViewController.swift */; };
 		96C776A31FDF6D8600157F2D /* UITextViewPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */; };
@@ -143,6 +145,8 @@
 		968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLNodeExtractor.swift; sourceTree = "<group>"; };
 		968FE05E1F75FE270098E97F /* test_html.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_html.txt; sourceTree = "<group>"; };
 		96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsBrowserTableCell.swift; sourceTree = "<group>"; };
+		96AC5F11200B047E00D80839 /* AuthenticationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationViewController.swift; sourceTree = "<group>"; };
+		96AC5F13200B125700D80839 /* KeychainItemWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainItemWrapper.swift; sourceTree = "<group>"; };
 		96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListManager.swift; sourceTree = "<group>"; };
 		96C776A01FDF411600157F2D /* WebpageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageViewController.swift; sourceTree = "<group>"; };
 		96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UITextViewPlaceholder.swift; sourceTree = "<group>"; };
@@ -228,6 +232,7 @@
 				96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */,
 				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
 				960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */,
+				96AC5F11200B047E00D80839 /* AuthenticationViewController.swift */,
 				968F2A1A1FE59F880082EE40 /* Browse View */,
 				9669C7CA1F9062A800E60D89 /* Course Road */,
 				96EBE5641FBEB3F900FABE1E /* Schedule */,
@@ -283,6 +288,7 @@
 		9669C7C01F90623D00E60D89 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				96AC5F13200B125700D80839 /* KeychainItemWrapper.swift */,
 				96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */,
 				961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */,
 				9611BE331F7EE43C0090137E /* ArrayExtension.swift */,
@@ -436,8 +442,11 @@
 						CreatedOnToolsVersion = 8.3.1;
 						DevelopmentTeam = PTB6T29SN3;
 						LastSwiftMigration = 0900;
-						ProvisioningStyle = Manual;
+						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
+							com.apple.Keychain = {
+								enabled = 1;
+							};
 							com.apple.iCloud = {
 								enabled = 0;
 							};
@@ -531,8 +540,10 @@
 				968F2A1C1FE5A2E30082EE40 /* CourseListingMasterViewController.swift in Sources */,
 				96EBE5661FBF9B8500FABE1E /* ScheduleViewController.swift in Sources */,
 				9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */,
+				96AC5F12200B047E00D80839 /* AuthenticationViewController.swift in Sources */,
 				96C776A31FDF6D8600157F2D /* UITextViewPlaceholder.swift in Sources */,
 				96C7769F1FDEDCBF00157F2D /* RequirementsListManager.swift in Sources */,
+				96AC5F14200B125700D80839 /* KeychainItemWrapper.swift in Sources */,
 				9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */,
 				96EBE56C1FBFDF0900FABE1E /* ScheduleModel.swift in Sources */,
 				96DF60DF20002481006F1C6A /* RateIndividualViewController.swift in Sources */,
@@ -715,15 +726,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Sivaraman Sivaswami (C5GTT44JLH)";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = PTB6T29SN3;
+				CODE_SIGN_ENTITLEMENTS = FireRoad/FireRoad.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = FireRoad/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.FireRoad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "04f95712-9e65-478f-b8fc-047b5769f772";
-				PROVISIONING_PROFILE_SPECIFIER = "FireRoad Dev";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "FireRoad/FireRoad-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -736,15 +748,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Sivaraman Sivaswami (PTB6T29SN3)";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = PTB6T29SN3;
+				CODE_SIGN_ENTITLEMENTS = FireRoad/FireRoad.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = FireRoad/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.FireRoad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "d64f5c74-798c-4827-b8ea-76e0116d6a71";
-				PROVISIONING_PROFILE_SPECIFIER = "FireRoad Distribution";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "FireRoad/FireRoad-Bridging-Header.h";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;

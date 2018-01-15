@@ -85,6 +85,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return (self.navigationController?.parent as? PanelViewController)
     }
     
+    var popDownMenu: PopDownTableMenuController?
+    
     var searchResults: [Course] = []
     var results: [Course] = []
     var managesNavigation = true
@@ -227,6 +229,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             justLoaded = false
         }
         updateFilterButton()
+        dismissPopDownTableMenu()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -586,6 +589,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 popDown.show(animated: true)
             }
+            popDownMenu = popDown
             return nil
         } else {
             return delegate?.addCourse(course, to: nil)
@@ -601,6 +605,23 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     // MARK: - Pop Down Table Menu
+    
+    func dismissPopDownTableMenu() {
+        guard let tableMenu = popDownMenu else {
+            return
+        }
+        navigationItem.rightBarButtonItem?.isEnabled = true
+        if !isShowingSearchResults {
+            // Refresh favorites if necessary
+            updateCourseVisibility()
+        }
+        tableMenu.hide(animated: true) {
+            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.view.removeFromSuperview()
+            tableMenu.removeFromParentViewController()
+            tableMenu.didMove(toParentViewController: nil)
+        }
+    }
     
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
         if CourseManager.shared.favoriteCourses.contains(course) {
@@ -622,17 +643,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController) {
-        navigationItem.rightBarButtonItem?.isEnabled = true
-        if !isShowingSearchResults {
-            // Refresh favorites if necessary
-            updateCourseVisibility()
-        }
-        tableMenu.hide(animated: true) {
-            tableMenu.willMove(toParentViewController: nil)
-            tableMenu.view.removeFromSuperview()
-            tableMenu.removeFromParentViewController()
-            tableMenu.didMove(toParentViewController: nil)
-        }
+        dismissPopDownTableMenu()
     }
     
     // MARK: - Filter Controller

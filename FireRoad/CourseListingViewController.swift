@@ -305,7 +305,7 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
         guard sender.state == .began,
             let cell = sender.view as? UICollectionViewCell,
             let indexPath = collectionView?.indexPath(for: cell),
-            let id = courses[indexPath.item].subjectID,
+            courses[indexPath.item].subjectID != nil,
             let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
                 return
         }
