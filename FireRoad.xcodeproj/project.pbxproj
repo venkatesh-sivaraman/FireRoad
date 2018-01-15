@@ -9,80 +9,18 @@
 /* Begin PBXBuildFile section */
 		960A1F081FDA1FCC00C53E43 /* CommonStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */; };
 		960A1F0A1FDA21A500C53E43 /* CourseDisplayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960A1F091FDA21A500C53E43 /* CourseDisplayManager.swift */; };
-		960A1F0C1FDB7C8000C53E43 /* major1.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F0B1FDB7C8000C53E43 /* major1.reql */; };
-		960A1F0F1FDC7ED400C53E43 /* major2a.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F0D1FDC7ED300C53E43 /* major2a.reql */; };
-		960A1F101FDC7ED400C53E43 /* major2oe.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F0E1FDC7ED400C53E43 /* major2oe.reql */; };
-		960A1F121FDC807800C53E43 /* major2.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F111FDC807800C53E43 /* major2.reql */; };
-		960A1F151FDC8FEB00C53E43 /* major3.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F131FDC8FEB00C53E43 /* major3.reql */; };
-		960A1F161FDC8FEB00C53E43 /* major3a.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F141FDC8FEB00C53E43 /* major3a.reql */; };
-		960A1F181FDC92B600C53E43 /* girs.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F171FDC92B600C53E43 /* girs.reql */; };
-		960A1F1E1FDCDA7100C53E43 /* major4b.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F191FDCDA7000C53E43 /* major4b.reql */; };
-		960A1F1F1FDCDA7100C53E43 /* major3c.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1A1FDCDA7000C53E43 /* major3c.reql */; };
-		960A1F201FDCDA7100C53E43 /* major5-7.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1B1FDCDA7000C53E43 /* major5-7.reql */; };
-		960A1F211FDCDA7100C53E43 /* major5.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1C1FDCDA7000C53E43 /* major5.reql */; };
-		960A1F221FDCDA7100C53E43 /* major4.reql in Resources */ = {isa = PBXBuildFile; fileRef = 960A1F1D1FDCDA7100C53E43 /* major4.reql */; };
 		9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611BE331F7EE43C0090137E /* ArrayExtension.swift */; };
 		9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */; };
 		9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9611CD821F9287CE00DE2BDE /* acknowledgements.txt */; };
 		961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */; };
-		961E49941EC6938F002BABB9 /* course_processor.py in Resources */ = {isa = PBXBuildFile; fileRef = 961E49931EC6938F002BABB9 /* course_processor.py */; };
 		961E49FD1EC6A8CB002BABB9 /* CourseDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */; };
-		961E49FF1EC7771D002BABB9 /* enrollment.txt in Resources */ = {isa = PBXBuildFile; fileRef = 961E49FE1EC7771D002BABB9 /* enrollment.txt */; };
 		961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */; };
 		961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */; };
 		9626B6E11F8070EB009F6F96 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E01F8070EB009F6F96 /* StringExtension.swift */; };
-		9626B6E31F80A93F009F6F96 /* major6-7.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9626B6E21F80A93F009F6F96 /* major6-7.reql */; };
 		9626B6E61F815686009F6F96 /* RequirementsBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E51F815686009F6F96 /* RequirementsBrowserViewController.swift */; };
 		9626B6E81F815692009F6F96 /* RequirementsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */; };
 		9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E91F815917009F6F96 /* RequirementsList.swift */; };
 		962DAD661F89A6180011D96F /* RootTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962DAD651F89A6180011D96F /* RootTabViewController.swift */; };
-		9636DDE11F7894F300117A82 /* 1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB21F7894F300117A82 /* 1.txt */; };
-		9636DDE21F7894F300117A82 /* 10.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB31F7894F300117A82 /* 10.txt */; };
-		9636DDE31F7894F300117A82 /* 11.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB41F7894F300117A82 /* 11.txt */; };
-		9636DDE41F7894F300117A82 /* 12.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB51F7894F300117A82 /* 12.txt */; };
-		9636DDE51F7894F300117A82 /* 14.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB61F7894F300117A82 /* 14.txt */; };
-		9636DDE61F7894F300117A82 /* 15.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB71F7894F300117A82 /* 15.txt */; };
-		9636DDE71F7894F300117A82 /* 16.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB81F7894F300117A82 /* 16.txt */; };
-		9636DDE81F7894F300117A82 /* 17.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDB91F7894F300117A82 /* 17.txt */; };
-		9636DDE91F7894F300117A82 /* 18.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBA1F7894F300117A82 /* 18.txt */; };
-		9636DDEA1F7894F300117A82 /* 2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBB1F7894F300117A82 /* 2.txt */; };
-		9636DDEB1F7894F300117A82 /* 20.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBC1F7894F300117A82 /* 20.txt */; };
-		9636DDEC1F7894F300117A82 /* 21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBD1F7894F300117A82 /* 21.txt */; };
-		9636DDED1F7894F300117A82 /* 21A.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBE1F7894F300117A82 /* 21A.txt */; };
-		9636DDEE1F7894F300117A82 /* 21G.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDBF1F7894F300117A82 /* 21G.txt */; };
-		9636DDEF1F7894F300117A82 /* 21H.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC01F7894F300117A82 /* 21H.txt */; };
-		9636DDF01F7894F300117A82 /* 21L.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC11F7894F300117A82 /* 21L.txt */; };
-		9636DDF11F7894F300117A82 /* 21M.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC21F7894F300117A82 /* 21M.txt */; };
-		9636DDF21F7894F300117A82 /* 21W.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC31F7894F300117A82 /* 21W.txt */; };
-		9636DDF31F7894F300117A82 /* 22.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC41F7894F300117A82 /* 22.txt */; };
-		9636DDF41F7894F300117A82 /* 24.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC51F7894F300117A82 /* 24.txt */; };
-		9636DDF51F7894F300117A82 /* 3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC61F7894F300117A82 /* 3.txt */; };
-		9636DDF61F7894F300117A82 /* 4.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC71F7894F300117A82 /* 4.txt */; };
-		9636DDF71F7894F300117A82 /* 5.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC81F7894F300117A82 /* 5.txt */; };
-		9636DDF81F7894F300117A82 /* 6.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDC91F7894F300117A82 /* 6.txt */; };
-		9636DDF91F7894F300117A82 /* 7.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCA1F7894F300117A82 /* 7.txt */; };
-		9636DDFA1F7894F300117A82 /* 8.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCB1F7894F300117A82 /* 8.txt */; };
-		9636DDFB1F7894F300117A82 /* 9.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCC1F7894F300117A82 /* 9.txt */; };
-		9636DDFC1F7894F300117A82 /* AS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCD1F7894F300117A82 /* AS.txt */; };
-		9636DDFD1F7894F300117A82 /* CC.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCE1F7894F300117A82 /* CC.txt */; };
-		9636DDFE1F7894F300117A82 /* CMS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDCF1F7894F300117A82 /* CMS.txt */; };
-		9636DDFF1F7894F300117A82 /* condensed.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD01F7894F300117A82 /* condensed.txt */; };
-		9636DE001F7894F300117A82 /* courses.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD11F7894F300117A82 /* courses.txt */; };
-		9636DE011F7894F300117A82 /* CSB.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD21F7894F300117A82 /* CSB.txt */; };
-		9636DE021F7894F300117A82 /* EC.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD31F7894F300117A82 /* EC.txt */; };
-		9636DE031F7894F300117A82 /* EM.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD41F7894F300117A82 /* EM.txt */; };
-		9636DE041F7894F300117A82 /* ES.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD51F7894F300117A82 /* ES.txt */; };
-		9636DE051F7894F300117A82 /* HST.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD61F7894F300117A82 /* HST.txt */; };
-		9636DE061F7894F300117A82 /* IDS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD71F7894F300117A82 /* IDS.txt */; };
-		9636DE071F7894F300117A82 /* MAS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD81F7894F300117A82 /* MAS.txt */; };
-		9636DE081F7894F300117A82 /* MS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDD91F7894F300117A82 /* MS.txt */; };
-		9636DE091F7894F300117A82 /* NS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDA1F7894F300117A82 /* NS.txt */; };
-		9636DE0A1F7894F300117A82 /* related.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDB1F7894F300117A82 /* related.txt */; };
-		9636DE0B1F7894F300117A82 /* SCM.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDC1F7894F300117A82 /* SCM.txt */; };
-		9636DE0C1F7894F300117A82 /* SP.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDD1F7894F300117A82 /* SP.txt */; };
-		9636DE0D1F7894F300117A82 /* STS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDE1F7894F300117A82 /* STS.txt */; };
-		9636DE0E1F7894F400117A82 /* SWE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDDF1F7894F300117A82 /* SWE.txt */; };
-		9636DE0F1F7894F400117A82 /* WGS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9636DDE01F7894F300117A82 /* WGS.txt */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
 		9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* CatalogViewController.swift */; };
 		9646CFD71EB921FE005F87CB /* CourseroadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD61EB921FE005F87CB /* CourseroadViewController.swift */; };
@@ -97,20 +35,14 @@
 		96500EB11F7C91C500872F82 /* CoreSpotlight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB01F7C91C400872F82 /* CoreSpotlight.framework */; };
 		96500EB31F7C91CA00872F82 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */; };
 		9659E38B1F89A93F00E55FA2 /* UIViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */; };
-		9659E38D1F89B57700E55FA2 /* minor21m.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9659E38C1F89B57700E55FA2 /* minor21m.reql */; };
-		9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9659E38E1F89C09F00E55FA2 /* major9.reql */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
-		966493C31FD2181100B8D684 /* minorRussian.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493BE1FD2180F00B8D684 /* minorRussian.reql */; };
-		966493C51FD2181100B8D684 /* minorJapanese.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493C01FD2181000B8D684 /* minorJapanese.reql */; };
-		966493C61FD2181100B8D684 /* major16-ENG.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493C11FD2181100B8D684 /* major16-ENG.reql */; };
-		966493C71FD2181100B8D684 /* major16.reql in Resources */ = {isa = PBXBuildFile; fileRef = 966493C21FD2181100B8D684 /* major16.reql */; };
-		9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */ = {isa = PBXBuildFile; fileRef = 9669C7B41F904CAD00E60D89 /* minor9.reql */; };
 		9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 9669C7C71F90628300E60D89 /* MBProgressHUD.m */; };
 		96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96897B171EC8F5500011E572 /* CourseListCell.swift */; };
 		968F2A191FE223480082EE40 /* ScheduleConstraintViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968F2A181FE223480082EE40 /* ScheduleConstraintViewController.swift */; };
 		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
 		968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */; };
 		96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */; };
+		96AC5F18200D1A9700D80839 /* CourseSearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AC5F17200D1A9700D80839 /* CourseSearchEngine.swift */; };
 		96C7769F1FDEDCBF00157F2D /* RequirementsListManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */; };
 		96C776A11FDF411600157F2D /* WebpageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A01FDF411600157F2D /* WebpageViewController.swift */; };
 		96C776A31FDF6D8600157F2D /* UITextViewPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */; };
@@ -122,11 +54,6 @@
 		96EBE56A1FBFDE5600FABE1E /* ScheduleGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */; };
 		96EBE56C1FBFDF0900FABE1E /* ScheduleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE56B1FBFDF0900FABE1E /* ScheduleModel.swift */; };
 		96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */; };
-		96FF1F8D1FB65797007F4A7C /* IS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F881FB65796007F4A7C /* IS.txt */; };
-		96FF1F8E1FB65797007F4A7C /* condensed_2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F891FB65796007F4A7C /* condensed_2.txt */; };
-		96FF1F8F1FB65797007F4A7C /* condensed_3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8A1FB65797007F4A7C /* condensed_3.txt */; };
-		96FF1F901FB65797007F4A7C /* condensed_0.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8B1FB65797007F4A7C /* condensed_0.txt */; };
-		96FF1F911FB65797007F4A7C /* condensed_1.txt in Resources */ = {isa = PBXBuildFile; fileRef = 96FF1F8C1FB65797007F4A7C /* condensed_1.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -266,6 +193,7 @@
 		968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLNodeExtractor.swift; sourceTree = "<group>"; };
 		968FE05E1F75FE270098E97F /* test_html.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_html.txt; sourceTree = "<group>"; };
 		96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsBrowserTableCell.swift; sourceTree = "<group>"; };
+		96AC5F17200D1A9700D80839 /* CourseSearchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseSearchEngine.swift; sourceTree = "<group>"; };
 		96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListManager.swift; sourceTree = "<group>"; };
 		96C776A01FDF411600157F2D /* WebpageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageViewController.swift; sourceTree = "<group>"; };
 		96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UITextViewPlaceholder.swift; sourceTree = "<group>"; };
@@ -522,6 +450,7 @@
 			children = (
 				961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */,
 				965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */,
+				96AC5F17200D1A9700D80839 /* CourseSearchEngine.swift */,
 				9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */,
 				96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */,
 				96C776A01FDF411600157F2D /* WebpageViewController.swift */,
@@ -662,84 +591,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9636DE0D1F7894F300117A82 /* STS.txt in Resources */,
-				9636DE051F7894F300117A82 /* HST.txt in Resources */,
-				9659E38F1F89C09F00E55FA2 /* major9.reql in Resources */,
-				9636DDFD1F7894F300117A82 /* CC.txt in Resources */,
-				96FF1F8D1FB65797007F4A7C /* IS.txt in Resources */,
-				9636DDFB1F7894F300117A82 /* 9.txt in Resources */,
-				960A1F101FDC7ED400C53E43 /* major2oe.reql in Resources */,
-				9636DDF41F7894F300117A82 /* 24.txt in Resources */,
-				9636DDE71F7894F300117A82 /* 16.txt in Resources */,
-				9636DE061F7894F300117A82 /* IDS.txt in Resources */,
-				9636DE071F7894F300117A82 /* MAS.txt in Resources */,
-				9636DDEC1F7894F300117A82 /* 21.txt in Resources */,
-				9636DDF71F7894F300117A82 /* 5.txt in Resources */,
 				9646CFDF1EB921FE005F87CB /* LaunchScreen.storyboard in Resources */,
-				9636DE0A1F7894F300117A82 /* related.txt in Resources */,
-				9636DDEE1F7894F300117A82 /* 21G.txt in Resources */,
-				961E49941EC6938F002BABB9 /* course_processor.py in Resources */,
-				9636DDE61F7894F300117A82 /* 15.txt in Resources */,
-				9636DDF91F7894F300117A82 /* 7.txt in Resources */,
-				966493C51FD2181100B8D684 /* minorJapanese.reql in Resources */,
-				96FF1F8F1FB65797007F4A7C /* condensed_3.txt in Resources */,
-				960A1F1E1FDCDA7100C53E43 /* major4b.reql in Resources */,
-				9636DDE11F7894F300117A82 /* 1.txt in Resources */,
-				9636DDFE1F7894F300117A82 /* CMS.txt in Resources */,
-				9636DDEA1F7894F300117A82 /* 2.txt in Resources */,
-				9636DDFA1F7894F300117A82 /* 8.txt in Resources */,
-				9636DDE91F7894F300117A82 /* 18.txt in Resources */,
-				9636DDF61F7894F300117A82 /* 4.txt in Resources */,
 				9646CFDC1EB921FE005F87CB /* Assets.xcassets in Resources */,
-				9636DDE41F7894F300117A82 /* 12.txt in Resources */,
-				9636DE021F7894F300117A82 /* EC.txt in Resources */,
-				9636DDE51F7894F300117A82 /* 14.txt in Resources */,
-				9636DE091F7894F300117A82 /* NS.txt in Resources */,
-				9636DDE21F7894F300117A82 /* 10.txt in Resources */,
-				9636DDE31F7894F300117A82 /* 11.txt in Resources */,
-				9636DDF21F7894F300117A82 /* 21W.txt in Resources */,
-				9636DE011F7894F300117A82 /* CSB.txt in Resources */,
-				9636DDF11F7894F300117A82 /* 21M.txt in Resources */,
-				9636DE031F7894F300117A82 /* EM.txt in Resources */,
-				960A1F0C1FDB7C8000C53E43 /* major1.reql in Resources */,
-				960A1F221FDCDA7100C53E43 /* major4.reql in Resources */,
-				960A1F1F1FDCDA7100C53E43 /* major3c.reql in Resources */,
-				9636DDF51F7894F300117A82 /* 3.txt in Resources */,
 				9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */,
-				966493C71FD2181100B8D684 /* major16.reql in Resources */,
-				9636DDFF1F7894F300117A82 /* condensed.txt in Resources */,
-				960A1F211FDCDA7100C53E43 /* major5.reql in Resources */,
-				960A1F161FDC8FEB00C53E43 /* major3a.reql in Resources */,
-				9636DE0C1F7894F300117A82 /* SP.txt in Resources */,
-				9636DDFC1F7894F300117A82 /* AS.txt in Resources */,
-				96FF1F8E1FB65797007F4A7C /* condensed_2.txt in Resources */,
-				96FF1F911FB65797007F4A7C /* condensed_1.txt in Resources */,
-				960A1F181FDC92B600C53E43 /* girs.reql in Resources */,
-				9636DDF81F7894F300117A82 /* 6.txt in Resources */,
-				9659E38D1F89B57700E55FA2 /* minor21m.reql in Resources */,
-				9636DDEF1F7894F300117A82 /* 21H.txt in Resources */,
-				9636DDF01F7894F300117A82 /* 21L.txt in Resources */,
-				9636DE041F7894F300117A82 /* ES.txt in Resources */,
-				966493C31FD2181100B8D684 /* minorRussian.reql in Resources */,
-				961E49FF1EC7771D002BABB9 /* enrollment.txt in Resources */,
-				9636DDF31F7894F300117A82 /* 22.txt in Resources */,
-				960A1F0F1FDC7ED400C53E43 /* major2a.reql in Resources */,
-				960A1F121FDC807800C53E43 /* major2.reql in Resources */,
-				960A1F201FDCDA7100C53E43 /* major5-7.reql in Resources */,
-				966493C61FD2181100B8D684 /* major16-ENG.reql in Resources */,
-				9636DE001F7894F300117A82 /* courses.txt in Resources */,
-				9626B6E31F80A93F009F6F96 /* major6-7.reql in Resources */,
-				9636DDED1F7894F300117A82 /* 21A.txt in Resources */,
-				960A1F151FDC8FEB00C53E43 /* major3.reql in Resources */,
-				9636DE081F7894F300117A82 /* MS.txt in Resources */,
-				9636DDE81F7894F300117A82 /* 17.txt in Resources */,
-				9636DE0F1F7894F400117A82 /* WGS.txt in Resources */,
-				9669C7B51F904CAD00E60D89 /* minor9.reql in Resources */,
-				96FF1F901FB65797007F4A7C /* condensed_0.txt in Resources */,
-				9636DE0E1F7894F400117A82 /* SWE.txt in Resources */,
 				9646CFDA1EB921FE005F87CB /* Main.storyboard in Resources */,
-				9636DE0B1F7894F300117A82 /* SCM.txt in Resources */,
-				9636DDEB1F7894F300117A82 /* 20.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -765,6 +620,7 @@
 				961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */,
 				96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */,
 				962DAD661F89A6180011D96F /* RootTabViewController.swift in Sources */,
+				96AC5F18200D1A9700D80839 /* CourseSearchEngine.swift in Sources */,
 				9659E38B1F89A93F00E55FA2 /* UIViewControllerExtension.swift in Sources */,
 				9626B6E11F8070EB009F6F96 /* StringExtension.swift in Sources */,
 				96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */,
