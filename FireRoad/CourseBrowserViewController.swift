@@ -12,48 +12,6 @@ protocol CourseBrowserDelegate: CourseDisplayManager {
     // Nothing here yet
 }
 
-struct SearchOptions: OptionSet {
-    var rawValue: Int
-    
-    static let anyRequirement = SearchOptions(rawValue: 1 << 0)
-    static let fulfillsGIR = SearchOptions(rawValue: 1 << 1)
-    static let fulfillsHASS = SearchOptions(rawValue: 1 << 2)
-    static let fulfillsCIH = SearchOptions(rawValue: 1 << 3)
-    static let fulfillsCIHW = SearchOptions(rawValue: 1 << 4)
-
-    static let offeredAnySemester = SearchOptions(rawValue: 1 << 10)
-    static let offeredFall = SearchOptions(rawValue: 1 << 11)
-    static let offeredSpring = SearchOptions(rawValue: 1 << 12)
-    static let offeredIAP = SearchOptions(rawValue: 1 << 13)
-
-    static let containsSearchTerm = SearchOptions(rawValue: 1 << 14)
-    static let matchesSearchTerm = SearchOptions(rawValue: 1 << 15)
-    static let startsWithSearchTerm = SearchOptions(rawValue: 1 << 16)
-    static let endsWithSearchTerm = SearchOptions(rawValue: 1 << 17)
-    
-    static let searchID = SearchOptions(rawValue: 1 << 20)
-    static let searchTitle = SearchOptions(rawValue: 1 << 21)
-    static let searchPrereqs = SearchOptions(rawValue: 1 << 23)
-    static let searchCoreqs = SearchOptions(rawValue: 1 << 24)
-    static let searchInstructors = SearchOptions(rawValue: 1 << 25)
-    static let searchRequirements = SearchOptions(rawValue: 1 << 26)
-    static let searchAllFields: SearchOptions = [
-        .searchID,
-        .searchTitle,
-        .searchPrereqs,
-        .searchCoreqs,
-        .searchInstructors,
-        .searchRequirements
-    ]
-
-    static let noFilter: SearchOptions = [
-        .anyRequirement,
-        .offeredAnySemester,
-        .containsSearchTerm,
-        .searchAllFields
-    ]
-}
-
 class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITableViewDataSource, UITableViewDelegate, CourseBrowserCellDelegate, UINavigationControllerDelegate, PopDownTableMenuDelegate, CourseFilterDelegate {
     
     @IBOutlet var searchBar: UISearchBar?
@@ -152,6 +110,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     deinit {
         NotificationCenter.default.removeObserver(self)
+        loadingCellTimer?.invalidate()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -313,7 +272,6 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     func clearSearch() {
         searchResults = []
-        isSearching = false
         isShowingSearchResults = false
         if nonSearchViewMode == .search {
             nonSearchViewMode = lastViewMode
@@ -365,141 +323,25 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         self.loadSearchResults(withString: searchBar.text!, options: searchOptions)
     }
     
-    var isSearching = false
-    var shouldAbortSearch = false
-    
-    private func courseSatisfiesSearchOptions(_ course: Course, searchTerm: String, options: SearchOptions) -> Bool {
-        var fulfillsRequirement = false
-        if options.contains(.anyRequirement) {
-            fulfillsRequirement = true
-        } else if options.contains(.fulfillsGIR), course.girAttribute != nil {
-            fulfillsRequirement = true
-        } else if options.contains(.fulfillsHASS), course.hassAttribute != nil {
-            fulfillsRequirement = true
-        } else if options.contains(.fulfillsCIH), course.communicationRequirement == .ciH {
-            fulfillsRequirement = true
-        } else if options.contains(.fulfillsCIHW), course.communicationRequirement == .ciHW {
-            fulfillsRequirement = true
-        }
-        
-        var fulfillsOffered = false
-        if options.contains(.offeredAnySemester) {
-            fulfillsOffered = true
-        } else if options.contains(.offeredFall), course.isOfferedFall {
-            fulfillsOffered = true
-        } else if options.contains(.offeredSpring), course.isOfferedSpring {
-            fulfillsOffered = true
-        } else if options.contains(.offeredIAP), course.isOfferedIAP {
-            fulfillsOffered = true
-        }
-        
-        return fulfillsRequirement && fulfillsOffered
-    }
-    
-    private func searchText(for course: Course, options: SearchOptions) -> String {
-        var courseComps: [String?] = []
-        if options.contains(.searchID) {
-            courseComps += [course.subjectID, course.subjectID, course.subjectID, course.subjectID, course.subjectID]
-        }
-        if options.contains(.searchTitle) {
-            courseComps.append(course.subjectTitle)
-        }
-        if options.contains(.searchRequirements) {
-            courseComps += [course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText(), course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText(), course.girAttribute?.rawValue, course.girAttribute?.descriptionText()]
-        }
-        if options.contains(.searchPrereqs) {
-            let prereqs: [String?] = course.prerequisites.flatMap({ $0 })
-            courseComps += prereqs
-        }
-        if options.contains(.searchCoreqs) {
-            let coreqs: [String?] = course.corequisites.flatMap({ $0 })
-            courseComps += coreqs
-        }
-        
-        let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.searchAllFields) ? course.instructors : [])).joined(separator: " ").lowercased()
-        return courseText
-    }
-    
-    private func searchRegex(for searchTerm: String, options: SearchOptions = .noFilter) -> NSRegularExpression {
-        let pattern = NSRegularExpression.escapedPattern(for: searchTerm)
-        if options.contains(.matchesSearchTerm) {
-            return try! NSRegularExpression(pattern: "(?:^|[^A-z\\d])\(pattern)(?:$|[^A-z\\d])", options: .caseInsensitive)
-        } else if options.contains(.startsWithSearchTerm) {
-            return try! NSRegularExpression(pattern: "(?:^|[^A-z\\d])\(pattern)(\\w*)(?:$|[^A-z\\d])", options: .caseInsensitive)
-        } else if options.contains(.endsWithSearchTerm) {
-            return try! NSRegularExpression(pattern: "(?:^|[^A-z\\d])(\\w*)\(pattern)(?:$|[^A-z\\d])", options: .caseInsensitive)
-        }
-        return try! NSRegularExpression(pattern: "(?:^|[^A-z\\d])(\\w*)\(pattern)(\\w*)(?:$|[^A-z\\d])", options: .caseInsensitive)
-    }
-    
-    internal func searchResults(for searchTerm: String, options: SearchOptions = .noFilter) -> [Course] {
-        let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
-        
-        var newResults: [Course: Float] = [:]
-        for course in CourseManager.shared.courses {
-            guard !shouldAbortSearch else {
-                print("Aborting search")
-                break
-            }
-            guard courseSatisfiesSearchOptions(course, searchTerm: searchTerm, options: options) else {
-                continue
-            }
-            
-            var relevance: Float = 0.0
-            let courseText = searchText(for: course, options: options)
-            let searchTools = comps.map {
-                ($0, searchRegex(for: $0, options: options))
-            }
-            for (comp, regex) in searchTools {
-                for match in regex.matches(in: courseText, options: [], range: NSRange(location: 0, length: courseText.count)) {
-                    var multiplier: Float = 1.0
-                    if match.numberOfRanges > 1 {
-                        multiplier = 50.0
-                        let nonZeroRanges = (1..<match.numberOfRanges).filter({
-                            let range = match.range(at: $0)
-                            return range.length > 0 || range.location == 0 || range.location + range.length == courseText.count
-                        }).count
-                        if nonZeroRanges == 1 {
-                            multiplier = 10.0
-                        } else if nonZeroRanges > 1 {
-                            multiplier = 1.0
-                        }
-                    }
-                    relevance += multiplier * Float(comp.count)
-                }
-            }
-            if relevance > 0.0 {
-                relevance *= log(Float(max(2, course.enrollmentNumber)))
-                if let user = (self.rootParent as? RootTabViewController)?.currentUser {
-                    relevance *= max(1.0, user.userRelevance(for: course) * 0.1)
-                }
-                newResults[course] = relevance
-            }
-        }
-        let sortedResults = newResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
-        return sortedResults
-    }
+    lazy var searchEngine = CourseSearchEngine()
     
     func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter) {
         guard CourseManager.shared.isLoaded else {
             return
         }
-        guard !isSearching else {
-            shouldAbortSearch = true
-            return
-        }
         isShowingSearchResults = true
-        self.searchTerm = searchTerm
-        DispatchQueue.global(qos: .userInitiated).async {
-            self.isSearching = true
-            let sortedResults = self.searchResults(for: searchTerm, options: options)
-            self.isSearching = false
-            DispatchQueue.main.async {
-                if self.shouldAbortSearch {
-                    print("Searching again")
-                    self.shouldAbortSearch = false
-                    self.loadSearchResults(withString: self.searchBar?.text ?? searchTerm, options: options)
-                } else {
+        var newAggregatedSearchResults: [Course: Float] = [:]
+        searchEngine.loadSearchResults(for: searchTerm, options: options) { newResults in
+            newAggregatedSearchResults.merge(newResults, uniquingKeysWith: { $0 + $1 })
+            if !self.searchEngine.isSearching {
+                // It has stopped the search
+                if let user = (self.rootParent as? RootTabViewController)?.currentUser {
+                    for (course, relevance) in newAggregatedSearchResults {
+                        newAggregatedSearchResults[course] = relevance * user.userRelevance(for: course)
+                    }
+                }
+                let sortedResults = newAggregatedSearchResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+                DispatchQueue.main.async {
                     self.searchResults = sortedResults
                     self.updateCourseVisibility()
                 }
@@ -522,15 +364,32 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if isShowingSearchResults, results.count == 0 {
+            return 1
+        }
         return results.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if isShowingSearchResults, results.count == 0 {
+            if searchEngine.isSearching {
+                return tableView.dequeueReusableCell(withIdentifier: "LoadingCell", for: indexPath)
+            } else {
+                return tableView.dequeueReusableCell(withIdentifier: "NoResultsCell", for: indexPath)
+            }
+        }
         let cell = tableView.dequeueReusableCell(withIdentifier: "CourseCell", for: indexPath) as! CourseBrowserCell
         cell.course = results[indexPath.row]
         cell.delegate = self
         
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
+        if isShowingSearchResults, results.count == 0 {
+            return false
+        }
+        return true
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -540,10 +399,20 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        cell.textLabel?.tintColor = UIColor.black
-        cell.detailTextLabel?.tintColor = UIColor.black
-        cell.textLabel?.textColor = UIColor.black.withAlphaComponent(0.7)
-        cell.detailTextLabel?.textColor = UIColor.darkGray.withAlphaComponent(0.7)
+        if isShowingSearchResults,
+            results.count == 0,
+            searchEngine.isSearching {
+            if let timer = loadingCellTimer {
+                timer.invalidate()
+                loadingCellTimer = nil
+            }
+            loadingCellTimer = Timer.scheduledTimer(timeInterval: 0.4, target: self, selector: #selector(CourseBrowserViewController.animateLoadingCell(_:)), userInfo: nil, repeats: true)
+        } else {
+            cell.textLabel?.tintColor = UIColor.black
+            cell.detailTextLabel?.tintColor = UIColor.black
+            cell.textLabel?.textColor = UIColor.black.withAlphaComponent(0.7)
+            cell.detailTextLabel?.textColor = UIColor.darkGray.withAlphaComponent(0.7)
+        }
     }
     
     func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
@@ -602,6 +471,32 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         }
         nonSearchViewMode = viewMode
         updateCourseVisibility()
+    }
+    
+    // MARK: - Loading Cell
+    
+    var loadingCellTimer: Timer?
+    
+    @objc func animateLoadingCell(_ sender: Timer) {
+        guard isShowingSearchResults,
+            results.count == 0,
+            searchEngine.isSearching,
+            let cell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)),
+            let label = cell.viewWithTag(12) as? UILabel else {
+            loadingCellTimer?.invalidate()
+            loadingCellTimer = nil
+            return
+        }
+        switch label.text ?? "" {
+        case "Searching.  ":
+            label.text = "Searching.. "
+        case "Searching.. ":
+            label.text = "Searching..."
+        case "Searching...":
+            label.text = "Searching.  "
+        default:
+            break
+        }
     }
     
     // MARK: - Pop Down Table Menu

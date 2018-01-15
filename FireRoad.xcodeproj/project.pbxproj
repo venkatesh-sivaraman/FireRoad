@@ -50,6 +50,7 @@
 		96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */; };
 		96AC5F12200B047E00D80839 /* AuthenticationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AC5F11200B047E00D80839 /* AuthenticationViewController.swift */; };
 		96AC5F14200B125700D80839 /* KeychainItemWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AC5F13200B125700D80839 /* KeychainItemWrapper.swift */; };
+		96AC5F1A200D1F5500D80839 /* CourseSearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AC5F19200D1F5500D80839 /* CourseSearchEngine.swift */; };
 		96C7769F1FDEDCBF00157F2D /* RequirementsListManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */; };
 		96C776A11FDF411600157F2D /* WebpageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A01FDF411600157F2D /* WebpageViewController.swift */; };
 		96C776A31FDF6D8600157F2D /* UITextViewPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */; };
@@ -147,6 +148,7 @@
 		96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsBrowserTableCell.swift; sourceTree = "<group>"; };
 		96AC5F11200B047E00D80839 /* AuthenticationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationViewController.swift; sourceTree = "<group>"; };
 		96AC5F13200B125700D80839 /* KeychainItemWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainItemWrapper.swift; sourceTree = "<group>"; };
+		96AC5F19200D1F5500D80839 /* CourseSearchEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseSearchEngine.swift; sourceTree = "<group>"; };
 		96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListManager.swift; sourceTree = "<group>"; };
 		96C776A01FDF411600157F2D /* WebpageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageViewController.swift; sourceTree = "<group>"; };
 		96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UITextViewPlaceholder.swift; sourceTree = "<group>"; };
@@ -331,6 +333,7 @@
 			children = (
 				961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */,
 				965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */,
+				96AC5F19200D1F5500D80839 /* CourseSearchEngine.swift */,
 				9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */,
 				96D055241FB80B6600BD18A8 /* CourseFilterViewController.swift */,
 				96C776A01FDF411600157F2D /* WebpageViewController.swift */,
@@ -548,6 +551,7 @@
 				96EBE56C1FBFDF0900FABE1E /* ScheduleModel.swift in Sources */,
 				96DF60DF20002481006F1C6A /* RateIndividualViewController.swift in Sources */,
 				96DF60E120002492006F1C6A /* RatingView.swift in Sources */,
+				96AC5F1A200D1F5500D80839 /* CourseSearchEngine.swift in Sources */,
 				96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */,
 				96C776A11FDF411600157F2D /* WebpageViewController.swift in Sources */,
 				9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */,
