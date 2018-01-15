@@ -858,6 +858,41 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         presenter.present(alert, animated: true, completion: nil)
     }
     
+    func documentBrowser(_ browser: DocumentBrowseViewController, wantsDuplicate item: DocumentBrowseViewController.Item, completion: @escaping ((DocumentBrowseViewController.Item?) -> Void)) {
+        guard let rootTab = self.rootParent as? RootTabViewController,
+            let oldURL = rootTab.urlForCourseroad(named: item.identifier) else {
+                return
+        }
+        let presenter = self.presentedViewController ?? self
+
+        let base = (item.identifier as NSString).deletingPathExtension
+        var newID = base + " 2"
+        if let newURL = rootTab.urlForCourseroad(named: newID + ".road"),
+            FileManager.default.fileExists(atPath: newURL.path) {
+            var counter = 3
+            while let otherURL = rootTab.urlForCourseroad(named: base + " \(counter).road"),
+                FileManager.default.fileExists(atPath: otherURL.path) {
+                    counter += 1
+            }
+            newID = base + " \(counter)"
+        }
+        
+        do {
+            let newItem = DocumentBrowseViewController.Item(identifier: newID + ".road", title: newID, description: item.description, image: item.image)
+            guard let newURL = rootTab.urlForCourseroad(named: newID + ".road") else {
+                completion(nil)
+                return
+            }
+            try FileManager.default.copyItem(at: oldURL, to: newURL)
+            completion(newItem)
+        } catch {
+            let alert = UIAlertController(title: "Could Not Duplicate Road", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            presenter.present(alert, animated: true, completion: nil)
+            completion(nil)
+        }
+    }
+    
     func documentBrowser(_ browser: DocumentBrowseViewController, selectedItem item: DocumentBrowseViewController.Item) {
         loadCourseroad(named: item.identifier)
         dismiss(animated: true, completion: nil)

@@ -13,6 +13,7 @@ protocol DocumentBrowseDelegate: class {
     func documentBrowser(_ browser: DocumentBrowseViewController, deletedItem item: DocumentBrowseViewController.Item)
     func documentBrowser(_ browser: DocumentBrowseViewController, selectedItem item: DocumentBrowseViewController.Item)
     func documentBrowser(_ browser: DocumentBrowseViewController, wantsRename item: DocumentBrowseViewController.Item, completion: @escaping ((DocumentBrowseViewController.Item?) -> Void))
+    func documentBrowser(_ browser: DocumentBrowseViewController, wantsDuplicate item: DocumentBrowseViewController.Item, completion: @escaping ((DocumentBrowseViewController.Item?) -> Void))
     func documentBrowserDismissed(_ browser: DocumentBrowseViewController)
 }
 
@@ -161,7 +162,20 @@ class DocumentBrowseViewController: UITableViewController {
                 }
             })
         }
-        let swipeAction = UISwipeActionsConfiguration(actions: [delete, rename])
+        rename.backgroundColor = self.view.tintColor
+        let duplicate = UIContextualAction(style: .normal, title: "Duplicate") { (_, _, completionHandler) in
+            self.delegate?.documentBrowser(self, wantsDuplicate: self.items[indexPath.row], completion: { (newItem) in
+                if let item = newItem {
+                    self.items.insert(item, at: 0)
+                    self.tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .fade)
+                    completionHandler(true)
+                } else {
+                    completionHandler(false)
+                }
+            })
+        }
+        duplicate.backgroundColor = UIColor(red: 140.0 / 255.0, green: 0.0, blue: 1.0, alpha: 1.0)
+        let swipeAction = UISwipeActionsConfiguration(actions: [delete, duplicate, rename])
         swipeAction.performsFirstActionWithFullSwipe = false
         return swipeAction
     }
