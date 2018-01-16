@@ -12,6 +12,8 @@ protocol CourseThumbnailCellDelegate: class {
     func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell)
 }
 
 extension CourseThumbnailCellDelegate {
@@ -24,6 +26,12 @@ extension CourseThumbnailCellDelegate {
     func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell) {
         
     }
+    func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell) {
+        
+    }
+    func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell) {
+        
+    }
 }
 
 class CourseThumbnailCell: UICollectionViewCell {
@@ -33,7 +41,8 @@ class CourseThumbnailCell: UICollectionViewCell {
     var course: Course?
     
     var showsConstraintMenuItem = false
-    
+    var showsWarningsMenuItem = false
+
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
     
@@ -46,6 +55,28 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     @IBOutlet var bigLayoutConstraints: [NSLayoutConstraint]?
     @IBOutlet var smallLayoutConstraints: [NSLayoutConstraint]?
+    
+    var longPressTarget: Any? {
+        didSet {
+            updateLongPressGestureRecognizer()
+        }
+    }
+    var longPressAction: Selector? {
+        didSet {
+            updateLongPressGestureRecognizer()
+        }
+    }
+    
+    func updateLongPressGestureRecognizer() {
+        if let longPress = gestureRecognizers?.first(where: { $0 is UILongPressGestureRecognizer }) {
+            removeGestureRecognizer(longPress)
+        }
+        if let target = longPressTarget, let selector = longPressAction {
+            let longPress = UILongPressGestureRecognizer(target: target, action: selector)
+            longPress.minimumPressDuration = 0.5
+            addGestureRecognizer(longPress)
+        }
+    }
     
     func generateHighlightView() -> UIView? {
         let view = UIView(frame: self.bounds)
@@ -100,8 +131,12 @@ class CourseThumbnailCell: UICollectionViewCell {
     }
 
     func loadThumbnailAppearance() {
-        self.textLabel = self.viewWithTag(12) as? UILabel
-        self.detailTextLabel = self.viewWithTag(34) as? UILabel
+        if self.textLabel == nil {
+            self.textLabel = self.viewWithTag(12) as? UILabel
+        }
+        if self.detailTextLabel == nil {
+            self.detailTextLabel = self.viewWithTag(34) as? UILabel
+        }
         let colorLayer = CALayer()
         colorLayer.frame = self.layer.bounds
         colorLayer.backgroundColor = backgroundColor?.cgColor
@@ -147,10 +182,11 @@ class CourseThumbnailCell: UICollectionViewCell {
             detailLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4.0).isActive = true
             self.detailTextLabel = detailLabel
         } else {
-            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 6.0).isActive = true
+            //titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 6.0).isActive = true
             titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 2.0).isActive = true
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -2.0).isActive = true
             titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
             titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4.0).isActive = true
         }
     }
@@ -220,6 +256,10 @@ class CourseThumbnailCell: UICollectionViewCell {
             return delegate != nil
         } else if action == #selector(constrain(_:)) {
             return delegate != nil && showsConstraintMenuItem
+        } else if action == #selector(showWarnings(_:)) {
+            return delegate != nil && showsWarningsMenuItem
+        } else if action == #selector(rate(_:)) {
+            return delegate != nil
         }
         return false
     }
@@ -234,6 +274,14 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     @objc func constrain(_ sender: AnyObject) {
         delegate?.courseThumbnailCellWantsConstrain(self)
+    }
+    
+    @objc func showWarnings(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsShowWarnings(self)
+    }
+    
+    @objc func rate(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsRate(self)
     }
     
     // MARK: - Requirement Fulfillment

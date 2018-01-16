@@ -128,7 +128,11 @@ enum CourseOfferingPattern: String {
     case never = "Never"
 }
 
-struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable {
+struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable, Hashable {
+    var hashValue: Int {
+        return rawValue
+    }
+    
     var rawValue: Int
     
     static let none = CourseScheduleDay(rawValue: 0)
@@ -140,6 +144,15 @@ struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable {
     static let saturday = CourseScheduleDay(rawValue: 1 << 1)
     static let sunday = CourseScheduleDay(rawValue: 1 << 0)
     
+    static let gregorianOrdering: [CourseScheduleDay: Int] = [
+        .sunday: 1,
+        .monday: 2,
+        .tuesday: 3,
+        .wednesday: 4,
+        .thursday: 5,
+        .friday: 6,
+        .saturday: 7
+    ]
     static let ordering: [CourseScheduleDay] = [
         .monday,
         .tuesday,
@@ -149,6 +162,10 @@ struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable {
         .saturday,
         .sunday
     ]
+    
+    static func index(of day: CourseScheduleDay) -> Int {
+        return ordering.index(of: day) ?? 0
+    }
     
     private static let stringMappings: [Int: String] = [
         CourseScheduleDay.monday.rawValue: "M",
@@ -192,6 +209,15 @@ struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable {
     
     func minDay() -> CourseScheduleDay {
         for day in CourseScheduleDay.ordering {
+            if contains(day) {
+                return day
+            }
+        }
+        return .none
+    }
+    
+    func maxDay() -> CourseScheduleDay {
+        for day in CourseScheduleDay.ordering.reversed() {
             if contains(day) {
                 return day
             }
@@ -368,6 +394,8 @@ enum CourseAttribute: String {
     case lectureUnits
     case designUnits
     case preparationUnits
+    case pdfOption
+    case hasFinal
     case notOfferedYear
     case onlinePageNumber
     case schoolWideElectives
@@ -409,6 +437,8 @@ enum CourseAttribute: String {
         "Lecture Units": .lectureUnits,
         "Design Units": .designUnits,
         "Preparation Units": .preparationUnits,
+        "PDF Option": .pdfOption,
+        "Has Final": .hasFinal,
         "Not Offered Year": .notOfferedYear,
         "On Line Page Number": .onlinePageNumber,
         "School Wide Electives": .schoolWideElectives,
@@ -546,6 +576,8 @@ class Course: NSObject {
     @objc dynamic var lectureUnits: Int = 0
     @objc dynamic var designUnits: Int = 0
     @objc dynamic var preparationUnits: Int = 0
+    @objc dynamic var hasFinal: Bool = false
+    @objc dynamic var pdfOption: Bool = false
     @objc dynamic var notOfferedYear: String? {
         didSet {
             updateOfferingPattern()
@@ -634,7 +666,7 @@ class Course: NSObject {
                     parseDeferredValues[attribute] = value as? String
                 }
             case .isOfferedFall, .isOfferedIAP, .isOfferedSpring, .isOfferedSummer, .isOfferedThisYear,
-                 .isVariableUnits:
+                 .isVariableUnits, .hasFinal, .pdfOption:
                 if (value as? Bool) != nil {
                     super.setValue(value, forKey: key)
                 } else {
@@ -674,7 +706,11 @@ class Course: NSObject {
                     print("Unidentified subject level: \(value ?? "nil")")
                 }
             default:
-                super.setValue(value, forKey: key)
+                if let string = value as? String {
+                    super.setValue(string.replacingOccurrences(of: "\\n", with: "\n"), forKey: key)
+                } else {
+                    super.setValue(value, forKey: key)
+                }
             }
         } else {
             super.setValue(value, forKey: key)
@@ -755,7 +791,7 @@ class Course: NSObject {
     func extractCourseListString(_ string: String?) -> [[String]] {
         if let listString = string {
             return listString.components(separatedBy: ";").map { item in
-                item.replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.count > 0 })
+                item.replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "#", with: "").components(separatedBy: ",").filter({ $0.count > 0 })
             }
         }
         return []
@@ -763,7 +799,7 @@ class Course: NSObject {
     
     func extractListString(_ string: String?) -> [String] {
         if let value = string {
-            var modifiedValue: String = value.replacingOccurrences(of: "[J]", with: "")
+            var modifiedValue: String = value.replacingOccurrences(of: "[J]", with: "").replacingOccurrences(of: "\\n", with: "\n")
             if value.contains("#,#") {
                 modifiedValue = modifiedValue.replacingOccurrences(of: " ", with: "")
             }

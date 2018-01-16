@@ -86,7 +86,7 @@ class CourseSearchEngine: NSObject {
     private func searchText(for course: Course, options: SearchOptions) -> String {
         var courseComps: [String?] = []
         if options.contains(.searchID) {
-            courseComps += [course.subjectID, course.subjectID, course.subjectID]
+            courseComps += [course.subjectID, course.subjectID, course.subjectID, course.subjectID, course.subjectID]
         }
         if options.contains(.searchTitle) {
             courseComps.append(course.subjectTitle)
@@ -119,57 +119,123 @@ class CourseSearchEngine: NSObject {
         return try! NSRegularExpression(pattern: "(?:^|[^A-z\\d])(\\w*)\(pattern)(\\w*)(?:$|[^A-z\\d])", options: .caseInsensitive)
     }
     
+    typealias DispatchJob = (([Course: Float]?) -> Void) -> Void
+    
+    private func dispatch(jobs: [DispatchJob], jobCompletion: (([Course: Float]?) -> Void)?, completion: @escaping (Bool) -> Void) {
+        var completionCount: Int = 0
+        var overallSuccess = true
+        let groupCompletionBlock: (([Course: Float]?) -> Void) = { (entries) in
+            jobCompletion?(entries)
+            completionCount += 1
+            if entries == nil {
+                overallSuccess = false
+            }
+            if completionCount == jobs.count {
+                completion(overallSuccess)
+            }
+        }
+        
+        for job in jobs {
+            DispatchQueue.global(qos: .background).async {
+                job(groupCompletionBlock)
+            }
+        }
+    }
+    
+    func searchResults(within courses: [Course], searchTerm: String, options: SearchOptions) -> [Course: Float]? {
+        let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
+        
+        var newResults: [Course: Float] = [:]
+        for course in courses {
+            guard !self.shouldAbortSearch else {
+                return nil
+            }
+            guard self.courseSatisfiesSearchOptions(course, searchTerm: searchTerm, options: options) else {
+                continue
+            }
+            
+            var relevance: Float = 0.0
+            let courseText = self.searchText(for: course, options: options)
+            let searchTools = comps.map {
+                ($0, self.searchRegex(for: $0, options: options))
+            }
+            for (comp, regex) in searchTools {
+                for match in regex.matches(in: courseText, options: [], range: NSRange(location: 0, length: courseText.count)) {
+                    var multiplier: Float = 1.0
+                    if match.numberOfRanges > 1 {
+                        multiplier = 50.0
+                        let nonZeroRanges = (1..<match.numberOfRanges).filter({
+                            let range = match.range(at: $0)
+                            return range.length > 0 || range.location == 0 || range.location + range.length == courseText.count
+                        }).count
+                        if nonZeroRanges == 1 {
+                            multiplier = 10.0
+                        } else if nonZeroRanges > 1 {
+                            multiplier = 1.0
+                        }
+                    }
+                    relevance += multiplier * Float(comp.count)
+                }
+            }
+            if relevance > 0.0 {
+                relevance *= log(Float(max(2, course.enrollmentNumber)))
+                newResults[course] = relevance
+            }
+        }
+        if self.shouldAbortSearch {
+            return nil
+        }
+        return newResults
+    }
+    
+    var queuedSearchTerm: String?
+    var queuedSearchOptions: SearchOptions?
+    
     func loadSearchResults(for searchTerm: String, options: SearchOptions = .noFilter, callback: @escaping ([Course: Float]) -> Void) {
         DispatchQueue.global().async {
+            var searchTerm = searchTerm
+            var options = options
             if self.isSearching {
                 self.shouldAbortSearch = true
-                while self.isSearching {
-                    usleep(100)
-                }
-            }
-            let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
-            
-            var newResults: [Course: Float] = [:]
-            for course in CourseManager.shared.courses {
-                guard !self.shouldAbortSearch else {
-                    print("Aborting search")
-                    self.isSearching = false
-                    self.shouldAbortSearch = false
+                if self.queuedSearchTerm != nil {
+                    // Update the queued search items, and let the other thread deal with it
+                    self.queuedSearchTerm = searchTerm
+                    self.queuedSearchOptions = options
                     return
-                }
-                guard self.courseSatisfiesSearchOptions(course, searchTerm: searchTerm, options: options) else {
-                    continue
-                }
-                
-                var relevance: Float = 0.0
-                let courseText = self.searchText(for: course, options: options)
-                for comp in comps {
-                    let regex = self.searchRegex(for: comp, options: options)
-                    for match in regex.matches(in: courseText, options: [], range: NSRange(location: 0, length: courseText.count)) {
-                        var multiplier: Float = 1.0
-                        if match.numberOfRanges > 1 {
-                            multiplier = 50.0
-                            let nonZeroRanges = (1..<match.numberOfRanges).filter({
-                                let range = match.range(at: $0)
-                                return range.length > 0 || range.location == 0 || range.location + range.length == courseText.count
-                            }).count
-                            if nonZeroRanges == 1 {
-                                multiplier = 10.0
-                            } else if nonZeroRanges > 1 {
-                                multiplier = 1.0
-                            }
-                        }
-                        relevance += multiplier * Float(comp.count)
+                } else {
+                    self.queuedSearchTerm = searchTerm
+                    self.queuedSearchOptions = options
+                    while self.isSearching {
+                        usleep(100)
                     }
                 }
-                if relevance > 0.0 {
-                    relevance *= log(Float(max(2, course.enrollmentNumber)))
-                    newResults[course] = relevance
+                if let queuedTerm = self.queuedSearchTerm,
+                    let queuedOptions = self.queuedSearchOptions {
+                    searchTerm = queuedTerm
+                    options = queuedOptions
                 }
+                self.queuedSearchTerm = nil
+                self.queuedSearchOptions = nil
             }
-            self.isSearching = false
-            self.shouldAbortSearch = false
-            callback(newResults)
+            self.isSearching = true
+            
+            let chunkSize = CourseManager.shared.courses.count / 4
+            self.dispatch(jobs: CourseManager.shared.courses.chunked(by: chunkSize).map({ (courses) -> DispatchJob in
+                return { (completion) in
+                    completion(self.searchResults(within: courses, searchTerm: searchTerm, options: options))
+                }
+            }), jobCompletion: { (newResults) in
+                if let results = newResults {
+                    callback(results)
+                }
+            }, completion: { success in
+                self.isSearching = false
+                if self.shouldAbortSearch {
+                    self.shouldAbortSearch = false
+                } else {
+                    callback([:])
+                }
+            })
         }
     }
 }

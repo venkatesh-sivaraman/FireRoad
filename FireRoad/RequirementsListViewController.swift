@@ -18,9 +18,10 @@ enum RequirementsListCellType: String {
 
 protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFulfillmentStatus(_ vc: RequirementsListViewController)
+    func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, UIPopoverPresentationControllerDelegate {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -66,7 +67,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
         
         if level == 0,
-            requirement.title == nil, requirement.thresholdDescription.count > 0 {
+            requirement.title == nil, requirement.thresholdDescription.count > 0,
+            !(requirement.connectionType != .all || alwaysShowTitle) {
             items.append(PresentationItem(cellType: .title2, statement: nil, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
         }
         if requirement.minimumNestDepth <= 1, (requirement.maximumNestDepth <= 2 || level > 0),
@@ -124,27 +126,107 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         } else {
             presentationItems = []
         }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(RequirementsListViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadRequirementsOrDisplay()
+        selectedIndexPath = nil
+    }
+    
+    func updateRequirementsStatus() {
         if let list = requirementsList as? RequirementsList {
             navigationItem.title = list.mediumTitle
         } else {
             navigationItem.title = requirementsList?.shortDescription
         }
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        updateRequirementsStatus()
-    }
-    
-    func updateRequirementsStatus() {
         if let tabVC = rootParent as? RootTabViewController,
             let currentUser = tabVC.currentUser {
             requirementsList?.computeRequirementStatus(with: currentUser.allCourses)
+            if presentationItems.count == 0, let reqsList = requirementsList {
+                presentationItems = buildPresentationItems(from: reqsList)
+            }
             tableView.reloadData()
         }
         delegate?.requirementsListViewControllerUpdatedFulfillmentStatus(self)
         updateFavoritesButton()
     }
+    
+    var courseLoadingHUD: MBProgressHUD?
+
+    func loadRequirementsOrDisplay() {
+        if !CourseManager.shared.isLoaded {
+            guard courseLoadingHUD == nil else {
+                return
+            }
+            let hud = MBProgressHUD.showAdded(to: self.splitViewController?.view ?? self.view, animated: true)
+            hud.mode = .determinateHorizontalBar
+            hud.label.text = "Loading requirements…"
+            courseLoadingHUD = hud
+            DispatchQueue.global(qos: .background).async {
+                let initialProgress = CourseManager.shared.loadingProgress
+                while !CourseManager.shared.isLoaded {
+                    DispatchQueue.main.async {
+                        hud.progress = (CourseManager.shared.loadingProgress - initialProgress) / (1.0 - initialProgress)
+                    }
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    self.updateRequirementsStatus()
+                    hud.hide(animated: true)
+                }
+            }
+            return
+        }
+        updateRequirementsStatus()
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        loadRequirementsOrDisplay()
+    }
+    
+    // MARK: - State Preservation
+    
+    static let selectedIndexPathRestorationKey = "requirementsList.selectedIndexPath"
+    var selectedIndexPath: [Int]?
+    
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(selectedIndexPath, forKey: RequirementsListViewController.selectedIndexPathRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        
+        if let reqList = requirementsList,
+            let nav = navigationController,
+            let index = nav.viewControllers.index(of: self),
+            index < nav.viewControllers.count - 1 {
+            
+            if let nextList = nav.viewControllers[index + 1] as? RequirementsListViewController,
+                let selectedIP = coder.decodeObject(forKey: RequirementsListViewController.selectedIndexPathRestorationKey) as? [Int],
+                selectedIP.count == 3 {
+                presentationItems = buildPresentationItems(from: reqList)
+                if let parentStatement = presentationItems[selectedIP[0]].items[selectedIP[1]].statement,
+                    let reqs = parentStatement.requirements,
+                    selectedIP[2] < reqs.count {
+                    nextList.requirementsList = reqs[selectedIP[2]]
+                }
+            } else if let nextDetails = nav.viewControllers[index + 1] as? CourseDetailsViewController {
+                nextDetails.delegate = self
+            } else if let nextBrowser = nav.viewControllers[index + 1] as? CourseBrowserViewController {
+                nextBrowser.delegate = self
+            }
+        }
+    }
+    
+    // MARK: - Favorites
     
     func updateFavoritesButton() {
         if let tabVC = rootParent as? RootTabViewController,
@@ -182,6 +264,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             hud.hide(animated: true)
         }
         updateFavoritesButton()
+        delegate?.requirementsListViewControllerUpdatedFavorites(self)
     }
     
     // MARK: - Table View
@@ -241,7 +324,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
 
         if item.cellType == .courseList,
-            let courseListCell = cell as? CourseListCell,
+            let courseListCell = cell as? CourseListTableCell,
             let statement = item.statement {
             
             let requirementStrings = (statement.requirements?.map({ $0.shortDescription })) ?? [statement.shortDescription]
@@ -251,7 +334,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 } else if let gir = GIRAttribute(rawValue: $0) {
                     return Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: "")
                 }
-                if let whitespaceRange = $0.rangeOfCharacter(from: .whitespaces) {
+                if let whitespaceRange = $0.rangeOfCharacter(from: .whitespaces),
+                    Int(String($0[$0.startIndex..<whitespaceRange.lowerBound])) != nil ||
+                        String($0[$0.startIndex..<whitespaceRange.lowerBound]).contains(".") {
                     return Course(courseID: String($0[$0.startIndex..<whitespaceRange.lowerBound]), courseTitle: String($0[whitespaceRange.upperBound..<$0.endIndex]), courseDescription: "")
                 } else if $0.count > 8 {
                     return Course(courseID: "", courseTitle: $0, courseDescription: "")
@@ -260,14 +345,15 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
             if let reqs = statement.requirements {
                 courseListCell.fulfillmentIndications = reqs.map {
-                    ($0.fulfillmentProgress, $0.threshold.cutoff)
+                    ($0.fulfillmentProgress(for: $0.threshold.criterion), $0.threshold.cutoff)
                 }
             } else {
-                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress, statement.threshold.cutoff)]
+                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress(for: statement.threshold.criterion), statement.threshold.cutoff)]
             }
             
             courseListCell.delegate = self
-            
+            courseListCell.longPressTarget = self
+            courseListCell.longPressAction = #selector(RequirementsListViewController.longPressOnRequirementsCell(_:))
         } else {
             textLabel?.text = item.text ?? ""
             let fulfillmentIndicator = cell.viewWithTag(56)
@@ -299,7 +385,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func courseListCell(_ cell: CourseListCell, selected course: Course) {
-        guard let courseIndex = cell.courses.index(of: course),
+        guard let tableCell = cell as? CourseListTableCell,
+            let courseIndex = cell.courses.index(of: course),
             let selectedCell = cell.collectionView.cellForItem(at: IndexPath(item: courseIndex, section: 0)) else {
                 return
         }
@@ -307,7 +394,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             let actualCourse = CourseManager.shared.getCourse(withID: id),
             actualCourse == course {
             viewDetails(for: course, from: selectedCell.convert(selectedCell.bounds, to: self.view))
-        } else if let ip = tableView.indexPath(for: cell) {
+        } else if let ip = tableView.indexPath(for: tableCell) {
             guard let item = presentationItems[ip.section].items[ip.row].statement else {
                 return
             }
@@ -317,10 +404,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
                 listVC.searchTerm = reqString
                 if let ciAttribute = CommunicationAttribute(rawValue: reqString) {
-                    print("CI: \(ciAttribute)")
                     listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, (ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW), .searchRequirements]
-                } else if let hassAttribute = HASSAttribute(rawValue: reqString) {
-                    print("Hass: \(hassAttribute)")
+                } else if HASSAttribute(rawValue: reqString) != nil {
                     listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsHASS, .searchRequirements]
                 } else {
                     listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .fulfillsHASS, .fulfillsCIH, .fulfillsCIHW, .searchRequirements]
@@ -330,8 +415,12 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 listVC.managesNavigation = false
                 showInformationalViewController(listVC, from: selectedCell.convert(selectedCell.bounds, to: self.view))
             } else {
+                if let tableIP = tableView.indexPath(for: tableCell) {
+                    selectedIndexPath = [tableIP.section, tableIP.row, courseIndex]
+                }
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: listVCIdentifier) as! RequirementsListViewController
                 listVC.requirementsList = requirements[courseIndex]
+                listVC.delegate = self.delegate
                 self.navigationController?.pushViewController(listVC, animated: true)
             }
         }
@@ -361,9 +450,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func courseDetailsRequestedOpen(url: URL) {
-        let webVC = self.storyboard!.instantiateViewController(withIdentifier: "WebpageVC") as! WebpageViewController
-        webVC.url = url
-        showInformationalViewController(webVC)
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
     }
 
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
@@ -398,6 +485,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     func showInformationalViewController(_ vc: UIViewController, from rect: CGRect = CGRect.zero) {
         if traitCollection.horizontalSizeClass == .regular,
             traitCollection.userInterfaceIdiom == .pad {
+            vc.restorationIdentifier = nil
             if let nav = popoverNavigationController {
                 nav.pushViewController(vc, animated: true)
             } else {
@@ -453,5 +541,69 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
         popoverNavigationController = nil
+    }
+    
+    // MARK: - Pop Down Table Menu
+    
+    var popDownOldNavigationTitle: String?
+
+    @objc func longPressOnRequirementsCell(_ sender: UILongPressGestureRecognizer) {
+        guard sender.state == .began,
+            let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
+            let cell = sender.view as? CourseThumbnailCell,
+            let id = cell.course?.subjectID,
+            CourseManager.shared.getCourse(withID: id) != nil else {
+                return
+        }
+        navigationItem.rightBarButtonItem?.isEnabled = false
+        popDownOldNavigationTitle = navigationItem.title
+        navigationItem.title = "(\(id))"
+        popDown.course = cell.course
+        popDown.delegate = self
+        let containingView: UIView = self.view
+        containingView.addSubview(popDown.view)
+        popDown.view.translatesAutoresizingMaskIntoConstraints = false
+        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
+        popDown.willMove(toParentViewController: self)
+        self.addChildViewController(popDown)
+        popDown.didMove(toParentViewController: self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            popDown.show(animated: true)
+        }
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
+        if CourseManager.shared.favoriteCourses.contains(course) {
+            CourseManager.shared.markCourseAsNotFavorite(course)
+        } else {
+            CourseManager.shared.markCourseAsFavorite(course)
+        }
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToSchedule course: Course) {
+        addCourseToSchedule(course)
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourse course: Course, to semester: UserSemester) {
+        _ = addCourse(course, to: semester)
+        popDownTableMenuCanceled(tableMenu)
+    }
+    
+    func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController) {
+        navigationItem.rightBarButtonItem?.isEnabled = true
+        if let oldTitle = popDownOldNavigationTitle {
+            navigationItem.title = oldTitle
+        }
+        tableMenu.hide(animated: true) {
+            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.view.removeFromSuperview()
+            tableMenu.removeFromParentViewController()
+            tableMenu.didMove(toParentViewController: nil)
+        }
     }
 }

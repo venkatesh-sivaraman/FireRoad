@@ -13,7 +13,7 @@ protocol ScheduleGridDelegate: CourseDisplayManager {
     func scheduleGrid(_ gridVC: ScheduleGridViewController, wantsConstraintMenuFor course: Course, sender: UIView?)
 }
 
-class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate {
+class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate, UIPopoverPresentationControllerDelegate {
 
     var schedule: Schedule? {
         didSet {
@@ -37,14 +37,14 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
     
     var cellTitleFontSize: CGFloat {
         if traitCollection.horizontalSizeClass == .regular {
-            return 24.0
+            return 22.0
         }
         return 18.0
     }
     
     var cellDescriptionFontSize: CGFloat {
         if traitCollection.horizontalSizeClass == .regular {
-            return 16.0
+            return 14.0
         }
         return 13.0
     }
@@ -188,12 +188,12 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
                         courseCell.delegate = self
                         courseCell.course = course
                         courseCell.showsConstraintMenuItem = true
-                        if traitCollection.horizontalSizeClass != .compact || UIDevice.current.orientation.isLandscape {
+                        if traitCollection.horizontalSizeClass != .compact || (UIDevice.current.orientation.isLandscape && traitCollection.userInterfaceIdiom == .phone) {
                             courseCell.generateLabels(withDetail: true)
                             courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
                             courseCell.textLabel?.text = course.subjectID!
                             courseCell.textLabel?.numberOfLines = 1
-                            courseCell.detailTextLabel?.font = courseCell.detailTextLabel?.font.withSize(cellDescriptionFontSize)
+                            courseCell.detailTextLabel?.font = UIFont.systemFont(ofSize: cellDescriptionFontSize)
                             courseCell.detailTextLabel?.text = (CourseScheduleType.abbreviation(for: type)?.lowercased() ?? type.lowercased()) + (item.location != nil ?  " (\(item.location!))" : "")
                         } else {
                             courseCell.generateLabels(withDetail: false)
@@ -260,6 +260,22 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate 
             return
         }
         delegate?.scheduleGrid(self, wantsConstraintMenuFor: course, sender: cell)
+    }
+    
+    func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell) {
+        guard let rater = storyboard?.instantiateViewController(withIdentifier: "RatePopover") as? RateIndividualViewController else {
+            return
+        }
+        rater.course = cell.course
+        rater.modalPresentationStyle = .popover
+        rater.popoverPresentationController?.delegate = self
+        rater.popoverPresentationController?.sourceRect = cell.bounds
+        rater.popoverPresentationController?.sourceView = cell
+        self.present(rater, animated: true, completion: nil)
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
+        return .none
     }
     
     /*

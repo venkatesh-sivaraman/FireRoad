@@ -35,6 +35,7 @@ enum CourseDetailItem {
     case url
     case courseEvaluations
     case notes
+    case rate
 }
 
 enum CourseDetailSectionTitle {
@@ -68,6 +69,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     var showsSemesterDialog = true
     
     @IBOutlet var tableView: UITableView!
+    @IBOutlet var tableViewBottomConstraint: NSLayoutConstraint?
     
     var displayStandardMode = false {
         didSet {
@@ -106,17 +108,86 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
-        if self.course != nil {
-            self.navigationItem.title = self.course!.subjectID
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(CourseDetailsViewController.addCourseButtonPressed(sender:)))
-        }
         updateScrollViewForDisplayMode()
+        
+        if #available(iOS 11.0, *) {
+            self.navigationItem.largeTitleDisplayMode = .never
+        }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: true)
         navigationController?.setToolbarHidden(true, animated: true)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardChangedFrame(_:)), name: .UIKeyboardDidChangeFrame, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardWillChangeFrame(_:)), name: .UIKeyboardWillChangeFrame, object: nil)
+        
+        loadSubjectsOrDisplay()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        loadSubjectsOrDisplay()
+    }
+    
+    var courseLoadingHUD: MBProgressHUD?
+    
+    var restoredCourseID: String?
+    
+    func loadSubjectsOrDisplay() {
+        self.navigationItem.title = self.restoredCourseID ?? self.course?.subjectID
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(CourseDetailsViewController.addCourseButtonPressed(sender:)))
+        if !CourseManager.shared.isLoaded, restoredCourseID != nil {
+            self.navigationItem.rightBarButtonItem?.isEnabled = false
+            guard courseLoadingHUD == nil else {
+                return
+            }
+            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+            hud.mode = .determinateHorizontalBar
+            hud.label.text = "Loading subjects…"
+            courseLoadingHUD = hud
+            DispatchQueue.global(qos: .background).async {
+                let initialProgress = CourseManager.shared.loadingProgress
+                while !CourseManager.shared.isLoaded {
+                    DispatchQueue.main.async {
+                        hud.progress = (CourseManager.shared.loadingProgress - initialProgress) / (1.0 - initialProgress)
+                    }
+                    usleep(100)
+                }
+                let newCourse = self.restoredCourseID != nil ? CourseManager.shared.getCourse(withID: self.restoredCourseID!) : nil
+                if let course = newCourse {
+                    CourseManager.shared.loadCourseDetailsSynchronously(about: course)
+                }
+                self.restoredCourseID = nil
+                DispatchQueue.main.async {
+                    self.navigationItem.rightBarButtonItem?.isEnabled = true
+                    self.course = newCourse
+                    self.tableView.reloadData()
+                    hud.hide(animated: true)
+                }
+            }
+            return
+        }
+        self.navigationItem.rightBarButtonItem?.isEnabled = true
+        if course == nil, let id = restoredCourseID,
+            let newCourse = CourseManager.shared.getCourse(withID: id) {
+            self.course = newCourse
+            self.tableView.reloadData()
+            CourseManager.shared.loadCourseDetails(about: newCourse, { _ in
+                self.course = newCourse
+                self.tableView.reloadData()
+            })
+        }
     }
     
     @objc func addCourseButtonPressed(sender: AnyObject) {
@@ -147,6 +218,30 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
     }
     
+    // MARK: - State Preservation
+    
+    static let courseIDRestorationKey = "CourseDetails.courseID"
+    static let showsSemesterDialogRestorationKey = "CourseDetails.showsSemesterDialog"
+    static let displayStandardRestorationKey = "CourseDetails.displayStandard"
+
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(course?.subjectID, forKey: CourseDetailsViewController.courseIDRestorationKey)
+        coder.encode(showsSemesterDialog, forKey: CourseDetailsViewController.showsSemesterDialogRestorationKey)
+        coder.encode(displayStandardMode, forKey: CourseDetailsViewController.displayStandardRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        restoredCourseID = coder.decodeObject(forKey: CourseDetailsViewController.courseIDRestorationKey) as? String
+        showsSemesterDialog = coder.decodeBool(forKey: CourseDetailsViewController.showsSemesterDialogRestorationKey)
+        displayStandardMode = coder.decodeBool(forKey: CourseDetailsViewController.displayStandardRestorationKey)
+    }
+    
+    // MARK: - Pop Down Table Menu
+    
+    var popDownOldNavigationTitle: String?
+    
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
         if CourseManager.shared.favoriteCourses.contains(course) {
             CourseManager.shared.markCourseAsNotFavorite(course)
@@ -168,6 +263,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController) {
         navigationItem.rightBarButtonItem?.isEnabled = true
+        if let oldTitle = popDownOldNavigationTitle {
+            navigationItem.title = oldTitle
+        }
         tableMenu.hide(animated: true) {
             tableMenu.willMove(toParentViewController: nil)
             tableMenu.view.removeFromSuperview()
@@ -201,7 +299,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
         mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
         rowIndex += 1
-        
+        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .rate
+        rowIndex += 1
+
         rowIndex = 0
         sectionIndex += 1
 
@@ -325,6 +425,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "URLCell"
         case .notes:
             id = "NotesCell"
+        case .rate:
+            id = "RateCell"
         }
         return id
     }
@@ -343,7 +445,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let dataType = self.detailMapping[indexPath]!
         let cellType = self.cellType(for: dataType)
-        if cellType == "DescriptionCell" || cellType == "MetadataCell" {
+        if cellType == "DescriptionCell" || cellType == "MetadataCell" || cellType == "RateCell" {
             if sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites || sectionTitles[indexPath.section] == CourseDetailSectionTitle.corequisites {
                 return 32.0
             }
@@ -417,7 +519,19 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             }
         case .units:
             textLabel?.text = "Units"
-            detailTextLabel?.text = "\(self.course!.totalUnits) total\n(\(self.course!.lectureUnits)-\(self.course!.labUnits)-\(self.course!.preparationUnits))"
+            var message = ""
+            if self.course?.isVariableUnits == true {
+                message = "arranged"
+            } else {
+                message = "\(self.course!.totalUnits) total\n(\(self.course!.lectureUnits)-\(self.course!.labUnits)-\(self.course!.preparationUnits))"
+            }
+            if self.course?.hasFinal == true {
+                message += "\nHas final"
+            }
+            if self.course?.pdfOption == true {
+                message += "\n[P/D/F]"
+            }
+            detailTextLabel?.text = message
         case .instructors:
             textLabel?.text = "Instructor\(self.course!.instructors.count != 1 ? "s" : "")"
             detailTextLabel?.text = self.course!.instructors.joined(separator: ",")
@@ -503,26 +617,26 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 detailTextLabel?.text = itemDescriptions
             }
         case .related:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             for (myID, _) in self.course!.relatedSubjects {
                 if let relatedCourse = CourseManager.shared.getCourse(withID: myID) {
-                    (cell as! CourseListCell).courses.append(relatedCourse)
+                    (cell as! CourseListTableCell).courses.append(relatedCourse)
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .equivalent:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             for myID in self.course!.equivalentSubjects {
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
-                    (cell as! CourseListCell).courses.append(equivCourse!)
+                    (cell as! CourseListTableCell).courses.append(equivCourse!)
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .prerequisites:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             let prereqs = self.course!.prerequisites.contains(where: { $0.count > 1 }) ? self.course!.prerequisites[indexPath.row - 2] : self.course!.prerequisites.flatMap({ $0 })
             for myID in prereqs {
                 if myID.range(of: "[") != nil || myID.range(of: "{") != nil {
@@ -530,32 +644,32 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 }
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
-                    (cell as! CourseListCell).courses.append(equivCourse!)
+                    (cell as! CourseListTableCell).courses.append(equivCourse!)
                 } else if myID.lowercased().contains("permission of instructor") {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "None", courseTitle: "(Permission of instructor)", courseDescription: ""))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "--", courseTitle: "Permission of Instructor", courseDescription: ""))
                 } else if let gir = GIRAttribute(rawValue: myID) {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 } else {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "--", courseTitle: myID, courseDescription: ""))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "--", courseTitle: myID, courseDescription: ""))
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .corequisites:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             let coreqs = self.course!.corequisites.contains(where: { $0.count > 1 }) ? self.course!.corequisites[indexPath.row - 2] : self.course!.corequisites.flatMap({ $0 })
             for myID in coreqs {
                 // Useful when the corequisites were notated in brackets, but not anymore
                 //let myID = String(id[(id.index(id.startIndex, offsetBy: 1))..<(id.index(id.endIndex, offsetBy: -1))])
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
-                    (cell as! CourseListCell).courses.append(equivCourse!)
+                    (cell as! CourseListTableCell).courses.append(equivCourse!)
                 } else if let gir = GIRAttribute(rawValue: myID) {
-                    (cell as! CourseListCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
+                    (cell as! CourseListTableCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .courseListAccessory:
             var list: [String] = []
             switch self.detailMapping[IndexPath(row: indexPath.row - 1, section: indexPath.section)]! {
@@ -576,19 +690,22 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 }
             }
         case .joint:
-            (cell as! CourseListCell).courses = []
+            (cell as! CourseListTableCell).courses = []
             for myID in self.course!.jointSubjects {
                 let equivCourse = CourseManager.shared.getCourse(withID: myID)
                 if equivCourse != nil {
-                    (cell as! CourseListCell).courses.append(equivCourse!)
+                    (cell as! CourseListTableCell).courses.append(equivCourse!)
                 }
             }
-            (cell as! CourseListCell).delegate = self
-            (cell as! CourseListCell).collectionView.reloadData()
+            (cell as! CourseListTableCell).delegate = self
+            (cell as! CourseListTableCell).collectionView.reloadData()
         case .url:
             textLabel?.text = "View on Registrar Site"
         case .courseEvaluations:
-            textLabel?.text = "View Course Evaluations"
+            textLabel?.text = "View Subject Evaluations"
+        case .rate:
+            textLabel?.text = "My Rating"
+            (cell.viewWithTag(34) as? RatingView)?.course = self.course
         case .notes:
             guard let textView = cell.viewWithTag(56) as? UITextView else {
                 break
@@ -596,6 +713,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             textView.text = CourseManager.shared.notes(for: course!.subjectID!) ?? ""
             textView.placeholder = "Take notes here…"
             textView.delegate = self
+        }
+        if showsSemesterDialog {
+            (cell as? CourseListTableCell)?.longPressTarget = self
+            (cell as? CourseListTableCell)?.longPressAction = #selector(CourseDetailsViewController.longPressOnCourseCell(_:))
         }
 
         return cell
@@ -622,6 +743,38 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
     }
     
+    @objc func longPressOnCourseCell(_ sender: UILongPressGestureRecognizer) {
+        guard sender.state == .began,
+            showsSemesterDialog,
+            let cell = sender.view as? CourseThumbnailCell,
+            let id = cell.course?.subjectID,
+            CourseManager.shared.getCourse(withID: id) != nil else {
+            return
+        }
+        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
+            print("No pop down table menu in storyboard!")
+            return
+        }
+        navigationItem.rightBarButtonItem?.isEnabled = false
+        popDownOldNavigationTitle = navigationItem.title
+        navigationItem.title = "(\(id))"
+        popDown.course = cell.course
+        popDown.delegate = self
+        let containingView: UIView = self.view
+        containingView.addSubview(popDown.view)
+        popDown.view.translatesAutoresizingMaskIntoConstraints = false
+        popDown.view.leftAnchor.constraint(equalTo: containingView.leftAnchor).isActive = true
+        popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
+        popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
+        popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor, constant: navigationController?.navigationBar.frame.size.height ?? 0.0).isActive = true
+        popDown.willMove(toParentViewController: self)
+        self.addChildViewController(popDown)
+        popDown.didMove(toParentViewController: self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            popDown.show(animated: true)
+        }
+    }
+    
     // MARK: - Text View
     
     func textViewDidChange(_ textView: UITextView) {
@@ -636,6 +789,30 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
     }
     
+    @objc func keyboardChangedFrame(_ note: Notification) {
+        guard let indexPath = detailMapping.first(where: { $1 == .notes })?.key else {
+            return
+        }
+        if tableView.cellForRow(at: indexPath)?.viewWithTag(56)?.isFirstResponder == true {
+            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+        }
+    }
+    
+    @objc func keyboardWillChangeFrame(_ sender: Notification) {
+        if displayStandardMode {
+            let endY = self.view.convert((sender.userInfo![UIKeyboardFrameEndUserInfoKey]! as! CGRect), from: nil).origin.y
+
+            if let bottomConstraint = tableViewBottomConstraint {
+                let newConstant: CGFloat = self.view.frame.size.height - endY
+                let curve: UIViewAnimationOptions = UIViewAnimationOptions(rawValue: (sender.userInfo![UIKeyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
+                self.view.setNeedsLayout()
+                UIView.animate(withDuration: sender.userInfo![UIKeyboardAnimationDurationUserInfoKey] as! TimeInterval, delay: 0.0, options: [curve, .beginFromCurrentState], animations: {
+                    bottomConstraint.constant = newConstant
+                    self.view.layoutIfNeeded()
+                }, completion: nil)
+            }
+        }
+    }
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {

@@ -13,7 +13,7 @@ let urlSuffix = ".html"
 let urlLastPrefix = "m"
 
 let courseNumbers = [
-    "HST", "1", "2", "3", "4",
+    "1", "2", "3", "4",
     "5", "6", "7", "8",
     "9", "10", "11", "12",
     "14", "15", "16", "17",
@@ -72,6 +72,7 @@ func writeCondensedCourses(_ courses: [[CourseAttribute: Any]], to file: String)
             .subjectID,
             .title,
             .subjectLevel,
+            .totalUnits,
             .prerequisites,
             .corequisites,
             .jointSubjects,
@@ -103,6 +104,8 @@ func writeFullCourses(_ courses: [[CourseAttribute: Any]], to file: String) {
             .labUnits,
             .preparationUnits,
             .totalUnits,
+            .isVariableUnits,
+            .hasFinal,
             .GIR,
             .communicationRequirement,
             .hassRequirement,
@@ -127,7 +130,7 @@ func writeFullCourses(_ courses: [[CourseAttribute: Any]], to file: String) {
     }
 }
 
-var outputDirectory: String = "/Users/venkatesh-sivaraman/Documents/ScrapedCourses/"
+var outputDirectory: String = CommandLine.arguments.count >= 2 ? CommandLine.arguments[1] : "/Users/venkatesh-sivaraman/Documents/ScrapedCourses/"
 
 var allCourses: [[CourseAttribute: Any]] = []
 var departmentCourses: [[CourseAttribute: Any]] = []

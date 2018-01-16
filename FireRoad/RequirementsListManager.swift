@@ -8,6 +8,9 @@
 
 import UIKit
 
+let RequirementsDirectoryName = "requirements"
+let TestRequirementsDirectoryName = "test-reqs"
+
 class RequirementsListManager: NSObject {
     static let shared: RequirementsListManager = RequirementsListManager()
     
@@ -15,16 +18,44 @@ class RequirementsListManager: NSObject {
     
     private var requirementsListsByID: [String: RequirementsList] = [:]
     
+    func clearRequirementsLists() {
+        requirementsLists = []
+        requirementsListsByID = [:]
+    }
+
+    func reloadRequirementsLists() {
+        requirementsLists = []
+        requirementsListsByID = [:]
+        loadRequirementsLists()
+    }
+    
+    private static let requirementsVersionDefaultsKey = "RequirementsListManager.requirementsVersion"
+    var requirementsVersion: Int {
+        get {
+            return UserDefaults.standard.integer(forKey: RequirementsListManager.requirementsVersionDefaultsKey)
+        } set {
+            UserDefaults.standard.set(newValue, forKey: RequirementsListManager.requirementsVersionDefaultsKey)
+        }
+    }
+    
     func loadRequirementsLists() {
         // We only want to load these lists once
         guard requirementsLists.count == 0 else {
             return
         }
         requirementsListsByID = [:]
-        if let resourcePath = Bundle.main.resourcePath,
-            let contents = try? FileManager.default.contentsOfDirectory(atPath: resourcePath) {
-            for pathName in contents where pathName.contains(".reql") {
-                let fullPath = URL(fileURLWithPath: resourcePath).appendingPathComponent(pathName).path
+        guard let docsPath = (NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first as NSString?) else {
+            return
+        }
+        let resourcePath = docsPath.appendingPathComponent(RequirementsDirectoryName)
+        if var contents = try? FileManager.default.contentsOfDirectory(atPath: resourcePath) {
+            contents = contents.map({ URL(fileURLWithPath: resourcePath).appendingPathComponent($0).path })
+            // Testing contents
+            let testPath = docsPath.appendingPathComponent(TestRequirementsDirectoryName)
+            if let testContents = try? FileManager.default.contentsOfDirectory(atPath: testPath) {
+                contents += testContents.map({ URL(fileURLWithPath: testPath).appendingPathComponent($0).path })
+            }
+            for fullPath in contents where fullPath.contains(".reql") {
                 if let reqList = try? RequirementsList(contentsOf: fullPath) {
                     requirementsLists.append(reqList)
                     requirementsListsByID[reqList.listID] = reqList
@@ -35,6 +66,9 @@ class RequirementsListManager: NSObject {
     }
     
     func requirementList(withID id: String) -> RequirementsList? {
+        if requirementsLists.count == 0 {
+            loadRequirementsLists()
+        }
         return requirementsListsByID[id]
     }
 }

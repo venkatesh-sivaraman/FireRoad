@@ -112,7 +112,8 @@ class RequirementsListStatement: NSObject {
     }
     
     override var debugDescription: String {
-        let fulfillmentString = fulfillmentProgress > 0 ? "(\(fulfillmentProgress) - \(percentageFulfilled)%) " : ""
+        let prog = fulfillmentProgress(for: threshold.criterion)
+        let fulfillmentString = prog > 0 ? "(\(prog) - \(percentageFulfilled)%) " : ""
         if let req = requirement {
             return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title != nil ? title! + ": " : "")\(req)\(thresholdDescription.count > 0 ? " (" + thresholdDescription + ")" : "")>"
         } else if let reqList = requirements {
@@ -340,7 +341,8 @@ class RequirementsListStatement: NSObject {
     // MARK: - Requirement Status
     
     var isFulfilled = false
-    var fulfillmentProgress: Int = 0
+    var fulfillmentProgress = (0, 0)
+    var satisfyingCourses: Set<Course>?
     
     func coursesSatisfyingRequirement(in courses: [Course]) -> [Course] {
         var satisfying: [Course] = []
@@ -373,59 +375,59 @@ class RequirementsListStatement: NSObject {
     /**
      - Returns: The number of subjects and units that satisfy this requirement.
      */
-    @discardableResult func computeRequirementStatus(with courses: [Course]) -> (subjects: Int, units: Int) {
-        var numSatisfyingPerCategory: [(subjects: Int, units: Int)] = []
+    @discardableResult func computeRequirementStatus(with courses: [Course]) -> Set<Course> {
+        var satisfyingPerCategory: [Set<Course>] = []
         var distinctNumSatisfying = 0
         if requirement != nil {
-            let satisfiedCourses = coursesSatisfyingRequirement(in: courses)
-            numSatisfyingPerCategory.append((satisfiedCourses.count, satisfiedCourses.reduce(0, { $0 + $1.totalUnits })))
+            let satisfiedCourses = Set<Course>(coursesSatisfyingRequirement(in: courses))
+            satisfyingCourses = satisfiedCourses
+            satisfyingPerCategory.append(satisfiedCourses)
         } else if let reqs = requirements {
             for req in reqs {
-                var satisfying = 0
-                let (subjects, units) = req.computeRequirementStatus(with: courses)
+                let satisfiedCourses = req.computeRequirementStatus(with: courses)
                 if req.isFulfilled {
-                    if connectionType == .any, threshold.cutoff > 1 {
-                        satisfying += max(subjects, req.fulfillmentProgress)
-                    } else {
-                        satisfying += 1
-                    }
                     distinctNumSatisfying += 1
                 }
-                numSatisfyingPerCategory.append((satisfying, units))
+                satisfyingPerCategory.append(satisfiedCourses)
             }
         }
         
-        var numSatisfying = numSatisfyingPerCategory.reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
+        let totalSatisfyingCourses = satisfyingPerCategory.reduce(Set<Course>(), { $0.union($1) })
+        var numSatisfying = (totalSatisfyingCourses.count, totalSatisfyingCourses.reduce(0, { $0 + $1.totalUnits }))
         if connectionType == .any, threshold.cutoff == 0 {
             isFulfilled = true
         } else if connectionType == .any || threshold.cutoff > 1 {
             if distinctThreshold.type == .lessThan || distinctThreshold.type == .lessThanOrEqual {
-                let optimalReqs = numSatisfyingPerCategory.sorted(by: {
+                let satisfyingQuantities = satisfyingPerCategory.map({ item in (item.count, item.reduce(0, { $0 + $1.totalUnits } )) })
+                let optimalReqs = satisfyingQuantities.sorted(by: {
                     (distinctThreshold.criterion == .subjects ? $0.0 > $1.0 : $0.1 > $1.1)
-                })[0..<min(numSatisfyingPerCategory.count, distinctThreshold.cutoff)]
+                })[0..<min(satisfyingQuantities.count, distinctThreshold.cutoff)]
                 numSatisfying = optimalReqs.reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
                 isFulfilled = number(numSatisfying.0, withUnits: numSatisfying.1, satisfies: threshold) && number(optimalReqs.count, withUnits: 0, satisfies: distinctThreshold)
             } else {
                 isFulfilled = number(numSatisfying.0, withUnits: numSatisfying.1, satisfies: threshold) && number(distinctNumSatisfying, withUnits: 0, satisfies: distinctThreshold)
             }
         } else {
-            isFulfilled = (numSatisfying.0 >= (requirements?.count ?? 1))
+            isFulfilled = (distinctNumSatisfying >= (requirements?.count ?? 1))
         }
-        fulfillmentProgress = threshold.criterion == .subjects ? numSatisfying.0 : numSatisfying.1
-        
-        return numSatisfying
+        fulfillmentProgress = numSatisfying
+        return totalSatisfyingCourses
     }
     
-    private var fulfilledFraction: (Int, Int) {
+    func fulfillmentProgress(for criterion: ThresholdCriterion) -> Int {
+        return criterion == .subjects ? fulfillmentProgress.0 : fulfillmentProgress.1
+    }
+    
+    private func fulfilledFraction(for criterion: ThresholdCriterion) -> (Int, Int) {
         if let reqs = requirements {
-            if distinctThreshold.cutoff > 0 {
-                return (fulfillmentProgress, threshold.cutoff)
+            if distinctThreshold.cutoff > 0 || (connectionType == .all && threshold.cutoff > 1) {
+                return (fulfillmentProgress(for: criterion), threshold.cutoff)
             }
-            let progresses = reqs.map({ $0.fulfilledFraction })
+            let progresses = reqs.map({ $0.fulfilledFraction(for: criterion) })
             if connectionType == .all {
                 return progresses.reduce((0, 0), { ($0.0 + min($1.0, $1.1), $0.1 + $1.1) })
             }
-            let sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled }).map({ $0.fulfilledFraction })
+            let sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled }).map({ $0.fulfilledFraction(for: criterion) })
             if threshold.cutoff > 1 {
                 let tempResult = sortedProgresses[0..<min(threshold.cutoff, sortedProgresses.count)].reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
                 return (min(threshold.cutoff, tempResult.0), threshold.cutoff)
@@ -435,14 +437,14 @@ class RequirementsListStatement: NSObject {
                 return (sortedProgresses.reduce(0, { $0 + $1.0 }), 0)
             }
         }
-        return (fulfillmentProgress, threshold.cutoff)
+        return (fulfillmentProgress(for: criterion), threshold.cutoff)
     }
     
     var percentageFulfilled: Float {
         if connectionType == .none {
             return 0.0
         }
-        let fulfilled = fulfilledFraction
+        let fulfilled = fulfilledFraction(for: threshold.criterion)
         if fulfilled.0 == 0, fulfilled.1 == 0 {
             return 0.0
         }
@@ -467,6 +469,7 @@ class RequirementsList: RequirementsListStatement {
 
     var shortTitle: String?
     var mediumTitle: String?
+    var titleNoDegree: String?
     var listID: String
     
     init(contentsOf file: String) throws {
@@ -495,7 +498,10 @@ class RequirementsList: RequirementsListStatement {
             if headerComps.count > 0 {
                 mediumTitle = headerComps.removeFirst()
             }
-            if headerComps.count > 0 {
+            if headerComps.count > 1 {
+                titleNoDegree = headerComps.removeFirst()
+                title = headerComps.removeFirst()
+            } else if headerComps.count > 0 {
                 title = headerComps.removeFirst()
             }
             for comp in headerComps {

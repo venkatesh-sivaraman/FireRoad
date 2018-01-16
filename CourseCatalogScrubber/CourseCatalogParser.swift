@@ -17,6 +17,7 @@ enum CourseCatalogConstants {
     static let corequisitesPrefix = "coreq:"
     static let meetsWithPrefix = "subject meets with"
     static let jointSubjectsPrefix = "same subject as"
+    static let pdfString = "P/D/F"
     
     static let undergrad = "undergrad"
     static let graduate = "graduate"
@@ -86,6 +87,8 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
     case labUnits
     case preparationUnits
     case totalUnits
+    case isVariableUnits
+    case pdfOption
     case instructors
     case prerequisites
     case corequisites
@@ -119,6 +122,9 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
         .labUnits: "Lab Units",
         .preparationUnits: "Preparation Units",
         .totalUnits: "Total Units",
+        .isVariableUnits: "Is Variable Units",
+        .pdfOption: "PDF Option",
+        .hasFinal: "Has Final",
         .instructors: "Instructors",
         .prerequisites: "Prerequisites",
         .corequisites: "Corequisites",
@@ -194,9 +200,15 @@ class CourseCatalogParser: NSObject {
         } else if nodeIsDelimitingATag(node) {
             shouldStop?.pointee = true
             return informationItems
+        } else if node.tagText.lowercased() == "span", node.contents.count > 0 {
+            informationItems.append(node.contents.trimmingCharacters(in: .whitespacesAndNewlines))
         } else {
             for child in node.childNodes {
-                informationItems += recursivelyExtractInformationItems(from: child)
+                var shouldStopNow = false
+                informationItems += recursivelyExtractInformationItems(from: child, shouldStop: &shouldStopNow)
+                if shouldStopNow {
+                    break
+                }
             }
         }
         shouldStop?.pointee = false
@@ -219,7 +231,7 @@ class CourseCatalogParser: NSObject {
     }()
     
     let instructorRegex: NSRegularExpression = {
-        guard let regex = try? NSRegularExpression(pattern: "[A-Z]\\. \\w+", options: []) else {
+        guard let regex = try? NSRegularExpression(pattern: "(?:^|[^A-z0-9])[A-Z]\\. \\w+", options: []) else {
             fatalError("Couldn't initialize instructor regex")
         }
         return regex
@@ -406,26 +418,18 @@ class CourseCatalogParser: NSObject {
         } else if let notOfferedRange = item.range(of: CourseCatalogConstants.notOfferedPrefix, options: .caseInsensitive) {
             attributes[.notOfferedYear] = String(item[notOfferedRange.upperBound..<item.endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
             
+        } else if item.range(of: CourseCatalogConstants.unitsArrangedPrefix, options: .caseInsensitive) != nil {
+            attributes[.isVariableUnits] = true
         } else if let unitsRange = item.range(of: CourseCatalogConstants.unitsPrefix, options: .caseInsensitive) {
             let unitsString = String(item[unitsRange.upperBound..<item.endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
-            let components = unitsString.components(separatedBy: .punctuationCharacters).flatMap({ Int($0) })
-            if components.count == 3 {
+            if let components = unitsString.components(separatedBy: .whitespaces).first?.components(separatedBy: .punctuationCharacters).flatMap({ Int($0) }),
+                components.count >= 3 {
                 attributes[.lectureUnits] = components[0]
                 attributes[.labUnits] = components[1]
                 attributes[.preparationUnits] = components[2]
+                attributes[.totalUnits] = components[0..<3].reduce(0, +)
             }
-            attributes[.totalUnits] = components.reduce(0, +)
-        }/* else if let unitsArrangedRange = item.range(of: CourseCatalogConstants.unitsArrangedPrefix, options: .caseInsensitive) {
-             attributes[.units] = item.substring(from: unitsArrangedRange.upperBound).trimmingCharacters(in: .whitespacesAndNewlines)
-             
-         }*/ else if item.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil {
-            attributes[.offeredFall] = true
-        } else if item.range(of: CourseCatalogConstants.spring, options: .caseInsensitive) != nil {
-            attributes[.offeredSpring] = true
-        } else if item.range(of: CourseCatalogConstants.iap, options: .caseInsensitive) != nil {
-            attributes[.offeredIAP] = true
-        } else if item.range(of: CourseCatalogConstants.summer, options: .caseInsensitive) != nil {
-            attributes[.offeredSummer] = true
+            attributes[.pdfOption] = unitsString.contains(CourseCatalogConstants.pdfString)
         } else if item.range(of: CourseCatalogConstants.hassH, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.hassA, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.hassS, options: .caseInsensitive) != nil {
@@ -436,7 +440,20 @@ class CourseCatalogParser: NSObject {
         } else if let girRequirement = CourseCatalogConstants.GIRRequirements[item.trimmingCharacters(in: .whitespacesAndNewlines)] {
             attributes[.GIR] = girRequirement
         } else if instructorRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)) != nil {
-            attributes[.instructors] = item.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: "")
+            let newComponent = item.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: "")
+            if attributes[.instructors] != nil, (attributes[.instructors] as? String)?.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil, newComponent.range(of: CourseCatalogConstants.spring, options: .caseInsensitive) != nil {
+                attributes[.instructors] = (attributes[.instructors] as! String) + "\n" + newComponent
+            } else {
+                attributes[.instructors] = newComponent
+            }
+        } else if item.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil {
+            attributes[.offeredFall] = true
+        } else if item.range(of: CourseCatalogConstants.spring, options: .caseInsensitive) != nil {
+            attributes[.offeredSpring] = true
+        } else if item.range(of: CourseCatalogConstants.iap, options: .caseInsensitive) != nil {
+            attributes[.offeredIAP] = true
+        } else if item.range(of: CourseCatalogConstants.summer, options: .caseInsensitive) != nil {
+            attributes[.offeredSummer] = true
         }
     }
     
@@ -474,30 +491,35 @@ class CourseCatalogParser: NSObject {
                     }
                 }
                 
+                informationItems += childItems
                 if shouldStop {
                     break
                 }
-                
-                informationItems += childItems
-            } else if nodeIsDelimitingATag(node), informationItems.count > 0 {
-                break
+            } else if nodeIsDelimitingATag(node) {
+                if informationItems.count > 0 {
+                    break
+                }
             } else if node.contents.count == 0 {
-                informationItems += recursivelyExtractInformationItems(from: node)
+                var shouldStop = false
+                informationItems += recursivelyExtractInformationItems(from: node, shouldStop: &shouldStop)
+                if shouldStop {
+                    break
+                }
             } else {
-                informationItems.append(node.contents)
+                informationItems.append(node.contents.trimmingCharacters(in: .whitespacesAndNewlines))
             }
         }
         //print("Information items: \(informationItems.filter({ $0.count > 0 }).joined(separator: "\n") as NSString)")
-        
+        informationItems.sort(by: { $0.replacingOccurrences(of: "\n", with: "").count < $1.replacingOccurrences(of: "\n", with: "").count })
         var processedItems: [CourseAttribute: Any] = [.subjectID : region.title]
         if let url = catalogURL {
             processedItems[.URL] = url.absoluteString + "#\(region.title)"
         }
         for item in informationItems {
-            guard item.count > 0,
-                let escapedItem = String(htmlEncodedString: item) else {
-                    continue
+            guard item.count > 0 else {
+                continue
             }
+            let escapedItem = HTMLNodeExtractor.stripHTMLTags(from: item).replacingOccurrences(of: "\"", with: "'").replacingOccurrences(of: "\n", with: " ")
             processInformationItem(escapedItem, into: &processedItems)
         }
         return processedItems
@@ -521,7 +543,7 @@ class CourseCatalogParser: NSObject {
         
         switch item {
         case let string as String:
-            return "\"" + string.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+            return "\"" + string.replacingOccurrences(of: "\"", with: "\"\"").replacingOccurrences(of: "\n", with: "\\n") + "\""
         case let integer as Int:
             return "\(integer)"
         case let float as Float:

@@ -43,6 +43,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return (self.navigationController?.parent as? PanelViewController)
     }
     
+    var popDownMenu: PopDownTableMenuController?
+    
     var searchResults: [Course] = []
     var results: [Course] = []
     var managesNavigation = true
@@ -83,15 +85,13 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     let nonSearchViewModeDefaultsKey = "CourseBrowserNonSearchViewMode"
+    var justLoaded = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        justLoaded = true
+        
         self.searchBar?.tintColor = self.view.tintColor
-        if managesNavigation {
-            self.navigationController?.delegate = self
-        }
-        navigationItem.title = searchTerm ?? ""
         
         if let panel = panelViewController {
             NotificationCenter.default.addObserver(self, selector: #selector(panelViewControllerWillCollapse(_:)), name: .PanelViewControllerWillCollapse, object: panel)
@@ -100,72 +100,103 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         nonSearchViewMode = ViewMode(rawValue: UserDefaults.standard.integer(forKey: nonSearchViewModeDefaultsKey)) ?? .recents
         
         categoryControl?.selectedSegmentIndex = nonSearchViewMode.rawValue
-        updateFilterButton()
+
+        if #available(iOS 11.0, *) {
+            self.navigationItem.largeTitleDisplayMode = .never
+        }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseBrowserViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        loadingCellTimer?.invalidate()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationItem.title = showsHeaderBar ? "" : (searchTerm ?? "")
         if managesNavigation {
+            self.navigationController?.delegate = self
             self.navigationController?.setNavigationBarHidden(true, animated: true)
+        } else {
+            self.navigationController?.setNavigationBarHidden(false, animated: true)
+            self.navigationController?.setToolbarHidden(true, animated: true)
         }
         
-        if let searchBar = searchBar,
-            searchBar.text?.count == 0 {
-            clearSearch()
-        } else if let initialSearch = searchTerm {
-            loadSearchResults(withString: initialSearch, options: searchOptions)
-        }
-        
-        // Show the loading view if necessary
-        if !CourseManager.shared.isLoaded {
-            if let loadingView = self.loadingView {
-                loadingView.alpha = 0.0
-                loadingView.isHidden = false
-                self.loadingIndicator?.startAnimating()
-                UIView.animate(withDuration: 0.2, animations: {
-                    self.tableView.alpha = 0.0
-                    self.headerBar?.alpha = 0.0
-                    loadingView.alpha = 1.0
-                }, completion: { (completed) in
-                    if completed {
-                        self.tableView.isHidden = true
-                        self.headerBar?.isHidden = true
-                    }
-                })
+        if justLoaded {
+            if let searchBar = searchBar,
+                searchBar.text?.count == 0 {
+                clearSearch()
             }
-            loadingIndicator?.startAnimating()
-        }
-        DispatchQueue.global().async {
-            while !CourseManager.shared.isLoaded {
-                usleep(100)
+            if let initialSearch = searchTerm {
+                searchBar?.text = initialSearch
+                loadSearchResults(withString: initialSearch, options: searchOptions)
             }
-            DispatchQueue.main.async {
-                self.tableView.isHidden = false
-                self.headerBar?.isHidden = false
+            
+            // Show the loading view if necessary
+            if !CourseManager.shared.isLoaded {
                 if let loadingView = self.loadingView {
+                    loadingView.alpha = 0.0
+                    loadingView.isHidden = false
+                    self.loadingIndicator?.startAnimating()
                     UIView.animate(withDuration: 0.2, animations: {
-                        self.tableView.alpha = 1.0
-                        self.headerBar?.alpha = 1.0
-                        loadingView.alpha = 0.0
+                        self.tableView.alpha = 0.0
+                        self.headerBar?.alpha = 0.0
+                        loadingView.alpha = 1.0
                     }, completion: { (completed) in
                         if completed {
-                            loadingView.isHidden = true
-                            self.loadingIndicator?.stopAnimating()
+                            self.tableView.isHidden = true
+                            self.headerBar?.isHidden = true
                         }
                     })
                 }
-                
-                if let searchText = self.searchBar?.text {
-                    if searchText.count > 0 {
-                        self.loadSearchResults(withString: searchText, options: self.searchOptions)
-                    } else {
-                        self.clearSearch()
+                loadingIndicator?.startAnimating()
+            }
+            DispatchQueue.global().async {
+                while !CourseManager.shared.isLoaded {
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    self.tableView.isHidden = false
+                    self.headerBar?.isHidden = false
+                    if let loadingView = self.loadingView {
+                        UIView.animate(withDuration: 0.2, animations: {
+                            self.tableView.alpha = 1.0
+                            self.headerBar?.alpha = 1.0
+                            loadingView.alpha = 0.0
+                        }, completion: { (completed) in
+                            if completed {
+                                loadingView.isHidden = true
+                                self.loadingIndicator?.stopAnimating()
+                            }
+                        })
                     }
-                } else if let initialSearch = self.searchTerm {
-                    self.loadSearchResults(withString: initialSearch, options: self.searchOptions)
+                    
+                    if let searchText = self.searchBar?.text {
+                        if searchText.count > 0 {
+                            self.loadSearchResults(withString: searchText, options: self.searchOptions)
+                        } else {
+                            self.clearSearch()
+                        }
+                    } else if let initialSearch = self.searchTerm {
+                        self.loadSearchResults(withString: initialSearch, options: self.searchOptions)
+                    }
                 }
             }
+            
+            justLoaded = false
         }
+        updateFilterButton()
+        dismissPopDownTableMenu()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if shouldMakeSearchBarFirstResponder {
+            searchBar?.becomeFirstResponder()
+        }
+        shouldMakeSearchBarFirstResponder = false
     }
     
     func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationControllerOperation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
@@ -179,14 +210,52 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return nil
     }
     
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    @objc func courseManagerFinishedLoading(_ note: Notification) {
+        if let search = searchTerm {
+            loadSearchResults(withString: search, options: searchOptions)
+        }
+    }
+    
+    // MARK: - State Preservation
+    
+    var shouldMakeSearchBarFirstResponder = false
+    
+    static let showsHeaderBarRestorationKey = "CourseBrowser.showsHeaderBar"
+    static let backgroundColorRestorationKey = "CourseBrowser.backgroundColor"
+    static let managesNavigationRestorationKey = "CourseBrowser.managesNavigation"
+    static let searchBarRespondingRestorationKey = "CourseBrowser.searchBarFirstResponder"
+    static let searchTermRestorationKey = "CourseBrowser.searchTerm"
+    static let searchOptionsRestorationKey = "CourseBrowser.searchOptions"
+
+    override func encodeRestorableState(with coder: NSCoder) {
+        super.encodeRestorableState(with: coder)
+        coder.encode(searchBar?.isFirstResponder ?? false, forKey: CourseBrowserViewController.searchBarRespondingRestorationKey)
+        coder.encode(showsHeaderBar, forKey: CourseBrowserViewController.showsHeaderBarRestorationKey)
+        coder.encode(managesNavigation, forKey: CourseBrowserViewController.managesNavigationRestorationKey)
+        coder.encode(searchTerm, forKey: CourseBrowserViewController.searchTermRestorationKey)
+        coder.encode(searchOptions.rawValue, forKey: CourseBrowserViewController.searchOptionsRestorationKey)
+        coder.encode(view.backgroundColor, forKey: CourseBrowserViewController.backgroundColorRestorationKey)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        super.decodeRestorableState(with: coder)
+        managesNavigation = coder.decodeBool(forKey: CourseBrowserViewController.managesNavigationRestorationKey)
+        showsHeaderBar = coder.decodeBool(forKey: CourseBrowserViewController.showsHeaderBarRestorationKey)
+        view.backgroundColor = (coder.decodeObject(forKey: CourseBrowserViewController.backgroundColorRestorationKey) as? UIColor) ?? UIColor.clear
+        searchTerm = coder.decodeObject(forKey: CourseBrowserViewController.searchTermRestorationKey) as? String
+        let options = coder.decodeInteger(forKey: CourseBrowserViewController.searchOptionsRestorationKey)
+        if options != 0 {
+            searchOptions = SearchOptions(rawValue: options)
+        }
+        shouldMakeSearchBarFirstResponder = coder.decodeBool(forKey: CourseBrowserViewController.searchBarRespondingRestorationKey)
+    }
+    
+    // MARK: - Panel
     
     @objc func panelViewControllerWillCollapse(_ note: Notification) {
         searchBar?.resignFirstResponder()
@@ -253,7 +322,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         searchBar.resignFirstResponder()
         self.loadSearchResults(withString: searchBar.text!, options: searchOptions)
     }
-        
+
     lazy var searchEngine = CourseSearchEngine()
     
     func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter) {
@@ -295,15 +364,32 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if isShowingSearchResults, results.count == 0 {
+            return 1
+        }
         return results.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if isShowingSearchResults, results.count == 0 {
+            if searchEngine.isSearching {
+                return tableView.dequeueReusableCell(withIdentifier: "LoadingCell", for: indexPath)
+            } else {
+                return tableView.dequeueReusableCell(withIdentifier: "NoResultsCell", for: indexPath)
+            }
+        }
         let cell = tableView.dequeueReusableCell(withIdentifier: "CourseCell", for: indexPath) as! CourseBrowserCell
         cell.course = results[indexPath.row]
         cell.delegate = self
         
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
+        if isShowingSearchResults, results.count == 0 {
+            return false
+        }
+        return true
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -313,10 +399,20 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        cell.textLabel?.tintColor = UIColor.black
-        cell.detailTextLabel?.tintColor = UIColor.black
-        cell.textLabel?.textColor = UIColor.black.withAlphaComponent(0.7)
-        cell.detailTextLabel?.textColor = UIColor.darkGray.withAlphaComponent(0.7)
+        if isShowingSearchResults,
+            results.count == 0,
+            searchEngine.isSearching {
+            if let timer = loadingCellTimer {
+                timer.invalidate()
+                loadingCellTimer = nil
+            }
+            loadingCellTimer = Timer.scheduledTimer(timeInterval: 0.4, target: self, selector: #selector(CourseBrowserViewController.animateLoadingCell(_:)), userInfo: nil, repeats: true)
+        } else {
+            cell.textLabel?.tintColor = UIColor.black
+            cell.detailTextLabel?.tintColor = UIColor.black
+            cell.textLabel?.textColor = UIColor.black.withAlphaComponent(0.7)
+            cell.detailTextLabel?.textColor = UIColor.darkGray.withAlphaComponent(0.7)
+        }
     }
     
     func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
@@ -362,6 +458,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 popDown.show(animated: true)
             }
+            popDownMenu = popDown
             return nil
         } else {
             return delegate?.addCourse(course, to: nil)
@@ -376,7 +473,50 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         updateCourseVisibility()
     }
     
+    // MARK: - Loading Cell
+    
+    var loadingCellTimer: Timer?
+    
+    @objc func animateLoadingCell(_ sender: Timer) {
+        guard isShowingSearchResults,
+            results.count == 0,
+            searchEngine.isSearching,
+            let cell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)),
+            let label = cell.viewWithTag(12) as? UILabel else {
+            loadingCellTimer?.invalidate()
+            loadingCellTimer = nil
+            return
+        }
+        switch label.text ?? "" {
+        case "Searching.  ":
+            label.text = "Searching.. "
+        case "Searching.. ":
+            label.text = "Searching..."
+        case "Searching...":
+            label.text = "Searching.  "
+        default:
+            break
+        }
+    }
+    
     // MARK: - Pop Down Table Menu
+    
+    func dismissPopDownTableMenu() {
+        guard let tableMenu = popDownMenu else {
+            return
+        }
+        navigationItem.rightBarButtonItem?.isEnabled = true
+        if !isShowingSearchResults {
+            // Refresh favorites if necessary
+            updateCourseVisibility()
+        }
+        tableMenu.hide(animated: true) {
+            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.view.removeFromSuperview()
+            tableMenu.removeFromParentViewController()
+            tableMenu.didMove(toParentViewController: nil)
+        }
+    }
     
     func popDownTableMenu(_ tableMenu: PopDownTableMenuController, addedCourseToFavorites course: Course) {
         if CourseManager.shared.favoriteCourses.contains(course) {
@@ -398,17 +538,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func popDownTableMenuCanceled(_ tableMenu: PopDownTableMenuController) {
-        navigationItem.rightBarButtonItem?.isEnabled = true
-        if !isShowingSearchResults {
-            // Refresh favorites if necessary
-            updateCourseVisibility()
-        }
-        tableMenu.hide(animated: true) {
-            tableMenu.willMove(toParentViewController: nil)
-            tableMenu.view.removeFromSuperview()
-            tableMenu.removeFromParentViewController()
-            tableMenu.didMove(toParentViewController: nil)
-        }
+        dismissPopDownTableMenu()
     }
     
     // MARK: - Filter Controller
