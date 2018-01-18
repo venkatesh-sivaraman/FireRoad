@@ -315,7 +315,38 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             clearSearch()
             return
         }
-        loadSearchResults(withString: searchText, options: searchOptions)
+        
+        guard CourseManager.shared.isLoaded else {
+            return
+        }
+        isShowingSearchResults = true
+        if self.searchOptions == .noFilter {
+            var updatedAlready = false
+            searchEngine.loadFastSearchResults(for: searchText) { newResults in
+                self.updateQueue.async {
+                    guard newResults.count > 0 else {
+                        return
+                    }
+                    let sortedResults = newResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if !updatedAlready {
+                            self.searchResults = sortedResults
+                            self.updateCourseVisibility()
+                        }
+                    }
+                }
+            }
+            DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
+                guard DispatchQueue.main.sync(execute: { searchText == searchBar.text }) else {
+                    return
+                }
+                self.loadSearchResults(withString: searchText, options: self.searchOptions, completion: {
+                    updatedAlready = true
+                })
+            }
+        } else {
+            self.loadSearchResults(withString: searchText, options: self.searchOptions)
+        }
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -324,26 +355,31 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
 
     lazy var searchEngine = CourseSearchEngine()
+    lazy var updateQueue = DispatchQueue(label: "SearchingUpdateQueue")
     
-    func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter) {
+    func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter, completion: (() -> Void)? = nil) {
         guard CourseManager.shared.isLoaded else {
             return
         }
         isShowingSearchResults = true
+        
         var newAggregatedSearchResults: [Course: Float] = [:]
-        searchEngine.loadSearchResults(for: searchTerm, options: options) { newResults in
-            newAggregatedSearchResults.merge(newResults, uniquingKeysWith: { $0 + $1 })
-            if !self.searchEngine.isSearching {
-                // It has stopped the search
-                if let user = (self.rootParent as? RootTabViewController)?.currentUser {
-                    for (course, relevance) in newAggregatedSearchResults {
-                        newAggregatedSearchResults[course] = relevance * user.userRelevance(for: course)
+        self.searchEngine.loadSearchResults(for: searchTerm, options: options) { newResults in
+            self.updateQueue.async {
+                newAggregatedSearchResults.merge(newResults, uniquingKeysWith: { $0 + $1 })
+                if !self.searchEngine.isSearching {
+                    // It has stopped the search
+                    if let user = (self.rootParent as? RootTabViewController)?.currentUser {
+                        for (course, relevance) in newAggregatedSearchResults {
+                            newAggregatedSearchResults[course] = relevance * log(max(user.userRelevance(for: course), 2.0))
+                        }
                     }
-                }
-                let sortedResults = newAggregatedSearchResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
-                DispatchQueue.main.async {
-                    self.searchResults = sortedResults
-                    self.updateCourseVisibility()
+                    let sortedResults = newAggregatedSearchResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+                    DispatchQueue.main.async {
+                        self.searchResults = sortedResults
+                        self.updateCourseVisibility()
+                        completion?()
+                    }
                 }
             }
         }

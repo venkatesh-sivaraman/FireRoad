@@ -135,13 +135,15 @@ class User: NSObject {
         return []
     }
     
-    func delete(_ course: Course, fromSemester semester: UserSemester) {
+    func delete(_ course: Course, fromSemester semester: UserSemester, removingOverrides: Bool = true) {
         var semesterCourses = self.courses(forSemester: semester)
         if let delIdx = semesterCourses.index(of: course) {
             semesterCourses.remove(at: delIdx)
         }
         self.selectedSubjects[semester] = semesterCourses
-        overrides[course] = nil
+        if removingOverrides {
+            overrides[course] = nil
+        }
         setNeedsSave()
         
         if CourseManager.shared.userRatings[course.subjectID!] == nil {
@@ -178,7 +180,7 @@ class User: NSObject {
     }
     
     func move(_ course: Course, fromSemester semester: UserSemester, toSemester destSemester: UserSemester, atIndex idx: Int) {
-        self.delete(course, fromSemester: semester)
+        self.delete(course, fromSemester: semester, removingOverrides: false)
         self.insert(course, toSemester: destSemester, atIndex: idx)
         setNeedsSave()
     }

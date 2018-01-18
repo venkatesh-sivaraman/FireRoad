@@ -89,7 +89,7 @@ class CourseSearchEngine: NSObject {
             courseComps += [course.subjectID, course.subjectID, course.subjectID, course.subjectID, course.subjectID]
         }
         if options.contains(.searchTitle) {
-            courseComps.append(course.subjectTitle)
+            courseComps += [course.subjectTitle, course.subjectTitle]
         }
         if options.contains(.searchRequirements) {
             courseComps += [course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText(), course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText(), course.girAttribute?.rawValue, course.girAttribute?.descriptionText()]
@@ -144,7 +144,10 @@ class CourseSearchEngine: NSObject {
     
     func searchResults(within courses: [Course], searchTerm: String, options: SearchOptions) -> [Course: Float]? {
         let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
-        
+        let searchTools = comps.map {
+            ($0, self.searchRegex(for: $0, options: options))
+        }
+
         var newResults: [Course: Float] = [:]
         for course in courses {
             guard !self.shouldAbortSearch else {
@@ -156,9 +159,6 @@ class CourseSearchEngine: NSObject {
             
             var relevance: Float = 0.0
             let courseText = self.searchText(for: course, options: options)
-            let searchTools = comps.map {
-                ($0, self.searchRegex(for: $0, options: options))
-            }
             for (comp, regex) in searchTools {
                 for match in regex.matches(in: courseText, options: [], range: NSRange(location: 0, length: courseText.count)) {
                     var multiplier: Float = 1.0
@@ -188,10 +188,39 @@ class CourseSearchEngine: NSObject {
         return newResults
     }
     
+    func fastSearchResults(within courses: [Course], searchTerm: String) -> [Course: Float]? {
+        let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
+
+        var newResults: [Course: Float] = [:]
+        for course in courses {
+            guard !self.shouldAbortSearch else {
+                return nil
+            }
+            
+            var relevance: Float = 0.0
+            let courseText = [course.subjectID ?? "", course.subjectTitle ?? ""].joined(separator: "\n").lowercased()
+            for comp in comps {
+                if !courseText.contains(comp) {
+                    relevance = 0.0
+                    break
+                }
+                relevance += Float(comp.count)
+            }
+            if relevance > 0.0 {
+                relevance *= log(Float(max(2, course.enrollmentNumber)))
+                newResults[course] = relevance
+            }
+        }
+        if self.shouldAbortSearch {
+            return nil
+        }
+        return newResults
+    }
+    
     var queuedSearchTerm: String?
     var queuedSearchOptions: SearchOptions?
     
-    func loadSearchResults(for searchTerm: String, options: SearchOptions = .noFilter, callback: @escaping ([Course: Float]) -> Void) {
+    private func runSearchAlgorithm(for searchTerm: String, fast: Bool, options: SearchOptions = .noFilter, callback: @escaping ([Course: Float]) -> Void) {
         DispatchQueue.global().async {
             var searchTerm = searchTerm
             var options = options
@@ -222,7 +251,8 @@ class CourseSearchEngine: NSObject {
             let chunkSize = CourseManager.shared.courses.count / 4
             self.dispatch(jobs: CourseManager.shared.courses.chunked(by: chunkSize).map({ (courses) -> DispatchJob in
                 return { (completion) in
-                    completion(self.searchResults(within: courses, searchTerm: searchTerm, options: options))
+                    let result = fast ? self.fastSearchResults(within: courses, searchTerm: searchTerm) : self.searchResults(within: courses, searchTerm: searchTerm, options: options)
+                    completion(result)
                 }
             }), jobCompletion: { (newResults) in
                 if let results = newResults {
@@ -237,5 +267,13 @@ class CourseSearchEngine: NSObject {
                 }
             })
         }
+    }
+    
+    func loadSearchResults(for searchTerm: String, options: SearchOptions = .noFilter, callback: @escaping ([Course: Float]) -> Void) {
+        runSearchAlgorithm(for: searchTerm, fast: false, options: options, callback: callback)
+    }
+    
+    func loadFastSearchResults(for searchTerm: String, callback: @escaping ([Course: Float]) -> Void) {
+        runSearchAlgorithm(for: searchTerm, fast: true, callback: callback)
     }
 }
