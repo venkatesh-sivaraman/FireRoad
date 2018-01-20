@@ -158,23 +158,27 @@ class CourseSearchEngine: NSObject {
             }
             
             var relevance: Float = 0.0
-            let courseText = self.searchText(for: course, options: options)
-            for (comp, regex) in searchTools {
-                for match in regex.matches(in: courseText, options: [], range: NSRange(location: 0, length: courseText.count)) {
-                    var multiplier: Float = 1.0
-                    if match.numberOfRanges > 1 {
-                        multiplier = 50.0
-                        let nonZeroRanges = (1..<match.numberOfRanges).filter({
-                            let range = match.range(at: $0)
-                            return range.length > 0 || range.location == 0 || range.location + range.length == courseText.count
-                        }).count
-                        if nonZeroRanges == 1 {
-                            multiplier = 10.0
-                        } else if nonZeroRanges > 1 {
-                            multiplier = 1.0
+            if searchTerm.count == 0 && options != .noFilter {
+                relevance = 1.0
+            } else {
+                let courseText = self.searchText(for: course, options: options)
+                for (comp, regex) in searchTools {
+                    for match in regex.matches(in: courseText, options: [], range: NSRange(location: 0, length: courseText.count)) {
+                        var multiplier: Float = 1.0
+                        if match.numberOfRanges > 1 {
+                            multiplier = 50.0
+                            let nonZeroRanges = (1..<match.numberOfRanges).filter({
+                                let range = match.range(at: $0)
+                                return range.length > 0 || range.location == 0 || range.location + range.length == courseText.count
+                            }).count
+                            if nonZeroRanges == 1 {
+                                multiplier = 10.0
+                            } else if nonZeroRanges > 1 {
+                                multiplier = 1.0
+                            }
                         }
+                        relevance += multiplier * Float(comp.count)
                     }
-                    relevance += multiplier * Float(comp.count)
                 }
             }
             if relevance > 0.0 {

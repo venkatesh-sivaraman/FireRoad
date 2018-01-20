@@ -294,6 +294,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                 scheduleConfigurationsList += allOptions
             }
         }
+        scheduleConfigurations.sort(by: { $0.count < $1.count })
         
         var conflictGroups: [[[ScheduleUnit]]] = CourseScheduleDay.ordering.map { _ in ScheduleSlotManager.slots.map({ _ in [] }) }
         var configurationConflictMapping: [ScheduleUnit: [Set<Int>]] = [:]

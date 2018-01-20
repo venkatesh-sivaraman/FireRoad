@@ -241,7 +241,7 @@ struct CourseScheduleTime: CustomDebugStringConvertible, Comparable {
             print("Not enough components in time string: \(time)")
             return CourseScheduleTime(hour: 12, minute: 0, PM: true)
         }
-        var pm = ((comps[0] >= 7) == evening)
+        var pm = ((comps[0] > 7) == evening)
         if comps[0] == 12 {
             pm = !evening
         }
@@ -256,7 +256,7 @@ struct CourseScheduleTime: CustomDebugStringConvertible, Comparable {
     }
     
     var debugDescription: String {
-        return stringEquivalent(withTimeOfDay: (PM && hour >= 7 && hour != 12))
+        return stringEquivalent(withTimeOfDay: (PM && hour > 7 && hour != 12))
     }
     
     var hour24: Int {
