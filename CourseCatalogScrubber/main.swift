@@ -86,7 +86,10 @@ func writeCondensedCourses(_ courses: [[CourseAttribute: Any]], to file: String)
             .instructors,
             .communicationRequirement,
             .hassRequirement,
-            .GIR
+            .GIR,
+            .averageInClassHours,
+            .averageOutOfClassHours,
+            .enrollment
             ])
     } catch {
         print("Error writing condensed course file: \(error)")
@@ -123,7 +126,11 @@ func writeFullCourses(_ courses: [[CourseAttribute: Any]], to file: String) {
             .quarterInformation,
             .instructors,
             .schedule,
-            .URL
+            .URL,
+            .averageRating,
+            .averageInClassHours,
+            .averageOutOfClassHours,
+            .enrollment
             ])
     } catch {
         print("Error writing condensed course file: \(error)")
@@ -131,6 +138,11 @@ func writeFullCourses(_ courses: [[CourseAttribute: Any]], to file: String) {
 }
 
 var outputDirectory: String = CommandLine.arguments.count >= 2 ? CommandLine.arguments[1] : "/Users/venkatesh-sivaraman/Documents/ScrapedCourses/"
+
+var evaluationData: [String: [[String: Any]]]?
+if CommandLine.arguments.count >= 3 {
+    evaluationData = loadEvaluationsJSON(from: CommandLine.arguments[2])
+}
 
 var allCourses: [[CourseAttribute: Any]] = []
 var departmentCourses: [[CourseAttribute: Any]] = []
@@ -151,6 +163,10 @@ for courseCode in courseNumbers {
         if letter == alphabet.first {
             originalHTML = parser.htmlContents
         }
+    }
+    
+    if let evaluations = evaluationData {
+        augmentCourseData(&departmentCourses, withEvaluationsData: evaluations)
     }
     writeFullCourses(departmentCourses, to: outputDirectory + courseCode + ".txt")
     allCourses += departmentCourses

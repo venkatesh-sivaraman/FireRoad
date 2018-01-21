@@ -179,7 +179,6 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
                 slotClusterMapping[i] = slotOccupancies.count - 1
             }
             
-            print("Day \(i)")
             var lastParentView: UIView?
             var lastParentViewStartIndex = 0
             var lastParentViewEndIndex = 0

@@ -435,7 +435,12 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             }
             if let vc = currentScheduleVC {
                 vc.willMove(toParentViewController: self)
+                vc.view.translatesAutoresizingMaskIntoConstraints = false
                 containerView.addSubview(vc.view)
+                vc.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
+                vc.view.topAnchor.constraint(equalTo: containerView.topAnchor).isActive = true
+                vc.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
+                vc.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor).isActive = true
                 addChildViewController(vc)
                 vc.didMove(toParentViewController: self)
             }

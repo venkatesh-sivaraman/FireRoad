@@ -278,7 +278,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         cell.course = course
         cell.textLabel?.text = course.subjectID
         if traitCollection.userInterfaceIdiom == .phone {
-            if let font = cell.textLabel?.font {
+            if let font = cell.textLabel?.font, font.pointSize != 19.0 {
                 cell.textLabel?.font = font.withSize(19.0)
             }
             cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 14.0)
