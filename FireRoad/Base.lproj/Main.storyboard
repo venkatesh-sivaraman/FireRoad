@@ -1071,14 +1071,27 @@
                                                 <outlet property="delegate" destination="WWi-2I-EVg" id="LFP-lu-dBS"/>
                                             </connections>
                                         </tableView>
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="K4v-vy-ZFg">
+                                            <rect key="frame" x="10" y="370" width="71" height="24"/>
+                                            <inset key="titleEdgeInsets" minX="-42" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                            <inset key="imageEdgeInsets" minX="45" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                            <state key="normal" title="Hide  " image="up-arrow">
+                                                <color key="titleColor" red="0.0" green="0.4793452024" blue="0.99908632040000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                            </state>
+                                            <connections>
+                                                <action selector="hideButtonTapped:" destination="WWi-2I-EVg" eventType="touchUpInside" id="Mop-zE-dNl"/>
+                                            </connections>
+                                        </button>
                                     </subviews>
                                     <gestureRecognizers/>
                                     <constraints>
                                         <constraint firstAttribute="bottom" secondItem="vSC-jv-MSs" secondAttribute="bottom" id="1Fb-e7-ty8"/>
+                                        <constraint firstItem="K4v-vy-ZFg" firstAttribute="leading" secondItem="g3w-3a-lEm" secondAttribute="leading" constant="10" id="7iG-wx-doZ"/>
                                         <constraint firstAttribute="trailing" secondItem="vSC-jv-MSs" secondAttribute="trailing" id="95g-m6-TSk"/>
                                         <constraint firstItem="w9a-Ru-vmD" firstAttribute="top" secondItem="g3w-3a-lEm" secondAttribute="top" id="DlP-At-P4G"/>
                                         <constraint firstItem="vSC-jv-MSs" firstAttribute="leading" secondItem="g3w-3a-lEm" secondAttribute="leading" id="R5w-T4-Ryz"/>
                                         <constraint firstItem="vSC-jv-MSs" firstAttribute="top" secondItem="w9a-Ru-vmD" secondAttribute="bottom" constant="-1" id="VRA-xy-SfX"/>
+                                        <constraint firstItem="K4v-vy-ZFg" firstAttribute="top" secondItem="w9a-Ru-vmD" secondAttribute="bottom" constant="10" id="cmT-5o-yCp"/>
                                         <constraint firstItem="w9a-Ru-vmD" firstAttribute="leading" secondItem="g3w-3a-lEm" secondAttribute="leading" id="gg1-Sb-hVO"/>
                                         <constraint firstAttribute="trailing" secondItem="w9a-Ru-vmD" secondAttribute="trailing" id="r3D-gm-XPF"/>
                                     </constraints>
@@ -1098,6 +1111,7 @@
                     <connections>
                         <outlet property="blurView" destination="fZG-X2-5bH" id="OV0-1x-hmn"/>
                         <outlet property="heightConstraint" destination="N8S-10-rjE" id="deg-1Q-765"/>
+                        <outlet property="hideButton" destination="K4v-vy-ZFg" id="5dw-wv-VJj"/>
                         <outlet property="tableView" destination="w9a-Ru-vmD" id="eb2-9T-Y41"/>
                         <outlet property="topConstraint" destination="DlP-At-P4G" id="j50-1x-6vr"/>
                     </connections>
@@ -3739,6 +3753,7 @@
         <image name="second" width="30" height="30"/>
         <image name="share" width="32" height="32"/>
         <image name="small-grid" width="26" height="26"/>
+        <image name="up-arrow" width="24" height="24"/>
         <image name="warning" width="32" height="32"/>
         <image name="warning-outline" width="32" height="32"/>
     </resources>

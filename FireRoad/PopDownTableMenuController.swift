@@ -26,6 +26,8 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     @IBOutlet var topConstraint: NSLayoutConstraint?
     @IBOutlet var heightConstraint: NSLayoutConstraint?
     
+    @IBOutlet var hideButton: UIButton?
+    
     static let oneButtonCellIdentifier = "OneButtonCell"
     static let buttonCellIdentifier = "ButtonCell"
     
@@ -52,9 +54,14 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
             topConstraint?.constant = -height.constant
         }
         blurView?.effect = nil
+        hideButton?.setImage(hideButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
     
     @IBAction func touchOnBackgroundView(_ sender: UITapGestureRecognizer) {
+        delegate?.popDownTableMenuCanceled(self)
+    }
+    
+    @IBAction func hideButtonTapped(_ sender: AnyObject) {
         delegate?.popDownTableMenuCanceled(self)
     }
     
@@ -174,12 +181,14 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     
     func show(animated: Bool) {
         let effect = UIBlurEffect(style: .light)
+        hideButton?.alpha = 0.0
         self.topConstraint?.constant = 0.0
         self.view.setNeedsLayout()
         if animated {
             UIView.animate(withDuration: 0.4, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
                 self.blurView?.effect = effect
                 self.view.layoutIfNeeded()
+                self.hideButton?.alpha = 1.0
             }, completion: nil)
         }
     }
@@ -193,6 +202,7 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
             UIView.animate(withDuration: 0.4, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
                 self.blurView?.effect = nil
                 self.view.layoutIfNeeded()
+                self.hideButton?.alpha = 0.0
             }, completion: { completed in
                 if completed {
                     completion?()
