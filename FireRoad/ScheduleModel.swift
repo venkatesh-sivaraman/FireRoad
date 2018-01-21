@@ -59,12 +59,12 @@ class Schedule: NSObject {
         return "Schedule:\n\t" + scheduleItems.map({ String(reflecting: $0) }).joined(separator: "\n\t")
     }
     
-    typealias ScheduleChronologicalElement = (course: Course, type: String, item: CourseScheduleItem)
+    typealias ScheduleChronologicalElement = (course: Course, type: String, item: CourseScheduleItem, unit: ScheduleUnit)
     
     func chronologicalItems(for day: CourseScheduleDay) -> [ScheduleChronologicalElement] {
         let allItems = scheduleItems.reduce([], { (list: [ScheduleChronologicalElement], item: ScheduleUnit) -> [ScheduleChronologicalElement] in
             return list + item.scheduleItems.flatMap({
-                (item.course, item.sectionType, $0)
+                (item.course, item.sectionType, $0, item)
             })
         }).filter {
             $0.item.days.contains(day)

@@ -414,17 +414,53 @@ class CourseManager: NSObject {
         addCourse(newCourse)
     }
     
-    func color(forCourse course: Course) -> UIColor {
+    func color(forCourse course: Course, variantNumber: Int = 0) -> UIColor {
+        var ret: UIColor?
         if course.subjectCode != nil {
             if let color = CourseManager.colorMapping[course.subjectCode!] {
-                return color
+                ret = color
             }
         }
         if let id = course.subjectID,
             Int(id) == nil,
             let color = CourseManager.colorMapping[id] {
+            ret = color
+        }
+        
+        if let color = ret {
+            if variantNumber != 0 {
+                /* Variants:
+                 1 - higher hue, higher saturation, lower brightness
+                 2 - lower hue, lower saturation, higher brightness
+                 3 - higher saturation
+                 4 - higher brightness
+                 */
+                var h: CGFloat = 0.0
+                var s: CGFloat = 0.0
+                var b: CGFloat = 0.0
+                let delta: CGFloat = 0.15
+                color.getHue(&h, saturation: &s, brightness: &b, alpha: nil)
+                switch variantNumber % 5 {
+                case 1:
+                    h += delta / 2.0
+                    s += delta
+                    b -= delta
+                case 2:
+                    h -= delta / 2.0
+                    s -= delta
+                    b += delta
+                case 3:
+                    s += delta
+                case 4:
+                    b += delta
+                default:
+                    break
+                }
+                return UIColor(hue: h, saturation: s, brightness: b, alpha: 1.0)
+            }
             return color
         }
+        
         return UIColor.lightGray
     }
     

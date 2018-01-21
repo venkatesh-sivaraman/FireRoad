@@ -400,15 +400,15 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if isShowingSearchResults, results.count == 0 {
-            return 1
+        if isShowingSearchResults, results.count == 0 || searchEngine.isSearching {
+            return results.count + 1
         }
         return results.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if isShowingSearchResults, results.count == 0 {
-            if searchEngine.isSearching {
+        if isShowingSearchResults, results.count == 0 || indexPath.row == results.count {
+            if searchEngine.isSearching || results.count > 0 {
                 return tableView.dequeueReusableCell(withIdentifier: "LoadingCell", for: indexPath)
             } else {
                 return tableView.dequeueReusableCell(withIdentifier: "NoResultsCell", for: indexPath)
@@ -422,7 +422,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
-        if isShowingSearchResults, results.count == 0 {
+        if isShowingSearchResults, results.count == 0 || indexPath.row == results.count {
             return false
         }
         return true
@@ -436,7 +436,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if isShowingSearchResults,
-            results.count == 0,
+            results.count == 0 || indexPath.row == results.count,
             searchEngine.isSearching {
             if let timer = loadingCellTimer {
                 timer.invalidate()
@@ -515,9 +515,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     @objc func animateLoadingCell(_ sender: Timer) {
         guard isShowingSearchResults,
-            results.count == 0,
             searchEngine.isSearching,
-            let cell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)),
+            let cell = tableView.cellForRow(at: IndexPath(row: results.count, section: 0)),
             let label = cell.viewWithTag(12) as? UILabel else {
             loadingCellTimer?.invalidate()
             loadingCellTimer = nil

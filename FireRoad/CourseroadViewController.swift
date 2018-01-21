@@ -53,13 +53,6 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         
         findPanelChildViewController()
         
-        let menu = UIMenuController.shared
-        menu.menuItems = [
-            UIMenuItem(title: MenuItemStrings.view, action: #selector(CourseThumbnailCell.viewDetails(_:))),
-            UIMenuItem(title: MenuItemStrings.rate, action: #selector(CourseThumbnailCell.rate(_:))),
-            UIMenuItem(title: MenuItemStrings.warnings, action: #selector(CourseThumbnailCell.showWarnings(_:)))
-        ]
-        
         updateLayoutToggleButton()
                 
         updateNavigationBar(animated: false)

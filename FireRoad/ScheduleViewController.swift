@@ -10,7 +10,7 @@ import UIKit
 import EventKit
 import EventKitUI
 
-class ScheduleViewController: UIViewController, PanelParentViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate, ScheduleGridDelegate, ScheduleConstraintDelegate, EKCalendarChooserDelegate {
+class ScheduleViewController: UIViewController, PanelParentViewController, ScheduleGridDelegate, ScheduleConstraintDelegate, EKCalendarChooserDelegate {
     var panelView: PanelViewController?
     var courseBrowser: CourseBrowserViewController?
     var showsSemesterDialogs: Bool {
@@ -56,10 +56,12 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     @IBOutlet var scheduleNumberLabel: UILabel?
     @IBOutlet var shareButton: UIButton?
     @IBOutlet var shareItem: UIBarButtonItem?
-    
-    var pageViewController: UIPageViewController?
+    @IBOutlet var previousButton: UIButton?
+    @IBOutlet var nextButton: UIButton?
+    @IBOutlet var containerView: UIView!
     
     var scheduleOptions: [Schedule] = []
+    var courseColors: [Course: UIColor]?
     var displayedScheduleIndex = 0
     
     var shouldLoadScheduleFromDefaults = false
@@ -77,13 +79,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         // Do any additional setup after loading the view.
         findPanelChildViewController()
         
-        pageViewController = childViewControllers.first(where: { $0 is UIPageViewController }) as? UIPageViewController
-        pageViewController?.dataSource = self
-        pageViewController?.delegate = self
-        
         updateDisplayedSchedules()
         updateToolbarButtons()
-        
+        updateNavigationButtons()
         updateNavigationBar(animated: false)
         
         let menu = UIMenuController.shared
@@ -96,6 +94,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
     
     func updateToolbarButtons() {
         shareButton?.setImage(shareButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        nextButton?.setImage(nextButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        previousButton?.setImage(previousButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
     
     var justLoaded = false
@@ -113,7 +113,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         super.viewDidAppear(animated)
         updatePanelViewCollapseHeight()
         if justLoaded, scheduleOptions.count > 0 {
-            showScheduleAfterUpdate()
+            displayedScheduleIndex = displayedScheduleIndex < self.scheduleOptions.count ? displayedScheduleIndex : 0
+            updateScheduleGrid()
         }
         justLoaded = false
     }
@@ -181,24 +182,14 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         }
     }
     
-    func showScheduleAfterUpdate() {
-        if self.scheduleOptions.count > 0 {
-            let pageNumber = displayedScheduleIndex < self.scheduleOptions.count ? displayedScheduleIndex : 0
-            self.pageViewController?.setViewControllers([self.scheduleGrid(for: pageNumber)].flatMap({ $0 }), direction: .forward, animated: false, completion: nil)
-            self.scheduleNumberLabel?.text = "\(pageNumber + 1) of \(self.scheduleOptions.count)"
-        } else if let noSchedulesView = self.storyboard?.instantiateViewController(withIdentifier: "NoSchedulesView") {
-            self.pageViewController?.setViewControllers([noSchedulesView], direction: .forward, animated: false, completion: nil)
-            self.scheduleNumberLabel?.text = "--"
-        }
-    }
-    
     func updateDisplayedSchedules(completion: (() -> Void)? = nil) {
         let justNowLoaded = justLoaded
         loadScheduleOptions {
             if !justNowLoaded {
                 self.displayedScheduleIndex = 0
             }
-            self.showScheduleAfterUpdate()
+            self.displayedScheduleIndex = self.displayedScheduleIndex < self.scheduleOptions.count ? self.displayedScheduleIndex : 0
+            self.updateScheduleGrid()
             completion?()
         }
     }
@@ -213,7 +204,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         loadingScheduleOptions = true
         DispatchQueue.main.async {
             if !peripheralLoad {
-                self.pageViewController?.view.alpha = 0.0
+                self.containerView.alpha = 0.0
             }
             self.loadingView?.alpha = 1.0
             self.loadingView?.isHidden = false
@@ -232,6 +223,21 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                 CourseManager.shared.loadCourseDetailsSynchronously(about: course)
             }
             self._displayedCourses = self.displayedCourses.filter({ $0.schedule != nil && $0.schedule!.count > 0 })
+            
+            // Update course colors
+            var departmentCounts: [String: Int] = [:]
+            self.courseColors = [:]
+            for course in self.displayedCourses {
+                guard let dept = course.subjectCode else {
+                    continue
+                }
+                if departmentCounts[dept] == nil {
+                    departmentCounts[dept] = 0
+                }
+                self.courseColors?[course] = CourseManager.shared.color(forCourse: course, variantNumber: departmentCounts[dept] ?? 0)
+                departmentCounts[dept]? += 1
+            }
+            
             self.updateScheduleDefaults()
             if self.displayedCourses.count > 0 {
                 self.scheduleOptions = self.generateSchedules(from: self.displayedCourses)
@@ -244,13 +250,12 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
             DispatchQueue.main.async {
                 completion()
                 if !peripheralLoad {
-                    if let loadingView = self.loadingView,
-                        let pageView = self.pageViewController?.view {
-                        pageView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                        pageView.alpha = 0.0
+                    if let loadingView = self.loadingView {
+                        self.containerView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                        self.containerView.alpha = 0.0
                         UIView.animate(withDuration: 0.5, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 1.0, options: [.curveEaseInOut, .allowUserInteraction], animations: {
-                            pageView.alpha = 1.0
-                            pageView.transform = CGAffineTransform.identity
+                            self.containerView.alpha = 1.0
+                            self.containerView.transform = CGAffineTransform.identity
                             loadingView.alpha = 0.0
                             loadingView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
                         }, completion: { (completed) in
@@ -281,7 +286,15 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                 if let constraint = allowedSections?[course]?[section] {
                     filteredOptions = constraint.map({ filteredOptions[$0] })
                 }
-                let allOptions = filteredOptions.map({ ScheduleUnit(course: course, sectionType: section, scheduleItems: $0) })
+                // Filter out sections with the same exact days and times
+                var uniqueTimeOptions: [String: [CourseScheduleItem]] = [:]
+                for option in filteredOptions {
+                    let key = option.map({ $0.stringEquivalent(withLocation: false) }).joined(separator: ",")
+                    if uniqueTimeOptions[key] == nil {
+                        uniqueTimeOptions[key] = option
+                    }
+                }
+                let allOptions = uniqueTimeOptions.map({ ScheduleUnit(course: course, sectionType: section, scheduleItems: $0.value) })
                 guard allOptions.count > 0 else {
                     print("No options for \(course.subjectID!) \(section)")
                     continue
@@ -304,6 +317,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
                 let startSlot = ScheduleSlotManager.slotIndex(for: item.startTime)
                 let endSlot = ScheduleSlotManager.slotIndex(for: item.endTime)
                 for slot in startSlot..<endSlot {
+                    guard slot >= 0 && slot < ScheduleSlotManager.slots.count else {
+                        continue
+                    }
                     for (i, day) in CourseScheduleDay.ordering.enumerated() where item.days.contains(day) {
                         conflictGroups[i][slot].append(unit)
                         slotsOccupied[i].insert(slot)
@@ -371,7 +387,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         return results
     }
     
-    // MARK: - Page View Controller
+    // MARK: - Displaying Schedule Grids
+    
+    var currentScheduleVC: UIViewController?
     
     func scheduleGrid(for page: Int) -> ScheduleGridViewController? {
         guard let vc = self.storyboard?.instantiateViewController(withIdentifier: "ScheduleGrid") as? ScheduleGridViewController,
@@ -382,35 +400,57 @@ class ScheduleViewController: UIViewController, PanelParentViewController, UIPag
         vc.delegate = self
         vc.pageNumber = page
         vc.schedule = scheduleOptions[page]
+        vc.courseColors = courseColors
         vc.topPadding = (panelView?.collapseHeight ?? 0.0) + (panelView?.view.convert(.zero, to: self.view).y ?? 0.0) + 12.0
         return vc
     }
     
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        guard let currentVC = viewController as? ScheduleGridViewController else {
-            return nil
-        }
-        return scheduleGrid(for: currentVC.pageNumber + 1)
+    func updateNavigationButtons() {
+        previousButton?.isEnabled = displayedScheduleIndex > 0
+        nextButton?.isEnabled = displayedScheduleIndex < scheduleOptions.count - 1
     }
     
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        guard let currentVC = viewController as? ScheduleGridViewController else {
-            return nil
+    func updateScheduleGrid() {
+        if let vc = currentScheduleVC as? ScheduleGridViewController,
+            scheduleOptions.count > 0,
+            displayedScheduleIndex >= 0,
+            displayedScheduleIndex < scheduleOptions.count {
+            vc.courseColors = courseColors
+            self.scheduleNumberLabel?.text = "\(displayedScheduleIndex + 1) of \(scheduleOptions.count)"
+            vc.setSchedule(scheduleOptions[displayedScheduleIndex], animated: true)
+        } else {
+            if let vc = currentScheduleVC {
+                vc.willMove(toParentViewController: nil)
+                vc.view.removeFromSuperview()
+                vc.removeFromParentViewController()
+                vc.didMove(toParentViewController: nil)
+                currentScheduleVC = nil
+            }
+            if let vcToDisplay = scheduleGrid(for: displayedScheduleIndex) {
+                currentScheduleVC = vcToDisplay
+                self.scheduleNumberLabel?.text = "\(displayedScheduleIndex + 1) of \(scheduleOptions.count)"
+            } else if let noSchedulesView = self.storyboard?.instantiateViewController(withIdentifier: "NoSchedulesView") {
+                currentScheduleVC = noSchedulesView
+                self.scheduleNumberLabel?.text = "--"
+            }
+            if let vc = currentScheduleVC {
+                vc.willMove(toParentViewController: self)
+                containerView.addSubview(vc.view)
+                addChildViewController(vc)
+                vc.didMove(toParentViewController: self)
+            }
         }
-        return scheduleGrid(for: currentVC.pageNumber - 1)
+        updateNavigationButtons()
     }
     
-    var pendingPage = -1
-    
-    func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
-        pendingPage = (pendingViewControllers.first as? ScheduleGridViewController)?.pageNumber ?? 0
+    @IBAction func previousButtonTapped(_ sender: AnyObject) {
+        displayedScheduleIndex -= 1
+        updateScheduleGrid()
     }
     
-    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        if pendingPage != -1 {
-            displayedScheduleIndex = pendingPage
-            scheduleNumberLabel?.text = "\(pendingPage + 1) of \(scheduleOptions.count)"
-        }
+    @IBAction func nextButtonTapped(_ sender: AnyObject) {
+        displayedScheduleIndex += 1
+        updateScheduleGrid()
     }
     
     // MARK: - Grid Delegate

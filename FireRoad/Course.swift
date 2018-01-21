@@ -307,6 +307,9 @@ class CourseScheduleItem: NSObject, Comparable {
         self.days = CourseScheduleDay.fromString(days)
         self.startTime = CourseScheduleTime.fromString(startTime, evening: isEvening)
         self.endTime = CourseScheduleTime.fromString(endTime, evening: isEvening)
+        if self.startTime.PM == true && isEvening == false {
+            self.endTime.PM = true
+        }
         self.isEvening = isEvening
         self.location = location
     }

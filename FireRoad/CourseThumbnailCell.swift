@@ -177,8 +177,8 @@ class CourseThumbnailCell: UICollectionViewCell {
             titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
             detailLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 0.0).isActive = true
             detailLabel.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-            detailLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 4.0).isActive = true
-            detailLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -4.0).isActive = true
+            detailLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 2.0).isActive = true
+            detailLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -2.0).isActive = true
             detailLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4.0).isActive = true
             self.detailTextLabel = detailLabel
         } else {
