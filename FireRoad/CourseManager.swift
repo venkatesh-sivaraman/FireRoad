@@ -133,14 +133,11 @@ class CourseManager: NSObject {
                     return
                 }
                 
-                let enrollmentBlock: DispatchJob = { [weak self] taskCompletion in
-                    self?.loadEnrollment(taskCompletion: taskCompletion)
-                }
                 let relatedBlock: DispatchJob = { [weak self] taskCompletion in
                     self?.loadRelatedCourses(taskCompletion: taskCompletion)
                 }
                 
-                self.dispatch(jobs: [enrollmentBlock, relatedBlock], completion: { (success) in
+                self.dispatch(jobs: [relatedBlock], completion: { (success) in
                     self.isLoaded = success
                     if success {
                         NotificationCenter.default.post(name: .CourseManagerFinishedLoading, object: self)

@@ -36,6 +36,9 @@ enum CourseDetailItem {
     case courseEvaluations
     case notes
     case rate
+    case enrollment
+    case evalRating
+    case evalHours
 }
 
 enum CourseDetailSectionTitle {
@@ -47,6 +50,7 @@ enum CourseDetailSectionTitle {
     static let schedule = "Schedule"
     static let related = "Related"
     static let notes = "Notes"
+    static let ratings = "Ratings"
 }
 
 class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CourseListCellDelegate, PopDownTableMenuDelegate, UITextViewDelegate {
@@ -287,6 +291,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             ]
         var titles: [String] = [CourseDetailSectionTitle.none]
         var rowIndex: Int = 3, sectionIndex: Int = 0
+        if course!.enrollmentNumber > 0 {
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .enrollment
+            rowIndex += 1
+        }
         if course!.communicationRequirement != nil ||
             course!.girAttribute != nil ||
             course?.hassAttribute != nil {
@@ -299,8 +307,23 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
         mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
         rowIndex += 1
-        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .rate
-        rowIndex += 1
+        if course!.rating > 0.0 {
+            rowIndex = 0
+            sectionIndex += 1
+            titles.append(CourseDetailSectionTitle.ratings)
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+            rowIndex += 1
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .rate
+            rowIndex += 1
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .evalRating
+            if course!.inClassHours > 0.0 || course!.outOfClassHours > 0.0 {
+                rowIndex += 1
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .evalHours
+            }
+        } else {
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .rate
+            rowIndex += 1
+        }
 
         rowIndex = 0
         sectionIndex += 1
@@ -413,7 +436,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "TitleCell"
         case .description:
             id = "DescriptionCell"
-        case .units, .instructors, .requirements, .offered, .schedule:
+        case .units, .instructors, .requirements, .offered, .schedule, .enrollment, .evalRating, .evalHours:
             id = "MetadataCell"
         case .related, .equivalent, .joint, .prerequisites, .corequisites:
             id = "CourseListCell"
@@ -532,6 +555,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 message += "\n[P/D/F]"
             }
             detailTextLabel?.text = message
+        case .enrollment:
+            textLabel?.text = "Enrollment"
+            detailTextLabel?.text = "\(course!.enrollmentNumber) (average)"
         case .instructors:
             textLabel?.text = "Instructor\(self.course!.instructors.count != 1 ? "s" : "")"
             detailTextLabel?.text = self.course!.instructors.joined(separator: ",")
@@ -706,6 +732,12 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         case .rate:
             textLabel?.text = "My Rating"
             (cell.viewWithTag(34) as? RatingView)?.course = self.course
+        case .evalRating:
+            textLabel?.text = "Average Rating"
+            detailTextLabel?.text = String(format: "%.1f/7.0", course!.rating)
+        case .evalHours:
+            textLabel?.text = "Hours"
+            detailTextLabel?.text = String(format: "%.1f/week", course!.inClassHours + course!.outOfClassHours)
         case .notes:
             guard let textView = cell.viewWithTag(56) as? UITextView else {
                 break

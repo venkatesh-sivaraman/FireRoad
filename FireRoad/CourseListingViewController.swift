@@ -183,7 +183,16 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
             if course.isOfferedSummer {
                 seasons.append("summer")
             }
-            infoLabel.text = "\(seasons.joined(separator: ", ").capitalizingFirstLetter()) • \(course.totalUnits) units"
+            var infoText = "\(seasons.joined(separator: ", ").capitalizingFirstLetter()) • "
+            if course.isVariableUnits {
+                infoText += "units arranged"
+            } else {
+                infoText += "\(course.totalUnits) units"
+            }
+            if course.rating > 0.0 {
+                infoText += " • " + String(format: "%.1f/7.0", course.rating) + " ★"
+            }
+            infoLabel.text = infoText
         }
         if let descriptionLabel = cell.viewWithTag(56) as? UILabel {
             descriptionLabel.text = course.subjectDescription ?? "No description available."

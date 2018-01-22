@@ -409,6 +409,10 @@ enum CourseAttribute: String {
     case schedule
     case subjectLevel
     case url
+    
+    case rating
+    case inClassHours
+    case outOfClassHours
 
     static let csvHeaders: [String: CourseAttribute] = [
         "Subject Id": .subjectID,
@@ -450,7 +454,11 @@ enum CourseAttribute: String {
         "Enrollment Number": .enrollmentNumber,
         "Related Subjects": .relatedSubjects,
         "Schedule": .schedule,
-        "URL": .url
+        "URL": .url,
+        "Rating": .rating,
+        "In-Class Hours": .inClassHours,
+        "Out-of-Class Hours": .outOfClassHours,
+        "Enrollment": .enrollmentNumber
     ]
     
     init?(csvHeader: String) {
@@ -630,6 +638,10 @@ class Course: NSObject {
     
     var schedule: [String: [[CourseScheduleItem]]]?
     
+    @objc dynamic var rating: Float = 0.0
+    @objc dynamic var inClassHours: Float = 0.0
+    @objc dynamic var outOfClassHours: Float = 0.0
+    
     private var parseDeferredValues: [CourseAttribute: String] = [:]
 
     override init() {
@@ -687,6 +699,12 @@ class Course: NSObject {
                     self.offeringPattern = pattern
                 } else {
                     print("Unidentified offering pattern: \(String(reflecting: value))")
+                }
+            case .rating, .inClassHours, .outOfClassHours:
+                if (value as? Float) != nil {
+                    super.setValue(value, forKey: key)
+                } else {
+                    super.setValue(extractFloatString(value as? String), forKey: key)
                 }
             case .girAttribute:
                 self.girAttribute = GIRAttribute(rawValue: ((value as? String) ?? ""))
@@ -791,6 +809,13 @@ class Course: NSObject {
         return 0
     }
     
+    func extractFloatString(_ string: String?) -> Float {
+        if let text = string {
+            return Float(text) ?? 0.0
+        }
+        return 0.0
+    }
+
     func extractCourseListString(_ string: String?) -> [[String]] {
         if let listString = string {
             return listString.components(separatedBy: ";").map { item in
