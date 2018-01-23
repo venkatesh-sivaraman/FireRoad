@@ -52,6 +52,9 @@ class ScheduleConstraintViewController: UIViewController, UITableViewDelegate, U
             return nil
         }
         let ordering = CourseScheduleType.ordering.filter({ schedule[$0] != nil })
+        if ordering.count <= section {
+            return allowedSections?[schedule.keys.filter({ !ordering.contains($0) }).sorted()[section - ordering.count]]
+        }
         return allowedSections?[ordering[section]]
     }
     
@@ -63,6 +66,9 @@ class ScheduleConstraintViewController: UIViewController, UITableViewDelegate, U
         if allowedSections == nil {
             allowedSections = [:]
         }
+        if ordering.count <= section {
+            allowedSections?[schedule.keys.filter({ !ordering.contains($0) }).sorted()[section - ordering.count]] = scheduleItems
+        }
         allowedSections?[ordering[section]] = scheduleItems
     }
     
@@ -71,6 +77,9 @@ class ScheduleConstraintViewController: UIViewController, UITableViewDelegate, U
             return nil
         }
         let ordering = CourseScheduleType.ordering.filter({ schedule[$0] != nil })
+        if ordering.count <= section {
+            return schedule[schedule.keys.filter({ !ordering.contains($0) }).sorted()[section - ordering.count]]
+        }
         return schedule[ordering[section]]!
     }
     
@@ -102,6 +111,9 @@ class ScheduleConstraintViewController: UIViewController, UITableViewDelegate, U
             return nil
         }
         let ordering = CourseScheduleType.ordering.filter({ schedule[$0] != nil })
+        if ordering.count <= section {
+            return schedule.keys.filter({ !ordering.contains($0) }).sorted()[section - ordering.count]
+        }
         return ordering[section]
     }
     

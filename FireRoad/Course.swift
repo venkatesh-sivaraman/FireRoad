@@ -789,7 +789,9 @@ class Course: NSObject {
                 }
             }
             let earlyTime = CourseScheduleItem(days: "M", startTime: "9", endTime: "10", isEvening: false, location: nil)
-            ret[groupType] = items.sorted(by: { ($0.first ?? earlyTime) < ($1.first ?? earlyTime) })
+            if items.count > 0 {
+                ret[groupType] = items.sorted(by: { ($0.first ?? earlyTime) < ($1.first ?? earlyTime) })
+            }
         }
         
         return ret

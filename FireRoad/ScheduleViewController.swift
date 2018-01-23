@@ -241,7 +241,6 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             self.updateScheduleDefaults()
             if self.displayedCourses.count > 0 {
                 self.scheduleOptions = self.generateSchedules(from: self.displayedCourses)
-                print(self.scheduleOptions)
             } else {
                 self.scheduleOptions = []
             }
@@ -417,7 +416,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             displayedScheduleIndex < scheduleOptions.count {
             vc.courseColors = courseColors
             self.scheduleNumberLabel?.text = "\(displayedScheduleIndex + 1) of \(scheduleOptions.count)"
-            vc.setSchedule(scheduleOptions[displayedScheduleIndex], animated: true)
+            vc.setSchedule(scheduleOptions[displayedScheduleIndex], animated: isViewLoaded && view.window != nil)
         } else {
             if let vc = currentScheduleVC {
                 vc.willMove(toParentViewController: nil)

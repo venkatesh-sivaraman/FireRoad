@@ -79,7 +79,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 // Indicate this on the cell somehow
             }
         } else if let reqs = requirement.requirements {
-            let showTitles = reqs.contains(where: { $0.connectionType == .all }) && reqs.contains(where: { $0.connectionType == .any })
+            let showTitles = reqs.contains(where: { $0.connectionType == .all && $0.requirements != nil && $0.requirements!.count > 0 }) && reqs.contains(where: { $0.connectionType == .any })
             for req in reqs {
                 items += presentationItems(for: req, at: level + 1, alwaysShowTitle: showTitles)
             }

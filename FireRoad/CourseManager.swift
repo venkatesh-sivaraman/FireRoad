@@ -428,7 +428,7 @@ class CourseManager: NSObject {
             if variantNumber != 0 {
                 /* Variants:
                  1 - higher hue, higher saturation, lower brightness
-                 2 - lower hue, lower saturation, higher brightness
+                 2 - lower hue, lower saturation, lower brightness
                  3 - higher saturation
                  4 - higher brightness
                  */
@@ -445,7 +445,7 @@ class CourseManager: NSObject {
                 case 2:
                     h -= delta / 2.0
                     s -= delta
-                    b += delta
+                    b -= delta
                 case 3:
                     s += delta
                 case 4:
