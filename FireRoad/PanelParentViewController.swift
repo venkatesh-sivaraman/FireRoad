@@ -63,7 +63,7 @@ extension CourseViewControllerProvider {
         let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
         listVC.searchTerm = (course.subjectID ?? "")
         if let gir = course.girAttribute, gir != .lab, gir != .rest {
-            listVC.searchTerm = (listVC.searchTerm ?? "") + " " + gir.descriptionText()
+            listVC.searchTerm = gir.rawValue
         }
         listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .anyRequirement, .searchPrereqs]
         listVC.showsHeaderBar = false

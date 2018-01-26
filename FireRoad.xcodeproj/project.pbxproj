@@ -21,6 +21,7 @@
 		9626B6E81F815692009F6F96 /* RequirementsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */; };
 		9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E91F815917009F6F96 /* RequirementsList.swift */; };
 		96293C481FEAD21300F1BDFD /* color_checker.py in Resources */ = {isa = PBXBuildFile; fileRef = 96293C471FEAD21300F1BDFD /* color_checker.py */; };
+		962C97652016E6390046C13D /* RequirementsProgressController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C97642016E6390046C13D /* RequirementsProgressController.swift */; };
 		962DAD661F89A6180011D96F /* RootTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962DAD651F89A6180011D96F /* RootTabViewController.swift */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
 		9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* CatalogViewController.swift */; };
@@ -112,6 +113,7 @@
 		9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListViewController.swift; sourceTree = "<group>"; };
 		9626B6E91F815917009F6F96 /* RequirementsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsList.swift; sourceTree = "<group>"; };
 		96293C471FEAD21300F1BDFD /* color_checker.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = color_checker.py; sourceTree = "<group>"; };
+		962C97642016E6390046C13D /* RequirementsProgressController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsProgressController.swift; sourceTree = "<group>"; };
 		962DAD651F89A6180011D96F /* RootTabViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabViewController.swift; sourceTree = "<group>"; };
 		963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FireRoad-Bridging-Header.h"; sourceTree = "<group>"; };
 		9646CFCF1EB921FE005F87CB /* FireRoad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireRoad.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -343,6 +345,7 @@
 				96DF60DA1FFBF5DB006F1C6A /* DocumentBrowseViewController.swift */,
 				96DF60DE20002481006F1C6A /* RateIndividualViewController.swift */,
 				96DF60E020002492006F1C6A /* RatingView.swift */,
+				962C97642016E6390046C13D /* RequirementsProgressController.swift */,
 			);
 			name = "Useful View Controllers";
 			sourceTree = "<group>";
@@ -565,6 +568,7 @@
 				9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */,
 				9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */,
 				961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */,
+				962C97652016E6390046C13D /* RequirementsProgressController.swift in Sources */,
 				9626B6E81F815692009F6F96 /* RequirementsListViewController.swift in Sources */,
 				9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */,
 				961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */,

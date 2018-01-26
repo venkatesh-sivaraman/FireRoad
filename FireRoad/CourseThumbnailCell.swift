@@ -287,10 +287,12 @@ class CourseThumbnailCell: UICollectionViewCell {
     // MARK: - Requirement Fulfillment
     
     private var fulfillmentIndicators: [CALayer] = []
+    private var fulfillmentProgressBar: UIProgressView?
     
     var fulfilledColor: UIColor?
     var unfulfilledColor: UIColor?
     
+    var usesFulfillmentProgressBar = false
     var fulfillmentThreshold = 0 {
         didSet {
             updateFulfillmentIndicators()
@@ -307,39 +309,65 @@ class CourseThumbnailCell: UICollectionViewCell {
             indicator.removeFromSuperlayer()
         }
         fulfillmentIndicators = []
+        fulfillmentProgressBar?.removeFromSuperview()
+        fulfillmentProgressBar = nil
+        
         if fulfillmentLevel < fulfillmentThreshold || fulfillmentThreshold == 0 {
             backgroundColorLayer?.opacity = 1.0
         } else {
             backgroundColorLayer?.opacity = 0.4
         }
         if fulfillmentThreshold > 1 {
-            let rect = CGRect(x: 0.0, y: 0.0, width: 6.0, height: 6.0)
-            let bezierPath = UIBezierPath(ovalIn: rect)
-            for i in 0..<max(fulfillmentThreshold, fulfillmentLevel) {
-                let indicator = CAShapeLayer()
-                indicator.path = bezierPath.cgPath
-                indicator.frame = rect
-                var fillColor: CGColor?
-                if i < fulfillmentLevel {
-                    fillColor = fulfilledColor?.cgColor
-                    if fillColor == nil, let bgColor = backgroundColorLayer?.backgroundColor {
-                        let fillUIColor = UIColor(cgColor: bgColor)
-                        var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0
-                        fillUIColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
-                        fillColor = UIColor(hue: hue, saturation: saturation, brightness: brightness / 3.0, alpha: 0.7).cgColor
-                    }
-                } else {
-                    fillColor = unfulfilledColor?.cgColor
-                    if fillColor == nil, let bgColor = backgroundColorLayer?.backgroundColor {
-                        let fillUIColor = UIColor(cgColor: bgColor)
-                        var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0
-                        fillUIColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
-                        fillColor = UIColor(hue: hue, saturation: saturation, brightness: (2.0 + brightness) / 3.0, alpha: 0.6).cgColor
-                    }
+            if usesFulfillmentProgressBar {
+                let progressBar = UIProgressView(progressViewStyle: .default)
+                var fillColor: UIColor? = fulfilledColor
+                if fillColor == nil, let bgColor = backgroundColorLayer?.backgroundColor {
+                    let fillUIColor = UIColor(cgColor: bgColor)
+                    var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0
+                    fillUIColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
+                    fillColor = UIColor(hue: hue, saturation: saturation, brightness: brightness / 3.0, alpha: 0.7)
                 }
-                indicator.fillColor = fillColor
-                layer.addSublayer(indicator)
-                fulfillmentIndicators.append(indicator)
+                progressBar.progressTintColor = fillColor
+                fillColor = unfulfilledColor
+                if fillColor == nil, let bgColor = backgroundColorLayer?.backgroundColor {
+                    let fillUIColor = UIColor(cgColor: bgColor)
+                    var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0
+                    fillUIColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
+                    fillColor = UIColor(hue: hue, saturation: saturation, brightness: (2.0 + brightness) / 3.0, alpha: 0.6)
+                }
+                progressBar.trackTintColor = fillColor
+                progressBar.progress = Float(fulfillmentLevel) / Float(fulfillmentThreshold)
+                addSubview(progressBar)
+                fulfillmentProgressBar = progressBar
+            } else {
+                let rect = CGRect(x: 0.0, y: 0.0, width: 6.0, height: 6.0)
+                let bezierPath = UIBezierPath(ovalIn: rect)
+                for i in 0..<max(fulfillmentThreshold, fulfillmentLevel) {
+                    let indicator = CAShapeLayer()
+                    indicator.path = bezierPath.cgPath
+                    indicator.frame = rect
+                    var fillColor: CGColor?
+                    if i < fulfillmentLevel {
+                        fillColor = fulfilledColor?.cgColor
+                        if fillColor == nil, let bgColor = backgroundColorLayer?.backgroundColor {
+                            let fillUIColor = UIColor(cgColor: bgColor)
+                            var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0
+                            fillUIColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
+                            fillColor = UIColor(hue: hue, saturation: saturation, brightness: brightness / 3.0, alpha: 0.7).cgColor
+                        }
+                    } else {
+                        fillColor = unfulfilledColor?.cgColor
+                        if fillColor == nil, let bgColor = backgroundColorLayer?.backgroundColor {
+                            let fillUIColor = UIColor(cgColor: bgColor)
+                            var hue: CGFloat = 0.0, saturation: CGFloat = 0.0, brightness: CGFloat = 0.0
+                            fillUIColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
+                            fillColor = UIColor(hue: hue, saturation: saturation, brightness: (2.0 + brightness) / 3.0, alpha: 0.6).cgColor
+                        }
+                    }
+                    indicator.fillColor = fillColor
+                    layer.addSublayer(indicator)
+                    fulfillmentIndicators.append(indicator)
+                }
             }
         }
         repositionFulfillmentIndicators()
@@ -354,12 +382,17 @@ class CourseThumbnailCell: UICollectionViewCell {
             topThreshold = frame.size.height / 2.0
         }
         let centerY = max((topThreshold + frame.size.height) / 2.0, frame.size.height - 8.0)
-        let totalWidth = fulfillmentIndicators.reduce(CGFloat(0.0), { $0 + $1.frame.size.width })
-        let margin = min((frame.size.width - totalWidth) / CGFloat(fulfillmentIndicators.count + 1), 4.0)
-        var x = frame.size.width / 2.0 - (totalWidth + margin * CGFloat(fulfillmentIndicators.count - 1)) / 2.0
-        for indicator in fulfillmentIndicators {
-            indicator.frame = CGRect(x: x, y: centerY - indicator.frame.size.height / 2.0, width: indicator.frame.size.width, height: indicator.frame.size.height)
-            x += indicator.frame.size.width + margin
+        if usesFulfillmentProgressBar, let bar = fulfillmentProgressBar {
+            let sideMargin = CGFloat(12.0)
+            bar.frame = CGRect(x: sideMargin, y: centerY - bar.frame.size.height / 2.0, width: frame.size.width - sideMargin * 2.0, height: bar.frame.size.height)
+        } else {
+            let totalWidth = fulfillmentIndicators.reduce(CGFloat(0.0), { $0 + $1.frame.size.width })
+            let margin = min((frame.size.width - totalWidth) / CGFloat(fulfillmentIndicators.count + 1), 4.0)
+            var x = frame.size.width / 2.0 - (totalWidth + margin * CGFloat(fulfillmentIndicators.count - 1)) / 2.0
+            for indicator in fulfillmentIndicators {
+                indicator.frame = CGRect(x: x, y: centerY - indicator.frame.size.height / 2.0, width: indicator.frame.size.width, height: indicator.frame.size.height)
+                x += indicator.frame.size.width + margin
+            }
         }
     }
 }

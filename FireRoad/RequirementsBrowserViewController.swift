@@ -45,7 +45,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         
         RequirementsListManager.shared.loadRequirementsLists()
         if #available(iOS 11.0, *) {
-            navigationItem.largeTitleDisplayMode = .always
+            navigationItem.largeTitleDisplayMode = traitCollection.userInterfaceIdiom == .pad ? .never : .always
         } else {
             // Fallback on earlier versions
         }
@@ -252,7 +252,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if organizedRequirementLists[section].0 == .user {
-            return "Add courses of study by finding their requirements below, then toggling the heart icon. These courses are saved along with your roads in the My Road tab."
+            return "Add courses of study by finding their requirements below, then toggling the heart icon. The courses you select are saved along with your roads in the My Road tab."
         }
         return nil
     }

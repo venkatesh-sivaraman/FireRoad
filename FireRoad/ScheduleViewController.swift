@@ -415,6 +415,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             displayedScheduleIndex >= 0,
             displayedScheduleIndex < scheduleOptions.count {
             vc.courseColors = courseColors
+            vc.topPadding = (panelView?.collapseHeight ?? 0.0) + (panelView?.view.convert(.zero, to: self.view).y ?? 0.0) + 12.0
             self.scheduleNumberLabel?.text = "\(displayedScheduleIndex + 1) of \(scheduleOptions.count)"
             vc.setSchedule(scheduleOptions[displayedScheduleIndex], animated: isViewLoaded && view.window != nil)
         } else {
@@ -460,7 +461,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     // MARK: - Grid Delegate
     
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
-        displayedCourses.append(course)
+        if !displayedCourses.contains(where: { $0.subjectID == course.subjectID }) {
+            displayedCourses.append(course)
+        }
         self.panelView?.collapseView(to: self.panelView!.collapseHeight)
         return nil
     }

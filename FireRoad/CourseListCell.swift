@@ -27,8 +27,8 @@ class CourseListTableCell: UITableViewCell, CourseListCell {
             collectionView.reloadData()
         }
     }
-    /// Array of (current fulfillment, max fulfillment) tuples corresponding to courses.
-    var fulfillmentIndications: [(Int, Int)] = []
+    /// Array of (current fulfillment, max fulfillment, uses bar) tuples corresponding to courses.
+    var fulfillmentIndications: [(Int, Int, Bool)] = []
     
     @IBOutlet var collectionView: UICollectionView! = nil
     weak var delegate: CourseListCellDelegate? = nil
@@ -68,6 +68,7 @@ class CourseListTableCell: UITableViewCell, CourseListCell {
         }
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
         if indexPath.item < fulfillmentIndications.count {
+            cell.usesFulfillmentProgressBar = fulfillmentIndications[indexPath.item].2
             cell.fulfillmentLevel = fulfillmentIndications[indexPath.item].0
             cell.fulfillmentThreshold = fulfillmentIndications[indexPath.item].1
         }

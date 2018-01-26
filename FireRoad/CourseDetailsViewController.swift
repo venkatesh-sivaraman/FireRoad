@@ -119,6 +119,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
 
         NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+        
+        preferredContentSize = CGSize(width: preferredContentSize.width, height: 520.0)
     }
     
     deinit {

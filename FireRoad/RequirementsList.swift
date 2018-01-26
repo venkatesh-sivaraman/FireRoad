@@ -24,6 +24,8 @@ class RequirementsListStatement: NSObject {
     var title: String?
     var contentDescription: String?
     
+    weak var parent: RequirementsListStatement?
+    
     enum ConnectionType {
         case all
         case any
@@ -56,10 +58,20 @@ class RequirementsListStatement: NSObject {
     
     var connectionType: ConnectionType = .all
     
-    var requirements: [RequirementsListStatement]?
+    var requirements: [RequirementsListStatement]? {
+        didSet {
+            if let reqs = requirements {
+                for req in reqs {
+                    req.parent = self
+                }
+            }
+        }
+    }
     var requirement: String?
     
     var threshold = Threshold(.greaterThanOrEqual, number: 1)
+    
+    var isPlainString = false
     
     /**
      Defines the bound on the number of distinct elements in the requirements list
@@ -170,6 +182,10 @@ class RequirementsListStatement: NSObject {
             self.threshold = Threshold(.greaterThanOrEqual, number: 1)
         }
         self.requirements = items
+        super.init()
+        for req in items {
+            req.parent = self
+        }
     }
     
     init(requirement: String, title: String? = nil) {
@@ -314,6 +330,7 @@ class RequirementsListStatement: NSObject {
         
         let (components, cType) = separateTopLevelItems(in: filteredStatement)
         connectionType = cType
+        isPlainString = cType == .none
         
         if components.count == 1 {
             requirement = components[0]
@@ -324,8 +341,10 @@ class RequirementsListStatement: NSObject {
     
     fileprivate func substituteVariableDefinitions(from dictionary: [String: RequirementsListStatement]) {
         if let req = requirement {
-            if dictionary[req] != nil {
-                print("Should have substituted variable \(self) earlier")
+            // Turns out this requirement is a variable
+            if let subReq = dictionary[req] {
+                subReq.substituteVariableDefinitions(from: dictionary)
+                requirements = [subReq]
             }
         } else if let reqList = requirements {
             for (i, statement) in reqList.enumerated() {
@@ -379,6 +398,19 @@ class RequirementsListStatement: NSObject {
         var satisfyingPerCategory: [Set<Course>] = []
         var distinctNumSatisfying = 0
         if requirement != nil {
+            if let manual = manualProgress {
+                isFulfilled = manual == threshold.cutoff
+                var subjects = 0
+                var units = 0
+                if threshold.criterion == .subjects {
+                    subjects = manual
+                } else {
+                    units = manual
+                }
+                fulfillmentProgress = (subjects, units)
+                return Set<Course>()
+            }
+            
             let satisfiedCourses = Set<Course>(coursesSatisfyingRequirement(in: courses))
             satisfyingCourses = satisfiedCourses
             satisfyingPerCategory.append(satisfiedCourses)
@@ -419,6 +451,12 @@ class RequirementsListStatement: NSObject {
     }
     
     private func fulfilledFraction(for criterion: ThresholdCriterion) -> (Int, Int) {
+        if let manual = manualProgress {
+            if criterion == threshold.criterion {
+                return (manual, threshold.cutoff)
+            }
+            return (0, 0)
+        }
         if let reqs = requirements {
             if distinctThreshold.cutoff > 0 || (connectionType == .all && threshold.cutoff > 1) {
                 return (fulfillmentProgress(for: criterion), threshold.cutoff)
@@ -441,7 +479,7 @@ class RequirementsListStatement: NSObject {
     }
     
     var percentageFulfilled: Float {
-        if connectionType == .none {
+        if connectionType == .none, manualProgress == nil {
             return 0.0
         }
         let fulfilled = fulfilledFraction(for: threshold.criterion)
@@ -462,6 +500,34 @@ class RequirementsListStatement: NSObject {
             return reqs.reduce(Set<Course>(), { $0.union($1.requiredCourses) })
         }
         return Set<Course>()
+    }
+    
+    // MARK: - Defaults
+    
+    var keyPath: String? {
+        guard let parent = parent,
+            let parentPath = parent.keyPath else {
+            return nil
+        }
+        return parentPath + ".\(parent.requirements?.index(of: self) ?? 0)"
+    }
+    
+    var manualProgress: Int? {
+        get {
+            guard let path = keyPath else {
+                return nil
+            }
+            let ret = UserDefaults.standard.integer(forKey: path)
+            if ret != 0 {
+                return ret
+            }
+            return nil
+        } set {
+            guard let path = keyPath else {
+                return
+            }
+            UserDefaults.standard.set(newValue, forKey: path)
+        }
     }
 }
 
@@ -588,5 +654,9 @@ class RequirementsList: RequirementsListStatement {
         
         requirements = reqs
         substituteVariableDefinitions(from: variables)
+    }
+    
+    override var keyPath: String? {
+        return listID
     }
 }

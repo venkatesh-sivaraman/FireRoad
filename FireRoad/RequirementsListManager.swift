@@ -11,6 +11,8 @@ import UIKit
 let RequirementsDirectoryName = "requirements"
 let TestRequirementsDirectoryName = "test-reqs"
 
+// Put test requirement files in ~/Library/Developer/CoreSimulator/Devices/22A9FC79-1571-4808-ABA7-EEF4AFEB551B/data/Containers/Data/Application/F786476B-E86C-419E-B08F-DD27AC53BEBB/Documents/test-reqs for iPhone 8 Plus
+
 class RequirementsListManager: NSObject {
     static let shared: RequirementsListManager = RequirementsListManager()
     
@@ -57,6 +59,9 @@ class RequirementsListManager: NSObject {
             }
             for fullPath in contents where fullPath.contains(".reql") {
                 if let reqList = try? RequirementsList(contentsOf: fullPath) {
+                    if let idx = requirementsLists.index(where: { $0.listID == reqList.listID }) {
+                        requirementsLists.remove(at: idx)
+                    }
                     requirementsLists.append(reqList)
                     requirementsListsByID[reqList.listID] = reqList
                 }

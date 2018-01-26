@@ -10,6 +10,7 @@ import UIKit
 
 enum RequirementsListCellType: String {
     case title = "TitleCell"
+    case title1 = "Title1Cell"
     case title2 = "Title2Cell"
     case description = "DescriptionCell"
     case courseList = "CourseListCell"
@@ -21,7 +22,7 @@ protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, RequirementsProgressDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -36,6 +37,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     let courseCellIdentifier = "CourseCell"
     let listVCIdentifier = "RequirementsList"
     let courseListVCIdentifier = "CourseListVC"
+    let requirementsProgressVCIdentifier = "RequirementsProgressVC"
     static let fulfillmentIndicatorCornerRadius = CGFloat(6.0)
     
     weak var delegate: RequirementsListViewControllerDelegate?
@@ -53,14 +55,14 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     func presentationItems(for requirement: RequirementsListStatement, at level: Int = 0, alwaysShowTitle: Bool = false) -> [PresentationItem] {
         var items: [PresentationItem] = []
         if let title = requirement.title {
-            let cellType: RequirementsListCellType = level == 0 ? .title : .title2
+            let cellType: RequirementsListCellType = level <= 2 ? .title1 : .title2
             var titleText = title
             if requirement.thresholdDescription.count > 0, requirement.connectionType != .all {
                 titleText += " (\(requirement.thresholdDescription))"
             }
             items.append(PresentationItem(cellType: cellType, statement: requirement, text: titleText))
-        } else if requirement.thresholdDescription.count > 0, (requirement.connectionType != .all || alwaysShowTitle) {
-            items.append(PresentationItem(cellType: level == 0 ? .title : .title2, statement: requirement, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
+        } else if requirement.thresholdDescription.count > 0, (requirement.connectionType != .all || alwaysShowTitle), !requirement.isPlainString {
+            items.append(PresentationItem(cellType: .title2, statement: requirement, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
         }
         if let description = requirement.contentDescription, description.count > 0 {
             items.append(PresentationItem(cellType: .description, statement: requirement, text: description))
@@ -109,7 +111,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 var rows: [PresentationItem] = presentationItems(for: topLevelRequirement)
                 // Remove the title
                 rows.removeFirst()
-                if topLevelRequirement.connectionType != .all, topLevelRequirement.thresholdDescription.count > 0, (topLevelRequirement.contentDescription ?? "").count == 0 {
+                if topLevelRequirement.connectionType != .all, topLevelRequirement.thresholdDescription.count > 0, (topLevelRequirement.contentDescription ?? "").count == 0, !topLevelRequirement.isPlainString {
                     rows.insert(PresentationItem(cellType: .title2, statement: topLevelRequirement, text: topLevelRequirement.thresholdDescription.capitalizingFirstLetter() + ":"), at: 0)
                 }
                 ret.append((topLevelRequirement.title ?? "", topLevelRequirement, rows))
@@ -345,10 +347,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
             if let reqs = statement.requirements {
                 courseListCell.fulfillmentIndications = reqs.map {
-                    ($0.fulfillmentProgress(for: $0.threshold.criterion), $0.threshold.cutoff)
+                    ($0.fulfillmentProgress(for: $0.threshold.criterion), $0.threshold.cutoff, $0.threshold.criterion == .units)
                 }
             } else {
-                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress(for: statement.threshold.criterion), statement.threshold.cutoff)]
+                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress(for: statement.threshold.criterion), statement.threshold.cutoff, statement.threshold.criterion == .units)]
             }
             
             courseListCell.delegate = self
@@ -357,7 +359,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         } else {
             textLabel?.text = item.text ?? ""
             let fulfillmentIndicator = cell.viewWithTag(56)
-            if item.cellType == .title || item.cellType == .title2,
+            if item.cellType == .title || item.cellType == .title1 || item.cellType == .title2,
                 indexPath.section != 0 || indexPath.row != 0 { //Exclude the main title
                 let (text, color) = progressInformation(for: item.statement)
                 detailTextLabel?.text = text
@@ -400,7 +402,20 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
             let requirements = item.requirements ?? [item]
             
-            if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
+            if requirements[min(requirements.count, courseIndex)].isPlainString {
+                // Show the progress selector
+                guard let progressVC = self.storyboard?.instantiateViewController(withIdentifier: requirementsProgressVCIdentifier) as? RequirementsProgressController else {
+                    return
+                }
+                progressVC.delegate = self
+                progressVC.requirement = requirements[min(requirements.count, courseIndex)]
+                progressVC.modalPresentationStyle = .popover
+                progressVC.popoverPresentationController?.delegate = self
+                progressVC.popoverPresentationController?.sourceRect = selectedCell.bounds
+                progressVC.popoverPresentationController?.sourceView = selectedCell
+                self.present(progressVC, animated: true, completion: nil)
+
+            } else if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
                 listVC.searchTerm = reqString
                 if let ciAttribute = CommunicationAttribute(rawValue: reqString) {
@@ -436,7 +451,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     func courseDetailsRequestedPostReqs(for course: Course) {
         let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
-        listVC.searchTerm = (course.subjectID ?? "") + " " + (course.girAttribute?.descriptionText() ?? "")
+        listVC.searchTerm = course.subjectID ?? ""
+        if let gir = course.girAttribute, gir != .lab, gir != .rest {
+            listVC.searchTerm = gir.rawValue
+        }
         listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .anyRequirement, .searchPrereqs]
         listVC.showsHeaderBar = false
         listVC.delegate = self
@@ -541,6 +559,16 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
         popoverNavigationController = nil
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
+        return .none
+    }
+    
+    // MARK: - Manual Progress
+    
+    func requirementsProgressUpdated(_ controller: RequirementsProgressController) {
+        updateRequirementsStatus()
     }
     
     // MARK: - Pop Down Table Menu

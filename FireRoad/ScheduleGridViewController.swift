@@ -78,9 +78,31 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
         }
     }
     
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        if previousTraitCollection?.horizontalSizeClass != traitCollection.horizontalSizeClass ||
+            previousTraitCollection?.verticalSizeClass != traitCollection.verticalSizeClass,
+            let schedule = self.schedule {
+            setupGridStackView()
+            loadGrid(with: schedule)
+            recenterScrollView()
+        }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.recenterScrollView()
+        }
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        recenterScrollView()
     }
     
     func removeWeekendColumns(from sv: UIStackView) {
@@ -303,16 +325,6 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
         }
     }
     
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        if previousTraitCollection?.horizontalSizeClass != traitCollection.horizontalSizeClass ||
-            previousTraitCollection?.verticalSizeClass != traitCollection.verticalSizeClass,
-            let schedule = self.schedule {
-            setupGridStackView()
-            loadGrid(with: schedule)
-        }
-        
-    }
-    
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
         guard let course = cell.course else {
             return
@@ -357,6 +369,13 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
     }
     
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        recenterScrollView()
+    }
+    
+    func recenterScrollView() {
+        guard let scrollView = scrollView else {
+            return
+        }
         let offsetX = max((scrollView.bounds.width - scrollView.contentSize.width) * 0.5, 0)
         let offsetY = max((scrollView.bounds.height - scrollView.contentSize.height) * 0.5, 0)
         scrollView.contentInset = UIEdgeInsetsMake(topPadding + offsetY, offsetX, 0, 0)
