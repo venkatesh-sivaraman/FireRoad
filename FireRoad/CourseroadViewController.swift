@@ -516,7 +516,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         let actionMenu = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let courses = user.courses(forSemester: semester)
         actionMenu.addAction(UIAlertAction(title: "View Schedule", style: .default, handler: { (action) in
-            tabVC.displaySchedule(with: courses)
+            tabVC.displaySchedule(with: courses, name: semester.toString())
         }))
         actionMenu.addAction(UIAlertAction(title: "Clear", style: .destructive, handler: { (action) in
             for course in courses {

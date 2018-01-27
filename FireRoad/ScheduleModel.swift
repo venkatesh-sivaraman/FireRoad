@@ -95,3 +95,129 @@ class Schedule: NSObject {
         return ret.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
+
+class ScheduleDocument: UserDocument {
+    
+    private(set) var courses: [Course] = []
+    var allowedSections: [Course: [String: [Int]]]? {
+        didSet {
+            setNeedsSave()
+        }
+    }
+    var displayedScheduleIndex = -1 {
+        didSet {
+            setNeedsSave()
+        }
+    }
+    
+    convenience init(courses: [Course]) {
+        self.init()
+        self.courses = courses
+    }
+    
+    @discardableResult
+    func add(course: Course) -> Bool {
+        guard !courses.contains(course) else {
+            return false
+        }
+        courses.append(course)
+        setNeedsSave()
+        return true
+    }
+    
+    func remove(course: Course) {
+        guard let index = courses.index(of: course) else {
+            return
+        }
+        courses.remove(at: index)
+        setNeedsSave()
+    }
+    
+    func removeCourses(where test: (Course) -> Bool) {
+        courses = courses.filter({ !test($0) })
+        setNeedsSave()
+    }
+    
+    override var coursesForThumbnail: [Course] {
+        return courses
+    }
+    
+    override func thumbnailCropPath(with bounds: CGRect) -> UIBezierPath {
+        return UIBezierPath(ovalIn: bounds)
+    }
+    
+    let separator = "#,#"
+    let sectionSeparator = ";"
+    let sectionKeyValueSeparator = ":"
+    let sectionValueSeparator = ","
+    
+    override func readUserCourses(from file: String) throws {
+        try super.readUserCourses(from: file)
+        
+        let contents = try String(contentsOfFile: file)
+        
+        var newCourses: [Course] = []
+        var newSections: [Course: [String: [Int]]]?
+        
+        var lines = contents.components(separatedBy: .newlines)
+        if lines.count > 0 {
+            let header = lines.removeFirst()
+            var comps = header.components(separatedBy: separator)
+            if comps.count > 0 {
+                displayedScheduleIndex = Int(comps.removeFirst()) ?? -1
+            }
+        }
+        
+        for line in lines {
+            guard line.count > 0 else {
+                continue
+            }
+            var components = line.components(separatedBy: separator)
+            guard components.count > 0 else {
+                continue
+            }
+            let id = components.remove(at: 0)
+            var title: String?
+            if components.count > 0 {
+                title = components.remove(at: 0)
+            }
+            let course = CourseManager.shared.getCourse(withID: id) ?? Course(courseID: id, courseTitle: title ?? "", courseDescription: "")
+            if components.count > 0 {
+                if newSections == nil {
+                    newSections = [:]
+                }
+                newSections?[course] = [:]
+                let sectionsString = components.remove(at: 0)
+                let sections = sectionsString.components(separatedBy: sectionSeparator)
+                for sectionString in sections {
+                    let comps = sectionString.components(separatedBy: sectionKeyValueSeparator)
+                    guard comps.count == 2 else {
+                        continue
+                    }
+                    let section = comps[0]
+                    newSections?[course]?[section] = comps[1].components(separatedBy: sectionValueSeparator).flatMap({ Int($0) })
+                }
+            }
+            newCourses.append(course)
+        }
+        courses = newCourses
+        allowedSections = newSections
+    }
+    
+    override func writeUserCourses(to file: String) throws {
+        try super.writeUserCourses(to: file)
+        var result = "\(displayedScheduleIndex)\n"
+        for course in courses {
+            var comps = [course.subjectID ?? "", course.subjectTitle ?? ""]
+            if let sections = allowedSections?[course] {
+                let sectionString = sections.map({ (section, allowed) in
+                    [section, allowed.map({ "\($0)" }).joined(separator: sectionValueSeparator)].joined(separator: sectionKeyValueSeparator)
+                }).joined(separator: sectionSeparator)
+                comps.append(sectionString)
+            }
+            result += comps.joined(separator: separator) + "\n"
+        }
+        
+        try result.write(toFile: file, atomically: true, encoding: .utf8)
+    }
+}

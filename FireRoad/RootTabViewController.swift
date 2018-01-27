@@ -196,9 +196,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             print("Couldn't get schedule view controller")
             return
         }
-        if !scheduleVC.displayedCourses.contains(course) {
-            scheduleVC.displayedCourses.append(course)
-        }
+        scheduleVC.addCourse(course)
         if let tab = viewControllers?.first(where: { scheduleVC.isDescendant(of: $0) }) {
             selectedViewController = tab
         }
@@ -212,12 +210,12 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         }
     }
     
-    func displaySchedule(with courses: [Course]) {
+    func displaySchedule(with courses: [Course], name: String) {
         guard let scheduleVC = childViewController(where: { $0 is ScheduleViewController }) as? ScheduleViewController else {
             print("Couldn't get schedule view controller")
             return
         }
-        scheduleVC.displayedCourses = courses
+        scheduleVC.loadNewSchedule(named: name + SchedulePathExtension, courses: courses, addToEmptyIfPossible: true)
         if let tab = viewControllers?.first(where: { scheduleVC.isDescendant(of: $0) }) {
             selectedViewController = tab
         }

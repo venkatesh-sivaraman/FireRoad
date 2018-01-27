@@ -10,44 +10,20 @@ import UIKit
 import EventKit
 import EventKitUI
 
-class ScheduleViewController: UIViewController, PanelParentViewController, ScheduleGridDelegate, ScheduleConstraintDelegate, EKCalendarChooserDelegate {
+let SchedulePathExtension = ".sched"
+
+class ScheduleViewController: UIViewController, PanelParentViewController, ScheduleGridDelegate, ScheduleConstraintDelegate, EKCalendarChooserDelegate, DocumentBrowseDelegate {
     var panelView: PanelViewController?
     var courseBrowser: CourseBrowserViewController?
     var showsSemesterDialogs: Bool {
         return false
     }
     
-    private var _displayedCourses: [Course] = []
-    var displayedCourses: [Course] {
-        get {
-            return _displayedCourses
-        } set {
-            if _displayedCourses != newValue {
-                _displayedCourses = newValue
-                let beforeUpdate = _displayedCourses
-                updateDisplayedSchedules(completion: {
-                    var noSchedCourses: [Course] = []
-                    for course in beforeUpdate {
-                        if course.schedule == nil || course.schedule!.count == 0 {
-                            noSchedCourses.append(course)
-                        }
-                    }
-                    var alert: UIAlertController?
-                    if noSchedCourses.count == 1 {
-                        alert = UIAlertController(title: "No Schedule Information", message: "No schedule available for \(noSchedCourses.first!.subjectID!) at this time.", preferredStyle: .alert)
-                    } else if noSchedCourses.count > 1 {
-                        alert = UIAlertController(title: "No Schedule for \(noSchedCourses.count) Courses", message: "No schedule available at this time for the following subjects: \(noSchedCourses.flatMap({ $0.subjectID }).joined(separator: ", ")).", preferredStyle: .alert)
-                    }
-                    if let alertController = alert {
-                        alertController.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-                        self.present(alertController, animated: true, completion: nil)
-                    }
-                })
-            }
+    var currentSchedule: ScheduleDocument? {
+        didSet {
+            validateAndUpdateSchedules()
         }
     }
-    
-    var allowedSections: [Course: [String: [Int]]]?
     
     @IBOutlet var loadingView: UIView?
     @IBOutlet var loadingIndicator: UIActivityIndicatorView?
@@ -59,30 +35,25 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     @IBOutlet var previousButton: UIButton?
     @IBOutlet var nextButton: UIButton?
     @IBOutlet var containerView: UIView!
+    @IBOutlet var openButton: UIButton?
+    @IBOutlet var openItem: UIBarButtonItem?
     
     var scheduleOptions: [Schedule] = []
     var courseColors: [Course: UIColor]?
-    var displayedScheduleIndex = 0
     
-    var shouldLoadScheduleFromDefaults = false
-
     override func viewDidLoad() {
         super.viewDidLoad()
         justLoaded = true
-
-        if self.displayedCourses.count == 0 {
-            shouldLoadScheduleFromDefaults = true
-        }
 
         loadingBackgroundView?.layer.cornerRadius = 5.0
         
         // Do any additional setup after loading the view.
         findPanelChildViewController()
         
-        updateDisplayedSchedules()
         updateToolbarButtons()
         updateNavigationButtons()
         updateNavigationBar(animated: false)
+        loadRecentSchedule()
         
         let menu = UIMenuController.shared
         menu.menuItems = (menu.menuItems ?? []) + [
@@ -94,6 +65,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     
     func updateToolbarButtons() {
         shareButton?.setImage(shareButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        openButton?.setImage(openButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
         nextButton?.setImage(nextButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
         previousButton?.setImage(previousButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
@@ -112,8 +84,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         updatePanelViewCollapseHeight()
-        if justLoaded, scheduleOptions.count > 0 {
-            displayedScheduleIndex = displayedScheduleIndex < self.scheduleOptions.count ? displayedScheduleIndex : 0
+        if justLoaded, let schedule = currentSchedule, scheduleOptions.count > 0 {
+            schedule.displayedScheduleIndex = schedule.displayedScheduleIndex < self.scheduleOptions.count ? max(schedule.displayedScheduleIndex, 0) : 0
             updateScheduleGrid()
         }
         justLoaded = false
@@ -139,56 +111,134 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     // MARK: - State Restoration
     
     static let panelVCRestorationKey = "ScheduleVC.panelVC"
-    static let scheduleIndexRestorationKey = "ScheduleVC.scheduleIndex"
 
     override func encodeRestorableState(with coder: NSCoder) {
         super.encodeRestorableState(with: coder)
         coder.encode(panelView, forKey: ScheduleViewController.panelVCRestorationKey)
-        coder.encode(displayedScheduleIndex, forKey: ScheduleViewController.scheduleIndexRestorationKey)
     }
     
     override func decodeRestorableState(with coder: NSCoder) {
         super.decodeRestorableState(with: coder)
-        displayedScheduleIndex = coder.decodeInteger(forKey: ScheduleViewController.scheduleIndexRestorationKey)
+    }
+    
+    // MARK: - Schedule Files
+        
+    let recentSchedulePathDefaultsKey = "recent-schedule-filepath"
+    
+    var schedulesDirectory: String? {
+        return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first
+    }
+    
+    func urlForSchedule(named name: String) -> URL? {
+        guard let dirPath = schedulesDirectory else {
+            return nil
+        }
+        let url = URL(fileURLWithPath: dirPath).appendingPathComponent(name)
+        return url
+    }
+    
+    func loadSchedule(named name: String) {
+        guard let url = urlForSchedule(named: name) else {
+            return
+        }
+        do {
+            currentSchedule = try ScheduleDocument(contentsOfFile: url.path)
+            UserDefaults.standard.set(url.lastPathComponent, forKey: recentSchedulePathDefaultsKey)
+        } catch {
+            print("Error loading user: \(error)")
+        }
+    }
+    
+    func loadNewSchedule(named name: String, courses: [Course] = [], nonDuplicate: Bool = true, addToEmptyIfPossible: Bool = false) {
+        if addToEmptyIfPossible, let schedule = currentSchedule,
+            schedule.courses.count == 0 {
+            for course in courses {
+                schedule.add(course: course)
+            }
+            updateDisplayedSchedules()
+            return
+        }
+        
+        var finalName = name
+        if nonDuplicate {
+            let base = (name as NSString).deletingPathExtension
+            var newID = base + " 2"
+            if let newURL = urlForSchedule(named: newID + SchedulePathExtension),
+                FileManager.default.fileExists(atPath: newURL.path) {
+                var counter = 3
+                while let otherURL = urlForSchedule(named: base + " \(counter)" + SchedulePathExtension),
+                    FileManager.default.fileExists(atPath: otherURL.path) {
+                        counter += 1
+                }
+                newID = base + " \(counter)"
+            }
+            finalName = newID + SchedulePathExtension
+        }
+        
+        currentSchedule = ScheduleDocument(courses: courses)
+        if let url = self.urlForSchedule(named: finalName) {
+            currentSchedule?.filePath = url.path
+        }
+        currentSchedule?.autosave()
+        if let path = currentSchedule?.filePath {
+            UserDefaults.standard.set((path as NSString).lastPathComponent, forKey: self.recentSchedulePathDefaultsKey)
+        }
+    }
+    
+    func loadRecentSchedule() {
+        if !CourseManager.shared.isLoaded {
+            self.containerView.alpha = 0.0
+            self.loadingView?.alpha = 1.0
+            self.loadingView?.isHidden = false
+            self.loadingIndicator?.startAnimating()
+            
+            DispatchQueue.global().async {
+                while !CourseManager.shared.isLoaded {
+                    usleep(100)
+                }
+                var loaded = false
+                if let recentPath = UserDefaults.standard.string(forKey: self.recentSchedulePathDefaultsKey),
+                    let url = self.urlForSchedule(named: recentPath) {
+                    do {
+                        try DispatchQueue.main.sync {
+                            self.currentSchedule = try ScheduleDocument(contentsOfFile: url.path)
+                        }
+                        loaded = true
+                    } catch {
+                        print("Error loading user: \(error)")
+                    }
+                }
+                if !loaded {
+                    DispatchQueue.main.async {
+                        self.loadNewSchedule(named: "First Steps\(SchedulePathExtension)")
+                    }
+                }
+            }
+        } else {
+            var loaded = false
+            if let recentPath = UserDefaults.standard.string(forKey: recentSchedulePathDefaultsKey),
+                let url = urlForSchedule(named: recentPath) {
+                do {
+                    currentSchedule = try ScheduleDocument(contentsOfFile: url.path)
+                    loaded = true
+                } catch {
+                    print("Error loading user: \(error)")
+                }
+            }
+            if !loaded {
+                self.loadNewSchedule(named: "First Steps\(SchedulePathExtension)")
+            }
+        }
     }
     
     // MARK: - Schedule Generation
     
-    static let displayedCoursesDefaultsKey = "ScheduleViewController.displayedCourses"
-    static let scheduleConstraintsDefaultsKey = "ScheduleViewController.scheduleConstraints"
-
-    func updateScheduleDefaults() {
-        UserDefaults.standard.set(self.displayedCourses.flatMap({ $0.subjectID }), forKey: ScheduleViewController.displayedCoursesDefaultsKey)
-        if let sections = allowedSections {
-            var sectionMapping: [String: [String: [Int]]] = [:]
-            for (course, value) in sections {
-                sectionMapping[course.subjectID!] = value
-            }
-            UserDefaults.standard.set(sectionMapping, forKey: ScheduleViewController.scheduleConstraintsDefaultsKey)
-        }
-    }
-    
-    func readCoursesFromDefaults() {
-        self.displayedCourses = UserDefaults.standard.stringArray(forKey: ScheduleViewController.displayedCoursesDefaultsKey)?.flatMap({ CourseManager.shared.getCourse(withID: $0) }) ?? []
-        if let sections = UserDefaults.standard.dictionary(forKey: ScheduleViewController.scheduleConstraintsDefaultsKey) {
-            var sectionMapping: [Course: [String: [Int]]] = [:]
-            for (subjectID, value) in sections {
-                guard let course = CourseManager.shared.getCourse(withID: subjectID) else {
-                    continue
-                }
-                sectionMapping[course] = value as? [String: [Int]]
-            }
-            self.allowedSections = sectionMapping
-        }
-    }
-    
     func updateDisplayedSchedules(completion: (() -> Void)? = nil) {
-        let justNowLoaded = justLoaded
+        guard let schedule = currentSchedule else {
+            return
+        }
         loadScheduleOptions {
-            if !justNowLoaded {
-                self.displayedScheduleIndex = 0
-            }
-            self.displayedScheduleIndex = self.displayedScheduleIndex < self.scheduleOptions.count ? self.displayedScheduleIndex : 0
+            schedule.displayedScheduleIndex = schedule.displayedScheduleIndex < self.scheduleOptions.count ? max(schedule.displayedScheduleIndex, 0) : 0
             self.updateScheduleGrid()
             completion?()
         }
@@ -211,23 +261,22 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             self.loadingIndicator?.startAnimating()
         }
         DispatchQueue.global(qos: .background).async {
+            guard let schedule = self.currentSchedule else {
+                return
+            }
+            
             while !CourseManager.shared.isLoaded {
                 usleep(100)
             }
-            if self.shouldLoadScheduleFromDefaults {
-                self.readCoursesFromDefaults()
-                self.shouldLoadScheduleFromDefaults = false
-            }
-            
-            for course in self.displayedCourses {
+            for course in schedule.courses {
                 CourseManager.shared.loadCourseDetailsSynchronously(about: course)
             }
-            self._displayedCourses = self.displayedCourses.filter({ $0.schedule != nil && $0.schedule!.count > 0 })
+            schedule.removeCourses(where: { $0.schedule == nil || $0.schedule?.count == 0 })
             
             // Update course colors
             var departmentCounts: [String: Int] = [:]
             self.courseColors = [:]
-            for course in self.displayedCourses {
+            for course in schedule.courses {
                 guard let dept = course.subjectCode else {
                     continue
                 }
@@ -238,9 +287,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                 departmentCounts[dept]? += 1
             }
             
-            self.updateScheduleDefaults()
-            if self.displayedCourses.count > 0 {
-                self.scheduleOptions = self.generateSchedules(from: self.displayedCourses)
+            if schedule.courses.count > 0 {
+                self.scheduleOptions = self.generateSchedules(from: schedule.courses)
             } else {
                 self.scheduleOptions = []
             }
@@ -282,7 +330,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             }
             for (section, sectionOptions) in schedule {
                 var filteredOptions = sectionOptions
-                if let constraint = allowedSections?[course]?[section] {
+                if let constraint = currentSchedule?.allowedSections?[course]?[section] {
                     filteredOptions = constraint.map({ filteredOptions[$0] })
                 }
                 // Filter out sections with the same exact days and times
@@ -405,19 +453,22 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     func updateNavigationButtons() {
-        previousButton?.isEnabled = displayedScheduleIndex > 0
-        nextButton?.isEnabled = displayedScheduleIndex < scheduleOptions.count - 1
+        previousButton?.isEnabled = (currentSchedule?.displayedScheduleIndex ?? 0) > 0
+        nextButton?.isEnabled = (currentSchedule?.displayedScheduleIndex ?? 0) < scheduleOptions.count - 1
     }
     
     func updateScheduleGrid() {
+        guard let schedule = currentSchedule else {
+            return
+        }
         if let vc = currentScheduleVC as? ScheduleGridViewController,
             scheduleOptions.count > 0,
-            displayedScheduleIndex >= 0,
-            displayedScheduleIndex < scheduleOptions.count {
+            schedule.displayedScheduleIndex >= 0,
+            schedule.displayedScheduleIndex < scheduleOptions.count {
             vc.courseColors = courseColors
             vc.topPadding = (panelView?.collapseHeight ?? 0.0) + (panelView?.view.convert(.zero, to: self.view).y ?? 0.0) + 12.0
-            self.scheduleNumberLabel?.text = "\(displayedScheduleIndex + 1) of \(scheduleOptions.count)"
-            vc.setSchedule(scheduleOptions[displayedScheduleIndex], animated: isViewLoaded && view.window != nil)
+            self.scheduleNumberLabel?.text = "\(schedule.displayedScheduleIndex + 1) of \(scheduleOptions.count)"
+            vc.setSchedule(scheduleOptions[schedule.displayedScheduleIndex], animated: isViewLoaded && view.window != nil)
         } else {
             if let vc = currentScheduleVC {
                 vc.willMove(toParentViewController: nil)
@@ -426,9 +477,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                 vc.didMove(toParentViewController: nil)
                 currentScheduleVC = nil
             }
-            if let vcToDisplay = scheduleGrid(for: displayedScheduleIndex) {
+            if let vcToDisplay = scheduleGrid(for: schedule.displayedScheduleIndex) {
                 currentScheduleVC = vcToDisplay
-                self.scheduleNumberLabel?.text = "\(displayedScheduleIndex + 1) of \(scheduleOptions.count)"
+                self.scheduleNumberLabel?.text = "\(schedule.displayedScheduleIndex + 1) of \(scheduleOptions.count)"
             } else if let noSchedulesView = self.storyboard?.instantiateViewController(withIdentifier: "NoSchedulesView") {
                 currentScheduleVC = noSchedulesView
                 self.scheduleNumberLabel?.text = "--"
@@ -449,30 +500,59 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     @IBAction func previousButtonTapped(_ sender: AnyObject) {
-        displayedScheduleIndex -= 1
+        currentSchedule?.displayedScheduleIndex -= 1
         updateScheduleGrid()
     }
     
     @IBAction func nextButtonTapped(_ sender: AnyObject) {
-        displayedScheduleIndex += 1
+        currentSchedule?.displayedScheduleIndex += 1
         updateScheduleGrid()
     }
     
     // MARK: - Grid Delegate
     
-    func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
-        if !displayedCourses.contains(where: { $0.subjectID == course.subjectID }) {
-            displayedCourses.append(course)
+    func validateAndUpdateSchedules() {
+        guard let schedule = currentSchedule else {
+            return
         }
+        let beforeUpdate = schedule.courses
+        updateDisplayedSchedules(completion: {
+            var noSchedCourses: [Course] = []
+            for course in beforeUpdate {
+                if course.schedule == nil || course.schedule!.count == 0 {
+                    noSchedCourses.append(course)
+                }
+            }
+            var alert: UIAlertController?
+            if noSchedCourses.count == 1 {
+                alert = UIAlertController(title: "No Schedule Information", message: "No schedule available for \(noSchedCourses.first!.subjectID!) at this time.", preferredStyle: .alert)
+            } else if noSchedCourses.count > 1 {
+                alert = UIAlertController(title: "No Schedule for \(noSchedCourses.count) Courses", message: "No schedule available at this time for the following subjects: \(noSchedCourses.flatMap({ $0.subjectID }).joined(separator: ", ")).", preferredStyle: .alert)
+            }
+            if let alertController = alert {
+                alertController.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                self.present(alertController, animated: true, completion: nil)
+            }
+        })
+    }
+    
+    func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
+        guard let schedule = currentSchedule,
+            schedule.add(course: course) else {
+            return nil
+        }
+        
+        schedule.displayedScheduleIndex = 0
+        validateAndUpdateSchedules()
+        
         self.panelView?.collapseView(to: self.panelView!.collapseHeight)
         return nil
     }
 
     func deleteCourseFromSchedules(_ course: Course) {
-        guard let index = displayedCourses.index(of: course) else {
-            return
-        }
-        displayedCourses.remove(at: index)
+        currentSchedule?.remove(course: course)
+        currentSchedule?.displayedScheduleIndex = 0
+        updateDisplayedSchedules()
     }
     
     func scheduleGrid(_ gridVC: ScheduleGridViewController, wantsConstraintMenuFor course: Course, sender: UIView?) {
@@ -481,7 +561,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         }
         constraint.delegate = self
         constraint.course = course
-        constraint.allowedSections = allowedSections?[course]
+        constraint.allowedSections = currentSchedule?.allowedSections?[course]
         let nav = UINavigationController(rootViewController: constraint)
         if let view = sender {
             nav.modalPresentationStyle = .popover
@@ -501,17 +581,19 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         guard let course = vc.course else {
             return
         }
-        if allowedSections == nil {
-            allowedSections = [:]
+        if currentSchedule?.allowedSections == nil {
+            currentSchedule?.allowedSections = [:]
         }
-        allowedSections?[course] = newAllowedSections
+        currentSchedule?.allowedSections?[course] = newAllowedSections
+        currentSchedule?.displayedScheduleIndex = 0
         updateDisplayedSchedules()
     }
     
     // MARK: - Share
     
     @IBAction func shareButtonTapped(_ sender: AnyObject) {
-        guard displayedScheduleIndex >= 0, displayedScheduleIndex < scheduleOptions.count else {
+        guard let displayedScheduleIndex = currentSchedule?.displayedScheduleIndex,
+            displayedScheduleIndex >= 0, displayedScheduleIndex < scheduleOptions.count else {
             return
         }
         let scheduleString = scheduleOptions[displayedScheduleIndex].userStringRepresentation()
@@ -642,7 +724,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     func addScheduleToCalendar(separate: Bool, calendar: EKCalendar? = nil) {
-        guard displayedScheduleIndex >= 0, displayedScheduleIndex < scheduleOptions.count,
+        guard let displayedScheduleIndex = currentSchedule?.displayedScheduleIndex,
+            displayedScheduleIndex >= 0, displayedScheduleIndex < scheduleOptions.count,
             let semester = CourseManager.shared.catalogSemester,
             let store = eventStore else {
                 return
@@ -694,5 +777,235 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
             present(alert, animated: true, completion: nil)
         }
+    }
+    
+    // MARK: - Loading Different Roads
+    
+    lazy var thumbnailImageComputeQueue = ComputeQueue(label: "ScheduleVC.thumbnailImage")
+    
+    @IBAction func openButtonPressed(_ sender: AnyObject) {
+        guard let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
+            let rootTab = rootParent as? RootTabViewController,
+            let roadDir = rootTab.courseroadDirectory,
+            let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {
+                return
+        }
+        browser.delegate = self
+        // Generate items
+        var items: [(DocumentBrowseViewController.Item, Date?)] = []
+        let todayFormatter = DateFormatter()
+        todayFormatter.dateStyle = .none
+        todayFormatter.timeStyle = .short
+        let otherFormatter = DateFormatter()
+        otherFormatter.dateStyle = .medium
+        otherFormatter.timeStyle = .none
+        for path in dirContents {
+            let fullPath = (roadDir as NSString).appendingPathComponent(path)
+            guard path.range(of: SchedulePathExtension)?.upperBound == path.endIndex,
+                path[path.startIndex] != Character("."),
+                let tempSchedule = try? ScheduleDocument(contentsOfFile: fullPath, readOnly: true) else {
+                    continue
+            }
+            let attr = try? FileManager.default.attributesOfItem(atPath: fullPath)
+            let modDate = attr?[FileAttributeKey.modificationDate] as? Date
+            var components: [String] = []
+            if let date = modDate {
+                if Calendar.current.isDateInToday(date) {
+                    components.append(todayFormatter.string(from: date))
+                } else {
+                    components.append(otherFormatter.string(from: date))
+                }
+            }
+            let pluralizer = tempSchedule.courses.count != 1 ? "s" : ""
+            components.append("\(tempSchedule.courses.count) course\(pluralizer)")
+            var item = DocumentBrowseViewController.Item(identifier: path, title: (path as NSString).deletingPathExtension, description: components.joined(separator: " • "), image: tempSchedule.emptyThumbnailImage())
+            thumbnailImageComputeQueue.async {
+                item.image = tempSchedule.generateThumbnailImage()
+                DispatchQueue.main.async {
+                    browser.update(item: item)
+                }
+            }
+            items.append((item, modDate))
+        }
+        browser.items = items.sorted(by: {
+            if $1.1 == nil && $0.1 == nil {
+                return false
+            } else if $1.1 == nil {
+                return true
+            } else if $0.1 == nil {
+                return false
+            }
+            return $0.1!.compare($1.1!) == .orderedDescending
+        }).map({ $0.0 })
+        if browser.items.count > 1 {
+            browser.itemToHighlight = browser.items.first(where: { $0.identifier == (currentSchedule?.filePath as NSString?)?.lastPathComponent })
+        }
+        
+        let nav = UINavigationController(rootViewController: browser)
+        browser.navigationItem.title = "My Schedules"
+        if let barItem = sender as? UIBarButtonItem {
+            browser.showsCancelButton = false
+            nav.modalPresentationStyle = .popover
+            nav.popoverPresentationController?.barButtonItem = barItem
+            present(nav, animated: true, completion: nil)
+        } else {
+            browser.navigationItem.prompt = "Select an existing schedule or add a new one."
+            browser.showsCancelButton = true
+            present(nav, animated: true, completion: nil)
+        }
+    }
+    
+    func documentBrowserDismissed(_ browser: DocumentBrowseViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func documentBrowserAddedItem(_ browser: DocumentBrowseViewController) {
+        let alert = UIAlertController(title: "New Schedule", message: "Choose a title for your new schedule:", preferredStyle: .alert)
+        let presenter = self.presentedViewController ?? self
+        alert.addTextField { (tf) in
+            tf.placeholder = "Title"
+            tf.enablesReturnKeyAutomatically = true
+            tf.clearButtonMode = .always
+            tf.autocapitalizationType = .words
+        }
+        alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { _ in
+            guard let text = alert.textFields?.first?.text,
+                text.count > 0 else {
+                    let errorAlert = UIAlertController(title: "No Title", message: "You must choose a title in order to create the new schedule.", preferredStyle: .alert)
+                    errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                    presenter.present(errorAlert, animated: true, completion: nil)
+                    return
+            }
+            
+            let newID = text + SchedulePathExtension
+            guard let newURL = self.urlForSchedule(named: newID),
+                !FileManager.default.fileExists(atPath: newURL.path) else {
+                    let errorAlert = UIAlertController(title: "Schedule Already Exists", message: "Please choose another title.", preferredStyle: .alert)
+                    errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                    presenter.present(errorAlert, animated: true, completion: nil)
+                    return
+            }
+            
+            self.dismiss(animated: true, completion: nil)
+            self.loadNewSchedule(named: newID)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        presenter.present(alert, animated: true, completion: nil)
+    }
+    
+    func documentBrowser(_ browser: DocumentBrowseViewController, deletedItem item: DocumentBrowseViewController.Item) {
+        guard let url = urlForSchedule(named: item.identifier) else {
+            return
+        }
+        do {
+            try FileManager.default.removeItem(at: url)
+            if currentSchedule?.filePath == url.path {
+                if let firstItem = browser.items.first {
+                    loadSchedule(named: firstItem.identifier)
+                } else if browser.navigationController?.modalPresentationStyle == .popover {
+                    loadNewSchedule(named: "Schedule" + SchedulePathExtension)
+                    dismiss(animated: true, completion: nil)
+                } else {
+                    currentSchedule = nil
+                    scheduleOptions = []
+                    updateScheduleGrid()
+                }
+            }
+        } catch {
+            let presenter = self.presentedViewController ?? self
+            let alert = UIAlertController(title: "Could Not Delete Schedule", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            presenter.present(alert, animated: true, completion: nil)
+        }
+    }
+    
+    func documentBrowser(_ browser: DocumentBrowseViewController, wantsRename item: DocumentBrowseViewController.Item, completion: @escaping ((DocumentBrowseViewController.Item?) -> Void)) {
+        let alert = UIAlertController(title: "Rename Schedule", message: "Choose a new title:", preferredStyle: .alert)
+        let presenter = self.presentedViewController ?? self
+        alert.addTextField { (tf) in
+            tf.placeholder = "Title"
+            tf.text = item.title
+            tf.enablesReturnKeyAutomatically = true
+            tf.clearButtonMode = .always
+            tf.autocapitalizationType = .words
+        }
+        alert.addAction(UIAlertAction(title: "Rename", style: .default, handler: { _ in
+            guard let text = alert.textFields?.first?.text,
+                text.count > 0 else {
+                    completion(nil)
+                    return
+            }
+            
+            let newID = text + SchedulePathExtension
+            guard let oldURL = self.urlForSchedule(named: item.identifier),
+                let newURL = self.urlForSchedule(named: newID),
+                !FileManager.default.fileExists(atPath: newURL.path) else {
+                    let errorAlert = UIAlertController(title: "Schedule Already Exists", message: "Please choose another title.", preferredStyle: .alert)
+                    errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                    presenter.present(errorAlert, animated: true, completion: nil)
+                    completion(nil)
+                    return
+            }
+            
+            do {
+                let newItem = DocumentBrowseViewController.Item(identifier: text + SchedulePathExtension, title: text, description: item.description, image: item.image)
+                var shouldOpenNewRoad = false
+                if (self.currentSchedule?.filePath as NSString?)?.lastPathComponent == item.identifier {
+                    self.currentSchedule = nil
+                    shouldOpenNewRoad = true
+                }
+                try FileManager.default.moveItem(at: oldURL, to: newURL)
+                if shouldOpenNewRoad {
+                    self.loadSchedule(named: newItem.identifier)
+                }
+                completion(newItem)
+            } catch {
+                let alert = UIAlertController(title: "Could Not Rename Schedule", message: error.localizedDescription, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                presenter.present(alert, animated: true, completion: nil)
+                completion(nil)
+            }
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        presenter.present(alert, animated: true, completion: nil)
+    }
+    
+    func documentBrowser(_ browser: DocumentBrowseViewController, wantsDuplicate item: DocumentBrowseViewController.Item, completion: @escaping ((DocumentBrowseViewController.Item?) -> Void)) {
+        guard let oldURL = urlForSchedule(named: item.identifier) else {
+            return
+        }
+        let presenter = self.presentedViewController ?? self
+        
+        let base = (item.identifier as NSString).deletingPathExtension
+        var newID = base + " 2"
+        if let newURL = urlForSchedule(named: newID + SchedulePathExtension),
+            FileManager.default.fileExists(atPath: newURL.path) {
+            var counter = 3
+            while let otherURL = urlForSchedule(named: base + " \(counter)" + SchedulePathExtension),
+                FileManager.default.fileExists(atPath: otherURL.path) {
+                    counter += 1
+            }
+            newID = base + " \(counter)"
+        }
+        
+        do {
+            let newItem = DocumentBrowseViewController.Item(identifier: newID + SchedulePathExtension, title: newID, description: item.description, image: item.image)
+            guard let newURL = urlForSchedule(named: newID + SchedulePathExtension) else {
+                completion(nil)
+                return
+            }
+            try FileManager.default.copyItem(at: oldURL, to: newURL)
+            completion(newItem)
+        } catch {
+            let alert = UIAlertController(title: "Could Not Duplicate Schedule", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            presenter.present(alert, animated: true, completion: nil)
+            completion(nil)
+        }
+    }
+    
+    func documentBrowser(_ browser: DocumentBrowseViewController, selectedItem item: DocumentBrowseViewController.Item) {
+        loadSchedule(named: item.identifier)
+        dismiss(animated: true, completion: nil)
     }
 }
