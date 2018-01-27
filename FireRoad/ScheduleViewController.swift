@@ -160,7 +160,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         }
         
         var finalName = name
-        if nonDuplicate {
+        if nonDuplicate,
+            let putativeURL = urlForSchedule(named: finalName),
+            FileManager.default.fileExists(atPath: putativeURL.path) {
             let base = (name as NSString).deletingPathExtension
             var newID = base + " 2"
             if let newURL = urlForSchedule(named: newID + SchedulePathExtension),
@@ -600,7 +602,18 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         let customItem = CustomActivity(title: "Add to Calendar", image: UIImage(named: "schedule")) {
             self.addCurrentScheduleToCalendar()
         }
-        let actionVC = UIActivityViewController(activityItems: [scheduleString], applicationActivities: [customItem])
+        var activityItems: [Any] = [scheduleString]
+        if let scrollView = (currentScheduleVC as? ScheduleGridViewController)?.scrollView {
+            let provider = ScheduleItemProvider(placeholderItem: UIImage(), renderingBlock: { () -> Any in
+                return self.image(from: scrollView)
+            })
+            activityItems.append(provider)
+            let printProvider = ScheduleItemProvider(placeholderItem: UIImageView().viewPrintFormatter(), renderingBlock: { () -> Any in
+                return self.activityForPrinting(image: self.image(from: scrollView))
+            })
+            activityItems.append(printProvider)
+        }
+        let actionVC = UIActivityViewController(activityItems: activityItems, applicationActivities: [customItem])
         if traitCollection.userInterfaceIdiom == .pad,
             let barItem = sender as? UIBarButtonItem {
             actionVC.modalPresentationStyle = .popover
@@ -609,10 +622,44 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         present(actionVC, animated: true, completion: nil)
     }
     
+    func image(from scrollView: UIScrollView) -> UIImage {
+        let savedFrame = scrollView.frame
+        let savedOffset = scrollView.contentOffset
+        let savedScale = scrollView.zoomScale
+        scrollView.zoomScale = 1.0
+        scrollView.frame = CGRect(x: 0.0, y: 0.0, width: scrollView.contentSize.width, height: scrollView.contentSize.height)
+        scrollView.contentOffset = .zero
+        
+        UIGraphicsBeginImageContextWithOptions(scrollView.contentSize, false, 0.0)
+        defer {
+            UIGraphicsEndImageContext()
+            scrollView.zoomScale = savedScale
+            scrollView.frame = savedFrame
+            scrollView.contentOffset = savedOffset
+        }
+        guard let ctx = UIGraphicsGetCurrentContext() else {
+            return UIImage()
+        }
+        scrollView.layer.render(in: ctx)
+        return UIGraphicsGetImageFromCurrentImageContext() ?? UIImage()
+    }
+    
+    func activityForPrinting(image: UIImage) -> Any {
+        let maxWidth = CGFloat(540.0)
+        let maxHeight = CGFloat(720.0)
+        let scale = max(image.size.width / maxWidth, image.size.height / maxHeight, 1.0)
+        
+        let imageView = UIImageView(image: image)
+        imageView.frame = CGRect(x: 0.0, y: 0.0, width: image.size.width / scale, height: image.size.height / scale)
+        
+        let printFormatter = imageView.viewPrintFormatter()
+        //printFormatter.perPageContentInsets = UIEdgeInsets(top: 72.0, left: 72.0, bottom: 72.0, right: 72.0)
+        return printFormatter
+    }
+    
     var eventStore: EKEventStore?
     
     func addCurrentScheduleToCalendar() {
-        print("Adding to calendar")
         eventStore = EKEventStore()
         guard let store = eventStore else {
             return
@@ -784,7 +831,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     lazy var thumbnailImageComputeQueue = ComputeQueue(label: "ScheduleVC.thumbnailImage")
     
     @IBAction func openButtonPressed(_ sender: AnyObject) {
-        guard let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
+        guard CourseManager.shared.isLoaded,
+            let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
             let rootTab = rootParent as? RootTabViewController,
             let roadDir = rootTab.courseroadDirectory,
             let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {

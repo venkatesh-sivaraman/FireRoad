@@ -196,7 +196,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             print("Couldn't get schedule view controller")
             return
         }
-        scheduleVC.addCourse(course)
+        _ = scheduleVC.addCourse(course)
         if let tab = viewControllers?.first(where: { scheduleVC.isDescendant(of: $0) }) {
             selectedViewController = tab
         }

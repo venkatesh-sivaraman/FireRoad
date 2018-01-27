@@ -223,7 +223,13 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     }
     
     func setRecommendedCourses(from subjectRecs: [String: [Course: Float]]) {
-        if let forYou = subjectRecs["for-you"] {
+        if var forYou = subjectRecs["for-you"] {
+            if let rootTab = rootParent as? RootTabViewController,
+                let user = rootTab.currentUser {
+                forYou = forYou.filter {
+                    !user.allCourses.contains($0.key)
+                }
+            }
             self.recommendedCourses = forYou.sorted(by: { $0.value > $1.value }).map { $0.key }
         }
     }
