@@ -8,7 +8,7 @@
 
 import UIKit
 
-class RequirementsBrowserViewController: UITableViewController, UISplitViewControllerDelegate, RequirementsListViewControllerDelegate {
+class RequirementsBrowserViewController: UITableViewController, UISplitViewControllerDelegate, RequirementsListViewControllerDelegate, UISearchResultsUpdating, UISearchControllerDelegate {
     
     enum RequirementBrowserTableSection: String {
         case user = "My Courses"
@@ -32,7 +32,19 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         }
     }
     
+    var searchController: UISearchController?
+    
     var organizedRequirementLists: [(RequirementBrowserTableSection, [RequirementsList])] = []
+    var searchResults: [(RequirementBrowserTableSection, [RequirementsList])]?
+    
+    var displayedRequirementLists: [(RequirementBrowserTableSection, [RequirementsList])] {
+        if searchController?.isActive == true,
+            let text = searchController?.searchBar.text,
+            text.count > 0, let results = searchResults {
+            return results
+        }
+        return organizedRequirementLists
+    }
     
     let listCellIdentifier = "RequirementsListCell"
     let noCoursesCellIdentifier = "NoCoursesCell"
@@ -53,6 +65,15 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         sortMode = .alphabetical
 
         NotificationCenter.default.addObserver(self, selector: #selector(RequirementsBrowserViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+        
+        searchController = UISearchController(searchResultsController: nil)
+        searchController?.searchResultsUpdater = self
+        searchController?.delegate = self
+        searchController?.dimsBackgroundDuringPresentation = false
+        if #available(iOS 11.0, *) {
+            navigationItem.searchController = searchController
+        }
+        searchController?.searchBar.placeholder = "Filter requirements lists…"
     }
     
     deinit {
@@ -86,7 +107,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         
         if keepingSelectedRow {
             let row = tableView.indexPathForSelectedRow
-            selectedList = row != nil ? organizedRequirementLists[row!.section].1[row!.row] : nil
+            selectedList = row != nil ? displayedRequirementLists[row!.section].1[row!.row] : nil
         }
         
         var organizedCategories: [RequirementBrowserTableSection: [RequirementsList]] = [:]
@@ -116,14 +137,18 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             organizedRequirementLists.append((key, lists.sorted(by: { sortMode == .alphabetical ? (($0.mediumTitle ?? "").localizedStandardCompare($1.mediumTitle ?? "") == .orderedAscending) : ($0.percentageFulfilled > $1.percentageFulfilled) })))
         }
         
+        if searchResults != nil {
+            updateSearchResults()
+        }
+        
         if keepingSelectedRow {
             UIView.transition(with: self.tableView, duration: 0.2, options: .transitionCrossDissolve, animations: {
                 self.tableView.reloadData()
             }, completion: { completed in
                 if completed, let selectedList = selectedList {
                     // Find the list in the new organization
-                    guard let section = self.organizedRequirementLists.index(where: { $0.1.contains(selectedList) }),
-                        let row = self.organizedRequirementLists[section].1.index(of: selectedList) else {
+                    guard let section = self.displayedRequirementLists.index(where: { $0.1.contains(selectedList) }),
+                        let row = self.displayedRequirementLists[section].1.index(of: selectedList) else {
                             return
                     }
                     let ip = IndexPath(row: row, section: section)
@@ -209,7 +234,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     override func encodeRestorableState(with coder: NSCoder) {
         super.encodeRestorableState(with: coder)
         if let ip = tableView.indexPathForSelectedRow {
-            coder.encode(organizedRequirementLists[ip.section].1[ip.row].listID, forKey: RequirementsBrowserViewController.selectedIDRestorationKey)
+            coder.encode(displayedRequirementLists[ip.section].1[ip.row].listID, forKey: RequirementsBrowserViewController.selectedIDRestorationKey)
         } else {
             coder.encode(nil, forKey: RequirementsBrowserViewController.selectedIDRestorationKey)
         }
@@ -236,22 +261,22 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     // MARK: - Table View
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return organizedRequirementLists.count
+        return displayedRequirementLists.count
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if section == 0, organizedRequirementLists[section].1.count == 0 {
+        if section == 0, displayedRequirementLists[section].1.count == 0 {
             return 1
         }
-        return organizedRequirementLists[section].1.count
+        return displayedRequirementLists[section].1.count
     }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return organizedRequirementLists[section].0.rawValue
+        return displayedRequirementLists[section].0.rawValue
     }
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        if organizedRequirementLists[section].0 == .user {
+        if displayedRequirementLists[section].0 == .user {
             return "Add courses of study by finding their requirements below, then toggling the heart icon. The courses you select are saved along with your roads in the My Road tab."
         }
         return nil
@@ -261,7 +286,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     var computedLists = Set<String>()
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.section == 0, organizedRequirementLists[indexPath.section].1.count == 0 {
+        if indexPath.section == 0, displayedRequirementLists[indexPath.section].1.count == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: noCoursesCellIdentifier, for: indexPath)
             return cell
         }
@@ -269,7 +294,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         let textLabel = cell.viewWithTag(12) as? UILabel
         let detailTextLabel = cell.viewWithTag(34) as? UILabel
         let descriptionTextLabel = cell.viewWithTag(78) as? UILabel
-        let list = organizedRequirementLists[indexPath.section].1[indexPath.row]
+        let list = displayedRequirementLists[indexPath.section].1[indexPath.row]
         let titleText = list.mediumTitle ?? "No title"
         textLabel?.text = titleText
         if CourseManager.shared.isLoaded, !progressComputeQueue.contains(list.listID) {
@@ -317,7 +342,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let reqList = organizedRequirementLists[indexPath.section].1[indexPath.row]
+        let reqList = displayedRequirementLists[indexPath.section].1[indexPath.row]
         guard let nav = storyboard?.instantiateViewController(withIdentifier: listVCIdentifier) as? UINavigationController,
             let listVC = nav.topViewController as? RequirementsListViewController else {
             return
@@ -336,22 +361,35 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     }
     
     func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController) {
-        let row = tableView.indexPathForSelectedRow
-        let list = row != nil ? organizedRequirementLists[row!.section].1[row!.row] : nil
-        updateRequirementsStatus()
-        UIView.transition(with: self.tableView, duration: 0.2, options: .transitionCrossDissolve, animations: {
-            self.tableView.reloadData()
-        }, completion: { completed in
-            if completed, let selectedList = list {
-                // Find the list in the new organization
-                guard let section = self.organizedRequirementLists.index(where: { $0.1.contains(selectedList) }),
-                    let row = self.organizedRequirementLists[section].1.index(of: selectedList) else {
-                        return
-                }
-                let ip = IndexPath(row: row, section: section)
-                self.tableView.selectRow(at: ip, animated: true, scrollPosition: .middle)
-            }
-        })
+        updateRequirementsStatus(keepingSelectedRow: true)
+    }
+    
+    // MARK: - Search
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        updateSearchResults()
+        tableView.reloadData()
+    }
+    
+    func didDismissSearchController(_ searchController: UISearchController) {
+        searchResults = nil
+    }
+    
+    func updateSearchResults(with searchTerm: String? = nil) {
+        guard let searchTerm = searchTerm ?? searchController?.searchBar.text else {
+            searchResults = nil
+            return
+        }
         
+        searchResults = []
+        for (section, lists) in organizedRequirementLists {
+            let filteredLists = lists.filter {
+                $0.title?.contains(searchTerm) == true ||
+                $0.mediumTitle?.contains(searchTerm) == true
+            }
+            if filteredLists.count > 0 {
+                searchResults?.append((section, filteredLists))
+            }
+        }
     }
 }

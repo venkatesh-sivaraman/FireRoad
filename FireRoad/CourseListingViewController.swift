@@ -283,20 +283,38 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
     }
     
     func filterCourses(with searchBar: UISearchBar) {
-        let searchTerm = searchBar.text ?? ""
+        let searchTerm = searchBar.text?.lowercased() ?? ""
         currentSearchText = searchTerm
-        let oldCourseCount = searchCourses?.count ?? courses.count
-        let newCourses = self.courses.filter({ $0.subjectID?.contains(searchTerm) == true || $0.subjectTitle?.contains(searchTerm) == true })
-        searchCourses = newCourses
-        collectionView?.performBatchUpdates({
-            if newCourses.count > oldCourseCount {
-                collectionView?.insertItems(at: (oldCourseCount..<newCourses.count).map({ IndexPath(item: $0, section: 0) }))
-            } else if newCourses.count < oldCourseCount {
-                collectionView?.deleteItems(at: (newCourses.count..<oldCourseCount).map({ IndexPath(item: $0, section: 0) }))
+        DispatchQueue.global().async {
+            let oldCourseCount = self.searchCourses?.count ?? self.courses.count
+            let newCourses = self.courses.filter {
+                var searchText: [String] = [
+                    $0.subjectID ?? "",
+                    $0.subjectTitle ?? "",
+                    $0.communicationRequirement?.descriptionText() ?? "",
+                    $0.girAttribute?.descriptionText() ?? ""]
+                searchText.append($0.communicationRequirement?.rawValue ?? "")
+                searchText.append($0.hassAttribute?.descriptionText() ?? "")
+                searchText.append($0.hassAttribute?.rawValue ?? "")
+                searchText += $0.instructors
+                return searchText.joined(separator: "\n").lowercased().contains(searchTerm)
             }
-            collectionView?.reloadItems(at: (0..<min(newCourses.count, oldCourseCount)).map({ IndexPath(item: $0, section: 0) }))
-        }, completion: nil)
-        searchBar.becomeFirstResponder()
+            guard searchTerm == self.currentSearchText else {
+                return
+            }
+            DispatchQueue.main.async {
+                self.searchCourses = newCourses
+                self.collectionView?.performBatchUpdates({
+                    if newCourses.count > oldCourseCount {
+                        self.collectionView?.insertItems(at: (oldCourseCount..<newCourses.count).map({ IndexPath(item: $0, section: 0) }))
+                    } else if newCourses.count < oldCourseCount {
+                        self.collectionView?.deleteItems(at: (newCourses.count..<oldCourseCount).map({ IndexPath(item: $0, section: 0) }))
+                    }
+                    self.collectionView?.reloadItems(at: (0..<min(newCourses.count, oldCourseCount)).map({ IndexPath(item: $0, section: 0) }))
+                }, completion: nil)
+                searchBar.becomeFirstResponder()
+            }
+        }
     }
     
     func updateSearchResults(for searchController: UISearchController) {

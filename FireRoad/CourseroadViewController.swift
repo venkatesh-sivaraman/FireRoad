@@ -281,14 +281,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             if let font = cell.textLabel?.font, font.pointSize != 19.0 {
                 cell.textLabel?.font = font.withSize(19.0)
             }
-            cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 14.0)
+            if let font = cell.detailTextLabel?.font, font.pointSize != 13.0 {
+                cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 13.0)
+            }
         }
-        let paraStyle = NSMutableParagraphStyle()
-        paraStyle.hyphenationFactor = 0.7
-        paraStyle.alignment = .center
-        if let title = course.subjectTitle {
-            cell.detailTextLabel?.attributedText = NSAttributedString(string: title, attributes: [.paragraphStyle: paraStyle])
-        }
+        cell.detailTextLabel?.text = course.subjectTitle ?? ""
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
         if CourseManager.shared.isLoaded,
             (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0 {

@@ -71,7 +71,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     var justLoaded = false
-    
+    var addingNewScheduleDocument = false
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -142,7 +143,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             return
         }
         do {
-            currentSchedule = try ScheduleDocument(contentsOfFile: url.path)
+            if CourseManager.shared.isLoaded {
+                currentSchedule = try ScheduleDocument(contentsOfFile: url.path)
+            }
             UserDefaults.standard.set(url.lastPathComponent, forKey: recentSchedulePathDefaultsKey)
         } catch {
             print("Error loading user: \(error)")
@@ -150,6 +153,21 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     func loadNewSchedule(named name: String, courses: [Course] = [], nonDuplicate: Bool = true, addToEmptyIfPossible: Bool = false) {
+        if !CourseManager.shared.isLoaded {
+            DispatchQueue.global().async {
+                self.addingNewScheduleDocument = true
+                while !CourseManager.shared.isLoaded {
+                    usleep(100)
+                }
+                DispatchQueue.main.async {
+                    let newCourses = courses.flatMap { CourseManager.shared.getCourse(withID: $0.subjectID!) }
+                    self.loadNewSchedule(named: name, courses: newCourses, nonDuplicate: nonDuplicate, addToEmptyIfPossible: addToEmptyIfPossible)
+                    self.addingNewScheduleDocument = false
+                }
+            }
+            return
+        }
+
         if addToEmptyIfPossible, let schedule = currentSchedule,
             schedule.courses.count == 0 {
             for course in courses {
@@ -197,26 +215,31 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             DispatchQueue.global().async {
                 while !CourseManager.shared.isLoaded {
                     usleep(100)
-                }
-                var loaded = false
-                if let recentPath = UserDefaults.standard.string(forKey: self.recentSchedulePathDefaultsKey),
-                    let url = self.urlForSchedule(named: recentPath) {
-                    do {
-                        try DispatchQueue.main.sync {
-                            self.currentSchedule = try ScheduleDocument(contentsOfFile: url.path)
-                        }
-                        loaded = true
-                    } catch {
-                        print("Error loading user: \(error)")
+                    if self.addingNewScheduleDocument {
+                        return
                     }
                 }
-                if !loaded {
-                    DispatchQueue.main.async {
-                        self.loadNewSchedule(named: "First Steps\(SchedulePathExtension)")
+                if !self.addingNewScheduleDocument {
+                    var loaded = false
+                    if let recentPath = UserDefaults.standard.string(forKey: self.recentSchedulePathDefaultsKey),
+                        let url = self.urlForSchedule(named: recentPath) {
+                        do {
+                            try DispatchQueue.main.sync {
+                                self.currentSchedule = try ScheduleDocument(contentsOfFile: url.path)
+                            }
+                            loaded = true
+                        } catch {
+                            print("Error loading user: \(error)")
+                        }
+                    }
+                    if !loaded {
+                        DispatchQueue.main.async {
+                            self.loadNewSchedule(named: "First Steps\(SchedulePathExtension)")
+                        }
                     }
                 }
             }
-        } else {
+        } else if !addingNewScheduleDocument {
             var loaded = false
             if let recentPath = UserDefaults.standard.string(forKey: recentSchedulePathDefaultsKey),
                 let url = urlForSchedule(named: recentPath) {

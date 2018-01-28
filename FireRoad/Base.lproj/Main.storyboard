@@ -88,7 +88,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="116" height="94"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" tag="34" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="249" text="A Really Titularly, Which Won't Fit on This Label" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" minimumScaleFactor="0.80000000000000004" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8dy-I6-nZD">
+                                                <label opaque="NO" userInteractionEnabled="NO" tag="34" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="249" text="A Really Titularly, Which Won't Fit on This Label" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsLetterSpacingToFitWidth="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8dy-I6-nZD">
                                                     <rect key="frame" x="6" y="38" width="103" height="48"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" relation="greaterThanOrEqual" priority="995" constant="40" id="wAb-Fl-9XP"/>
@@ -2659,8 +2659,8 @@
                                 <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Add classes by searching above, or quickly add a semester from the My Road tab by tapping the “…” icon." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Amq-xi-BzN">
-                                <rect key="frame" x="22.5" y="357" width="332.5" height="64.5"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Add classes by searching above, or add an entire semester from the My Road tab." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Amq-xi-BzN">
+                                <rect key="frame" x="22.5" y="357" width="330.5" height="42.5"/>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                 <color key="textColor" white="0.5" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
@@ -3867,6 +3867,6 @@
         <image name="warning-outline" width="32" height="32"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="5m9-3K-xoz"/>
+        <segue reference="EfL-Rb-tAe"/>
     </inferredMetricsTieBreakers>
 </document>
