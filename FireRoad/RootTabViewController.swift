@@ -50,8 +50,8 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if CourseManager.shared.allowsRecommendations == nil ||
-            (CourseManager.shared.allowsRecommendations == true &&
+        if AppSettings.shared.allowsRecommendations == nil ||
+            (AppSettings.shared.allowsRecommendations == true &&
                 (CourseManager.shared.recommenderUserID == nil ||
                     CourseManager.shared.loadPassword() == nil)) {
             showAuthenticationView()
@@ -261,7 +261,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     }
     
     func authenticationViewController(_ auth: AuthenticationViewController, finishedSuccessfully success: Bool) {
-        CourseManager.shared.allowsRecommendations = success
+        AppSettings.shared.allowsRecommendations = success
         if success {
             CourseManager.shared.recommenderUserID = Int(auth.username)
             CourseManager.shared.savePassword(auth.password)

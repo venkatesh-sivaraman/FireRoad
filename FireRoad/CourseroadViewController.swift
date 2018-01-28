@@ -112,12 +112,13 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateNavigationBar()
+        currentUser?.clearWarningsCache()
         reloadViewAfterCollectionViewUpdate()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.reloadCollectionView()
+        reloadCollectionView()
         if let offset = collectionViewOffsetWhenLoaded {
             collectionView.setContentOffset(offset, animated: false)
             collectionViewOffsetWhenLoaded = nil
@@ -288,6 +289,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         cell.detailTextLabel?.text = course.subjectTitle ?? ""
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
         if CourseManager.shared.isLoaded,
+            !AppSettings.shared.hidesAllWarnings,
             (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0 {
             if currentUser?.overridesWarnings(for: course) == false {
                 cell.showsWarningIcon = true
@@ -614,6 +616,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             }
             let course = courses[indexPath.item]
             if CourseManager.shared.isLoaded,
+                !AppSettings.shared.hidesAllWarnings,
                 (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0 {
                 if currentUser?.overridesWarnings(for: course) == false {
                     cell.showsWarningIcon = true

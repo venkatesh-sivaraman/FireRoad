@@ -152,7 +152,7 @@ class User: UserDocument {
         for (semester, courses) in selectedSubjects {
             selectedSubjects[semester] = courses.map({ CourseManager.shared.getCourse(withID: $0.subjectID!) ?? $0 })
         }
-        warningsCache.removeAll()
+        clearWarningsCache()
         var newOverrides: [Course: Bool] = [:]
         for (course, over) in overrides {
             guard let newCourse = CourseManager.shared.getCourse(withID: course.subjectID!) else {
@@ -216,6 +216,10 @@ class User: UserDocument {
     
     var overrides: [Course: Bool] = [:]
     
+    func clearWarningsCache() {
+        warningsCache.removeAll()
+    }
+    
     func warningsForCourse(_ course: Course, in semester: UserSemester) -> [CourseWarning] {
         guard semester != .PreviousCredit else {
             return []
@@ -253,7 +257,7 @@ class User: UserDocument {
         for coreqList in course.corequisites {
             var satisfied = false
             for coreq in coreqList {
-                for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
+                for otherSemester in UserSemester.allSemesters where (AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue <= semester.rawValue) || (!AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue < semester.rawValue) {
                     for course in courses(forSemester: otherSemester) {
                         if course.satisfies(requirement: coreq) {
                             satisfied = true
@@ -464,7 +468,7 @@ class User: UserDocument {
     
     override func setNeedsSave() {
         super.setNeedsSave()
-        warningsCache.removeAll()
+        clearWarningsCache()
         relevanceCache = [:]
     }
     

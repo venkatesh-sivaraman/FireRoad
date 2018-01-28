@@ -52,33 +52,52 @@ class CourseroadWarningsViewController: UITableViewController {
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
+        if AppSettings.shared.hidesAllWarnings {
+            return allWarnings.count + 1
+        }
         return allWarnings.count
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return allWarnings[section].warnings.count + 1
+        if AppSettings.shared.hidesAllWarnings, section == 0 {
+            return 0
+        }
+        let actualSection = AppSettings.shared.hidesAllWarnings ? section - 1 : section
+        return allWarnings[actualSection].warnings.count + 1
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return allWarnings[section].course.subjectID
+        if AppSettings.shared.hidesAllWarnings, section == 0 {
+            return nil
+        }
+        let actualSection = AppSettings.shared.hidesAllWarnings ? section - 1 : section
+        return allWarnings[actualSection].course.subjectID
+    }
+    
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if AppSettings.shared.hidesAllWarnings, section == 0 {
+            return "The Hide All Warnings setting is currently on. Change this in the Settings (from the Explore tab) to display warnings in your road."
+        }
+        return nil
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: indexPath.row == 0 ? "OverrideCell" : "WarningCell", for: indexPath)
 
+        let actualSection = AppSettings.shared.hidesAllWarnings ? indexPath.section - 1 : indexPath.section
         if indexPath.row == 0 {
             if let overrideSwitch = cell.viewWithTag(12) as? UISwitch {
-                overrideSwitch.isOn = allWarnings[indexPath.section].overridden
+                overrideSwitch.isOn = allWarnings[actualSection].overridden
                 overrideSwitch.removeTarget(nil, action: nil, for: .valueChanged)
                 overrideSwitch.addTarget(self, action: #selector(CourseroadWarningsViewController.overrideSwitchChanged(_:)), for: .valueChanged)
             }
         } else {
-            let warning = allWarnings[indexPath.section].warnings[indexPath.row - 1]
+            let warning = allWarnings[actualSection].warnings[indexPath.row - 1]
             let textLabel = (cell.viewWithTag(12) as? UILabel) ?? cell.textLabel
             let detail = (cell.viewWithTag(34) as? UILabel) ?? cell.detailTextLabel
             textLabel?.text = warning.type.rawValue
             detail?.text = warning.message ?? ""
-            cell.contentView.alpha = allWarnings[indexPath.section].overridden ? 0.3 : 1.0
+            cell.contentView.alpha = allWarnings[actualSection].overridden ? 0.3 : 1.0
         }
 
         return cell
@@ -89,7 +108,8 @@ class CourseroadWarningsViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        delegate?.warningsController(self, requestedDetailsAbout: allWarnings[indexPath.section].course)
+        let actualSection = AppSettings.shared.hidesAllWarnings ? indexPath.section - 1 : indexPath.section
+        delegate?.warningsController(self, requestedDetailsAbout: allWarnings[actualSection].course)
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -161,9 +181,10 @@ class CourseroadWarningsViewController: UITableViewController {
         guard let selectedIndexPath = indexPath else {
             return
         }
-        let newItem = (allWarnings[selectedIndexPath.section].course, allWarnings[selectedIndexPath.section].warnings, sender.isOn)
-        allWarnings[selectedIndexPath.section] = newItem
-        delegate?.warningsController(self, setOverride: sender.isOn, for: allWarnings[selectedIndexPath.section].course)
+        let actualSection = AppSettings.shared.hidesAllWarnings ? selectedIndexPath.section - 1 : selectedIndexPath.section
+        let newItem = (allWarnings[actualSection].course, allWarnings[actualSection].warnings, sender.isOn)
+        allWarnings[actualSection] = newItem
+        delegate?.warningsController(self, setOverride: sender.isOn, for: allWarnings[actualSection].course)
         tableView.reloadSections(IndexSet(integer: selectedIndexPath.section), with: .fade)
     }
 }

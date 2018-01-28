@@ -24,6 +24,8 @@
 		962C97652016E6390046C13D /* RequirementsProgressController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C97642016E6390046C13D /* RequirementsProgressController.swift */; };
 		962C9769201BF0FC0046C13D /* UserDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C9768201BF0FC0046C13D /* UserDocument.swift */; };
 		962C976B201CFD520046C13D /* ScheduleItemProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976A201CFD520046C13D /* ScheduleItemProviders.swift */; };
+		962C976D201E46D40046C13D /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976C201E46D30046C13D /* AppSettings.swift */; };
+		962C976F201E4E7C0046C13D /* AppSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976E201E4E7C0046C13D /* AppSettingsViewController.swift */; };
 		962DAD661F89A6180011D96F /* RootTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962DAD651F89A6180011D96F /* RootTabViewController.swift */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
 		9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* CatalogViewController.swift */; };
@@ -118,6 +120,8 @@
 		962C97642016E6390046C13D /* RequirementsProgressController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsProgressController.swift; sourceTree = "<group>"; };
 		962C9768201BF0FC0046C13D /* UserDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDocument.swift; sourceTree = "<group>"; };
 		962C976A201CFD520046C13D /* ScheduleItemProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleItemProviders.swift; sourceTree = "<group>"; };
+		962C976C201E46D30046C13D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		962C976E201E4E7C0046C13D /* AppSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsViewController.swift; sourceTree = "<group>"; };
 		962DAD651F89A6180011D96F /* RootTabViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabViewController.swift; sourceTree = "<group>"; };
 		963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FireRoad-Bridging-Header.h"; sourceTree = "<group>"; };
 		9646CFCF1EB921FE005F87CB /* FireRoad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireRoad.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -245,6 +249,8 @@
 				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
 				960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */,
 				96AC5F11200B047E00D80839 /* AuthenticationViewController.swift */,
+				962C976C201E46D30046C13D /* AppSettings.swift */,
+				962C976E201E4E7C0046C13D /* AppSettingsViewController.swift */,
 				968F2A1A1FE59F880082EE40 /* Browse View */,
 				9669C7CA1F9062A800E60D89 /* Course Road */,
 				96EBE5641FBEB3F900FABE1E /* Schedule */,
@@ -537,6 +543,7 @@
 				96DD973A2005CCB000E45F5F /* ComputeQueue.swift in Sources */,
 				960A1F0A1FDA21A500C53E43 /* CourseDisplayManager.swift in Sources */,
 				968F2A191FE223480082EE40 /* ScheduleConstraintViewController.swift in Sources */,
+				962C976F201E4E7C0046C13D /* AppSettingsViewController.swift in Sources */,
 				968F2A221FE5C4BE0082EE40 /* CourseListingViewController.swift in Sources */,
 				965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */,
 				9646CFF51EB922C3005F87CB /* Course.swift in Sources */,
@@ -558,6 +565,7 @@
 				96EBE5661FBF9B8500FABE1E /* ScheduleViewController.swift in Sources */,
 				9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */,
 				96AC5F12200B047E00D80839 /* AuthenticationViewController.swift in Sources */,
+				962C976D201E46D40046C13D /* AppSettings.swift in Sources */,
 				96C776A31FDF6D8600157F2D /* UITextViewPlaceholder.swift in Sources */,
 				96C7769F1FDEDCBF00157F2D /* RequirementsListManager.swift in Sources */,
 				96AC5F14200B125700D80839 /* KeychainItemWrapper.swift in Sources */,

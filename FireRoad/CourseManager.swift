@@ -592,31 +592,6 @@ class CourseManager: NSObject {
     
     // MARK: - Ratings
 
-    static let allowsRecommendationsDefaultsKey = "CourseManager.allowsRecommendations"
-
-    private var _allowsRecommendations: Bool?
-    var allowsRecommendations: Bool? {
-        get {
-            if _allowsRecommendations == nil {
-                switch UserDefaults.standard.integer(forKey: CourseManager.allowsRecommendationsDefaultsKey) {
-                case 0:
-                    _allowsRecommendations = nil
-                case 1:
-                    _allowsRecommendations = false
-                default:
-                    _allowsRecommendations = true
-                }
-            }
-            return _allowsRecommendations
-        } set {
-            if let newValue = newValue {
-                UserDefaults.standard.set(newValue ? 2 : 1, forKey: CourseManager.allowsRecommendationsDefaultsKey)
-            } else {
-                UserDefaults.standard.set(0, forKey: CourseManager.allowsRecommendationsDefaultsKey)
-            }
-        }
-    }
-    
     static let userIDDefaultsKey = "CourseManager.userID"
     static let userRatingsDefaultsKey = "CourseManager.userRatings"
     static let allSubjectRatingsDefaultsKey = "CourseManager.allSubjectRatings"
@@ -681,7 +656,7 @@ class CourseManager: NSObject {
     static let recommenderFetchURL = "https://venkats.scripts.mit.edu/fireroad/recommend/get/"
 
     private func verifyRecommender(completion: @escaping () -> Void) {
-        guard allowsRecommendations == true,
+        guard AppSettings.shared.allowsRecommendations == true,
             let userID = recommenderUserID,
             var comps = URLComponents(string: CourseManager.recommenderVerifyURL) else {
             return
@@ -775,7 +750,7 @@ class CourseManager: NSObject {
     private var userRatingsToSubmit: [String: Int]?
     
     func submitUserRatingsImmediately(ratings: [String: Int], completion: ((Bool) -> Void)? = nil, tryOnce: Bool = false) {
-        guard allowsRecommendations == true, ratings.count > 0,
+        guard AppSettings.shared.allowsRecommendations == true, ratings.count > 0,
             let url = URL(string: CourseManager.recommenderSubmitURL) else {
             return
         }
@@ -827,7 +802,7 @@ class CourseManager: NSObject {
     }
     
     func submitUserRatings(ratings: [String: Int], completion: ((Bool) -> Void)? = nil, tryOnce: Bool = false) {
-        guard allowsRecommendations == true, ratings.count > 0 else {
+        guard AppSettings.shared.allowsRecommendations == true, ratings.count > 0 else {
             return
         }
         if userRatingsToSubmit != nil {
@@ -863,7 +838,7 @@ class CourseManager: NSObject {
     var isLoadingSubjectRecommendations = false
     
     func fetchSubjectRecommendations(completion: (([String: [Course: Float]]?, String?) -> Void)?) {
-        guard allowsRecommendations == true, let userID = recommenderUserID, isLoaded else {
+        guard AppSettings.shared.allowsRecommendations == true, let userID = recommenderUserID, isLoaded else {
             completion?(nil, nil)
             return
         }

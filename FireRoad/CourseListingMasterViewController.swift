@@ -173,7 +173,7 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
     }
 }
 
-class CourseListingMasterViewController: CourseListingDisplayController, UICollectionViewDelegateFlowLayout {
+class CourseListingMasterViewController: CourseListingDisplayController, UICollectionViewDelegateFlowLayout, AppSettingsViewControllerDelegate {
 
     var recommendedCourses: [Course] = []
     var recommendationMessage: String?
@@ -386,6 +386,28 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         popDown.didMove(toParentViewController: self)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
             popDown.show(animated: true)
+        }
+    }
+    
+    // MARK: - Settings
+    
+    @IBAction func settingsButtonTapped(_ sender: AnyObject) {
+        guard let settings = storyboard?.instantiateViewController(withIdentifier: "AppSettingsVC") as? AppSettingsViewController else {
+            return
+        }
+        settings.delegate = self
+        let nav = UINavigationController(rootViewController: settings)
+        nav.modalPresentationStyle = .formSheet
+        present(nav, animated: true, completion: nil)
+    }
+    
+    func settingsViewControllerDismissed(_ settings: AppSettingsViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func settingsViewControllerWantsAuthenticationView(_ settings: AppSettingsViewController) {
+        dismiss(animated: true) {
+            (self.rootParent as? RootTabViewController)?.showAuthenticationView()
         }
     }
 }
