@@ -26,6 +26,7 @@
 		962C976B201CFD520046C13D /* ScheduleItemProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976A201CFD520046C13D /* ScheduleItemProviders.swift */; };
 		962C976D201E46D40046C13D /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976C201E46D30046C13D /* AppSettings.swift */; };
 		962C976F201E4E7C0046C13D /* AppSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976E201E4E7C0046C13D /* AppSettingsViewController.swift */; };
+		962C9771201E5BD90046C13D /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = 962C9770201E5BD90046C13D /* license.txt */; };
 		962DAD661F89A6180011D96F /* RootTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962DAD651F89A6180011D96F /* RootTabViewController.swift */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
 		9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* CatalogViewController.swift */; };
@@ -122,6 +123,7 @@
 		962C976A201CFD520046C13D /* ScheduleItemProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleItemProviders.swift; sourceTree = "<group>"; };
 		962C976C201E46D30046C13D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		962C976E201E4E7C0046C13D /* AppSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsViewController.swift; sourceTree = "<group>"; };
+		962C9770201E5BD90046C13D /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
 		962DAD651F89A6180011D96F /* RootTabViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabViewController.swift; sourceTree = "<group>"; };
 		963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FireRoad-Bridging-Header.h"; sourceTree = "<group>"; };
 		9646CFCF1EB921FE005F87CB /* FireRoad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireRoad.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -268,6 +270,7 @@
 				968F2A1D1FE5A36E0082EE40 /* departments.txt */,
 				96293C471FEAD21300F1BDFD /* color_checker.py */,
 				963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */,
+				962C9770201E5BD90046C13D /* license.txt */,
 			);
 			path = FireRoad;
 			sourceTree = "<group>";
@@ -518,6 +521,7 @@
 				968F2A1E1FE5A36E0082EE40 /* departments.txt in Resources */,
 				9646CFDF1EB921FE005F87CB /* LaunchScreen.storyboard in Resources */,
 				96293C481FEAD21300F1BDFD /* color_checker.py in Resources */,
+				962C9771201E5BD90046C13D /* license.txt in Resources */,
 				9646CFDC1EB921FE005F87CB /* Assets.xcassets in Resources */,
 				9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */,
 				9646CFDA1EB921FE005F87CB /* Main.storyboard in Resources */,
