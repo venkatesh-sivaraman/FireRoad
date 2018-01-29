@@ -186,6 +186,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             }
             
             justLoaded = false
+        } else {
+            updateCourseVisibility()
         }
         updateFilterButton()
         dismissPopDownTableMenu()

@@ -14,9 +14,10 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         case user = "My Courses"
         case majors = "Majors"
         case minors = "Minors"
+        case masters = "Masters"
         case other = "Other"
         
-        static let ordering: [RequirementBrowserTableSection] = [.user, .majors, .minors, .other]
+        static let ordering: [RequirementBrowserTableSection] = [.user, .majors, .minors, .masters, .other]
     }
     
     enum SortMode: String {
@@ -30,6 +31,18 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         didSet {
             UserDefaults.standard.set(sortMode.rawValue, forKey: RequirementsBrowserViewController.sortModeDefaultsKey)
         }
+    }
+    
+    var showAllElements: [RequirementBrowserTableSection: Bool] = [:]
+    
+    func elementDisplayCutoff(for section: RequirementBrowserTableSection) -> Int {
+        if searchController?.isActive == true,
+            let text = searchController?.searchBar.text,
+            text.count > 0, let results = searchResults {
+            return results.first(where: { $0.0 == section })?.1.count ?? 0
+        }
+        let rawCount = organizedRequirementLists.first(where: { $0.0 == section })?.1.count ?? 0
+        return (showAllElements[section] ?? (section == .user)) ? rawCount : min(rawCount, 5)
     }
     
     var searchController: UISearchController?
@@ -48,6 +61,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     
     let listCellIdentifier = "RequirementsListCell"
     let noCoursesCellIdentifier = "NoCoursesCell"
+    let showAllCellIdentifier = "ShowAllCell"
     let listVCIdentifier = "RequirementsListVC"
     
     override func viewDidLoad() {
@@ -120,6 +134,8 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
                 category = .majors
             } else if reqList.listID.range(of: "minor", options: .caseInsensitive) != nil {
                 category = .minors
+            } else if reqList.listID.range(of: "master", options: .caseInsensitive) != nil {
+                category = .masters
             }
             if organizedCategories[category] == nil {
                 organizedCategories[category] = [reqList]
@@ -268,7 +284,11 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         if section == 0, displayedRequirementLists[section].1.count == 0 {
             return 1
         }
-        return displayedRequirementLists[section].1.count
+        let cutoff = elementDisplayCutoff(for: displayedRequirementLists[section].0)
+        if cutoff != displayedRequirementLists[section].1.count {
+            return cutoff + 1
+        }
+        return cutoff
     }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -290,6 +310,12 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             let cell = tableView.dequeueReusableCell(withIdentifier: noCoursesCellIdentifier, for: indexPath)
             return cell
         }
+        let cutoff = elementDisplayCutoff(for: displayedRequirementLists[indexPath.section].0)
+        if cutoff != displayedRequirementLists[indexPath.section].1.count, indexPath.row == cutoff {
+            let cell = tableView.dequeueReusableCell(withIdentifier: showAllCellIdentifier, for: indexPath)
+            return cell
+        }
+
         let cell = tableView.dequeueReusableCell(withIdentifier: listCellIdentifier, for: indexPath)
         let textLabel = cell.viewWithTag(12) as? UILabel
         let detailTextLabel = cell.viewWithTag(34) as? UILabel
@@ -342,6 +368,14 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let cutoff = elementDisplayCutoff(for: displayedRequirementLists[indexPath.section].0)
+        if cutoff != displayedRequirementLists[indexPath.section].1.count, indexPath.row == cutoff {
+            showAllElements[displayedRequirementLists[indexPath.section].0] = true
+            tableView.deselectRow(at: indexPath, animated: true)
+            tableView.reloadData()
+            return
+        }
+
         let reqList = displayedRequirementLists[indexPath.section].1[indexPath.row]
         guard let nav = storyboard?.instantiateViewController(withIdentifier: listVCIdentifier) as? UINavigationController,
             let listVC = nav.topViewController as? RequirementsListViewController else {

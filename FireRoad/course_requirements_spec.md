@@ -50,4 +50,4 @@ chem_requirement, "Chemistry Requirement" := x/5.112
 ```
 
 ## Other Notes
-To display arbitrary text on a course tile, enclose the text in double quotes - ""text""
+If you can't encode the requirement in the above format (e.g. "3 subjects in math or economics"), enclose the text in double quotes - ""text"". After that, use a list modification describing how many courses are required: `""3 math or economics subjects""{>=3}`.

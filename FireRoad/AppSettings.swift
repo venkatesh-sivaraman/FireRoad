@@ -114,6 +114,6 @@ class AppSettings: NSObject {
                 self.allowsCorequisitesTogether = (newValue as? Bool) ?? true
             })], header: "My Road", footer: "Turn off Allow Corequisites Together to display a warning when corequisites are taken in the same semester."),
         AppSettingsGroup(items: [
-            AppSettingsItem(title: "Created by Venkatesh Sivaraman. In-app icons courtesy of icons8.com. All subject descriptions, evaluations, and course requirements © Massachusetts Institute of Technology.", type: .readOnlyText, getter: nil, setter: nil)], header: "Acknowledgements", footer: nil),
+            AppSettingsItem(title: "Created by Venkatesh Sivaraman. Course evaluation data courtesy of Edward Fan. In-app icons courtesy of icons8.com. All subject descriptions, evaluations, and course requirements © Massachusetts Institute of Technology.", type: .readOnlyText, getter: nil, setter: nil)], header: "Acknowledgements", footer: nil),
     ]
 }

@@ -111,8 +111,11 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 var rows: [PresentationItem] = presentationItems(for: topLevelRequirement)
                 // Remove the title
                 rows.removeFirst()
-                if topLevelRequirement.connectionType != .all, topLevelRequirement.thresholdDescription.count > 0, (topLevelRequirement.contentDescription ?? "").count == 0, !topLevelRequirement.isPlainString {
-                    rows.insert(PresentationItem(cellType: .title2, statement: topLevelRequirement, text: topLevelRequirement.thresholdDescription.capitalizingFirstLetter() + ":"), at: 0)
+                if topLevelRequirement.connectionType != .all || topLevelRequirement.threshold.cutoff > 1,
+                    topLevelRequirement.thresholdDescription.count > 0,
+                    (topLevelRequirement.contentDescription ?? "").count == 0,
+                    !topLevelRequirement.isPlainString {
+                    rows.insert(PresentationItem(cellType: .title2, statement: nil, text: topLevelRequirement.thresholdDescription.capitalizingFirstLetter() + ":"), at: 0)
                 }
                 ret.append((topLevelRequirement.title ?? "", topLevelRequirement, rows))
             }
@@ -580,6 +583,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
             let cell = sender.view as? CourseThumbnailCell,
             let id = cell.course?.subjectID,
+            id.count > 0,
             CourseManager.shared.getCourse(withID: id) != nil else {
                 return
         }

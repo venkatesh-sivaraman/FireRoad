@@ -81,7 +81,7 @@ class RequirementsListStatement: NSObject {
     
     var thresholdDescription: String {
         var ret = ""
-        if connectionType == .all {
+        if connectionType == .all, threshold.cutoff <= 1 {
             ret = "select all"
         } else if threshold.cutoff > 1 {
             switch threshold.type {
@@ -96,7 +96,11 @@ class RequirementsListStatement: NSObject {
             }
             if threshold.criterion == .units {
                 ret += " units"
+            } else if connectionType == .all {
+                ret += " subjects"
             }
+        } else if threshold.cutoff == 0, connectionType == .any {
+            ret = "optional – select any"
         } else if connectionType == .any {
             if let reqs = requirements, reqs.count == 2 {
                 ret = "select either"
@@ -329,7 +333,11 @@ class RequirementsListStatement: NSObject {
         }
         
         let (components, cType) = separateTopLevelItems(in: filteredStatement)
-        connectionType = cType
+        if threshold.cutoff == 0 && threshold.type == .greaterThanOrEqual {
+            connectionType = .any
+        } else {
+            connectionType = cType
+        }
         isPlainString = cType == .none
         
         if components.count == 1 {

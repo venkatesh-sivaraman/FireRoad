@@ -215,6 +215,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		962C9772201EA6240046C13D /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				962C976C201E46D30046C13D /* AppSettings.swift */,
+				962C976E201E4E7C0046C13D /* AppSettingsViewController.swift */,
+			);
+			name = Settings;
+			sourceTree = "<group>";
+		};
 		9646CFC61EB921FE005F87CB = {
 			isa = PBXGroup;
 			children = (
@@ -251,8 +260,7 @@
 				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
 				960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */,
 				96AC5F11200B047E00D80839 /* AuthenticationViewController.swift */,
-				962C976C201E46D30046C13D /* AppSettings.swift */,
-				962C976E201E4E7C0046C13D /* AppSettingsViewController.swift */,
+				962C9772201EA6240046C13D /* Settings */,
 				968F2A1A1FE59F880082EE40 /* Browse View */,
 				9669C7CA1F9062A800E60D89 /* Course Road */,
 				96EBE5641FBEB3F900FABE1E /* Schedule */,
