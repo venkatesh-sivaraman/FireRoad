@@ -54,6 +54,18 @@ class RequirementsListStatement: NSObject {
             self.cutoff = number
             self.criterion = criterion
         }
+        
+        func cutoff(for criterion: ThresholdCriterion) -> Int {
+            var cutoff: Int
+            if self.criterion == criterion {
+                cutoff = self.cutoff
+            } else if self.criterion == .subjects {
+                cutoff = self.cutoff * 12
+            } else {
+                cutoff = self.cutoff / 12
+            }
+            return cutoff
+        }
     }
     
     var connectionType: ConnectionType = .all
@@ -467,7 +479,7 @@ class RequirementsListStatement: NSObject {
         }
         if let reqs = requirements {
             if distinctThreshold.cutoff > 0 || (connectionType == .all && threshold.cutoff > 1) {
-                return (fulfillmentProgress(for: criterion), threshold.cutoff)
+                return (fulfillmentProgress(for: criterion), threshold.cutoff(for: criterion))
             }
             let progresses = reqs.map({ $0.fulfilledFraction(for: criterion) })
             if connectionType == .all {
@@ -475,15 +487,18 @@ class RequirementsListStatement: NSObject {
             }
             let sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled }).map({ $0.fulfilledFraction(for: criterion) })
             if threshold.cutoff > 1 {
-                let tempResult = sortedProgresses[0..<min(threshold.cutoff, sortedProgresses.count)].reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
-                return (min(threshold.cutoff, tempResult.0), threshold.cutoff)
-            } else if threshold.cutoff > 0 {
-                return sortedProgresses.first ?? (0, threshold.cutoff)
+                if threshold.criterion == .subjects {
+                    let tempResult = sortedProgresses[0..<min(threshold.cutoff, sortedProgresses.count)].reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
+                    return (min(threshold.cutoff(for: criterion), tempResult.0), threshold.cutoff(for: criterion))
+                } else {
+                    let tempResult = sortedProgresses.reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
+                    return (min(threshold.cutoff(for: criterion), tempResult.0), threshold.cutoff(for: criterion))
+                }
             } else {
                 return (sortedProgresses.reduce(0, { $0 + $1.0 }), 0)
             }
         }
-        return (fulfillmentProgress(for: criterion), threshold.cutoff)
+        return (fulfillmentProgress(for: criterion), threshold.cutoff(for: criterion))
     }
     
     var percentageFulfilled: Float {
@@ -545,15 +560,37 @@ class RequirementsList: RequirementsListStatement {
     var mediumTitle: String?
     var titleNoDegree: String?
     var listID: String
+    var fileURL: URL?
+    
+    var isLoaded = false
     
     init(contentsOf file: String) throws {
-        self.listID = URL(fileURLWithPath: file).deletingPathExtension().lastPathComponent
-        let fileText = try String(contentsOfFile: file)
+        let url = URL(fileURLWithPath: file)
+        self.listID = url.deletingPathExtension().lastPathComponent
+        fileURL = url
         super.init()
-        self.parseRequirementsList(from: fileText)
+        let fileText = try String(contentsOfFile: file)
+        self.parseRequirementsList(from: fileText, partial: true)
     }
     
-    func parseRequirementsList(from string: String) {
+    override var requirements: [RequirementsListStatement]? {
+        get {
+            if !isLoaded, let file = fileURL?.path {
+                isLoaded = true
+                do {
+                    let fileText = try String(contentsOfFile: file)
+                    self.parseRequirementsList(from: fileText)
+                } catch {
+                    print("Error loading requirements list: \(error)")
+                }
+            }
+            return super.requirements
+        } set {
+            super.requirements = newValue
+        }
+    }
+    
+    func parseRequirementsList(from string: String, partial: Bool = false) {
         var lines = string.components(separatedBy: "\n").flatMap { (line) -> String? in
             if let range = line.range(of: SyntaxConstants.commentCharacter) {
                 if range.lowerBound == line.startIndex {
@@ -589,6 +626,10 @@ class RequirementsList: RequirementsListStatement {
                 }
             }
         }
+        if partial {
+            return
+        }
+        
         // Second line is the description of the course
         let descriptionLine = lines.removeFirst().trimmingCharacters(in: .whitespaces)
         if descriptionLine.count > 0 {

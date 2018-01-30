@@ -57,7 +57,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         if let title = requirement.title {
             let cellType: RequirementsListCellType = level <= 2 ? .title1 : .title2
             var titleText = title
-            if requirement.thresholdDescription.count > 0, requirement.connectionType != .all {
+            if requirement.thresholdDescription.count > 0, requirement.connectionType != .all, !requirement.isPlainString {
                 titleText += " (\(requirement.thresholdDescription))"
             }
             items.append(PresentationItem(cellType: cellType, statement: requirement, text: titleText))
@@ -143,6 +143,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         super.viewWillAppear(animated)
         loadRequirementsOrDisplay()
         selectedIndexPath = nil
+        navigationController?.setNavigationBarHidden(false, animated: true)
     }
     
     func updateRequirementsStatus() {

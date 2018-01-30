@@ -410,7 +410,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     }
     
     func updateSearchResults(with searchTerm: String? = nil) {
-        guard let searchTerm = searchTerm ?? searchController?.searchBar.text else {
+        guard let searchTerm = (searchTerm ?? searchController?.searchBar.text)?.lowercased() else {
             searchResults = nil
             return
         }
@@ -418,8 +418,8 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         searchResults = []
         for (section, lists) in organizedRequirementLists {
             let filteredLists = lists.filter {
-                $0.title?.contains(searchTerm) == true ||
-                $0.mediumTitle?.contains(searchTerm) == true
+                $0.title?.lowercased().contains(searchTerm) == true ||
+                $0.mediumTitle?.lowercased().contains(searchTerm) == true
             }
             if filteredLists.count > 0 {
                 searchResults?.append((section, filteredLists))

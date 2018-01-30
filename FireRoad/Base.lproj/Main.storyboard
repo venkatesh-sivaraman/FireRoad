@@ -559,7 +559,7 @@
                                             <subviews>
                                                 <label opaque="NO" multipleTouchEnabled="YES" tag="12" contentMode="left" text="This is a really long course title that should take up multiple lines." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cEC-4i-91b">
                                                     <rect key="frame" x="20" y="6" width="303" height="68"/>
-                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
@@ -600,7 +600,7 @@
                                             <subviews>
                                                 <label opaque="NO" multipleTouchEnabled="YES" tag="12" contentMode="left" text="This is a really long course title that should take up multiple lines." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="t4O-PY-JvX">
                                                     <rect key="frame" x="20" y="6" width="307" height="48"/>
-                                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                                                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
