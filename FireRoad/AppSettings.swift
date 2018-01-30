@@ -96,6 +96,20 @@ class AppSettings: NSObject {
         }
     }
     
+    private let showedIntroDefaultsKey = "AppSettings.showedIntro"
+    
+    var showedIntro: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: showedIntroDefaultsKey) == nil {
+                UserDefaults.standard.set(false, forKey: showedIntroDefaultsKey)
+                return false
+            }
+            return UserDefaults.standard.bool(forKey: showedIntroDefaultsKey)
+        } set {
+            UserDefaults.standard.set(newValue, forKey: showedIntroDefaultsKey)
+        }
+    }
+
     weak var presentationDelegate: AppSettingsDelegate?
     
     lazy var settings: [AppSettingsGroup] = [

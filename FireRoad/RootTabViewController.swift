@@ -8,7 +8,7 @@
 
 import UIKit
 
-class RootTabViewController: UITabBarController, AuthenticationViewControllerDelegate {
+class RootTabViewController: UITabBarController, AuthenticationViewControllerDelegate, IntroViewControllerDelegate {
     
     var blurView: UIVisualEffectView?
     var courseUpdatingHUD: MBProgressHUD?
@@ -40,6 +40,8 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         ]
     }
     
+    var showingIntro = false
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         if justLoaded, !CourseManager.shared.isLoaded {
@@ -50,7 +52,11 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if AppSettings.shared.allowsRecommendations == nil ||
+        if !AppSettings.shared.showedIntro {
+            showingIntro = true
+            showIntro()
+        }
+        if !showingIntro, AppSettings.shared.allowsRecommendations == nil ||
             (AppSettings.shared.allowsRecommendations == true &&
                 (CourseManager.shared.recommenderUserID == nil ||
                     CourseManager.shared.loadPassword() == nil)) {
@@ -334,5 +340,23 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
                 }
             }
         }
+    }
+    
+    // MARK: - Intro
+    
+    func showIntro() {
+        let sb = UIStoryboard(name: "Intro", bundle: nil)
+        guard let intro = sb.instantiateInitialViewController() as? IntroViewController else {
+            print("Couldn't get intro out of storyboard")
+            return
+        }
+        intro.delegate = self
+        present(intro, animated: true, completion: nil)
+    }
+    
+    func introViewControllerDismissed(_ intro: IntroViewController) {
+        showingIntro = false
+        AppSettings.shared.showedIntro = true
+        dismiss(animated: true, completion: nil)
     }
 }

@@ -27,6 +27,8 @@
 		962C976D201E46D40046C13D /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976C201E46D30046C13D /* AppSettings.swift */; };
 		962C976F201E4E7C0046C13D /* AppSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976E201E4E7C0046C13D /* AppSettingsViewController.swift */; };
 		962C9771201E5BD90046C13D /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = 962C9770201E5BD90046C13D /* license.txt */; };
+		962C9774202030A60046C13D /* Intro.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 962C9773202030A60046C13D /* Intro.storyboard */; };
+		962C9776202036C10046C13D /* IntroViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C9775202036C10046C13D /* IntroViewController.swift */; };
 		962DAD661F89A6180011D96F /* RootTabViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962DAD651F89A6180011D96F /* RootTabViewController.swift */; };
 		9646CFD31EB921FE005F87CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD21EB921FE005F87CB /* AppDelegate.swift */; };
 		9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFD41EB921FE005F87CB /* CatalogViewController.swift */; };
@@ -124,6 +126,8 @@
 		962C976C201E46D30046C13D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		962C976E201E4E7C0046C13D /* AppSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsViewController.swift; sourceTree = "<group>"; };
 		962C9770201E5BD90046C13D /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
+		962C9773202030A60046C13D /* Intro.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Intro.storyboard; sourceTree = "<group>"; };
+		962C9775202036C10046C13D /* IntroViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroViewController.swift; sourceTree = "<group>"; };
 		962DAD651F89A6180011D96F /* RootTabViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabViewController.swift; sourceTree = "<group>"; };
 		963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FireRoad-Bridging-Header.h"; sourceTree = "<group>"; };
 		9646CFCF1EB921FE005F87CB /* FireRoad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireRoad.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -260,6 +264,7 @@
 				9646CFD41EB921FE005F87CB /* CatalogViewController.swift */,
 				960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */,
 				96AC5F11200B047E00D80839 /* AuthenticationViewController.swift */,
+				962C9775202036C10046C13D /* IntroViewController.swift */,
 				962C9772201EA6240046C13D /* Settings */,
 				968F2A1A1FE59F880082EE40 /* Browse View */,
 				9669C7CA1F9062A800E60D89 /* Course Road */,
@@ -269,6 +274,7 @@
 				9669C7CB1F9062CB00E60D89 /* Cell Subclasses */,
 				9669C7C01F90623D00E60D89 /* Helpers */,
 				9646CFD81EB921FE005F87CB /* Main.storyboard */,
+				962C9773202030A60046C13D /* Intro.storyboard */,
 				9646CFDB1EB921FE005F87CB /* Assets.xcassets */,
 				9646CFDD1EB921FE005F87CB /* LaunchScreen.storyboard */,
 				9646CFE01EB921FE005F87CB /* Info.plist */,
@@ -529,6 +535,7 @@
 				968F2A1E1FE5A36E0082EE40 /* departments.txt in Resources */,
 				9646CFDF1EB921FE005F87CB /* LaunchScreen.storyboard in Resources */,
 				96293C481FEAD21300F1BDFD /* color_checker.py in Resources */,
+				962C9774202030A60046C13D /* Intro.storyboard in Resources */,
 				962C9771201E5BD90046C13D /* license.txt in Resources */,
 				9646CFDC1EB921FE005F87CB /* Assets.xcassets in Resources */,
 				9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */,
@@ -595,6 +602,7 @@
 				9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */,
 				9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */,
 				962C9769201BF0FC0046C13D /* UserDocument.swift in Sources */,
+				962C9776202036C10046C13D /* IntroViewController.swift in Sources */,
 				961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */,
 				962C97652016E6390046C13D /* RequirementsProgressController.swift in Sources */,
 				9626B6E81F815692009F6F96 /* RequirementsListViewController.swift in Sources */,
