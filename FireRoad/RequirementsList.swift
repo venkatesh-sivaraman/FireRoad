@@ -17,6 +17,7 @@ enum SyntaxConstants {
     static let headerSeparator = "#,#"
     
     static let thresholdParameter = "threshold="
+    static let urlParameter = "url="
 }
 
 class RequirementsListStatement: NSObject {
@@ -572,6 +573,7 @@ class RequirementsList: RequirementsListStatement {
     var titleNoDegree: String?
     var listID: String
     var fileURL: URL?
+    var webURL: URL?
     
     var isLoaded = false
     
@@ -634,6 +636,9 @@ class RequirementsList: RequirementsListStatement {
                     } else {
                         print("\(listID): Invalid threshold parameter declaration: \(noWhitespaceComp)")
                     }
+                } else if let urlRange = noWhitespaceComp.range(of: SyntaxConstants.urlParameter) {
+                    let url = String(noWhitespaceComp[urlRange.upperBound..<noWhitespaceComp.endIndex])
+                    webURL = URL(string: url)
                 }
             }
         }

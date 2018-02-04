@@ -15,6 +15,7 @@ enum RequirementsListCellType: String {
     case description = "DescriptionCell"
     case courseList = "CourseListCell"
     case courseListAccessory = "CourseListAccessoryCell"
+    case url = "URLCell"
 }
 
 protocol RequirementsListViewControllerDelegate: class {
@@ -123,6 +124,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 }
                 ret.append((topLevelRequirement.title ?? "", topLevelRequirement, rows))
             }
+        }
+        if ret.count > 0, (requirementsList as? RequirementsList)?.webURL != nil {
+            let last = ret[ret.count - 1]
+            ret[ret.count - 1] = (last.title, last.statement, last.items + [PresentationItem(cellType: .url, statement: nil, text: "View Requirements on Catalog Site")])
         }
         
         return ret
@@ -291,6 +296,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         let cellType = presentationItems[indexPath.section].items[indexPath.row].cellType
         if cellType == .courseList {
             return 124.0
+        } else if cellType == .url {
+            return 54.0
         }
         return UITableViewAutomaticDimension
     }
@@ -381,6 +388,16 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             }
         }
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let item = presentationItems[indexPath.section].items[indexPath.row]
+        guard item.cellType == .url,
+            let url = (requirementsList as? RequirementsList)?.webURL else {
+            return
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
     }
     
     func progressInformation(for requirement: RequirementsListStatement?) -> (String, UIColor) {
