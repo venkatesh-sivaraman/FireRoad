@@ -113,9 +113,13 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 rows.removeFirst()
                 if topLevelRequirement.connectionType != .all || topLevelRequirement.threshold.cutoff > 1,
                     topLevelRequirement.thresholdDescription.count > 0,
-                    (topLevelRequirement.contentDescription ?? "").count == 0,
+                    (topLevelRequirement.contentDescription ?? "").count == 0 || topLevelRequirement.threshold.cutoff > 1,
                     !topLevelRequirement.isPlainString {
-                    rows.insert(PresentationItem(cellType: .title2, statement: nil, text: topLevelRequirement.thresholdDescription.capitalizingFirstLetter() + ":"), at: 0)
+                    var indexToInsert = 0
+                    if rows[indexToInsert].cellType == .description {
+                        indexToInsert += 1
+                    }
+                    rows.insert(PresentationItem(cellType: .title2, statement: nil, text: topLevelRequirement.thresholdDescription.capitalizingFirstLetter() + ":"), at: indexToInsert)
                 }
                 ret.append((topLevelRequirement.title ?? "", topLevelRequirement, rows))
             }

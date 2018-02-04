@@ -36,7 +36,7 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2dV-qb-ZRW">
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2dV-qb-ZRW">
                                 <rect key="frame" x="0.0" y="20" width="375" height="647"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OGa-lf-dyf">
@@ -176,8 +176,8 @@
                                                             <constraint firstAttribute="width" secondItem="vKS-jf-Abf" secondAttribute="height" multiplier="0.6" id="qt8-Kf-Lpj"/>
                                                         </constraints>
                                                     </imageView>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="View, constrain, and share schedules for the upcoming semester." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Gir-aa-fTv">
-                                                        <rect key="frame" x="37.5" y="167" width="300" height="43"/>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Generate, customize, and share schedules for the upcoming semester." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Gir-aa-fTv">
+                                                        <rect key="frame" x="34.5" y="167" width="306" height="43"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" relation="lessThanOrEqual" constant="320" id="uS4-uX-QFm"/>
                                                         </constraints>
@@ -263,7 +263,7 @@
                             <constraint firstItem="J7W-RW-aLh" firstAttribute="trailing" secondItem="2dV-qb-ZRW" secondAttribute="trailing" id="oqz-x9-QqD"/>
                             <constraint firstItem="UkF-j8-QQB" firstAttribute="top" secondItem="ij3-EC-6zO" secondAttribute="bottom" id="pjy-wg-X6R"/>
                             <constraint firstItem="2dV-qb-ZRW" firstAttribute="leading" secondItem="J7W-RW-aLh" secondAttribute="leading" id="qeU-0A-IEU"/>
-                            <constraint firstItem="J7W-RW-aLh" firstAttribute="bottom" secondItem="2dV-qb-ZRW" secondAttribute="bottom" id="wdL-1x-zCQ"/>
+                            <constraint firstAttribute="bottom" secondItem="2dV-qb-ZRW" secondAttribute="bottom" id="wdL-1x-zCQ"/>
                             <constraint firstItem="RD9-p5-Mhl" firstAttribute="centerX" secondItem="ij3-EC-6zO" secondAttribute="centerX" id="x3L-W9-FAW"/>
                             <constraint firstItem="2dV-qb-ZRW" firstAttribute="top" secondItem="J7W-RW-aLh" secondAttribute="top" id="yIL-Qn-2ot"/>
                             <constraint firstAttribute="bottom" secondItem="uhw-N1-FLM" secondAttribute="bottom" id="yYS-bs-jMT"/>

@@ -302,23 +302,21 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
                     }
                 }
             }, completion: { (completed) in
-                if completed {
-                    self.schedule = newSchedule
+                self.schedule = newSchedule
+                for unit in addedUnits where self.courseCells[unit] != nil {
+                    for cell in self.courseCells[unit]! {
+                        cell.transform = CGAffineTransform(scaleX: 0.001, y: 0.001)
+                        cell.alpha = 0.0
+                    }
+                }
+                UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseOut, animations: {
                     for unit in addedUnits where self.courseCells[unit] != nil {
                         for cell in self.courseCells[unit]! {
-                            cell.transform = CGAffineTransform(scaleX: 0.001, y: 0.001)
-                            cell.alpha = 0.0
+                            cell.transform = .identity
+                            cell.alpha = 1.0
                         }
                     }
-                    UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseOut, animations: {
-                        for unit in addedUnits where self.courseCells[unit] != nil {
-                            for cell in self.courseCells[unit]! {
-                                cell.transform = .identity
-                                cell.alpha = 1.0
-                            }
-                        }
-                    }, completion: nil)
-                }
+                }, completion: nil)
             })
         } else {
             schedule = newSchedule

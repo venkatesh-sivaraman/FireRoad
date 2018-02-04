@@ -150,7 +150,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             guard lists.count > 0 || key == .user else {
                 continue
             }
-            organizedRequirementLists.append((key, lists.sorted(by: { sortMode == .alphabetical ? (($0.mediumTitle ?? "").localizedStandardCompare($1.mediumTitle ?? "") == .orderedAscending) : ($0.percentageFulfilled > $1.percentageFulfilled) })))
+            organizedRequirementLists.append((key, lists.sorted(by: { sortMode == .alphabetical ? (($0.shortTitle ?? "").localizedStandardCompare($1.shortTitle ?? "") == .orderedAscending) : ($0.percentageFulfilled > $1.percentageFulfilled) })))
         }
         
         if searchResults != nil {
@@ -161,10 +161,11 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             UIView.transition(with: self.tableView, duration: 0.2, options: .transitionCrossDissolve, animations: {
                 self.tableView.reloadData()
             }, completion: { completed in
-                if completed, let selectedList = selectedList {
+                if let selectedList = selectedList {
                     // Find the list in the new organization
                     guard let section = self.displayedRequirementLists.index(where: { $0.1.contains(selectedList) }),
-                        let row = self.displayedRequirementLists[section].1.index(of: selectedList) else {
+                        let row = self.displayedRequirementLists[section].1.index(of: selectedList),
+                        row < self.elementDisplayCutoff(for: self.displayedRequirementLists[section].0) else {
                             return
                     }
                     let ip = IndexPath(row: row, section: section)

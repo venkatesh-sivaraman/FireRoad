@@ -108,6 +108,7 @@ class CourseManager: NSObject {
     typealias DispatchJob = ((Bool) -> Void) -> Void
     
     func loadCourses(completion: ((Bool) -> Void)? = nil) {
+        isLoaded = false
         
         DispatchQueue.global(qos: .background).async {
             self.courses = []
@@ -168,9 +169,7 @@ class CourseManager: NSObject {
         }
         
         for job in jobs {
-            DispatchQueue.global(qos: .background).async {
-                job(groupCompletionBlock)
-            }
+            job(groupCompletionBlock)
         }
     }
     
@@ -1285,7 +1284,7 @@ class CourseManager: NSObject {
             return
         } else {
             let currentFile = fileNames[downloadIndex]
-            let request = URLRequest(url: url.appendingPathComponent(currentFile), cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 5.0)
+            let request = URLRequest(url: url.appendingPathComponent(currentFile), cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 10.0)
             let task = URLSession.shared.downloadTask(with: request, completionHandler: { (downloadURL, response, error) in
                 guard error == nil,
                     let httpResponse = response as? HTTPURLResponse,

@@ -19,9 +19,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         UIView.animate(withDuration: 0.3, animations: {
             self.blurView?.effect = nil
         }, completion: { completed in
-            if completed {
-                self.blurView?.removeFromSuperview()
-            }
+            self.blurView?.removeFromSuperview()
         })
     }
     
@@ -151,10 +149,18 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
                     }
                     self.courseUpdatingHUD?.progress = progress
                 case .completed:
-                    self.hideHUD()
-                    print("Loading courses")
-                    CourseManager.shared.loadCourses()
-                    self.reloadRequirementsView()
+                    if CourseManager.shared.isLoaded {
+                        self.courseUpdatingHUD?.label.text = "Loading subjects…"
+                        self.courseUpdatingHUD?.progress = 0.0
+                        print("Loading courses")
+                        CourseManager.shared.loadCourses()
+                        self.updateCourseLoadingProgressHUD()
+                    } else {
+                        self.hideHUD()
+                        print("Loading courses")
+                        CourseManager.shared.loadCourses()
+                        self.reloadRequirementsView()
+                    }
                 case .error:
                     self.hideHUD()
                     var errorMessage = ""
@@ -229,16 +235,26 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     func reloadRequirementsView() {
         RequirementsListManager.shared.clearRequirementsLists()
-        guard let browserVC = childViewController(where: { $0 is RequirementsBrowserViewController }) as? RequirementsBrowserViewController else {
-            print("Couldn't get requirements view controller")
-            return
+        if let browserVC = childViewController(where: { $0 is RequirementsBrowserViewController }) as? RequirementsBrowserViewController, browserVC.isViewLoaded {
+            browserVC.reloadRequirements()
+        } else {
+            RequirementsListManager.shared.reloadRequirementsLists()
         }
-        browserVC.reloadRequirements()
     }
     
     @objc func tapOnHUD(_ sender: UITapGestureRecognizer) {
         successHUD?.hide(animated: true)
         successHUD = nil
+    }
+    
+    func updateCourseLoadingProgressHUD() {
+        DispatchQueue.global().async {
+            while !CourseManager.shared.isLoaded {
+                self.courseUpdatingHUD?.progress = CourseManager.shared.loadingProgress
+                usleep(100)
+            }
+            self.hideHUD()
+        }
     }
     
     // MARK: - Authentication

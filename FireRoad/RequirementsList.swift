@@ -42,12 +42,14 @@ class RequirementsListStatement: NSObject {
     enum ThresholdCriterion {
         case subjects
         case units
+        case statements
     }
     
     struct Threshold {
         var type: ThresholdType
         var cutoff: Int
         var criterion: ThresholdCriterion
+        static let defaultUnitCount = 12
         
         init(_ type: ThresholdType, number: Int, of criterion: ThresholdCriterion = .subjects) {
             self.type = type
@@ -60,9 +62,9 @@ class RequirementsListStatement: NSObject {
             if self.criterion == criterion {
                 cutoff = self.cutoff
             } else if self.criterion == .subjects {
-                cutoff = self.cutoff * 12
+                cutoff = self.cutoff * Threshold.defaultUnitCount
             } else {
-                cutoff = self.cutoff / 12
+                cutoff = self.cutoff / Threshold.defaultUnitCount
             }
             return cutoff
         }
@@ -81,7 +83,7 @@ class RequirementsListStatement: NSObject {
     }
     var requirement: String?
     
-    var threshold = Threshold(.greaterThanOrEqual, number: 1)
+    var threshold = Threshold(.greaterThanOrEqual, number: 1, of: .statements)
     
     var isPlainString = false
     
@@ -108,7 +110,7 @@ class RequirementsListStatement: NSObject {
             }
             if threshold.criterion == .units {
                 ret += " units"
-            } else if connectionType == .all {
+            } else if threshold.criterion == .subjects, connectionType == .all {
                 ret += " subjects"
             }
         } else if threshold.cutoff == 0, connectionType == .any {
@@ -127,13 +129,13 @@ class RequirementsListStatement: NSObject {
                 ret += " from at most \(distinctThreshold.cutoff) \(categoryText)"
             case .lessThan:
                 let categoryText = (distinctThreshold.cutoff + 1 != 1) ? "categories" : "category"
-                ret = " from at most \(distinctThreshold.cutoff - 1) \(categoryText)"
+                ret += " from at most \(distinctThreshold.cutoff - 1) \(categoryText)"
             case .greaterThanOrEqual:
                 let categoryText = (distinctThreshold.cutoff != 1) ? "categories" : "category"
-                ret = " from at least \(distinctThreshold.cutoff) \(categoryText)"
+                ret += " from at least \(distinctThreshold.cutoff) \(categoryText)"
             case .greaterThan:
                 let categoryText = (distinctThreshold.cutoff + 1 != 1) ? "categories" : "category"
-                ret = " from at least \(distinctThreshold.cutoff + 1) \(categoryText)"
+                ret += " from at least \(distinctThreshold.cutoff + 1) \(categoryText)"
             }
         }
         return ret
@@ -195,7 +197,7 @@ class RequirementsListStatement: NSObject {
         if connectionType == .all {
             self.threshold = Threshold(.greaterThanOrEqual, number: items.count)
         } else {
-            self.threshold = Threshold(.greaterThanOrEqual, number: 1)
+            self.threshold = Threshold(.greaterThanOrEqual, number: 1, of: .statements)
         }
         self.requirements = items
         super.init()
@@ -397,7 +399,7 @@ class RequirementsListStatement: NSObject {
     
     func number(_ number: Int, withUnits units: Int, satisfies threshold: Threshold) -> Bool {
         var fulfilledThreshold = false
-        let criterion = threshold.criterion == .subjects ? number : units
+        let criterion = threshold.criterion == .units ? units : number
         switch threshold.type {
         case .greaterThan:
             fulfilledThreshold = (criterion > threshold.cutoff)
@@ -422,10 +424,10 @@ class RequirementsListStatement: NSObject {
                 isFulfilled = manual == threshold.cutoff
                 var subjects = 0
                 var units = 0
-                if threshold.criterion == .subjects {
-                    subjects = manual
-                } else {
+                if threshold.criterion == .units {
                     units = manual
+                } else {
+                    subjects = manual
                 }
                 fulfillmentProgress = (subjects, units)
                 return Set<Course>()
@@ -446,6 +448,15 @@ class RequirementsListStatement: NSObject {
         
         let totalSatisfyingCourses = satisfyingPerCategory.reduce(Set<Course>(), { $0.union($1) })
         var numSatisfying = (totalSatisfyingCourses.count, totalSatisfyingCourses.reduce(0, { $0 + $1.totalUnits }))
+        if threshold.criterion == .statements {
+            numSatisfying = (distinctNumSatisfying, distinctNumSatisfying * Threshold.defaultUnitCount)
+            isFulfilled = number(distinctNumSatisfying, withUnits: distinctNumSatisfying, satisfies: threshold)
+            fulfillmentProgress = numSatisfying
+            return totalSatisfyingCourses
+        }
+        if threshold.type == .lessThan || threshold.type == .lessThanOrEqual {
+            numSatisfying = (min(numSatisfying.0, threshold.cutoff(for: .subjects) - (threshold.type == .lessThan ? 1 : 0)), min(numSatisfying.1, threshold.cutoff(for: .units) - (threshold.type == .lessThan ? 1 : 0)))
+        }
         if connectionType == .any, threshold.cutoff == 0 {
             isFulfilled = true
         } else if connectionType == .any || threshold.cutoff > 1 {
@@ -495,7 +506,7 @@ class RequirementsListStatement: NSObject {
                     return (min(threshold.cutoff(for: criterion), tempResult.0), threshold.cutoff(for: criterion))
                 }
             } else {
-                return (sortedProgresses.reduce(0, { $0 + $1.0 }), 0)
+                return (min(threshold.cutoff(for: criterion), sortedProgresses.reduce(0, { $0 + $1.0 })), max(threshold.cutoff(for: criterion), 0))
             }
         }
         return (fulfillmentProgress(for: criterion), threshold.cutoff(for: criterion))
@@ -596,9 +607,9 @@ class RequirementsList: RequirementsListStatement {
                 if range.lowerBound == line.startIndex {
                     return nil
                 }
-                return String(line[line.startIndex..<range.lowerBound])
+                return String(line[line.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
             }
-            return line
+            return line.trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
         // Parse the first two lines
@@ -621,7 +632,7 @@ class RequirementsList: RequirementsListStatement {
                     if let thresholdValue = Int(noWhitespaceComp[thresholdRange.upperBound..<noWhitespaceComp.endIndex]) {
                         threshold.cutoff = thresholdValue
                     } else {
-                        print("Invalid threshold parameter declaration: \(noWhitespaceComp)")
+                        print("\(listID): Invalid threshold parameter declaration: \(noWhitespaceComp)")
                     }
                 }
             }
@@ -631,17 +642,17 @@ class RequirementsList: RequirementsListStatement {
         }
         
         // Second line is the description of the course
-        let descriptionLine = lines.removeFirst().trimmingCharacters(in: .whitespaces)
+        let descriptionLine = lines.removeFirst()
         if descriptionLine.count > 0 {
             contentDescription = descriptionLine.replacingOccurrences(of: "\\n", with: "\n")
         }
         
         guard lines.count > 0 else {
-            print("Reached end of file early!")
+            print("\(listID): Reached end of file early!")
             return
         }
         guard lines[0].count == 0 else {
-            print("Third line isn't empty")
+            print("\(listID): Third line isn't empty (contains \"\(lines[0])\")")
             return
         }
         lines.removeFirst()
@@ -650,7 +661,7 @@ class RequirementsList: RequirementsListStatement {
         var topLevelSections: [(varName: String, description: String)] = []
         while lines.count > 0, lines[0].count > 0 {
             guard lines.count > 2 else {
-                print("Not enough lines for top-level sections - need variable names and descriptions on two separate lines.")
+                print("\(listID): Not enough lines for top-level sections - need variable names and descriptions on two separate lines.")
                 return
             }
             let varName = undecoratedComponent(lines.removeFirst())
@@ -663,7 +674,6 @@ class RequirementsList: RequirementsListStatement {
         lines.removeFirst()
         
         // Parse variable declarations
-        let variableRegex = topLevelSeparatorRegex(for: SyntaxConstants.variableDeclarationSeparator)
         var variables: [String: RequirementsListStatement] = [:]
         while lines.count > 0 {
             let currentLine = lines.removeFirst()
@@ -671,21 +681,23 @@ class RequirementsList: RequirementsListStatement {
                 continue
             }
             guard currentLine.contains(SyntaxConstants.declarationCharacter) else {
-                print("Unexpected line: \(currentLine)")
+                print("\(listID): Unexpected line: \(currentLine)")
                 continue
             }
             let comps = currentLine.components(separatedBy: SyntaxConstants.declarationCharacter)
             guard comps.count == 2 else {
-                print("Can't have more than one occurrence of \"\(SyntaxConstants.declarationCharacter)\" on a line")
+                print("\(listID): Can't have more than one occurrence of \"\(SyntaxConstants.declarationCharacter)\" on a line")
                 continue
             }
             
-            let declarationComps = self.components(in: comps[0], separatedBy: variableRegex)
             var statementTitle: String?
-            var variableName = undecoratedComponent(comps[0])
-            if declarationComps.count > 1 {
-                variableName = declarationComps[0]
-                statementTitle = declarationComps[1]
+            var variableName: String
+            let declaration = comps[0]
+            if let commaRange = declaration.range(of: SyntaxConstants.variableDeclarationSeparator) {
+                variableName = undecoratedComponent(String(declaration[declaration.startIndex..<commaRange.lowerBound]))
+                statementTitle = undecoratedComponent(String(declaration[commaRange.upperBound..<declaration.endIndex]))
+            } else {
+                variableName = undecoratedComponent(comps[0])
             }
             let statement = RequirementsListStatement(statement: comps[1], title: statementTitle)
             variables[variableName] = statement
@@ -694,7 +706,7 @@ class RequirementsList: RequirementsListStatement {
         var reqs: [RequirementsListStatement] = []
         for (name, description) in topLevelSections {
             guard let req = variables[name] else {
-                print("Undefined variable: \(name)")
+                print("\(listID): Undefined variable: \(name)")
                 return
             }
             req.contentDescription = description

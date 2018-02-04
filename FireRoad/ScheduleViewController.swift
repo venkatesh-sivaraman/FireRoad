@@ -312,6 +312,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                 departmentCounts[dept]? += 1
             }
             
+            print(schedule.courses)
             if schedule.courses.count > 0 {
                 self.scheduleOptions = self.generateSchedules(from: schedule.courses)
             } else {
@@ -331,10 +332,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                             loadingView.alpha = 0.0
                             loadingView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
                         }, completion: { (completed) in
-                            if completed {
-                                loadingView.isHidden = true
-                                self.loadingIndicator?.stopAnimating()
-                            }
+                            loadingView.isHidden = true
+                            self.loadingIndicator?.stopAnimating()
                         })
                     }
                 } else {
@@ -540,6 +539,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         guard let schedule = currentSchedule else {
             return
         }
+        print(schedule.courses)
         let beforeUpdate = schedule.courses
         updateDisplayedSchedules(completion: {
             var noSchedCourses: [Course] = []
@@ -562,6 +562,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
+        if currentSchedule == nil {
+            loadRecentSchedule()
+        }
         guard let schedule = currentSchedule,
             schedule.add(course: course) else {
             return nil
