@@ -850,14 +850,49 @@ class Course: NSObject {
     
     // MARK: - Requirements
     
-    func satisfies(requirement: String) -> Bool {
+    /**
+     The first item is the requirement, the second is the subject ID required to
+     satisfy the requirement.
+     */
+    var equivalencePairs: [(String, String)] = [
+        ("6.0001", "6.00"),
+        ("6.0002", "6.00")
+    ]
+    
+    /**
+     The first item is a list of subject IDs of courses, and the second item is
+     the requirement string.
+     */
+    var equivalenceSets: [([String], String)] = [
+        (["6.0001", "6.0002"], "6.00")
+    ]
+    
+    /**
+     If `allCourses` is not nil, it may be a list of courses that can potentially
+     satisfy the requirement. If a combination of courses satisfies the requirement,
+     this method will return true.
+     */
+    func satisfies(requirement: String, allCourses: [Course]? = nil) -> Bool {
         let req = requirement.replacingOccurrences(of: "GIR:", with: "")
-        return subjectID == req ||
+        if subjectID == req ||
             jointSubjects.contains(req) ||
             equivalentSubjects.contains(req) ||
             girAttribute?.satisfies(GIRAttribute(rawValue: req)) == true ||
             hassAttribute?.satisfies(HASSAttribute(rawValue: req)) == true ||
-            communicationRequirement?.satisfies(CommunicationAttribute(rawValue: req)) == true
+            communicationRequirement?.satisfies(CommunicationAttribute(rawValue: req)) == true {
+            return true
+        }
+        if equivalencePairs.contains(where: { req == $0 && subjectID == $1 }) {
+            return true
+        }
+        if let courses = allCourses,
+            equivalenceSets.contains(where: { (arg) -> Bool in
+                let (eqReqs, eqReq) = arg
+                return eqReq == requirement && !eqReqs.contains(where: { id -> Bool in !courses.contains(where: { $0.subjectID == id }) })
+            }) {
+            return true
+        }
+        return false
     }
     
     class func isRequirementAutomaticallySatisfied(_ requirement: String) -> Bool {

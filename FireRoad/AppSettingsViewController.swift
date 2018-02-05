@@ -29,6 +29,7 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped(_:)))
         
         AppSettings.shared.presentationDelegate = self
+        tableView.allowsSelection = true
     }
 
     override func didReceiveMemoryWarning() {
@@ -46,7 +47,9 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
         switch setting.type {
         case .boolean:
             return "SwitchCell"
-        default:
+        case .button:
+            return "ButtonCell"
+        case .readOnlyText:
             return "TextCell"
         }
     }
@@ -70,7 +73,7 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let setting = AppSettings.shared.settings[indexPath.section].items[indexPath.row]
         switch setting.type {
-        case .boolean:
+        case .boolean, .button:
             return 44.0
         default:
             return UITableViewAutomaticDimension
@@ -82,8 +85,7 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
         let identifier = cellIdentifier(for: setting)
         
         let cell = tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath)
-        cell.selectionStyle = .none
-        let textLabel = cell.viewWithTag(12) as? UILabel
+        let textLabel = (cell.viewWithTag(12) as? UILabel) ?? cell.textLabel
         textLabel?.text = setting.title
         
         switch setting.type {
@@ -93,11 +95,20 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
                 cellSwitch.removeTarget(nil, action: nil, for: .valueChanged)
                 cellSwitch.addTarget(self, action: #selector(switchActivated(_:)), for: .valueChanged)
             }
-        case .readOnlyText:
+        case .readOnlyText, .button:
             break
         }
 
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let setting = AppSettings.shared.settings[indexPath.section].items[indexPath.row]
+        tableView.deselectRow(at: indexPath, animated: true)
+        guard setting.type == .button else {
+            return
+        }
+        setting.setter?(nil)
     }
     
     @objc func switchActivated(_ sender: UISwitch) {

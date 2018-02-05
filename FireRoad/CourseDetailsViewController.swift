@@ -804,8 +804,11 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         popDown.willMove(toParentViewController: self)
         self.addChildViewController(popDown)
         popDown.didMove(toParentViewController: self)
+        let generator = UIImpactFeedbackGenerator()
+        generator.prepare()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
             popDown.show(animated: true)
+            generator.impactOccurred()
         }
     }
     

@@ -16,6 +16,7 @@ struct AppSettingsItem {
     enum SettingType {
         case boolean
         case readOnlyText
+        case button
     }
     
     var title: String
@@ -128,6 +129,12 @@ class AppSettings: NSObject {
                 self.allowsCorequisitesTogether = (newValue as? Bool) ?? true
             })], header: "My Road", footer: "Turn off Allow Corequisites Together to display a warning when corequisites are taken in the same semester."),
         AppSettingsGroup(items: [
-            AppSettingsItem(title: "Created by Venkatesh Sivaraman. Course evaluation data courtesy of Edward Fan. In-app icons courtesy of icons8.com. All subject descriptions, evaluations, and course requirements © Massachusetts Institute of Technology.", type: .readOnlyText, getter: nil, setter: nil)], header: "Acknowledgements", footer: nil),
+            AppSettingsItem(title: "Created by Venkatesh Sivaraman. Course evaluation data courtesy of Edward Fan; additional major/minor requirements contributed by Tanya Smith, Maia Hannahs, and Cindy Shi. In-app icons courtesy of icons8.com.\n\nAll subject descriptions, evaluations, and course requirements © Massachusetts Institute of Technology. FireRoad is not intended to be your sole source of course information - please be sure to check your department's website to make sure you have the most up-to-date information.", type: .readOnlyText, getter: nil, setter: nil),
+            AppSettingsItem(title: "Send Feedback", type: .button, getter: nil, setter: { _ in
+                guard let url = URL(string: "mailto:base12apps@gmail.com?subject=FireRoad%20Feedback") else {
+                    return
+                }
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            })], header: "Acknowledgements", footer: nil)
     ]
 }

@@ -312,7 +312,6 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                 departmentCounts[dept]? += 1
             }
             
-            print(schedule.courses)
             if schedule.courses.count > 0 {
                 self.scheduleOptions = self.generateSchedules(from: schedule.courses)
             } else {

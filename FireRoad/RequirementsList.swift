@@ -538,7 +538,6 @@ class RequirementsListStatement: NSObject {
         subjectFulfillmentProgress = ceilingThreshold(subjectFulfillmentProgress)
         unitFulfillmentProgress = ceilingThreshold(unitFulfillmentProgress)
         fulfillmentProgress = (threshold != nil && threshold?.criterion == .units) ? unitFulfillmentProgress : subjectFulfillmentProgress
-        print(reqs, connectionType, threshold, distinctThreshold, fulfillmentProgress)
         return totalSatisfyingCourses
     }
     
