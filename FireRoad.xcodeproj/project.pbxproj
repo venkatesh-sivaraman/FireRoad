@@ -170,6 +170,7 @@
 		96AC5F13200B125700D80839 /* KeychainItemWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainItemWrapper.swift; sourceTree = "<group>"; };
 		96AC5F19200D1F5500D80839 /* CourseSearchEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseSearchEngine.swift; sourceTree = "<group>"; };
 		96ACBD302027C299007B4618 /* test.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = test.reql; sourceTree = "<group>"; };
+		96ACBD322029066B007B4618 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		96C7769E1FDEDCBF00157F2D /* RequirementsListManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListManager.swift; sourceTree = "<group>"; };
 		96C776A01FDF411600157F2D /* WebpageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageViewController.swift; sourceTree = "<group>"; };
 		96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UITextViewPlaceholder.swift; sourceTree = "<group>"; };
@@ -283,6 +284,7 @@
 				961E49FE1EC7771D002BABB9 /* enrollment.txt */,
 				9611CD821F9287CE00DE2BDE /* acknowledgements.txt */,
 				9626B6E41F80AF1F009F6F96 /* course_requirements_spec.md */,
+				96ACBD322029066B007B4618 /* README.md */,
 				968F2A1D1FE5A36E0082EE40 /* departments.txt */,
 				96293C471FEAD21300F1BDFD /* color_checker.py */,
 				963BE4381F8AAA57008905AE /* FireRoad-Bridging-Header.h */,
