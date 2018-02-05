@@ -1,0 +1,39 @@
+Test#,#Test Requirements#,#Test Department#,#Bachelor of Science in Test
+Test requirement.
+
+test_1
+
+test_2
+
+test_3
+
+test_4
+
+test_5
+
+test_6
+
+test_7
+
+test_8
+
+
+test_a := A, B, C
+test_b := D/E/F
+test_c := G/H/I{>=2}
+
+test_1, "Test 1" := test_a
+
+test_2, "Test 2" := test_b
+
+test_3, "Test 3" := test_c
+
+test_4, "Test 4" := test_a, test_b, test_c
+
+test_5, "Test 5" := test_a/test_b/test_c
+
+test_6, "Test 6" := test_a/test_b/test_c{>=2}
+
+test_7, "Test 7" := test_a/test_b/test_c{>=2|>=2}
+
+test_8, "Test 8" := test_a/test_b/test_c{|>=2}

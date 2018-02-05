@@ -43,7 +43,6 @@ class RequirementsListStatement: NSObject {
     enum ThresholdCriterion {
         case subjects
         case units
-        case statements
     }
     
     struct Threshold {
@@ -69,6 +68,15 @@ class RequirementsListStatement: NSObject {
             }
             return cutoff
         }
+        
+        var actualCutoff: Int {
+            if type == .greaterThan {
+                return cutoff + 1
+            } else if type == .lessThan {
+                return cutoff - 1
+            }
+            return cutoff
+        }
     }
     
     var connectionType: ConnectionType = .all
@@ -84,7 +92,7 @@ class RequirementsListStatement: NSObject {
     }
     var requirement: String?
     
-    var threshold = Threshold(.greaterThanOrEqual, number: 1, of: .statements)
+    var threshold: Threshold?
     
     var isPlainString = false
     
@@ -92,30 +100,32 @@ class RequirementsListStatement: NSObject {
      Defines the bound on the number of distinct elements in the requirements list
      that courses must satisfy.
      */
-    var distinctThreshold = Threshold(.greaterThanOrEqual, number: 0)
+    var distinctThreshold: Threshold?
     
     var thresholdDescription: String {
         var ret = ""
-        if connectionType == .all, threshold.cutoff <= 1 {
+        if let threshold = threshold, threshold.cutoff != 1 {
+            if threshold.cutoff > 1 {
+                switch threshold.type {
+                case .lessThanOrEqual:
+                    ret = "select at most \(threshold.cutoff)"
+                case .lessThan:
+                    ret = "select at most \(threshold.cutoff - 1)"
+                case .greaterThanOrEqual:
+                    ret = "select any \(threshold.cutoff)"
+                case .greaterThan:
+                    ret = "select any \(threshold.cutoff + 1)"
+                }
+                if threshold.criterion == .units {
+                    ret += " units"
+                } else if threshold.criterion == .subjects, connectionType == .all {
+                    ret += " subjects"
+                }
+            } else if threshold.cutoff == 0, connectionType == .any {
+                ret = "optional – select any"
+            }
+        } else if connectionType == .all {
             ret = "select all"
-        } else if threshold.cutoff > 1 {
-            switch threshold.type {
-            case .lessThanOrEqual:
-                ret = "select at most \(threshold.cutoff)"
-            case .lessThan:
-                ret = "select at most \(threshold.cutoff - 1)"
-            case .greaterThanOrEqual:
-                ret = "select any \(threshold.cutoff)"
-            case .greaterThan:
-                ret = "select any \(threshold.cutoff + 1)"
-            }
-            if threshold.criterion == .units {
-                ret += " units"
-            } else if threshold.criterion == .subjects, connectionType == .all {
-                ret += " subjects"
-            }
-        } else if threshold.cutoff == 0, connectionType == .any {
-            ret = "optional – select any"
         } else if connectionType == .any {
             if let reqs = requirements, reqs.count == 2 {
                 ret = "select either"
@@ -123,7 +133,8 @@ class RequirementsListStatement: NSObject {
                 ret = "select any"
             }
         }
-        if distinctThreshold.cutoff > 0 {
+        if let distinctThreshold = distinctThreshold,
+            distinctThreshold.cutoff > 0 {
             switch distinctThreshold.type {
             case .lessThanOrEqual:
                 let categoryText = (distinctThreshold.cutoff != 1) ? "categories" : "category"
@@ -143,7 +154,7 @@ class RequirementsListStatement: NSObject {
     }
     
     override var debugDescription: String {
-        let prog = fulfillmentProgress(for: threshold.criterion)
+        let prog = fulfillmentProgress.0
         let fulfillmentString = prog > 0 ? "(\(prog) - \(percentageFulfilled)%) " : ""
         if let req = requirement {
             return "<\(fulfillmentString)\(isFulfilled ? "√ " : "")\(title != nil ? title! + ": " : "")\(req)\(thresholdDescription.count > 0 ? " (" + thresholdDescription + ")" : "")>"
@@ -195,11 +206,6 @@ class RequirementsListStatement: NSObject {
     init(connectionType: ConnectionType, items: [RequirementsListStatement], title: String? = nil) {
         self.title = title
         self.connectionType = connectionType
-        if connectionType == .all {
-            self.threshold = Threshold(.greaterThanOrEqual, number: items.count)
-        } else {
-            self.threshold = Threshold(.greaterThanOrEqual, number: 1, of: .statements)
-        }
         self.requirements = items
         super.init()
         for req in items {
@@ -333,7 +339,7 @@ class RequirementsListStatement: NSObject {
             if comps[1].count > 0 {
                 distinctThreshold = parseModifierComponent(comps[1])
             }
-        } else {
+        } else if modifier.count > 0 {
             threshold = parseModifierComponent(modifier)
         }
     }
@@ -348,7 +354,10 @@ class RequirementsListStatement: NSObject {
         }
         
         let (components, cType) = separateTopLevelItems(in: filteredStatement)
-        if threshold.cutoff == 0 && threshold.type == .greaterThanOrEqual {
+        if let threshold = threshold,
+            threshold.cutoff == 0,
+            threshold.type == .greaterThanOrEqual {
+            // Force the connection type to be any (there's no way it can be all)
             connectionType = .any
         } else {
             connectionType = cType
@@ -384,7 +393,8 @@ class RequirementsListStatement: NSObject {
     
     var isFulfilled = false
     var fulfillmentProgress = (0, 0)
-    var satisfyingCourses: Set<Course>?
+    var subjectFulfillmentProgress = (0, 0)
+    var unitFulfillmentProgress = (0, 0)
     
     func coursesSatisfyingRequirement(in courses: [Course]) -> [Course] {
         var satisfying: [Course] = []
@@ -414,14 +424,18 @@ class RequirementsListStatement: NSObject {
         return fulfilledThreshold
     }
     
+    func ceilingThreshold(_ threshold: (Int, Int)) -> (Int, Int) {
+        return (min(max(0, threshold.0), threshold.1), threshold.1)
+    }
+    
     /**
-     - Returns: The number of subjects and units that satisfy this requirement.
+     - Returns: The set of courses that satisfy this requirement.
      */
     @discardableResult func computeRequirementStatus(with courses: [Course]) -> Set<Course> {
-        var satisfyingPerCategory: [Set<Course>] = []
-        var distinctNumSatisfying = 0
         if requirement != nil {
-            if let manual = manualProgress {
+            var satisfiedCourses = Set<Course>()
+            if isPlainString, let manual = manualProgress,
+                let threshold = threshold {
                 isFulfilled = manual == threshold.cutoff
                 var subjects = 0
                 var units = 0
@@ -430,94 +444,109 @@ class RequirementsListStatement: NSObject {
                 } else {
                     subjects = manual
                 }
-                fulfillmentProgress = (subjects, units)
-                return Set<Course>()
-            }
-            
-            let satisfiedCourses = Set<Course>(coursesSatisfyingRequirement(in: courses))
-            satisfyingCourses = satisfiedCourses
-            satisfyingPerCategory.append(satisfiedCourses)
-        } else if let reqs = requirements {
-            for req in reqs {
-                let satisfiedCourses = req.computeRequirementStatus(with: courses)
-                if req.isFulfilled {
-                    distinctNumSatisfying += 1
+                subjectFulfillmentProgress = ceilingThreshold((subjects, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
+                unitFulfillmentProgress = ceilingThreshold((units, threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
+                
+                for _ in 0..<subjectFulfillmentProgress.0 {
+                    let id = arc4random() % UInt32(1e9)
+                    satisfiedCourses.insert(Course(courseID: "generatedCourse\(id)", courseTitle: "generatedCourse\(id)", courseDescription: ""))
                 }
-                satisfyingPerCategory.append(satisfiedCourses)
+            } else {
+                satisfiedCourses = Set<Course>(coursesSatisfyingRequirement(in: courses))
+                if let threshold = threshold {
+                    subjectFulfillmentProgress = ceilingThreshold((satisfiedCourses.count, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
+                    unitFulfillmentProgress = ceilingThreshold((satisfiedCourses.reduce(0, { $0 + $1.totalUnits }), threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
+                    isFulfilled = number(subjectFulfillmentProgress.0, withUnits: unitFulfillmentProgress.0, satisfies: threshold)
+                } else {
+                    let progress = min(satisfiedCourses.count, 1)
+                    isFulfilled = satisfiedCourses.count > 0
+                    subjectFulfillmentProgress = ceilingThreshold((progress, 1))
+                    unitFulfillmentProgress = ceilingThreshold((satisfiedCourses.first?.totalUnits ?? 0, Threshold.defaultUnitCount))
+                }
             }
+            fulfillmentProgress = (threshold != nil && threshold?.criterion == .units) ? unitFulfillmentProgress : subjectFulfillmentProgress
+            return satisfiedCourses
         }
         
-        let totalSatisfyingCourses = satisfyingPerCategory.reduce(Set<Course>(), { $0.union($1) })
-        var numSatisfying = (totalSatisfyingCourses.count, totalSatisfyingCourses.reduce(0, { $0 + $1.totalUnits }))
-        if threshold.criterion == .statements {
-            numSatisfying = (distinctNumSatisfying, distinctNumSatisfying * Threshold.defaultUnitCount)
-            isFulfilled = number(distinctNumSatisfying, withUnits: distinctNumSatisfying, satisfies: threshold)
-            fulfillmentProgress = numSatisfying
-            return totalSatisfyingCourses
+        guard let reqs = requirements else {
+            return Set<Course>()
         }
-        if threshold.type == .lessThan || threshold.type == .lessThanOrEqual {
-            numSatisfying = (min(numSatisfying.0, threshold.cutoff(for: .subjects) - (threshold.type == .lessThan ? 1 : 0)), min(numSatisfying.1, threshold.cutoff(for: .units) - (threshold.type == .lessThan ? 1 : 0)))
+        
+        var satisfyingPerCategory: [RequirementsListStatement: Set<Course>] = [:]
+        var numRequirementsSatisfied = 0
+        for req in reqs {
+            let satisfiedCourses = req.computeRequirementStatus(with: courses)
+            if req.isFulfilled {
+                numRequirementsSatisfied += 1
+            }
+            satisfyingPerCategory[req] = satisfiedCourses
         }
-        if connectionType == .any, threshold.cutoff == 0 {
-            isFulfilled = true
-        } else if connectionType == .any || threshold.cutoff > 1 {
-            if distinctThreshold.type == .lessThan || distinctThreshold.type == .lessThanOrEqual {
-                let satisfyingQuantities = satisfyingPerCategory.map({ item in (item.count, item.reduce(0, { $0 + $1.totalUnits } )) })
-                let optimalReqs = satisfyingQuantities.sorted(by: {
-                    (distinctThreshold.criterion == .subjects ? $0.0 > $1.0 : $0.1 > $1.1)
-                })[0..<min(satisfyingQuantities.count, distinctThreshold.cutoff)]
-                numSatisfying = optimalReqs.reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
-                isFulfilled = number(numSatisfying.0, withUnits: numSatisfying.1, satisfies: threshold) && number(optimalReqs.count, withUnits: 0, satisfies: distinctThreshold)
+        
+        var totalSatisfyingCourses = satisfyingPerCategory.reduce(Set<Course>(), { $0.union($1.value) })
+        // Set isFulfilled and fulfillmentProgresses
+        var sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled })
+        if threshold == nil, distinctThreshold == nil {
+            // Simple "any" statement
+            isFulfilled = (numRequirementsSatisfied > 0)
+            if connectionType == .any {
+                subjectFulfillmentProgress = sortedProgresses.first?.subjectFulfillmentProgress ?? (0, 0)
+                unitFulfillmentProgress = sortedProgresses.first?.unitFulfillmentProgress ?? (0, 0)
             } else {
-                isFulfilled = number(numSatisfying.0, withUnits: numSatisfying.1, satisfies: threshold) && number(distinctNumSatisfying, withUnits: 0, satisfies: distinctThreshold)
+                subjectFulfillmentProgress = sortedProgresses.reduce((0, 0), { ($0.0 + $1.subjectFulfillmentProgress.0, $0.1 + $1.subjectFulfillmentProgress.1) })
+                unitFulfillmentProgress = sortedProgresses.reduce((0, 0), { ($0.0 + $1.unitFulfillmentProgress.0, $0.1 + $1.unitFulfillmentProgress.1) })
             }
         } else {
-            isFulfilled = (distinctNumSatisfying >= (requirements?.count ?? 1))
-        }
-        fulfillmentProgress = numSatisfying
-        return totalSatisfyingCourses
-    }
-    
-    func fulfillmentProgress(for criterion: ThresholdCriterion) -> Int {
-        return criterion == .subjects ? fulfillmentProgress.0 : fulfillmentProgress.1
-    }
-    
-    private func fulfilledFraction(for criterion: ThresholdCriterion) -> (Int, Int) {
-        if let manual = manualProgress {
-            if criterion == threshold.criterion {
-                return (manual, threshold.cutoff)
+            if let distinct = distinctThreshold {
+                sortedProgresses = [RequirementsListStatement](sortedProgresses[0..<min(distinct.actualCutoff, sortedProgresses.count)])
+                totalSatisfyingCourses = sortedProgresses.reduce(Set<Course>(), { $0.union(satisfyingPerCategory[$1] ?? Set<Course>()) })
             }
-            return (0, 0)
-        }
-        if let reqs = requirements {
-            if distinctThreshold.cutoff > 0 || (connectionType == .all && threshold.cutoff > 1) {
-                return (fulfillmentProgress(for: criterion), threshold.cutoff(for: criterion))
-            }
-            let progresses = reqs.map({ $0.fulfilledFraction(for: criterion) })
-            if connectionType == .all {
-                return progresses.reduce((0, 0), { ($0.0 + min($1.0, $1.1), $0.1 + $1.1) })
-            }
-            let sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled }).map({ $0.fulfilledFraction(for: criterion) })
-            if threshold.cutoff > 1 {
-                if threshold.criterion == .subjects {
-                    let tempResult = sortedProgresses[0..<min(threshold.cutoff, sortedProgresses.count)].reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
-                    return (min(threshold.cutoff(for: criterion), tempResult.0), threshold.cutoff(for: criterion))
+            if threshold == nil, let distinct = distinctThreshold {
+                // required number of statements
+                if distinct.type == .greaterThan || distinct.type == .greaterThanOrEqual {
+                    isFulfilled = numRequirementsSatisfied >= distinct.actualCutoff
                 } else {
-                    let tempResult = sortedProgresses.reduce((0, 0), { ($0.0 + $1.0, $0.1 + $1.1) })
-                    return (min(threshold.cutoff(for: criterion), tempResult.0), threshold.cutoff(for: criterion))
+                    isFulfilled = true
                 }
-            } else {
-                return (min(threshold.cutoff(for: criterion), sortedProgresses.reduce(0, { $0 + $1.0 })), max(threshold.cutoff(for: criterion), 0))
+                subjectFulfillmentProgress = sortedProgresses.reduce((0, 0), { ($0.0 + $1.subjectFulfillmentProgress.0, $0.1 + max($1.subjectFulfillmentProgress.1, 1)) })
+                unitFulfillmentProgress = sortedProgresses.reduce((0, 0), { ($0.0 + $1.unitFulfillmentProgress.0, $0.1 + ($1.unitFulfillmentProgress.1 == 0 ? Threshold.defaultUnitCount : $1.unitFulfillmentProgress.1)) })
+                
+            } else if let threshold = threshold {
+                // required number of subjects or units
+                subjectFulfillmentProgress = (totalSatisfyingCourses.count, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1))
+                unitFulfillmentProgress = (totalSatisfyingCourses.reduce(0, { $0 + $1.totalUnits }), threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1))
+                if let distinct = distinctThreshold,
+                    distinct.type == .greaterThan || distinct.type == .greaterThanOrEqual {
+                    isFulfilled = number(subjectFulfillmentProgress.0, withUnits: unitFulfillmentProgress.0, satisfies: threshold) && numRequirementsSatisfied >= distinct.actualCutoff
+                    if numRequirementsSatisfied < distinct.actualCutoff {
+                        subjectFulfillmentProgress = sortedProgresses.reduce((0, 0), { ($0.0 + $1.subjectFulfillmentProgress.0, $0.1 + max($1.subjectFulfillmentProgress.1, 1)) })
+                        unitFulfillmentProgress = sortedProgresses.reduce((0, 0), { ($0.0 + $1.unitFulfillmentProgress.0, $0.1 + ($1.unitFulfillmentProgress.1 == 0 ? Threshold.defaultUnitCount : $1.unitFulfillmentProgress.1)) })
+                    }
+                } else {
+                    isFulfilled = number(subjectFulfillmentProgress.0, withUnits: unitFulfillmentProgress.0, satisfies: threshold)
+                }
+
             }
         }
-        return (fulfillmentProgress(for: criterion), threshold.cutoff(for: criterion))
+        if connectionType == .all {
+            // "all" statement
+            isFulfilled = isFulfilled && (numRequirementsSatisfied == reqs.count)
+            if subjectFulfillmentProgress.0 == subjectFulfillmentProgress.1, reqs.count > numRequirementsSatisfied {
+                subjectFulfillmentProgress = (subjectFulfillmentProgress.0, subjectFulfillmentProgress.1 + (reqs.count - numRequirementsSatisfied))
+                unitFulfillmentProgress = (unitFulfillmentProgress.0, unitFulfillmentProgress.1 + (reqs.count - numRequirementsSatisfied) * Threshold.defaultUnitCount)
+            }
+        }
+        subjectFulfillmentProgress = ceilingThreshold(subjectFulfillmentProgress)
+        unitFulfillmentProgress = ceilingThreshold(unitFulfillmentProgress)
+        fulfillmentProgress = (threshold != nil && threshold?.criterion == .units) ? unitFulfillmentProgress : subjectFulfillmentProgress
+        print(reqs, connectionType, threshold, distinctThreshold, fulfillmentProgress)
+        return totalSatisfyingCourses
     }
     
     var percentageFulfilled: Float {
         if connectionType == .none, manualProgress == nil {
             return 0.0
         }
-        let fulfilled = fulfilledFraction(for: threshold.criterion)
+        let fulfilled = fulfillmentProgress
         if fulfilled.0 == 0, fulfilled.1 == 0 {
             return 0.0
         }
@@ -632,7 +661,7 @@ class RequirementsList: RequirementsListStatement {
                 let noWhitespaceComp = comp.components(separatedBy: .whitespaces).joined()
                 if let thresholdRange = noWhitespaceComp.range(of: SyntaxConstants.thresholdParameter) {
                     if let thresholdValue = Int(noWhitespaceComp[thresholdRange.upperBound..<noWhitespaceComp.endIndex]) {
-                        threshold.cutoff = thresholdValue
+                        threshold = Threshold(.greaterThanOrEqual, number: thresholdValue, of: .subjects)
                     } else {
                         print("\(listID): Invalid threshold parameter declaration: \(noWhitespaceComp)")
                     }

@@ -557,8 +557,13 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         if selectedSemester != nil {
             if !self.currentUser!.courses(forSemester: selectedSemester!).contains(course) {
+                let reloadWholeView = (currentUser == nil || currentUser?.allCourses.count == 0)
                 self.currentUser?.add(course, toSemester: selectedSemester!)
-                self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
+                if reloadWholeView {
+                    self.collectionView.reloadData()
+                } else {
+                    self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
+                }
             }
             if let courseItem = self.currentUser?.courses(forSemester: selectedSemester!).index(of: course) {
                 self.collectionView.scrollToItem(at: IndexPath(item: courseItem, section: selectedSemester!.rawValue), at: .centeredVertically, animated: true)

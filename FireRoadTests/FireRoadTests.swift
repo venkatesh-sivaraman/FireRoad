@@ -22,7 +22,7 @@ class FireRoadTests: XCTestCase {
     }
     
     func testSearchRegex() {
-        let browser = CourseBrowserViewController()
+        let searchEngine = CourseSearchEngine()
         let testCourses = [
             Course(courseID: "1.002", courseTitle: "Hello World", courseDescription: "Description"),
             Course(courseID: "2.004", courseTitle: "Control Systems Worldness", courseDescription: "Description"),
@@ -42,14 +42,76 @@ class FireRoadTests: XCTestCase {
             ("12", Set<Course>([testCourses[2], testCourses[4]]), .startsWithSearchTerm),
         ]
         for test in testCases {
-            CourseManager.shared.courses = testCourses
-            
             let (searchTerm, expected, option) = test
             var options: SearchOptions = [.anyRequirement, .offeredAnySemester, .searchAllFields]
             options.formUnion(option)
-            let observedResults = Set<Course>(browser.searchResults(for: searchTerm, options: options))
+            guard let keys = searchEngine.searchResults(within: testCourses, searchTerm: searchTerm, options: options)?.keys else {
+                assert(false, "Search engine returned nil")
+                continue
+            }
+            let observedResults = Set<Course>(keys)
             assert(observedResults == expected, "Incorrect results for \(option): \(observedResults) != \(expected)")
             print("Passed: \(searchTerm)")
+        }
+    }
+    
+    func testRequirementsCalculations() throws {
+        guard let path = Bundle(for: FireRoadTests.self).path(forResource: "test", ofType: "reql") else {
+            print("No path")
+            return
+        }
+        let courses = [
+            Course(courseID: "A", courseTitle: "A", courseDescription: ""),
+            Course(courseID: "B", courseTitle: "B", courseDescription: ""),
+            Course(courseID: "C", courseTitle: "C", courseDescription: ""),
+            Course(courseID: "D", courseTitle: "D", courseDescription: ""),
+            Course(courseID: "E", courseTitle: "E", courseDescription: ""),
+            Course(courseID: "F", courseTitle: "F", courseDescription: ""),
+            Course(courseID: "G", courseTitle: "G", courseDescription: ""),
+            Course(courseID: "H", courseTitle: "H", courseDescription: ""),
+            Course(courseID: "I", courseTitle: "I", courseDescription: "")
+        ]
+        let reqFile = try RequirementsList(contentsOf: path)
+        reqFile.computeRequirementStatus(with: [courses[0], courses[1], courses[2]])
+        var percentages = reqFile.requirements?.map({ $0.percentageFulfilled }) ?? []
+        var expected: [Float] = [ 100.0, 0.0, 0.0, 50.0, 100.0, 100.0, 75.0, 75.0 ]
+        for i in 0..<percentages.count {
+            assert(fabs(percentages[i] - expected[i]) < 1.0, "Percentages don't match: \(percentages) should be \(expected)")
+        }
+
+        reqFile.computeRequirementStatus(with: [courses[0], courses[1], courses[3]])
+        percentages = reqFile.requirements?.map({ $0.percentageFulfilled }) ?? []
+        expected = [ Float(100.0 * 2.0 / 3.0), 100.0, 0.0, 50.0, 100.0, 100.0, 75.0, 75.0 ]
+        for i in 0..<percentages.count {
+            assert(fabs(percentages[i] - expected[i]) < 1.0, "Percentages don't match: \(percentages) should be \(expected)")
+        }
+
+        reqFile.computeRequirementStatus(with: [courses[3], courses[4], courses[5]])
+        percentages = reqFile.requirements?.map({ $0.percentageFulfilled }) ?? []
+        expected = [ 0.0, 100.0, 0.0, Float(100.0 / 6.0), 100.0, 100.0, 25.0, 25.0 ]
+        for i in 0..<percentages.count {
+            assert(fabs(percentages[i] - expected[i]) < 1.0, "Percentages don't match: \(percentages) should be \(expected)")
+        }
+
+        reqFile.computeRequirementStatus(with: [courses[3], courses[4], courses[5], courses[6]])
+        percentages = reqFile.requirements?.map({ $0.percentageFulfilled }) ?? []
+        expected = [ 0.0, 100.0, 50.0, Float(100.0 / 3.0), 100.0, 100.0, Float(100.0 * 2.0 / 3.0), Float(100.0 * 2.0 / 3.0) ]
+        for i in 0..<percentages.count {
+            assert(fabs(percentages[i] - expected[i]) < 1.0, "Percentages don't match: \(percentages) should be \(expected)")
+        }
+
+        reqFile.computeRequirementStatus(with: [courses[3], courses[4], courses[6], courses[7]])
+        percentages = reqFile.requirements?.map({ $0.percentageFulfilled }) ?? []
+        expected = [ 0.0, 100.0, 100.0, 50.0, 100.0, 100.0, 100.0, 100.0 ]
+        for i in 0..<percentages.count {
+            assert(fabs(percentages[i] - expected[i]) < 1.0, "Percentages don't match: \(percentages) should be \(expected)")
+        }
+
+        reqFile.computeRequirementStatus(with: [courses[0], courses[1], courses[2], courses[6]])
+        percentages = reqFile.requirements?.map({ $0.percentageFulfilled }) ?? []
+        expected = [ 100.0, 0.0, 50.0, Float(100.0 * 2.0 / 3.0), 100.0, 100.0, 80.0, 80.0 ]
+        for i in 0..<percentages.count {
+            assert(fabs(percentages[i] - expected[i]) < 1.0, "Percentages don't match: \(percentages) should be \(expected)")
         }
     }
     

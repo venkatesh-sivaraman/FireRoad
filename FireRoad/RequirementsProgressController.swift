@@ -36,10 +36,10 @@ class RequirementsProgressController: UIViewController {
     
     @IBAction func sliderValueChanged(_ sender: UISlider) {
         let oldValue = requirement?.manualProgress
-        guard let req = requirement else {
+        guard let req = requirement, req.threshold != nil else {
             return
         }
-        let step: Float = req.threshold.criterion == .units ? 3.0 : 1.0
+        let step: Float = req.threshold!.criterion == .units ? 3.0 : 1.0
         req.manualProgress = Int(round(sender.value / step) * step)
         if oldValue != requirement?.manualProgress {
             updateSliderAndLabel()
@@ -47,33 +47,33 @@ class RequirementsProgressController: UIViewController {
     }
     
     @IBAction func sliderEditFinished(_ sender: UISlider) {
-        guard let req = requirement else {
+        guard let req = requirement, req.threshold != nil else {
             return
         }
-        let step: Float = req.threshold.criterion == .units ? 3.0 : 1.0
+        let step: Float = req.threshold!.criterion == .units ? 3.0 : 1.0
         req.manualProgress = Int(round(sender.value / step) * step)
         updateSliderAndLabel()
         delegate?.requirementsProgressUpdated(self)
     }
     
     func updateSliderAndLabel() {
-        guard let req = requirement else {
+        guard let req = requirement, req.threshold != nil else {
             return
         }
         
-        var text = "\(req.manualProgress ?? 0)/\(req.threshold.cutoff) "
-        if req.threshold.criterion == .subjects {
+        var text = "\(req.manualProgress ?? 0)/\(req.threshold!.cutoff) "
+        if req.threshold!.criterion == .subjects {
             text += "subject"
         } else {
             text += "unit"
         }
-        if req.threshold.cutoff != 1 {
+        if req.threshold!.cutoff != 1 {
             text += "s"
         }
         progressLabel.text = text
         
         slider.minimumValue = 0.0
-        slider.maximumValue = Float(req.threshold.cutoff)
+        slider.maximumValue = Float(req.threshold!.cutoff)
         slider.value = Float(req.manualProgress ?? 0)
     }
 
