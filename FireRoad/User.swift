@@ -230,6 +230,8 @@ class User: UserDocument {
         var unsatisfiedPrereqs: [String] = []
         for prereqList in course.prerequisites {
             var satisfied = false
+            var satisfiedByNonAuto = false
+            var containsNonAuto = false
             for prereq in prereqList {
                 for otherSemester in UserSemester.allSemesters where otherSemester.rawValue < semester.rawValue {
                     for course in courses(forSemester: otherSemester) {
@@ -242,20 +244,29 @@ class User: UserDocument {
                         break
                     }
                 }
+                let auto = Course.isRequirementAutomaticallySatisfied(prereq)
+                if !auto {
+                    if satisfied {
+                        satisfiedByNonAuto = true
+                    }
+                    containsNonAuto = true
+                }
                 if !satisfied {
-                    satisfied = Course.isRequirementAutomaticallySatisfied(prereq)
+                    satisfied = auto
                 }
                 if satisfied {
                     break
                 }
             }
-            if !satisfied {
+            if !satisfied || (satisfied && !satisfiedByNonAuto && containsNonAuto) {
                 unsatisfiedPrereqs += prereqList
             }
         }
         var unsatisfiedCoreqs: [String] = []
         for coreqList in course.corequisites {
             var satisfied = false
+            var satisfiedByNonAuto = false
+            var containsNonAuto = false
             for coreq in coreqList {
                 for otherSemester in UserSemester.allSemesters where (AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue <= semester.rawValue) || (!AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue < semester.rawValue) {
                     for course in courses(forSemester: otherSemester) {
@@ -268,14 +279,21 @@ class User: UserDocument {
                         break
                     }
                 }
+                let auto = Course.isRequirementAutomaticallySatisfied(coreq)
+                if !auto {
+                    if satisfied {
+                        satisfiedByNonAuto = true
+                    }
+                    containsNonAuto = true
+                }
                 if !satisfied {
-                    satisfied = Course.isRequirementAutomaticallySatisfied(coreq)
+                    satisfied = auto
                 }
                 if satisfied {
                     break
                 }
             }
-            if !satisfied {
+            if !satisfied || (satisfied && !satisfiedByNonAuto && containsNonAuto) {
                 unsatisfiedCoreqs += coreqList
             }
         }

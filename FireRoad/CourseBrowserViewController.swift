@@ -373,7 +373,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     // It has stopped the search
                     if let user = (self.rootParent as? RootTabViewController)?.currentUser {
                         for (course, relevance) in newAggregatedSearchResults {
-                            newAggregatedSearchResults[course] = relevance * log(max(user.userRelevance(for: course), 2.0))
+                            newAggregatedSearchResults[course] = relevance + log(max(user.userRelevance(for: course), 2.0))
                         }
                     }
                     let sortedResults = newAggregatedSearchResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }

@@ -181,7 +181,7 @@ class CourseSearchEngine: NSObject {
                                     multiplier = 1.0
                                 }
                             }
-                            relevance += multiplier * Float(comp.count) * weight
+                            relevance += multiplier * Float(comp.count) * weight / Float(courseText.count)
                             found = true
                         }
                     }
@@ -218,7 +218,7 @@ class CourseSearchEngine: NSObject {
                     relevance = 0.0
                     break
                 }
-                relevance += Float(comp.count)
+                relevance += Float(comp.count) / Float(courseText.count)
             }
             if relevance > 0.0 {
                 relevance *= log(Float(max(2, course.enrollmentNumber)))

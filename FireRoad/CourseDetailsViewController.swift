@@ -521,7 +521,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             textLabel?.text = "Find Classes With \(self.course!.subjectID!) as Prerequisite"
         case .description:
             if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites {
-                var text = "Fulfill either the prerequisites or the corequisites.\n\nPrereqs: "
+                var text = ""
+                if course!.eitherPrereqOrCoreq {
+                    text += "Fulfill either the prerequisites or the corequisites.\n\nPrereqs: "
+                }
                 if course!.prerequisites.first(where: { $0.count > 1 }) == nil {
                     text += "Fulfill all of the following:"
                 } else if course!.prerequisites.count == 1 {
