@@ -559,13 +559,16 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             if !self.currentUser!.courses(forSemester: selectedSemester!).contains(course) {
                 let reloadWholeView = (currentUser == nil || currentUser?.allCourses.count == 0)
                 self.currentUser?.add(course, toSemester: selectedSemester!)
-                if reloadWholeView {
-                    self.collectionView.reloadData()
-                } else {
-                    self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
+                if self.isViewLoaded {
+                    if reloadWholeView {
+                        self.collectionView.reloadData()
+                    } else {
+                        self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
+                    }
                 }
             }
-            if let courseItem = self.currentUser?.courses(forSemester: selectedSemester!).index(of: course) {
+            if self.isViewLoaded,
+                let courseItem = self.currentUser?.courses(forSemester: selectedSemester!).index(of: course) {
                 self.collectionView.scrollToItem(at: IndexPath(item: courseItem, section: selectedSemester!.rawValue), at: .centeredVertically, animated: true)
             }
         }
@@ -612,6 +615,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func updateCourseWarningStatus() {
+        guard isViewLoaded else {
+            return
+        }
         for indexPath in collectionView.indexPathsForVisibleItems {
             guard let cell = collectionView.cellForItem(at: indexPath) as? CourseThumbnailCell,
                 let semester = UserSemester(rawValue: indexPath.section),

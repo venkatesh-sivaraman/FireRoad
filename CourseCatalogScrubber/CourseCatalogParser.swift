@@ -149,7 +149,7 @@ class CourseCatalogParser: NSObject {
         // Time regex matches "MTWRF9-11 ( 1-123 )" or "MTWRF EVE (8-10) ( 1-234 )".
         guard let classTypeRegex = try? NSRegularExpression(pattern: "(\\w+):(.+?)(?=\\z|\\w+:)", options: .dotMatchesLineSeparators),
             let timeRegex = try? NSRegularExpression(pattern: "(?<!\\(\\s\\w?)([MTWRFS]+)\\s*(?:([0-9-\\.:]+)|(EVE\\s*\\(\\s*(.+?)\\s*\\)))", options: []),
-            let locationRegex = try? NSRegularExpression(pattern: "[A-Z]*[0-9-]+", options: []) else {
+            let locationRegex = try? NSRegularExpression(pattern: "[A-Z]*[0-9ABCN-]+", options: []) else {
             print("Failed to load class type/time regex")
             return schedule
         }
@@ -202,8 +202,12 @@ class CourseCatalogParser: NSObject {
     func processInformationItem(_ item: String, into attributes: inout [CourseAttribute: Any]) {
         if let prereqRange = item.range(of: CourseCatalogConstants.prerequisitesPrefix, options: .caseInsensitive) {
             if let coreqRange = item.range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) {
-                attributes[.prerequisites] = filterCourseListString(String(item[prereqRange.upperBound..<coreqRange.lowerBound]))
+                let prereqString = String(item[prereqRange.upperBound..<coreqRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+                attributes[.prerequisites] = filterCourseListString(prereqString)
                 attributes[.corequisites] = filterCourseListString(String(item[coreqRange.upperBound..<item.endIndex]))
+                if prereqString.range(of: CourseCatalogConstants.eitherPrereqOrCoreqFlag, options: .caseInsensitive)?.upperBound == prereqString.endIndex {
+                    attributes[.eitherPrereqOrCoreq] = true
+                }
             } else {
                 attributes[.prerequisites] = filterCourseListString(String(item[prereqRange.upperBound..<item.endIndex]))
             }
@@ -220,6 +224,9 @@ class CourseCatalogParser: NSObject {
                 trimmedItem = trimmedItem.replacingOccurrences(of: CourseCatalogConstants.finalFlag, with: "")
             }
             var quarterInformation = ""
+            if attributes[.subjectID] as? String == "21G.618" {
+                print("Here")
+            }
             attributes[.schedule] = parseScheduleString(trimmedItem.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: ""), quarterInformation: &quarterInformation)
             if quarterInformation.count > 0 {
                 attributes[.quarterInformation] = quarterInformation

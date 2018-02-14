@@ -333,7 +333,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         if course!.prerequisites.flatMap({ $0 }).count > 0 {
             titles.append(CourseDetailSectionTitle.prerequisites)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-            if course!.prerequisites.flatMap({ $0 }).count > 1 {
+            if course!.eitherPrereqOrCoreq || course!.prerequisites.flatMap({ $0 }).count > 1 {
                 rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .description
             }
@@ -471,9 +471,6 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         let dataType = self.detailMapping[indexPath]!
         let cellType = self.cellType(for: dataType)
         if cellType == "DescriptionCell" || cellType == "MetadataCell" || cellType == "RateCell" {
-            if sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites || sectionTitles[indexPath.section] == CourseDetailSectionTitle.corequisites {
-                return 32.0
-            }
             return UITableViewAutomaticDimension
         } else if cellType == "CourseListCell" {
             return 124.0
@@ -524,13 +521,15 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             textLabel?.text = "Find Classes With \(self.course!.subjectID!) as Prerequisite"
         case .description:
             if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites {
+                var text = "Fulfill either the prerequisites or the corequisites.\n\nPrereqs: "
                 if course!.prerequisites.first(where: { $0.count > 1 }) == nil {
-                    textLabel?.text = "Fulfill all of the following:"
+                    text += "Fulfill all of the following:"
                 } else if course!.prerequisites.count == 1 {
-                    textLabel?.text = "Fulfill any of the following:"
+                    text += "Fulfill any of the following:"
                 } else {
-                    textLabel?.text = "Fulfill one from each row:"
+                    text += "Fulfill one from each row:"
                 }
+                textLabel?.text = text
             } else if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.corequisites {
                 if course!.corequisites.first(where: { $0.count > 1 }) == nil {
                     textLabel?.text = "Fulfill all of the following:"

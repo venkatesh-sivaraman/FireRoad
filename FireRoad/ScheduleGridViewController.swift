@@ -178,6 +178,10 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
             for (i, element) in sortedItems.enumerated() {
                 let startIndex = ScheduleSlotManager.slotIndex(for: element.item.startTime)
                 let endIndex = ScheduleSlotManager.slotIndex(for: element.item.endTime)
+                guard startIndex >= 0, startIndex < timeSlots.count,
+                    endIndex >= 0, endIndex < timeSlots.count else {
+                        continue
+                }
                 timeSlots[startIndex].append(element)
                 for index in startIndex..<endIndex {
                     allTimeSlots[index].append(i)

@@ -63,6 +63,9 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     }
     
     func updateSemesters() {
+        guard courseUpdatingHUD == nil || courseUpdatingHUD?.isHidden == false else {
+            return
+        }
         let oldAvailableSemesters = CourseManager.shared.availableCatalogSemesters
         CourseManager.shared.checkForCatalogSemesterUpdates { (state, _, error, code) in
             DispatchQueue.main.async {

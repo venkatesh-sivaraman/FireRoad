@@ -206,6 +206,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     func loadRecentSchedule() {
+        guard currentSchedule == nil else {
+            return
+        }
         if !CourseManager.shared.isLoaded {
             self.containerView.alpha = 0.0
             self.loadingView?.alpha = 1.0

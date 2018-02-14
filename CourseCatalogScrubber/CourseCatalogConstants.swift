@@ -33,6 +33,8 @@ enum CourseCatalogConstants {
     
     static let urlPrefix = "http"
     
+    static let eitherPrereqOrCoreqFlag = " or"
+    
     static let hassH = "hass humanities"
     static let hassA = "hass arts"
     static let hassS = "hass social sciences"
@@ -105,6 +107,7 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
     case hasFinal
     case quarterInformation
     case subjectLevel
+    case eitherPrereqOrCoreq
     
     // Evaluation fields
     case averageRating
@@ -151,6 +154,7 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
         .averageInClassHours: "In-Class Hours",
         .averageOutOfClassHours: "Out-of-Class Hours",
         .raterCount: "Rater Count",
-        .enrollment: "Enrollment"
+        .enrollment: "Enrollment",
+        .eitherPrereqOrCoreq: "Prereq or Coreq"
     ]
 }

@@ -114,7 +114,6 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 rows.removeFirst()
                 if topLevelRequirement.connectionType != .all || (topLevelRequirement.threshold != nil && topLevelRequirement.threshold!.cutoff > 1),
                     topLevelRequirement.thresholdDescription.count > 0,
-                    (topLevelRequirement.contentDescription ?? "").count == 0 || (topLevelRequirement.threshold != nil && topLevelRequirement.threshold!.cutoff > 1),
                     !topLevelRequirement.isPlainString {
                     var indexToInsert = 0
                     if rows[indexToInsert].cellType == .description {

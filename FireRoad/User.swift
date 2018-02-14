@@ -287,11 +287,13 @@ class User: UserDocument {
         } else if semester.isSpring(), !course.isOfferedSpring {
             warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered in the spring."))
         }
-        if unsatisfiedPrereqs.count > 0 {
-            warnings.append(CourseWarning(type: .unsatisfiedPrerequisites, message: formatUnsatisfiedRequirements(label: "prerequisites", unsatisfiedItems: unsatisfiedPrereqs, requirements: course.prerequisites)))
-        }
-        if unsatisfiedCoreqs.count > 0 {
-            warnings.append(CourseWarning(type: .unsatisfiedCorequisites, message: formatUnsatisfiedRequirements(label: "corequisites", unsatisfiedItems: unsatisfiedCoreqs, requirements: course.corequisites)))
+        if !course.eitherPrereqOrCoreq || (unsatisfiedPrereqs.count != 0 && unsatisfiedCoreqs.count != 0) {
+            if unsatisfiedPrereqs.count > 0 {
+                warnings.append(CourseWarning(type: .unsatisfiedPrerequisites, message: formatUnsatisfiedRequirements(label: "prerequisites", unsatisfiedItems: unsatisfiedPrereqs, requirements: course.prerequisites)))
+            }
+            if unsatisfiedCoreqs.count > 0 {
+                warnings.append(CourseWarning(type: .unsatisfiedCorequisites, message: formatUnsatisfiedRequirements(label: "corequisites", unsatisfiedItems: unsatisfiedCoreqs, requirements: course.corequisites)))
+            }
         }
         warningsCache[course] = warnings
         return warnings

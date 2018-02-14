@@ -441,8 +441,10 @@ class RequirementsListStatement: NSObject {
                 var units = 0
                 if threshold.criterion == .units {
                     units = manual
+                    subjects = manual / 12
                 } else {
                     subjects = manual
+                    units = manual * 12
                 }
                 subjectFulfillmentProgress = ceilingThreshold((subjects, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
                 unitFulfillmentProgress = ceilingThreshold((units, threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))

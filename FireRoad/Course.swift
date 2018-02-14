@@ -241,7 +241,7 @@ struct CourseScheduleTime: CustomDebugStringConvertible, Comparable {
             print("Not enough components in time string: \(time)")
             return CourseScheduleTime(hour: 12, minute: 0, PM: true)
         }
-        var pm = ((comps[0] > 7) == evening)
+        var pm = ((comps[0] <= 7) || evening)
         if comps[0] == 12 {
             pm = !evening
         }
@@ -409,6 +409,7 @@ enum CourseAttribute: String {
     case schedule
     case subjectLevel
     case url
+    case eitherPrereqOrCoreq
     
     case rating
     case inClassHours
@@ -458,7 +459,8 @@ enum CourseAttribute: String {
         "Rating": .rating,
         "In-Class Hours": .inClassHours,
         "Out-of-Class Hours": .outOfClassHours,
-        "Enrollment": .enrollmentNumber
+        "Enrollment": .enrollmentNumber,
+        "Prereq or Coreq": .eitherPrereqOrCoreq
     ]
     
     init?(csvHeader: String) {
@@ -551,6 +553,8 @@ class Course: NSObject {
             _corequisites = newValue
         }
     }
+    
+    @objc dynamic var eitherPrereqOrCoreq: Bool = false
 
     var girAttribute: GIRAttribute?
     var communicationRequirement: CommunicationAttribute?
@@ -681,7 +685,7 @@ class Course: NSObject {
                     parseDeferredValues[attribute] = value as? String
                 }
             case .isOfferedFall, .isOfferedIAP, .isOfferedSpring, .isOfferedSummer, .isOfferedThisYear,
-                 .isVariableUnits, .hasFinal, .pdfOption:
+                 .isVariableUnits, .hasFinal, .pdfOption, .eitherPrereqOrCoreq:
                 if (value as? Bool) != nil {
                     super.setValue(value, forKey: key)
                 } else {
