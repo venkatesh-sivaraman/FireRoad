@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate, UIPopoverPresentationControllerDelegate {
+class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate, UIPopoverPresentationControllerDelegate, UIDocumentInteractionControllerDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
@@ -33,10 +33,12 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     var isSmallLayoutMode = false
     @IBOutlet var warningsButton: UIButton?
     @IBOutlet var openButton: UIButton?
+    @IBOutlet var shareButton: UIButton?
 
     @IBOutlet var layoutToggleItem: UIBarButtonItem?
     @IBOutlet var warningsItem: UIBarButtonItem?
     @IBOutlet var openItem: UIBarButtonItem?
+    @IBOutlet var shareItem: UIBarButtonItem?
     @IBOutlet var toolbarTitleLabel: UILabel?
     
     @IBOutlet var placeholderView: UIView?
@@ -223,6 +225,72 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             }
         }
 
+    }
+    
+    var documentInteractionController: UIDocumentInteractionController?
+    var temporaryFileURL: URL?
+    
+    @IBAction func shareItemTapped(_ sender: AnyObject) {
+        guard let path = currentUser?.filePath else {
+            return
+        }
+        let actionSheet = UIAlertController(title: nil, message: "Choose a format to share:", preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "PDF", style: .default, handler: { _ in
+            var activityItems: [Any] = []
+            self.collectionView.renderToPDF({ (data) in
+                if let data = data {
+                    let url = URL(fileURLWithPath: path).deletingPathExtension().appendingPathExtension("pdf")
+                    do {
+                        try data.write(to: url)
+                        self.temporaryFileURL = url
+                        activityItems.append(url)
+                    } catch {
+                        print("Error writing data: \(data)")
+                    }
+                } else {
+                    let provider = ScheduleItemProvider(placeholderItem: UIImage(), renderingBlock: { () -> Any in
+                        return self.collectionView.renderToImage()
+                    })
+                    activityItems.append(provider)
+                }
+                let actionVC = UIActivityViewController(activityItems: activityItems, applicationActivities: [])
+                actionVC.completionWithItemsHandler = { (_, _, _, _) in
+                    if let url = self.temporaryFileURL {
+                        try? FileManager.default.removeItem(at: url)
+                    }
+                }
+                if self.traitCollection.userInterfaceIdiom == .pad,
+                    let barItem = sender as? UIBarButtonItem {
+                    actionVC.modalPresentationStyle = .popover
+                    actionVC.popoverPresentationController?.barButtonItem = barItem
+                }
+                self.present(actionVC, animated: true, completion: nil)
+            })
+        }))
+        actionSheet.addAction(UIAlertAction(title: "FireRoad Document", style: .default, handler: { _ in
+            let url = URL(fileURLWithPath: path)
+            let actionVC = UIDocumentInteractionController(url: url)
+            actionVC.uti = "com.base12innovations.FireRoad.road"
+            actionVC.delegate = self
+            if self.traitCollection.userInterfaceIdiom == .pad,
+                let barItem = sender as? UIBarButtonItem {
+                actionVC.presentOptionsMenu(from: barItem, animated: true)
+            } else if let view = sender as? UIView {
+                actionVC.presentOptionsMenu(from: view.bounds, in: view, animated: true)
+            }
+            self.documentInteractionController = actionVC
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        if self.traitCollection.userInterfaceIdiom == .pad,
+            let barItem = sender as? UIBarButtonItem {
+            actionSheet.modalPresentationStyle = .popover
+            actionSheet.popoverPresentationController?.barButtonItem = barItem
+        }
+        present(actionSheet, animated: true, completion: nil)
+    }
+    
+    func documentInteractionControllerDidDismissOptionsMenu(_ controller: UIDocumentInteractionController) {
+        documentInteractionController = nil
     }
     
     // MARK: - State Restoration
@@ -663,6 +731,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         warningsItem?.isEnabled = CourseManager.shared.isLoaded
         
         openButton?.setImage(openButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        shareButton?.setImage(shareButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
     
     @IBAction func toggleViewLayoutMode(_ sender: AnyObject) {

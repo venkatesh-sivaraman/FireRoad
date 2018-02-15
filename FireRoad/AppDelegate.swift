@@ -19,6 +19,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         loadCookies()
         return true
     }
+    
+    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+        guard let rootTab = window?.rootViewController as? RootTabViewController else {
+            return true
+        }
+        do {
+            _ = try User(contentsOfFile: url.path, readOnly: true)
+            rootTab.importCourseroad(from: url, copy: (options[.openInPlace] as? Bool) ?? false)
+            return true
+        } catch {
+            let alert = UIAlertController(title: "Error in Road", message: "The file you opened could not be read.", preferredStyle: .alert)
+            var presented: UIViewController = rootTab
+            while presented.presentedViewController != nil {
+                presented = presented.presentedViewController!
+            }
+            presented.present(alert, animated: true, completion: nil)
+            
+            if options[.openInPlace] as? Bool != true {
+                try? FileManager.default.removeItem(at: url)
+            }
+            return false
+        }
+    }
 
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.

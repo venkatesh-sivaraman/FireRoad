@@ -1061,9 +1061,9 @@ class CourseManager: NSObject {
 
     // MARK: - Updating Course Database
     
-    private let semesterUpdateURL = "http://venkats.scripts.mit.edu/fireroad/courseupdater/semesters/"
-    private let baseUpdateURL = "http://venkats.scripts.mit.edu/fireroad/courseupdater/check/"
-    private let baseStaticURL = "http://venkats.scripts.mit.edu/catalogs/"
+    private let semesterUpdateURL = "https://venkats.scripts.mit.edu/fireroad/courseupdater/semesters/"
+    private let baseUpdateURL = "https://venkats.scripts.mit.edu/fireroad/courseupdater/check/"
+    private let baseStaticURL = "https://venkats.scripts.mit.edu/catalogs/"
 
     enum CatalogUpdateState {
         case newVersionAvailable

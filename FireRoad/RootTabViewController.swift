@@ -361,6 +361,46 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         }
     }
     
+    func importCourseroad(from oldURL: URL, copy: Bool) {
+        let presenter = self.presentedViewController ?? self
+        
+        let base = (oldURL.lastPathComponent as NSString).deletingPathExtension
+        var newID = base
+        if let newURL = urlForCourseroad(named: newID + ".road"),
+            FileManager.default.fileExists(atPath: newURL.path) {
+            var counter = 2
+            while let otherURL = urlForCourseroad(named: base + " \(counter).road"),
+                FileManager.default.fileExists(atPath: otherURL.path) {
+                    counter += 1
+            }
+            newID = base + " \(counter)"
+        }
+        
+        do {
+            guard let newURL = urlForCourseroad(named: newID + ".road") else {
+                return
+            }
+            if copy {
+                try FileManager.default.copyItem(at: oldURL, to: newURL)
+            } else {
+                try FileManager.default.moveItem(at: oldURL, to: newURL)
+            }
+            
+            guard let courseroadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController else {
+                print("Couldn't get courseroad view controller")
+                return
+            }
+            courseroadVC.loadCourseroad(named: newID + ".road")
+            if let tab = viewControllers?.first(where: { courseroadVC.isDescendant(of: $0) }) {
+                selectedViewController = tab
+            }
+        } catch {
+            let alert = UIAlertController(title: "Could Not Import Road", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            presenter.present(alert, animated: true, completion: nil)
+        }
+    }
+    
     // MARK: - Intro
     
     func showIntro() {

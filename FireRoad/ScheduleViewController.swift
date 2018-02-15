@@ -633,11 +633,11 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         var activityItems: [Any] = [scheduleString]
         if let scrollView = (currentScheduleVC as? ScheduleGridViewController)?.scrollView {
             let provider = ScheduleItemProvider(placeholderItem: UIImage(), renderingBlock: { () -> Any in
-                return self.image(from: scrollView)
+                return scrollView.renderToImage()
             })
             activityItems.append(provider)
             let printProvider = ScheduleItemProvider(placeholderItem: UIImageView().viewPrintFormatter(), renderingBlock: { () -> Any in
-                return self.activityForPrinting(image: self.image(from: scrollView))
+                return ScheduleViewController.activityForPrinting(image: scrollView.renderToImage())
             })
             activityItems.append(printProvider)
         }
@@ -650,29 +650,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         present(actionVC, animated: true, completion: nil)
     }
     
-    func image(from scrollView: UIScrollView) -> UIImage {
-        let savedFrame = scrollView.frame
-        let savedOffset = scrollView.contentOffset
-        let savedScale = scrollView.zoomScale
-        scrollView.zoomScale = 1.0
-        scrollView.frame = CGRect(x: 0.0, y: 0.0, width: scrollView.contentSize.width, height: scrollView.contentSize.height)
-        scrollView.contentOffset = .zero
-        
-        UIGraphicsBeginImageContextWithOptions(scrollView.contentSize, false, 0.0)
-        defer {
-            UIGraphicsEndImageContext()
-            scrollView.zoomScale = savedScale
-            scrollView.frame = savedFrame
-            scrollView.contentOffset = savedOffset
-        }
-        guard let ctx = UIGraphicsGetCurrentContext() else {
-            return UIImage()
-        }
-        scrollView.layer.render(in: ctx)
-        return UIGraphicsGetImageFromCurrentImageContext() ?? UIImage()
-    }
-    
-    func activityForPrinting(image: UIImage) -> Any {
+    class func activityForPrinting(image: UIImage) -> Any {
         let maxWidth = CGFloat(540.0)
         let maxHeight = CGFloat(720.0)
         let scale = max(image.size.width / maxWidth, image.size.height / maxHeight, 1.0)

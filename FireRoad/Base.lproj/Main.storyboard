@@ -231,6 +231,11 @@
                                             <action selector="toggleViewLayoutMode:" destination="9pv-A4-QxB" id="kED-eA-Ths"/>
                                         </connections>
                                     </barButtonItem>
+                                    <barButtonItem systemItem="action" id="1aS-OP-mOx">
+                                        <connections>
+                                            <action selector="shareItemTapped:" destination="9pv-A4-QxB" id="7VI-nM-HjH"/>
+                                        </connections>
+                                    </barButtonItem>
                                 </items>
                                 <connections>
                                     <outlet property="delegate" destination="9pv-A4-QxB" id="pzg-5q-wQ8"/>
@@ -246,22 +251,22 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Zzg-CV-fJ8" customClass="RoundedToolbarView" customModule="FireRoad" customModuleProvider="target">
-                                <rect key="frame" x="248.5" y="568" width="116.5" height="40"/>
+                                <rect key="frame" x="216.5" y="568" width="148.5" height="40"/>
                                 <subviews>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="kyQ-ua-9tc">
-                                        <rect key="frame" x="-16" y="-16" width="148.5" height="72"/>
+                                        <rect key="frame" x="-16" y="-16" width="180.5" height="72"/>
                                         <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                     </imageView>
                                     <visualEffectView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="YZP-I6-abK">
-                                        <rect key="frame" x="0.0" y="0.0" width="116.5" height="40"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="148.5" height="40"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="lrk-KP-ryb">
-                                            <rect key="frame" x="0.0" y="0.0" width="116.5" height="40"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="148.5" height="40"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <subviews>
                                                 <visualEffectView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="aCh-gQ-dfW">
-                                                    <rect key="frame" x="0.0" y="0.0" width="116.5" height="40"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="148.5" height="40"/>
                                                     <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="RJx-nC-b91">
-                                                        <rect key="frame" x="0.0" y="0.0" width="116.5" height="40"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="148.5" height="40"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <subviews>
                                                             <button opaque="NO" contentMode="center" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KXM-NO-Os5">
@@ -279,10 +284,17 @@
                                                                 </constraints>
                                                             </view>
                                                             <button opaque="NO" contentMode="center" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="F0P-st-ISV">
-                                                                <rect key="frame" x="80.5" y="4" width="32" height="32"/>
+                                                                <rect key="frame" x="112.5" y="4" width="32" height="32"/>
                                                                 <state key="normal" image="open"/>
                                                                 <connections>
                                                                     <action selector="openButtonPressed:" destination="9pv-A4-QxB" eventType="touchUpInside" id="hmK-QH-Bug"/>
+                                                                </connections>
+                                                            </button>
+                                                            <button opaque="NO" contentMode="center" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IzC-il-wfK">
+                                                                <rect key="frame" x="78.5" y="4" width="32" height="32"/>
+                                                                <state key="normal" image="share"/>
+                                                                <connections>
+                                                                    <action selector="shareItemTapped:" destination="9pv-A4-QxB" eventType="touchUpInside" id="853-oA-YvI"/>
                                                                 </connections>
                                                             </button>
                                                             <button opaque="NO" contentMode="center" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="CtZ-Ec-ixs">
@@ -297,7 +309,10 @@
                                                         <constraints>
                                                             <constraint firstAttribute="bottom" secondItem="KXM-NO-Os5" secondAttribute="bottom" constant="4" id="1Td-3J-hP4"/>
                                                             <constraint firstItem="fTO-aK-XQA" firstAttribute="leading" secondItem="KXM-NO-Os5" secondAttribute="trailing" constant="6" id="2er-th-W2G"/>
+                                                            <constraint firstItem="F0P-st-ISV" firstAttribute="leading" secondItem="IzC-il-wfK" secondAttribute="trailing" constant="2" id="3J8-36-BZn"/>
+                                                            <constraint firstItem="IzC-il-wfK" firstAttribute="top" secondItem="F0P-st-ISV" secondAttribute="top" id="4I5-wY-En6"/>
                                                             <constraint firstItem="KXM-NO-Os5" firstAttribute="leading" secondItem="CtZ-Ec-ixs" secondAttribute="trailing" constant="6" id="71P-0T-dNE"/>
+                                                            <constraint firstItem="IzC-il-wfK" firstAttribute="bottom" secondItem="F0P-st-ISV" secondAttribute="bottom" id="9Ox-cb-tpG"/>
                                                             <constraint firstAttribute="trailing" secondItem="F0P-st-ISV" secondAttribute="trailing" constant="4" id="JEG-zv-s2m"/>
                                                             <constraint firstItem="KXM-NO-Os5" firstAttribute="top" secondItem="RJx-nC-b91" secondAttribute="top" constant="4" id="LOG-Tn-mOm"/>
                                                             <constraint firstItem="F0P-st-ISV" firstAttribute="top" secondItem="RJx-nC-b91" secondAttribute="top" constant="4" id="M2s-f6-V2N"/>
@@ -306,8 +321,8 @@
                                                             <constraint firstAttribute="bottom" secondItem="CtZ-Ec-ixs" secondAttribute="bottom" constant="4" id="aUk-G1-0yT"/>
                                                             <constraint firstAttribute="bottom" secondItem="F0P-st-ISV" secondAttribute="bottom" constant="4" id="ajV-ZD-foe"/>
                                                             <constraint firstItem="CtZ-Ec-ixs" firstAttribute="leading" secondItem="RJx-nC-b91" secondAttribute="leading" constant="4" id="gCJ-Q1-xtg"/>
+                                                            <constraint firstItem="IzC-il-wfK" firstAttribute="leading" secondItem="fTO-aK-XQA" secondAttribute="trailing" constant="4" id="qDX-uS-35w"/>
                                                             <constraint firstItem="CtZ-Ec-ixs" firstAttribute="top" secondItem="RJx-nC-b91" secondAttribute="top" constant="4" id="uTK-Bf-Dhb"/>
-                                                            <constraint firstItem="F0P-st-ISV" firstAttribute="leading" secondItem="fTO-aK-XQA" secondAttribute="trailing" constant="6" id="whe-AD-9li"/>
                                                         </constraints>
                                                     </view>
                                                     <blurEffect style="extraLight"/>
@@ -472,6 +487,8 @@
                         <outlet property="openButton" destination="F0P-st-ISV" id="bwb-vC-lcq"/>
                         <outlet property="openItem" destination="thc-cc-nQ5" id="Jdr-d0-hNz"/>
                         <outlet property="placeholderView" destination="Ahs-Yo-eDg" id="w31-9t-gP7"/>
+                        <outlet property="shareButton" destination="IzC-il-wfK" id="oud-AD-H62"/>
+                        <outlet property="shareItem" destination="1aS-OP-mOx" id="nBa-zA-5r2"/>
                         <outlet property="toolbarTitleLabel" destination="hmr-dz-SZA" id="76d-uh-0ov"/>
                         <outlet property="warningsButton" destination="CtZ-Ec-ixs" id="wHb-D8-Ybh"/>
                         <outlet property="warningsItem" destination="LHA-nH-DmJ" id="MAl-FY-hmz"/>
