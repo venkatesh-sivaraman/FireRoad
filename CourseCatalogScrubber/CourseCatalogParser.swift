@@ -130,7 +130,7 @@ class CourseCatalogParser: NSObject {
         }
         
         // Remove quarter information first
-        guard let quarterInfoRegex = try? NSRegularExpression(pattern: "\\((begins|ends)\\s+(.+?)\\)", options: .caseInsensitive) else {
+        guard let quarterInfoRegex = try? NSRegularExpression(pattern: "(begins|ends)\\s+(.+?)(\\.|\\))", options: .caseInsensitive) else {
             print("Failed to load quarter info regex")
             return schedule
         }
@@ -224,9 +224,6 @@ class CourseCatalogParser: NSObject {
                 trimmedItem = trimmedItem.replacingOccurrences(of: CourseCatalogConstants.finalFlag, with: "")
             }
             var quarterInformation = ""
-            if attributes[.subjectID] as? String == "21G.618" {
-                print("Here")
-            }
             attributes[.schedule] = parseScheduleString(trimmedItem.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: ""), quarterInformation: &quarterInformation)
             if quarterInformation.count > 0 {
                 attributes[.quarterInformation] = quarterInformation

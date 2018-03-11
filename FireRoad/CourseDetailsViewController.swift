@@ -614,10 +614,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             if self.course!.quarterOffered != .wholeSemester {
                 var attachmentWord = ""
                 if self.course!.quarterOffered == .beginningOnly {
-                    quarterString = "\n1st half"
+                    quarterString = "\n1st quarter"
                     attachmentWord = "ends"
                 } else if self.course!.quarterOffered == .endOnly {
-                    quarterString = "\n2nd half"
+                    quarterString = "\n2nd quarter"
                     attachmentWord = "starts"
                 }
                 if let date = self.course?.quarterBoundaryDate {

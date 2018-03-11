@@ -233,9 +233,10 @@ class User: UserDocument {
             var satisfiedByNonAuto = false
             var containsNonAuto = false
             for prereq in prereqList {
-                for otherSemester in UserSemester.allSemesters where otherSemester.rawValue < semester.rawValue {
-                    for course in courses(forSemester: otherSemester) {
-                        if course.satisfies(requirement: prereq) {
+                for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
+                    for otherCourse in courses(forSemester: otherSemester) {
+                        if otherCourse.satisfies(requirement: prereq),
+                            otherSemester.rawValue < semester.rawValue || (course.quarterOffered != .beginningOnly && otherCourse.quarterOffered == .beginningOnly) {
                             satisfied = true
                             break
                         }

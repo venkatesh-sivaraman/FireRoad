@@ -144,7 +144,7 @@ extension PanelParentViewController {
     
     func viewDetails(for course: Course, showGenericDetails: Bool = true) {
         generateDetailsViewController(for: course, showGenericDetails: showGenericDetails) { (details, list) in
-            if self.panelView?.isExpanded == false {
+            if self.panelView?.isExpanded == false, self.presentedViewController == nil {
                 self.panelView?.expandView()
             }
             if let detailVC = details {

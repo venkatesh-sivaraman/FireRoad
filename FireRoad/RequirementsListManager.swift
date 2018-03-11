@@ -17,6 +17,7 @@ class RequirementsListManager: NSObject {
     static let shared: RequirementsListManager = RequirementsListManager()
     
     private(set) var requirementsLists: [RequirementsList] = []
+    private var isLoadingRequirementsLists = false
     
     private var requirementsListsByID: [String: RequirementsList] = [:]
     
@@ -42,9 +43,10 @@ class RequirementsListManager: NSObject {
     
     func loadRequirementsLists() {
         // We only want to load these lists once
-        guard requirementsLists.count == 0 else {
+        guard requirementsLists.count == 0, !isLoadingRequirementsLists else {
             return
         }
+        isLoadingRequirementsLists = true
         requirementsListsByID = [:]
         guard let docsPath = (NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first as NSString?) else {
             return
@@ -68,6 +70,7 @@ class RequirementsListManager: NSObject {
             }
         }
         requirementsLists.sort(by: { ($0.mediumTitle?.compare($1.mediumTitle ?? "") ?? .orderedDescending) == .orderedAscending })
+        isLoadingRequirementsLists = false
     }
     
     func requirementList(withID id: String) -> RequirementsList? {

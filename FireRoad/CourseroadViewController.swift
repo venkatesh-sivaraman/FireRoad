@@ -433,7 +433,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             let totalUnits = semesterCourses.reduce(0, { $0 + $1.totalUnits })
             var unitsText = "\(totalUnits) units"
             if semester != .PreviousCredit, CourseManager.shared.isLoaded {
-                let totalHours = semesterCourses.reduce(0.0, { $0 + $1.inClassHours + $1.outOfClassHours })
+                let totalHours = semesterCourses.reduce(0.0, { $0 + ($1.inClassHours + $1.outOfClassHours) / ($1.quarterOffered != .wholeSemester ? 2.0 : 1.0) })
                 unitsText += " • " + String(format: "%.1f hours", totalHours)
             }
             unitsLabel.text = unitsText
