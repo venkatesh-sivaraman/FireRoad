@@ -649,7 +649,7 @@ class Course: NSObject {
     
     static let genericCourses: [String: Course] = {
         var ret: [String: Course] = [:]
-        let genericDesc = "Use this generic course to indicate your fulfillment of a requirement for which you do not yet have a specific course selected."
+        let genericDesc = "Use this generic subject to indicate that you are fulfilling a requirement, but do not yet have a specific subject selected."
         for (value, description) in CommunicationAttribute.descriptions {
             let course = Course(courseID: value.rawValue, courseTitle: "Generic \(description)", courseDescription: genericDesc, generic: true)
             course.hassAttribute = .any
