@@ -533,10 +533,10 @@ class User: UserDocument {
             }
             let subjectID = comps[1]
             
-            if CourseManager.shared.getCourse(withID: subjectID) == nil {
+            if CourseManager.shared.getCourse(withID: subjectID) == nil, Course.genericCourses[subjectID] == nil {
                 CourseManager.shared.addCourse(withID: subjectID, title: comps[2], units: units)
             }
-            guard let course = CourseManager.shared.getCourse(withID: subjectID) else {
+            guard let course = CourseManager.shared.getCourse(withID: subjectID) ?? Course.genericCourses[subjectID] else {
                 print("Unable to add course with ID \(subjectID) to course manager")
                 continue
             }

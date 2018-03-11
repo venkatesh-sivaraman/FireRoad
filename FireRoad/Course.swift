@@ -476,9 +476,6 @@ enum CourseAttribute: String {
 
 class Course: NSObject {
     
-    /*
-     Be sure to add the new properties to the transferInformation(to:) method!!
-     */
     @objc dynamic var subjectID: String? = nil
     @objc dynamic var subjectTitle: String? = nil
     @objc dynamic var subjectShortTitle: String? = nil
@@ -488,6 +485,8 @@ class Course: NSObject {
         if let subject = subjectID,
             let periodRange = subject.range(of: ".") {
             return String(subject[subject.startIndex..<periodRange.lowerBound])
+        } else if isGeneric, girAttribute != nil {
+            return "GIR"
         }
         return nil
     }
@@ -646,13 +645,46 @@ class Course: NSObject {
     @objc dynamic var inClassHours: Float = 0.0
     @objc dynamic var outOfClassHours: Float = 0.0
     
+    var isGeneric = false
+    
+    static let genericCourses: [String: Course] = {
+        var ret: [String: Course] = [:]
+        let genericDesc = "Use this generic course to indicate your fulfillment of a requirement for which you do not yet have a specific course selected."
+        for (value, description) in CommunicationAttribute.descriptions {
+            let course = Course(courseID: value.rawValue, courseTitle: "Generic \(description)", courseDescription: genericDesc, generic: true)
+            course.hassAttribute = .any
+            course.communicationRequirement = value
+            course.isOfferedFall = true
+            course.isOfferedSpring = true
+            course.isOfferedIAP = true
+            ret[value.rawValue] = course
+        }
+        for (value, description) in HASSAttribute.descriptions where value != .any {
+            let course = Course(courseID: value.rawValue, courseTitle: "Generic \(description)", courseDescription: genericDesc, generic: true)
+            course.hassAttribute = value
+            course.isOfferedFall = true
+            course.isOfferedSpring = true
+            course.isOfferedIAP = true
+            ret[value.rawValue] = course
+        }
+        for (value, description) in GIRAttribute.descriptions {
+            let course = Course(courseID: value.rawValue, courseTitle: "Generic \(description)", courseDescription: genericDesc, generic: true)
+            course.girAttribute = value
+            course.isOfferedFall = true
+            course.isOfferedSpring = true
+            course.isOfferedIAP = true
+            ret[value.rawValue] = course
+        }
+        return ret
+    }()
+    
     private var parseDeferredValues: [CourseAttribute: String] = [:]
 
     override init() {
         
     }
     
-    init(courseID: String, courseTitle: String, courseDescription: String, totalUnits: Int = 12) {
+    init(courseID: String, courseTitle: String, courseDescription: String, totalUnits: Int = 12, generic: Bool = false) {
         super.init()
         defer {
             self.subjectID = courseID
@@ -660,6 +692,7 @@ class Course: NSObject {
             self.subjectShortTitle = courseTitle
             self.subjectDescription = courseDescription
             self.totalUnits = totalUnits
+            self.isGeneric = generic
         }
     }
     

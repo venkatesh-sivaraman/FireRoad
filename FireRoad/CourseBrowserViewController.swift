@@ -432,7 +432,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.searchBar?.resignFirstResponder()
-        self.delegate?.viewDetails(for: results[indexPath.row])
+        self.delegate?.viewDetails(for: results[indexPath.row], showGenericDetails: true)
         self.tableView.deselectRow(at: indexPath, animated: false)
     }
     

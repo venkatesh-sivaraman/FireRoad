@@ -23,7 +23,7 @@ protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, RequirementsProgressDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, RequirementsProgressDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -550,33 +550,22 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
     }
     
-    func viewDetails(for course: Course) {
-        viewDetails(for: course, from: nil)
+    func viewDetails(for course: Course, showGenericDetails: Bool = false) {
+        viewDetails(for: course, from: nil, showGenericDetails: showGenericDetails)
     }
     
-    func viewDetails(for course: Course, from rect: CGRect?) {
-        if let id = course.subjectID,
-            CourseManager.shared.getCourse(withID: id) != nil {
-            CourseManager.shared.loadCourseDetails(about: course) { (success) in
-                if success {
-                    let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
-                    details.course = course
-                    details.delegate = self
-                    details.displayStandardMode = true
-                    self.showInformationalViewController(details, from: rect ?? CGRect.zero)
-                } else {
-                    print("Failed to load course details!")
-                }
+    func viewDetails(for course: Course, from rect: CGRect?, showGenericDetails: Bool = false) {
+        generateDetailsViewController(for: course, showGenericDetails: showGenericDetails) { (details, list) in
+            if let detailVC = details {
+                detailVC.delegate = self
+                detailVC.displayStandardMode = true
+                self.showInformationalViewController(detailVC, from: rect ?? CGRect.zero)
+            } else if let listVC = list {
+                listVC.delegate = self
+                listVC.showsHeaderBar = false
+                listVC.managesNavigation = false
+                self.showInformationalViewController(listVC, from: rect ?? CGRect.zero)
             }
-        } else if course.subjectID == "GIR" {
-            let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
-            let keyword = course.subjectDescription ?? (course.subjectTitle ?? "")
-            listVC.searchTerm = GIRAttribute(rawValue: keyword)?.rawValue
-            listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
-            listVC.delegate = self
-            listVC.showsHeaderBar = false
-            listVC.managesNavigation = false
-            self.showInformationalViewController(listVC, from: rect ?? CGRect.zero)
         }
     }
     

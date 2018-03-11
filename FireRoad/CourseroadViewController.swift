@@ -1018,7 +1018,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func warningsController(_ warningsController: CourseroadWarningsViewController, requestedDetailsAbout course: Course) {
-        generateDetailsViewController(for: course) { (details, list) in
+        generateDetailsViewController(for: course, showGenericDetails: true) { (details, list) in
             if let detailVC = details {
                 detailVC.displayStandardMode = true
                 detailVC.showsSemesterDialog = true

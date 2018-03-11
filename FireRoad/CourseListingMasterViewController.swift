@@ -64,12 +64,12 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
         viewDetails(for: course)
     }
     
-    func viewDetails(for course: Course) {
+    func viewDetails(for course: Course, showGenericDetails: Bool = true) {
         viewCourseDetails(for: course, from: nil)
     }
     
     func viewCourseDetails(for course: Course, from rect: CGRect?) {
-        generateDetailsViewController(for: course) { (details, list) in
+        generateDetailsViewController(for: course, showGenericDetails: true) { (details, list) in
             if let detailVC = details {
                 detailVC.displayStandardMode = true
                 detailVC.showsSemesterDialog = true

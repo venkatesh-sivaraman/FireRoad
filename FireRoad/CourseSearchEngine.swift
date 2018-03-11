@@ -192,7 +192,11 @@ class CourseSearchEngine: NSObject {
                 }
             }
             if relevance > 0.0 {
-                relevance *= log(Float(max(2, course.enrollmentNumber)))
+                if course.isGeneric {
+                    relevance *= 1e15
+                } else {
+                    relevance *= log(Float(max(2, course.enrollmentNumber)))
+                }
                 newResults[course] = relevance
             }
         }
@@ -221,7 +225,11 @@ class CourseSearchEngine: NSObject {
                 relevance += Float(comp.count) / Float(courseText.count)
             }
             if relevance > 0.0 {
-                relevance *= log(Float(max(2, course.enrollmentNumber)))
+                if course.isGeneric {
+                    relevance *= 1e15
+                } else {
+                    relevance *= log(Float(max(2, course.enrollmentNumber)))
+                }
                 newResults[course] = relevance
             }
         }
@@ -262,8 +270,9 @@ class CourseSearchEngine: NSObject {
             }
             self.isSearching = true
             
-            let chunkSize = CourseManager.shared.courses.count / 4
-            self.dispatch(jobs: CourseManager.shared.courses.chunked(by: chunkSize).map({ (courses) -> DispatchJob in
+            let coursesToSearch = CourseManager.shared.courses + Course.genericCourses.values
+            let chunkSize = coursesToSearch.count / 4
+            self.dispatch(jobs: coursesToSearch.chunked(by: chunkSize).map({ (courses) -> DispatchJob in
                 return { (completion) in
                     let result = fast ? self.fastSearchResults(within: courses, searchTerm: searchTerm) : self.searchResults(within: courses, searchTerm: searchTerm, options: options)
                     completion(result)

@@ -12,14 +12,14 @@ protocol CourseViewControllerProvider {
     var view: UIView! { get }
     var storyboard: UIStoryboard? { get }
     var presentedViewController: UIViewController? { get }
-
-    func generateDetailsViewController(for course: Course, completion: @escaping ((CourseDetailsViewController?, CourseBrowserViewController?) -> Void))
+    
+    func generateDetailsViewController(for course: Course, showGenericDetails: Bool, completion: @escaping ((CourseDetailsViewController?, CourseBrowserViewController?) -> Void))
     func generatePostReqsViewController(for course: Course, completion: (CourseBrowserViewController?) -> Void)
     func generateURLViewController(for url: URL) -> WebpageViewController?
 }
 
 extension CourseViewControllerProvider {
-    func generateDetailsViewController(for course: Course, completion: @escaping ((CourseDetailsViewController?, CourseBrowserViewController?) -> Void)) {
+    func generateDetailsViewController(for course: Course, showGenericDetails: Bool, completion: @escaping ((CourseDetailsViewController?, CourseBrowserViewController?) -> Void)) {
         if !CourseManager.shared.isLoaded {
             let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
             hud.mode = .determinateHorizontalBar
@@ -34,7 +34,7 @@ extension CourseViewControllerProvider {
                 }
                 DispatchQueue.main.async {
                     hud.hide(animated: true)
-                    self.generateDetailsViewController(for: course, completion: completion)
+                    self.generateDetailsViewController(for: course, showGenericDetails: showGenericDetails, completion: completion)
                 }
             }
             return
@@ -50,12 +50,32 @@ extension CourseViewControllerProvider {
                     print("Failed to load course details!")
                 }
             }
-        } else if course.subjectID == "GIR" {
-            let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
-            listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
-            listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
-            listVC.showsHeaderBar = false
-            completion(nil, listVC)
+        } else if course.subjectID == "GIR" || (course.subjectID != nil && Course.genericCourses[course.subjectID!] != nil) {
+            if showGenericDetails {
+                let details = self.storyboard!.instantiateViewController(withIdentifier: "CourseDetails") as! CourseDetailsViewController
+                details.course = course
+                completion(details, nil)
+            } else {
+                let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
+                if course.subjectID == "GIR" {
+                    listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
+                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
+                } else if let id = course.subjectID,
+                    let generic = Course.genericCourses[id] {
+                    listVC.searchTerm = generic.subjectID
+                    if let ciAttribute = generic.communicationRequirement {
+                        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, (ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW), .searchRequirements]
+                    } else if generic.hassAttribute != nil {
+                        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsHASS, .searchRequirements]
+                    } else if generic.girAttribute != nil {
+                        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
+                    } else {
+                        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .fulfillsHASS, .fulfillsCIH, .fulfillsCIHW, .searchRequirements]
+                    }
+                }
+                listVC.showsHeaderBar = false
+                completion(nil, listVC)
+            }
         }
     }
     
@@ -73,7 +93,6 @@ extension CourseViewControllerProvider {
     func generateURLViewController(for url: URL) -> WebpageViewController? {
         return nil
     }
-    
 }
 
 protocol PanelParentViewController: CourseViewControllerProvider, CourseBrowserDelegate, CourseDetailsDelegate {
@@ -120,11 +139,11 @@ extension PanelParentViewController {
     }
     
     func courseDetailsRequestedDetails(about course: Course) {
-        viewDetails(for: course)
+        viewDetails(for: course, showGenericDetails: false)
     }
     
-    func viewDetails(for course: Course) {
-        generateDetailsViewController(for: course) { (details, list) in
+    func viewDetails(for course: Course, showGenericDetails: Bool = true) {
+        generateDetailsViewController(for: course, showGenericDetails: showGenericDetails) { (details, list) in
             if self.panelView?.isExpanded == false {
                 self.panelView?.expandView()
             }

@@ -338,7 +338,7 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
         guard let course = cell.course else {
             return
         }
-        delegate?.viewDetails(for: course)
+        delegate?.viewDetails(for: course, showGenericDetails: true)
     }
     
     func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell) {

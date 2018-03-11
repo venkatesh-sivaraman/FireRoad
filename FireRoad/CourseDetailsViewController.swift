@@ -309,22 +309,24 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
         mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
         rowIndex += 1
-        if course!.rating > 0.0 {
-            rowIndex = 0
-            sectionIndex += 1
-            titles.append(CourseDetailSectionTitle.ratings)
-            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-            rowIndex += 1
-            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .rate
-            rowIndex += 1
-            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .evalRating
-            if course!.inClassHours > 0.0 || course!.outOfClassHours > 0.0 {
+        if !course!.isGeneric {
+            if course!.rating > 0.0 {
+                rowIndex = 0
+                sectionIndex += 1
+                titles.append(CourseDetailSectionTitle.ratings)
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
                 rowIndex += 1
-                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .evalHours
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .rate
+                rowIndex += 1
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .evalRating
+                if course!.inClassHours > 0.0 || course!.outOfClassHours > 0.0 {
+                    rowIndex += 1
+                    mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .evalHours
+                }
+            } else {
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .rate
+                rowIndex += 1
             }
-        } else {
-            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .rate
-            rowIndex += 1
         }
 
         rowIndex = 0
@@ -394,35 +396,42 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             rowIndex = 0
             sectionIndex += 1
         }
-        titles.append(CourseDetailSectionTitle.none)
-        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .button
-        if course?.url != nil {
-            rowIndex += 1
-            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .url
-        }
-        rowIndex += 1
-        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .courseEvaluations
-        rowIndex = 0
-        sectionIndex += 1
         
-        if let schedule = course?.schedule, schedule.count > 0 {
-            titles.append(CourseDetailSectionTitle.schedule)
+        if course!.isGeneric {
+            titles.append(CourseDetailSectionTitle.none)
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .button
+        } else {
+            titles.append(CourseDetailSectionTitle.none)
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .button
+            if course?.url != nil {
+                rowIndex += 1
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .url
+            }
+            rowIndex += 1
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .courseEvaluations
+            rowIndex = 0
+            sectionIndex += 1
+            
+            if let schedule = course?.schedule, schedule.count > 0 {
+                titles.append(CourseDetailSectionTitle.schedule)
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
+                rowIndex += 1
+                for _ in 0..<schedule.count {
+                    mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .schedule
+                    rowIndex += 1
+                }
+                rowIndex = 0
+                sectionIndex += 1
+            }
+            
+            titles.append(CourseDetailSectionTitle.notes)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
             rowIndex += 1
-            for _ in 0..<schedule.count {
-                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .schedule
-                rowIndex += 1
-            }
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .notes
             rowIndex = 0
             sectionIndex += 1
         }
-
-        titles.append(CourseDetailSectionTitle.notes)
-        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-        rowIndex += 1
-        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .notes
-        rowIndex = 0
-        sectionIndex += 1
+        
         if rowIndex == 0 {
             sectionIndex -= 1
         }
@@ -518,7 +527,11 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             }
             textLabel?.text = title
         case .button:
-            textLabel?.text = "Find Classes With \(self.course!.subjectID!) as Prerequisite"
+            if course?.isGeneric == true {
+                textLabel?.text = "Find Fulfilling Subjects"
+            } else {
+                textLabel?.text = "Find Classes With \(self.course!.subjectID!) as Prerequisite"
+            }
         case .description:
             if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites {
                 var text = ""
@@ -768,7 +781,11 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             return
         }
         if detailItemType == .button {
-            delegate?.courseDetailsRequestedPostReqs(for: self.course!)
+            if course?.isGeneric == true {
+                delegate?.courseDetailsRequestedDetails(about: self.course!)
+            } else {
+                delegate?.courseDetailsRequestedPostReqs(for: self.course!)
+            }
         } else if detailItemType == .url,
             let urlString = course?.url,
             let url = URL(string: urlString) {
