@@ -39,6 +39,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     var searchOptions: SearchOptions = .noFilter
     
+    var showsGenericCourses = true
+    
     var panelViewController: PanelViewController? {
         return (self.navigationController?.parent as? PanelViewController)
     }
@@ -115,7 +117,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationItem.title = showsHeaderBar ? "" : (searchTerm ?? "")
+        navigationItem.title = showsHeaderBar ? "" : (searchTerm != nil && searchTerm!.count > 0 ? searchTerm : "Results")
         if managesNavigation {
             self.navigationController?.delegate = self
             self.navigationController?.setNavigationBarHidden(true, animated: true)
@@ -313,7 +315,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         if searchText.count > 0 && panelViewController?.isExpanded == false {
             self.expandView()
         }
-        guard searchText.count > 0 else {
+        guard searchText.count > 0 || searchOptions.shouldAutoSearch else {
             clearSearch()
             return
         }
@@ -596,8 +598,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     func courseFilter(_ filter: CourseFilterViewController, changed options: SearchOptions) {
         searchOptions = options
         updateFilterButton()
-        if isShowingSearchResults, let searchText = searchBar?.text {
-            self.loadSearchResults(withString: searchText, options: searchOptions)
+        if (searchBar?.text ?? "").count > 0 || searchOptions.shouldAutoSearch {
+            self.loadSearchResults(withString: searchBar?.text ?? "", options: searchOptions)
         }
     }
     

@@ -439,14 +439,25 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 self.present(progressVC, animated: true, completion: nil)
 
             } else if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
+                // Configure a browser VC with the appropriate search term and filters to find this
+                // requirement (e.g. "GIR:PHY1" or "HASS-A" or "CI-H")
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
                 listVC.searchTerm = reqString
                 if let ciAttribute = CommunicationAttribute(rawValue: reqString) {
-                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, (ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW), .searchRequirements]
-                } else if HASSAttribute(rawValue: reqString) != nil {
-                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsHASS, .searchRequirements]
+                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, (ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW), .noGIRFilter, .noHASSFilter, .searchRequirements]
+                } else if let hass = HASSAttribute(rawValue: reqString) {
+                    var baseOption: SearchOptions
+                    switch hass {
+                    case .any: baseOption = .fulfillsHASS
+                    case .arts: baseOption = .fulfillsHASSA
+                    case .socialSciences: baseOption = .fulfillsHASSS
+                    case .humanities: baseOption = .fulfillsHASSH
+                    }
+                    listVC.searchOptions = baseOption.union([.offeredAnySemester, .containsSearchTerm, .noGIRFilter, .noCIFilter, .searchRequirements])
+                } else if GIRAttribute(rawValue: reqString) != nil {
+                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .noHASSFilter, .noCIFilter, .searchRequirements]
                 } else {
-                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .fulfillsHASS, .fulfillsCIH, .fulfillsCIHW, .searchRequirements]
+                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .noGIRFilter, .noHASSFilter, .noCIFilter, .searchRequirements]
                 }
                 listVC.delegate = self
                 listVC.showsHeaderBar = false
@@ -478,7 +489,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         if let gir = course.girAttribute, gir != .lab, gir != .rest {
             listVC.searchTerm = gir.rawValue
         }
-        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .anyRequirement, .searchPrereqs]
+        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .noHASSFilter, .noCIFilter, .searchPrereqs]
         listVC.showsHeaderBar = false
         listVC.delegate = self
         listVC.managesNavigation = false

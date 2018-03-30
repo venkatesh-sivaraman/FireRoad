@@ -487,7 +487,10 @@ class Course: NSObject {
             return String(subject[subject.startIndex..<periodRange.lowerBound])
         } else if isGeneric, girAttribute != nil {
             return "GIR"
+        } else if isGeneric, let index = subjectID?.rangeOfCharacter(from: .whitespaces)?.lowerBound {
+            return String(subjectID![subjectID!.startIndex..<index])
         }
+
         return nil
     }
     @objc dynamic var department: String?
@@ -660,12 +663,21 @@ class Course: NSObject {
             ret[value.rawValue] = course
         }
         for (value, description) in HASSAttribute.descriptions where value != .any {
-            let course = Course(courseID: value.rawValue, courseTitle: "Generic \(description)", courseDescription: genericDesc, generic: true)
+            var course = Course(courseID: value.rawValue, courseTitle: "Generic \(description)", courseDescription: genericDesc, generic: true)
             course.hassAttribute = value
             course.isOfferedFall = true
             course.isOfferedSpring = true
             course.isOfferedIAP = true
             ret[value.rawValue] = course
+            
+            let ci = CommunicationAttribute.ciH
+            course = Course(courseID: [ci.rawValue, value.rawValue].joined(separator: " "), courseTitle: "Generic \(ci.rawValue) \(description)", courseDescription: genericDesc, generic: true)
+            course.hassAttribute = value
+            course.communicationRequirement = ci
+            course.isOfferedFall = true
+            course.isOfferedSpring = true
+            course.isOfferedIAP = true
+            ret[course.subjectID!] = course
         }
         for (value, description) in GIRAttribute.descriptions {
             let course = Course(courseID: value.rawValue, courseTitle: "Generic \(description)", courseDescription: genericDesc, generic: true)

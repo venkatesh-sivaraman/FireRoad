@@ -369,6 +369,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             cell.showsWarningIcon = false
             cell.showsWarningsMenuItem = false
         }
+        cell.showsRateMenuItem = !course.isGeneric
         
         return cell
     }
@@ -707,6 +708,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 cell.showsWarningIcon = false
                 cell.showsWarningsMenuItem = false
             }
+            cell.showsRateMenuItem = !course.isGeneric
         }
         
         // Update headers

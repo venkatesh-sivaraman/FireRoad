@@ -84,6 +84,7 @@ func writeCondensedCourses(_ courses: [[CourseAttribute: Any]], to file: String)
             .offeredIAP,
             .offeredSpring,
             .offeredSummer,
+            .quarterInformation,
             .instructors,
             .communicationRequirement,
             .hassRequirement,

@@ -62,21 +62,47 @@ extension CourseViewControllerProvider {
                     listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
                 } else if let id = course.subjectID,
                     let generic = Course.genericCourses[id] {
-                    listVC.searchTerm = generic.subjectID
-                    if let ciAttribute = generic.communicationRequirement {
-                        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, (ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW), .searchRequirements]
-                    } else if generic.hassAttribute != nil {
-                        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsHASS, .searchRequirements]
-                    } else if generic.girAttribute != nil {
-                        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
+                    if let attr = generic.girAttribute {
+                        listVC.searchTerm = attr.rawValue
                     } else {
-                        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .fulfillsHASS, .fulfillsCIH, .fulfillsCIHW, .searchRequirements]
+                        listVC.searchTerm = ""
                     }
+                    listVC.searchOptions = searchOptionsForRequirements(from: generic)
                 }
                 listVC.showsHeaderBar = false
                 completion(nil, listVC)
             }
         }
+    }
+    
+    func searchOptionsForRequirements(from course: Course) -> SearchOptions {
+        var base: SearchOptions = [.offeredAnySemester, .containsSearchTerm, .searchRequirements]
+        if let ciAttribute = course.communicationRequirement {
+            base.formUnion(ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW)
+        } else {
+            base.formUnion(.noCIFilter)
+        }
+        
+        if let hass = course.hassAttribute {
+            var option: SearchOptions
+            switch hass {
+            case .any: option = .fulfillsHASS
+            case .arts: option = .fulfillsHASSA
+            case .socialSciences: option = .fulfillsHASSS
+            case .humanities: option = .fulfillsHASSH
+            }
+            base.formUnion(option)
+        } else {
+            base.formUnion(.noHASSFilter)
+        }
+        
+        if course.girAttribute != nil {
+            base.formUnion(.fulfillsGIR)
+        } else {
+            base.formUnion(.noGIRFilter)
+        }
+        
+        return base
     }
     
     func generatePostReqsViewController(for course: Course, completion: (CourseBrowserViewController?) -> Void) {
@@ -85,7 +111,7 @@ extension CourseViewControllerProvider {
         if let gir = course.girAttribute, gir != .lab, gir != .rest {
             listVC.searchTerm = gir.rawValue
         }
-        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .anyRequirement, .searchPrereqs]
+        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .noGIRFilter, .noHASSFilter, .noCIFilter, .searchPrereqs]
         listVC.showsHeaderBar = false
         completion(listVC)
     }

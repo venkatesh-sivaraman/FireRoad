@@ -42,6 +42,7 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     var showsConstraintMenuItem = false
     var showsWarningsMenuItem = false
+    var showsRateMenuItem = true
 
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
@@ -259,7 +260,7 @@ class CourseThumbnailCell: UICollectionViewCell {
         } else if action == #selector(showWarnings(_:)) {
             return delegate != nil && showsWarningsMenuItem
         } else if action == #selector(rate(_:)) {
-            return delegate != nil
+            return delegate != nil && showsRateMenuItem
         }
         return false
     }

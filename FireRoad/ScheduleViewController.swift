@@ -55,6 +55,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         updateNavigationBar(animated: false)
         loadRecentSchedule()
         
+        courseBrowser?.showsGenericCourses = false
+        
         let menu = UIMenuController.shared
         menu.menuItems = (menu.menuItems ?? []) + [
             UIMenuItem(title: MenuItemStrings.constrain, action: #selector(CourseThumbnailCell.constrain(_:)))
@@ -568,6 +570,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             loadRecentSchedule()
         }
         guard let schedule = currentSchedule,
+            !course.isGeneric,
             schedule.add(course: course) else {
             return nil
         }

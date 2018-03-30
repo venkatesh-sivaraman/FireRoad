@@ -11,24 +11,32 @@ import UIKit
 struct SearchOptions: OptionSet {
     var rawValue: Int
     
-    static let anyRequirement = SearchOptions(rawValue: 1 << 0)
+    static let noGIRFilter = SearchOptions(rawValue: 1 << 0)
     static let fulfillsGIR = SearchOptions(rawValue: 1 << 1)
-    static let fulfillsHASS = SearchOptions(rawValue: 1 << 2)
-    static let fulfillsCIH = SearchOptions(rawValue: 1 << 3)
-    static let fulfillsCIHW = SearchOptions(rawValue: 1 << 4)
+    static let fulfillsLabGIR = SearchOptions(rawValue: 1 << 2)
+    static let fulfillsRestGIR = SearchOptions(rawValue: 1 << 3)
+    static let noHASSFilter = SearchOptions(rawValue: 1 << 4)
+    static let fulfillsHASS = SearchOptions(rawValue: 1 << 5)
+    static let fulfillsHASSA = SearchOptions(rawValue: 1 << 6)
+    static let fulfillsHASSS = SearchOptions(rawValue: 1 << 7)
+    static let fulfillsHASSH = SearchOptions(rawValue: 1 << 8)
+    static let noCIFilter = SearchOptions(rawValue: 1 << 9)
+    static let fulfillsCIH = SearchOptions(rawValue: 1 << 10)
+    static let fulfillsCIHW = SearchOptions(rawValue: 1 << 11)
+    static let notCI = SearchOptions(rawValue: 1 << 12)
+
+    static let offeredAnySemester = SearchOptions(rawValue: 1 << 13)
+    static let offeredFall = SearchOptions(rawValue: 1 << 14)
+    static let offeredSpring = SearchOptions(rawValue: 1 << 15)
+    static let offeredIAP = SearchOptions(rawValue: 1 << 16)
     
-    static let offeredAnySemester = SearchOptions(rawValue: 1 << 10)
-    static let offeredFall = SearchOptions(rawValue: 1 << 11)
-    static let offeredSpring = SearchOptions(rawValue: 1 << 12)
-    static let offeredIAP = SearchOptions(rawValue: 1 << 13)
+    static let containsSearchTerm = SearchOptions(rawValue: 1 << 17)
+    static let matchesSearchTerm = SearchOptions(rawValue: 1 << 18)
+    static let startsWithSearchTerm = SearchOptions(rawValue: 1 << 19)
+    static let endsWithSearchTerm = SearchOptions(rawValue: 1 << 20)
     
-    static let containsSearchTerm = SearchOptions(rawValue: 1 << 14)
-    static let matchesSearchTerm = SearchOptions(rawValue: 1 << 15)
-    static let startsWithSearchTerm = SearchOptions(rawValue: 1 << 16)
-    static let endsWithSearchTerm = SearchOptions(rawValue: 1 << 17)
-    
-    static let searchID = SearchOptions(rawValue: 1 << 20)
-    static let searchTitle = SearchOptions(rawValue: 1 << 21)
+    static let searchID = SearchOptions(rawValue: 1 << 21)
+    static let searchTitle = SearchOptions(rawValue: 1 << 22)
     static let searchPrereqs = SearchOptions(rawValue: 1 << 23)
     static let searchCoreqs = SearchOptions(rawValue: 1 << 24)
     static let searchInstructors = SearchOptions(rawValue: 1 << 25)
@@ -43,30 +51,62 @@ struct SearchOptions: OptionSet {
     ]
     
     static let noFilter: SearchOptions = [
-        .anyRequirement,
+        .noGIRFilter,
+        .noHASSFilter,
+        .noCIFilter,
         .offeredAnySemester,
         .containsSearchTerm,
         .searchAllFields
     ]
+    
+    var shouldAutoSearch: Bool {
+        if contains(.noGIRFilter), contains(.noHASSFilter), contains(.noCIFilter) {
+            return false
+        }
+        return true
+    }
 }
 
 class CourseSearchEngine: NSObject {
     
     var isSearching = false
     var shouldAbortSearch = false
+    var showsGenericCourses = true
     
     private func courseSatisfiesSearchOptions(_ course: Course, searchTerm: String, options: SearchOptions) -> Bool {
-        var fulfillsRequirement = false
-        if options.contains(.anyRequirement) {
-            fulfillsRequirement = true
+        var fulfillsGIR = false
+        if options.contains(.noGIRFilter) {
+            fulfillsGIR = true
         } else if options.contains(.fulfillsGIR), course.girAttribute != nil {
-            fulfillsRequirement = true
+            fulfillsGIR = true
+        } else if options.contains(.fulfillsLabGIR), course.girAttribute == .lab {
+            fulfillsGIR = true
+        } else if options.contains(.fulfillsRestGIR), course.girAttribute == .rest {
+            fulfillsGIR = true
+        }
+        
+        var fulfillsHASS = false
+        if options.contains(.noHASSFilter) {
+            fulfillsHASS = true
         } else if options.contains(.fulfillsHASS), course.hassAttribute != nil {
-            fulfillsRequirement = true
+            fulfillsHASS = true
+        } else if options.contains(.fulfillsHASSA), course.hassAttribute == .arts {
+            fulfillsHASS = true
+        } else if options.contains(.fulfillsHASSS), course.hassAttribute == .socialSciences {
+            fulfillsHASS = true
+        } else if options.contains(.fulfillsHASSH), course.hassAttribute == .humanities {
+            fulfillsHASS = true
+        }
+        
+        var fulfillsCI = false
+        if options.contains(.noCIFilter) {
+            fulfillsCI = true
         } else if options.contains(.fulfillsCIH), course.communicationRequirement == .ciH {
-            fulfillsRequirement = true
+            fulfillsCI = true
+        } else if options.contains(.notCI), course.communicationRequirement == nil {
+            fulfillsCI = true
         } else if options.contains(.fulfillsCIHW), course.communicationRequirement == .ciHW {
-            fulfillsRequirement = true
+            fulfillsCI = true
         }
         
         var fulfillsOffered = false
@@ -80,7 +120,7 @@ class CourseSearchEngine: NSObject {
             fulfillsOffered = true
         }
         
-        return fulfillsRequirement && fulfillsOffered
+        return fulfillsGIR && fulfillsHASS && fulfillsCI && fulfillsOffered
     }
     
     private func searchText(for course: Course, options: SearchOptions) -> [String: Float] {
@@ -270,7 +310,10 @@ class CourseSearchEngine: NSObject {
             }
             self.isSearching = true
             
-            let coursesToSearch = CourseManager.shared.courses + Course.genericCourses.values
+            var coursesToSearch = CourseManager.shared.courses
+            if self.showsGenericCourses {
+                coursesToSearch += Course.genericCourses.values
+            }
             let chunkSize = coursesToSearch.count / 4
             self.dispatch(jobs: coursesToSearch.chunked(by: chunkSize).map({ (courses) -> DispatchJob in
                 return { (completion) in

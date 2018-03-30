@@ -25,10 +25,48 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
         var type: FilterTableItemType
         var title: String
         var items: [(String, SearchOptions)]
+        var tintColor: UIColor?
         var firstOptionOverridesOthers: Bool
     }
     
     let tableItems = [
+        FilterTableItem(type: .segmentedControl,
+                        title: "Offered",
+                        items: [
+                            ("Any", .offeredAnySemester),
+                            ("Fall", .offeredFall),
+                            ("Spring", .offeredSpring),
+                            ("IAP", .offeredIAP)],
+                        tintColor: nil,
+                        firstOptionOverridesOthers: false),
+        FilterTableItem(type: .segmentedControl,
+                        title: "HASS",
+                        items: [
+                            ("Off", .noHASSFilter),
+                            ("Any", .fulfillsHASS),
+                            ("A", .fulfillsHASSA),
+                            ("S", .fulfillsHASSS),
+                            ("H", .fulfillsHASSH)],
+                        tintColor: CourseManager.shared.color(forDepartment: "HASS"),
+                        firstOptionOverridesOthers: false),
+        FilterTableItem(type: .segmentedControl,
+                        title: "Communication",
+                        items: [
+                            ("Off", .noCIFilter),
+                            ("CI-H", .fulfillsCIH),
+                            ("CI-HW", .fulfillsCIHW),
+                            ("Not CI", .notCI)],
+                        tintColor: CourseManager.shared.color(forDepartment: "CI-H"),
+                        firstOptionOverridesOthers: false),
+        FilterTableItem(type: .segmentedControl,
+                        title: "GIR",
+                        items: [
+                            ("Off", .noGIRFilter),
+                            ("Any GIR", .fulfillsGIR),
+                            ("Lab", .fulfillsLabGIR),
+                            ("REST", .fulfillsRestGIR)],
+                        tintColor: CourseManager.shared.color(forDepartment: "GIR"),
+                        firstOptionOverridesOthers: false),
         FilterTableItem(type: .segmentedControl,
                         title: "Search Behavior",
                         items: [
@@ -36,6 +74,7 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Matches", .matchesSearchTerm),
                             ("Starts With", .startsWithSearchTerm),
                             ("Ends With", .endsWithSearchTerm)],
+                        tintColor: nil,
                         firstOptionOverridesOthers: false),
         FilterTableItem(type: .checkmark,
                         title: "Search Fields",
@@ -46,23 +85,7 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Prerequisites", .searchPrereqs),
                             ("Corequisites", .searchCoreqs),
                             ("Instructors", .searchInstructors)],
-                        firstOptionOverridesOthers: true),
-        FilterTableItem(type: .checkmark,
-                        title: "Offered",
-                        items: [
-                            ("Any", .offeredAnySemester),
-                            ("Fall", .offeredFall),
-                            ("Spring", .offeredSpring),
-                            ("IAP", .offeredIAP)],
-                        firstOptionOverridesOthers: true),
-        FilterTableItem(type: .checkmark,
-                        title: "Fulfills",
-                        items: [
-                            ("Any Requirement", .anyRequirement),
-                            ("GIR", .fulfillsGIR),
-                            ("HASS", .fulfillsHASS),
-                            ("CI-H", .fulfillsCIH),
-                            ("CI-HW", .fulfillsCIHW)],
+                        tintColor: nil,
                         firstOptionOverridesOthers: true)
     ]
     
@@ -147,6 +170,11 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                 }
             }
             segmentedControl.selectedSegmentIndex = selectedIndex
+            if let tint = item.tintColor {
+                segmentedControl.tintColor = tint
+            } else {
+                segmentedControl.tintColor = self.view.tintColor
+            }
             segmentedControl.removeTarget(nil, action: nil, for: .valueChanged)
             segmentedControl.addTarget(self, action: #selector(segmentedControlValueChanged(_:)), for: .valueChanged)
             return cell
