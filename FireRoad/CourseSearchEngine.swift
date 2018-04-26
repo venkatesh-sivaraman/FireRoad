@@ -15,25 +15,37 @@ struct SearchOptions: OptionSet {
     static let fulfillsGIR = SearchOptions(rawValue: 1 << 1)
     static let fulfillsLabGIR = SearchOptions(rawValue: 1 << 2)
     static let fulfillsRestGIR = SearchOptions(rawValue: 1 << 3)
+    private static let allGIRFilters: SearchOptions = [.noGIRFilter, .fulfillsGIR, .fulfillsLabGIR, .fulfillsRestGIR]
+    
     static let noHASSFilter = SearchOptions(rawValue: 1 << 4)
     static let fulfillsHASS = SearchOptions(rawValue: 1 << 5)
     static let fulfillsHASSA = SearchOptions(rawValue: 1 << 6)
     static let fulfillsHASSS = SearchOptions(rawValue: 1 << 7)
     static let fulfillsHASSH = SearchOptions(rawValue: 1 << 8)
+    private static let allHASSFilters: SearchOptions = [.noHASSFilter, .fulfillsHASS, .fulfillsHASSA, .fulfillsHASSS, .fulfillsHASSH]
+
     static let noCIFilter = SearchOptions(rawValue: 1 << 9)
     static let fulfillsCIH = SearchOptions(rawValue: 1 << 10)
     static let fulfillsCIHW = SearchOptions(rawValue: 1 << 11)
     static let notCI = SearchOptions(rawValue: 1 << 12)
+    private static let allCIFilters: SearchOptions = [.noCIFilter, .fulfillsCIH, .fulfillsCIHW, .notCI]
 
     static let offeredAnySemester = SearchOptions(rawValue: 1 << 13)
     static let offeredFall = SearchOptions(rawValue: 1 << 14)
     static let offeredSpring = SearchOptions(rawValue: 1 << 15)
     static let offeredIAP = SearchOptions(rawValue: 1 << 16)
+    private static let allOfferedFilters: SearchOptions = [.offeredAnySemester, .offeredFall, .offeredSpring, .offeredIAP]
     
+    static let noLevelFilter = SearchOptions(rawValue: 1 << 27)
+    static let undergradOnly = SearchOptions(rawValue: 1 << 28)
+    static let graduateOnly = SearchOptions(rawValue: 1 << 29)
+    private static let allLevelFilters: SearchOptions = [.noLevelFilter, .undergradOnly, .graduateOnly]
+
     static let containsSearchTerm = SearchOptions(rawValue: 1 << 17)
     static let matchesSearchTerm = SearchOptions(rawValue: 1 << 18)
     static let startsWithSearchTerm = SearchOptions(rawValue: 1 << 19)
     static let endsWithSearchTerm = SearchOptions(rawValue: 1 << 20)
+    private static let allSearchTermFilters: SearchOptions = [.containsSearchTerm, .matchesSearchTerm, .startsWithSearchTerm, .endsWithSearchTerm]
     
     static let searchID = SearchOptions(rawValue: 1 << 21)
     static let searchTitle = SearchOptions(rawValue: 1 << 22)
@@ -41,6 +53,7 @@ struct SearchOptions: OptionSet {
     static let searchCoreqs = SearchOptions(rawValue: 1 << 24)
     static let searchInstructors = SearchOptions(rawValue: 1 << 25)
     static let searchRequirements = SearchOptions(rawValue: 1 << 26)
+
     static let searchAllFields: SearchOptions = [
         .searchID,
         .searchTitle,
@@ -54,6 +67,7 @@ struct SearchOptions: OptionSet {
         .noGIRFilter,
         .noHASSFilter,
         .noCIFilter,
+        .noLevelFilter,
         .offeredAnySemester,
         .containsSearchTerm,
         .searchAllFields
@@ -65,6 +79,40 @@ struct SearchOptions: OptionSet {
         }
         return true
     }
+    
+    // Convenience functions to replace certain axes of filter options
+    
+    func replace(oldValue: SearchOptions, with newValue: SearchOptions) -> SearchOptions {
+        var new = self
+        new.remove(oldValue)
+        new.formUnion(newValue)
+        return new
+    }
+    
+    func filterGIR(_ value: SearchOptions) -> SearchOptions {
+        return replace(oldValue: .allGIRFilters, with: value)
+    }
+    
+    func filterHASS(_ value: SearchOptions) -> SearchOptions {
+        return replace(oldValue: .allHASSFilters, with: value)
+    }
+
+    func filterCI(_ value: SearchOptions) -> SearchOptions {
+        return replace(oldValue: .allCIFilters, with: value)
+    }
+
+    func filterLevel(_ value: SearchOptions) -> SearchOptions {
+        return replace(oldValue: .allLevelFilters, with: value)
+    }
+    
+    func filterOffered(_ value: SearchOptions) -> SearchOptions {
+        return replace(oldValue: .allOfferedFilters, with: value)
+    }
+
+    func filterSearchFields(_ value: SearchOptions) -> SearchOptions {
+        return replace(oldValue: .searchAllFields, with: value)
+    }
+
 }
 
 class CourseSearchEngine: NSObject {
@@ -120,7 +168,16 @@ class CourseSearchEngine: NSObject {
             fulfillsOffered = true
         }
         
-        return fulfillsGIR && fulfillsHASS && fulfillsCI && fulfillsOffered
+        var fulfillsLevel = false
+        if options.contains(.noLevelFilter) {
+            fulfillsLevel = true
+        } else if options.contains(.undergradOnly), course.subjectLevel == .undergraduate {
+            fulfillsLevel = true
+        } else if options.contains(.graduateOnly), course.subjectLevel == .graduate {
+            fulfillsLevel = true
+        }
+        
+        return fulfillsGIR && fulfillsHASS && fulfillsCI && fulfillsOffered && fulfillsLevel
     }
     
     private func searchText(for course: Course, options: SearchOptions) -> [String: Float] {

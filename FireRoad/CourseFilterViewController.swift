@@ -68,6 +68,14 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                         tintColor: CourseManager.shared.color(forDepartment: "GIR"),
                         firstOptionOverridesOthers: false),
         FilterTableItem(type: .segmentedControl,
+                        title: "Level",
+                        items: [
+                            ("Any", .noLevelFilter),
+                            ("Undergrad", .undergradOnly),
+                            ("Grad", .graduateOnly)],
+                        tintColor: nil,
+                        firstOptionOverridesOthers: false),
+        FilterTableItem(type: .segmentedControl,
                         title: "Search Behavior",
                         items: [
                             ("Contains", .containsSearchTerm),

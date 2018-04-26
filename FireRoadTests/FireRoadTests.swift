@@ -43,7 +43,7 @@ class FireRoadTests: XCTestCase {
         ]
         for test in testCases {
             let (searchTerm, expected, option) = test
-            var options: SearchOptions = [.anyRequirement, .offeredAnySemester, .searchAllFields]
+            var options: SearchOptions = .noFilter
             options.formUnion(option)
             guard let keys = searchEngine.searchResults(within: testCourses, searchTerm: searchTerm, options: options)?.keys else {
                 assert(false, "Search engine returned nil")

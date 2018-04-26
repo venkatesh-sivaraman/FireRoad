@@ -59,7 +59,7 @@ extension CourseViewControllerProvider {
                 let listVC = self.storyboard!.instantiateViewController(withIdentifier: "CourseListVC") as! CourseBrowserViewController
                 if course.subjectID == "GIR" {
                     listVC.searchTerm = GIRAttribute(rawValue: course.subjectDescription ?? (course.subjectTitle ?? ""))?.rawValue
-                    listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .fulfillsGIR, .searchRequirements]
+                    listVC.searchOptions = SearchOptions.noFilter.filterGIR(.fulfillsGIR).filterSearchFields(.searchRequirements)
                 } else if let id = course.subjectID,
                     let generic = Course.genericCourses[id] {
                     if let attr = generic.girAttribute {
@@ -76,11 +76,9 @@ extension CourseViewControllerProvider {
     }
     
     func searchOptionsForRequirements(from course: Course) -> SearchOptions {
-        var base: SearchOptions = [.offeredAnySemester, .containsSearchTerm, .searchRequirements]
+        var base = SearchOptions.noFilter.filterSearchFields(.searchRequirements)
         if let ciAttribute = course.communicationRequirement {
-            base.formUnion(ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW)
-        } else {
-            base.formUnion(.noCIFilter)
+            base = base.filterCI(ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW)
         }
         
         if let hass = course.hassAttribute {
@@ -91,15 +89,11 @@ extension CourseViewControllerProvider {
             case .socialSciences: option = .fulfillsHASSS
             case .humanities: option = .fulfillsHASSH
             }
-            base.formUnion(option)
-        } else {
-            base.formUnion(.noHASSFilter)
+            base = base.filterHASS(option)
         }
         
         if course.girAttribute != nil {
-            base.formUnion(.fulfillsGIR)
-        } else {
-            base.formUnion(.noGIRFilter)
+            base = base.filterGIR(.fulfillsGIR)
         }
         
         return base
@@ -111,7 +105,7 @@ extension CourseViewControllerProvider {
         if let gir = course.girAttribute, gir != .lab, gir != .rest {
             listVC.searchTerm = gir.rawValue
         }
-        listVC.searchOptions = [.offeredAnySemester, .containsSearchTerm, .noGIRFilter, .noHASSFilter, .noCIFilter, .searchPrereqs]
+        listVC.searchOptions = SearchOptions.noFilter.filterSearchFields(.searchPrereqs)
         listVC.showsHeaderBar = false
         completion(listVC)
     }
