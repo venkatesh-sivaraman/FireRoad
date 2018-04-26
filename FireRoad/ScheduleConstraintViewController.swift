@@ -138,8 +138,8 @@ class ScheduleConstraintViewController: UIViewController, UITableViewDelegate, U
             }
             let item = itemSet[scheduleItemIndex(for: indexPath)]
             cell.textLabel?.text = item.map({ $0.stringEquivalent(withLocation: false) }).joined(separator: ", ")
-            let locations = Set<String>(item.flatMap({ $0.location }))
-            cell.detailTextLabel?.text = locations.count == 1 ? (locations.first ?? "") : (item.flatMap({ $0.location }).joined(separator: ", "))
+            let locations = Set<String>(item.compactMap({ $0.location }))
+            cell.detailTextLabel?.text = locations.count == 1 ? (locations.first ?? "") : (item.compactMap({ $0.location }).joined(separator: ", "))
             
             cell.accessoryType = isScheduleItemAllowed(at: indexPath) ? .checkmark : .none
         }

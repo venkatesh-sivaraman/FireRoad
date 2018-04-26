@@ -162,7 +162,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                     usleep(100)
                 }
                 DispatchQueue.main.async {
-                    let newCourses = courses.flatMap { CourseManager.shared.getCourse(withID: $0.subjectID!) }
+                    let newCourses = courses.compactMap { CourseManager.shared.getCourse(withID: $0.subjectID!) }
                     self.loadNewSchedule(named: name, courses: newCourses, nonDuplicate: nonDuplicate, addToEmptyIfPossible: addToEmptyIfPossible)
                     self.addingNewScheduleDocument = false
                 }
@@ -556,7 +556,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             if noSchedCourses.count == 1 {
                 alert = UIAlertController(title: "No Schedule Information", message: "No schedule available for \(noSchedCourses.first!.subjectID!) at this time.", preferredStyle: .alert)
             } else if noSchedCourses.count > 1 {
-                alert = UIAlertController(title: "No Schedule for \(noSchedCourses.count) Courses", message: "No schedule available at this time for the following subjects: \(noSchedCourses.flatMap({ $0.subjectID }).joined(separator: ", ")).", preferredStyle: .alert)
+                alert = UIAlertController(title: "No Schedule for \(noSchedCourses.count) Courses", message: "No schedule available at this time for the following subjects: \(noSchedCourses.compactMap({ $0.subjectID }).joined(separator: ", ")).", preferredStyle: .alert)
             }
             if let alertController = alert {
                 alertController.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
@@ -720,7 +720,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             return nil
         }
         
-        let compCandidates = CourseScheduleDay.ordering.flatMap { day -> DateComponents? in
+        let compCandidates = CourseScheduleDay.ordering.compactMap { day -> DateComponents? in
             guard scheduleItem.days.contains(day) else {
                 return nil
             }
@@ -730,7 +730,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             comps.minute = scheduleItem.startTime.minute
             return comps
         }
-        let candidates = compCandidates.flatMap {
+        let candidates = compCandidates.compactMap {
             Calendar.current.nextDate(after: beginningOfSemester, matching: $0, matchingPolicy: .nextTime)
         }
         return candidates.min()

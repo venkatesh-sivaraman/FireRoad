@@ -634,7 +634,7 @@ class RequirementsList: RequirementsListStatement {
     }
     
     func parseRequirementsList(from string: String, partial: Bool = false) {
-        var lines = string.components(separatedBy: "\n").flatMap { (line) -> String? in
+        var lines = string.components(separatedBy: "\n").compactMap { (line) -> String? in
             if let range = line.range(of: SyntaxConstants.commentCharacter) {
                 if range.lowerBound == line.startIndex {
                     return nil

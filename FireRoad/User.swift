@@ -320,7 +320,7 @@ class User: UserDocument {
     
     private func formatUnsatisfiedRequirements(label: String, unsatisfiedItems: [String], requirements: [[String]]) -> String {
         var message = "One or more \(label) is not satisfied"
-        if requirements.count == requirements.flatMap({ $0 }).count {
+        if requirements.count == requirements.compactMap({ $0 }).count {
             var prereqStrings = unsatisfiedItems
             if prereqStrings.count >= 2 {
                 prereqStrings[prereqStrings.count - 1] = "and " + prereqStrings[prereqStrings.count - 1]

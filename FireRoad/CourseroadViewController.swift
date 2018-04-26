@@ -772,7 +772,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 let tempUser = try? User(contentsOfFile: fullPath, readOnly: true) else {
                     continue
             }
-            let courses = tempUser.coursesOfStudy.flatMap({ RequirementsListManager.shared.requirementList(withID: $0)?.mediumTitle }).joined(separator: ", ")
+            let courses = tempUser.coursesOfStudy.compactMap({ RequirementsListManager.shared.requirementList(withID: $0)?.mediumTitle }).joined(separator: ", ")
             let attr = try? FileManager.default.attributesOfItem(atPath: fullPath)
             let modDate = attr?[FileAttributeKey.modificationDate] as? Date
             var components: [String] = []

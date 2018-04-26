@@ -501,7 +501,7 @@ class CourseManager: NSObject {
                 return
         }
         let comps = contents.components(separatedBy: .newlines)
-        departments = comps.flatMap {
+        departments = comps.compactMap {
             let subcomps = $0.components(separatedBy: "#,#")
             guard subcomps.count == 3 else {
                 return nil
@@ -526,7 +526,7 @@ class CourseManager: NSObject {
     private(set) var recentlyViewedCourses: [Course] {
         get {
             if _recentlyViewedCourses == nil {
-                _recentlyViewedCourses = (UserDefaults.standard.array(forKey: recentlyViewedCoursesDefaultsKey) as? [String])?.flatMap({
+                _recentlyViewedCourses = (UserDefaults.standard.array(forKey: recentlyViewedCoursesDefaultsKey) as? [String])?.compactMap({
                     getCourse(withID: $0)
                 }) ?? []
                 _recentlyViewedCourses = [Course](_recentlyViewedCourses![0..<min(_recentlyViewedCourses!.count, 15)])
@@ -534,7 +534,7 @@ class CourseManager: NSObject {
             return _recentlyViewedCourses!
         } set {
             _recentlyViewedCourses = [Course](newValue[0..<min(newValue.count, 15)])
-            UserDefaults.standard.set(_recentlyViewedCourses?.flatMap({ $0.subjectID }), forKey: recentlyViewedCoursesDefaultsKey)
+            UserDefaults.standard.set(_recentlyViewedCourses?.compactMap({ $0.subjectID }), forKey: recentlyViewedCoursesDefaultsKey)
         }
     }
     
@@ -559,14 +559,14 @@ class CourseManager: NSObject {
     private(set) var favoriteCourses: [Course] {
         get {
             if _favoriteCourses == nil {
-                _favoriteCourses = (UserDefaults.standard.array(forKey: favoriteCoursesDefaultsKey) as? [String])?.flatMap({
+                _favoriteCourses = (UserDefaults.standard.array(forKey: favoriteCoursesDefaultsKey) as? [String])?.compactMap({
                     getCourse(withID: $0)
                 }) ?? []
             }
             return _favoriteCourses!
         } set {
             _favoriteCourses = newValue
-            UserDefaults.standard.set(_favoriteCourses?.flatMap({ $0.subjectID }), forKey: favoriteCoursesDefaultsKey)
+            UserDefaults.standard.set(_favoriteCourses?.compactMap({ $0.subjectID }), forKey: favoriteCoursesDefaultsKey)
         }
     }
     
@@ -939,7 +939,7 @@ class CourseManager: NSObject {
             let attributeSet = CSSearchableItemAttributeSet()
             attributeSet.title = id + " – " + title
             
-            let infoItems: [String] = [course.girAttribute?.rawValue, course.hassAttribute?.rawValue, course.communicationRequirement?.rawValue].flatMap({ $0 }).filter({ $0.count > 0 })
+            let infoItems: [String] = [course.girAttribute?.rawValue, course.hassAttribute?.rawValue, course.communicationRequirement?.rawValue].compactMap({ $0 }).filter({ $0.count > 0 })
             var infoString = infoItems.joined(separator: ", ")
             if course.instructors.count > 0 {
                 infoString += "\nTaught by \(course.instructors.joined(separator: ", "))"

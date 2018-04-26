@@ -290,7 +290,7 @@ class CourseCatalogParser: NSObject {
             attributes[.isVariableUnits] = true
         } else if let unitsRange = item.range(of: CourseCatalogConstants.unitsPrefix, options: .caseInsensitive) {
             let unitsString = String(item[unitsRange.upperBound..<item.endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
-            if let components = unitsString.components(separatedBy: .whitespaces).first?.components(separatedBy: .punctuationCharacters).flatMap({ Int($0) }),
+            if let components = unitsString.components(separatedBy: .whitespaces).first?.components(separatedBy: .punctuationCharacters).compactMap({ Int($0) }),
                 components.count >= 3 {
                 attributes[.lectureUnits] = components[0]
                 attributes[.labUnits] = components[1]

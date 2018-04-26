@@ -63,7 +63,7 @@ class Schedule: NSObject {
     
     func chronologicalItems(for day: CourseScheduleDay) -> [ScheduleChronologicalElement] {
         let allItems = scheduleItems.reduce([], { (list: [ScheduleChronologicalElement], item: ScheduleUnit) -> [ScheduleChronologicalElement] in
-            return list + item.scheduleItems.flatMap({
+            return list + item.scheduleItems.compactMap({
                 (item.course, item.sectionType, $0, item)
             })
         }).filter {
@@ -195,7 +195,7 @@ class ScheduleDocument: UserDocument {
                         continue
                     }
                     let section = comps[0]
-                    newSections?[course]?[section] = comps[1].components(separatedBy: sectionValueSeparator).flatMap({ Int($0) })
+                    newSections?[course]?[section] = comps[1].components(separatedBy: sectionValueSeparator).compactMap({ Int($0) })
                 }
             }
             newCourses.append(course)

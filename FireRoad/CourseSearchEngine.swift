@@ -201,7 +201,7 @@ class CourseSearchEngine: NSObject {
             courseComps += coreqs
         }
         
-        let courseText = (courseComps.flatMap({ $0 }) + (options.contains(.searchAllFields) ? course.instructors : [])).joined(separator: " ").lowercased()
+        let courseText = (courseComps.compactMap({ $0 }) + (options.contains(.searchAllFields) ? course.instructors : [])).joined(separator: " ").lowercased()
         ret[courseText] = 1.0
         return ret
     }

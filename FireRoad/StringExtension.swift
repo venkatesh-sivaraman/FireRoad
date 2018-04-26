@@ -12,7 +12,7 @@ extension String {
     var dates: [Date]? {
         return try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue)
             .matches(in: self, range: NSRange(location: 0, length: count))
-            .flatMap{$0.date}
+            .compactMap{$0.date}
     }
 }
 

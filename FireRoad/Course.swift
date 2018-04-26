@@ -236,7 +236,7 @@ struct CourseScheduleTime: CustomDebugStringConvertible, Comparable {
      will be PM. If evening is true, the opposite will be assigned.
      */
     static func fromString(_ time: String, evening: Bool = false) -> CourseScheduleTime {
-        let comps = time.components(separatedBy: .punctuationCharacters).flatMap({ Int($0) })
+        let comps = time.components(separatedBy: .punctuationCharacters).compactMap({ Int($0) })
         guard comps.count > 0 else {
             print("Not enough components in time string: \(time)")
             return CourseScheduleTime(hour: 12, minute: 0, PM: true)

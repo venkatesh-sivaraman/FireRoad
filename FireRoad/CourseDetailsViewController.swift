@@ -332,10 +332,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         rowIndex = 0
         sectionIndex += 1
 
-        if course!.prerequisites.flatMap({ $0 }).count > 0 {
+        if course!.prerequisites.compactMap({ $0 }).count > 0 {
             titles.append(CourseDetailSectionTitle.prerequisites)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-            if course!.eitherPrereqOrCoreq || course!.prerequisites.flatMap({ $0 }).count > 1 {
+            if course!.eitherPrereqOrCoreq || course!.prerequisites.compactMap({ $0 }).count > 1 {
                 rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .description
             }
@@ -352,10 +352,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             rowIndex = 0
             sectionIndex += 1
         }
-        if course!.corequisites.flatMap({ $0 }).count > 0 {
+        if course!.corequisites.compactMap({ $0 }).count > 0 {
             titles.append(CourseDetailSectionTitle.corequisites)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-            if course!.corequisites.flatMap({ $0 }).count > 1 {
+            if course!.corequisites.compactMap({ $0 }).count > 1 {
                 rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .description
             }
