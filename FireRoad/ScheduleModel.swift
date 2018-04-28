@@ -109,6 +109,9 @@ class ScheduleDocument: UserDocument {
             setNeedsSave()
         }
     }
+    var selectedSchedule: Schedule?
+    /// Defines the selected sections before schedules are loaded
+    var preloadSections: [Course: [String: Int]]?
     
     convenience init(courses: [Course]) {
         self.init()
@@ -146,14 +149,64 @@ class ScheduleDocument: UserDocument {
         return UIBezierPath(ovalIn: bounds)
     }
     
+    // Legacy file reading
     let separator = "#,#"
     let sectionSeparator = ";"
     let sectionKeyValueSeparator = ":"
     let sectionValueSeparator = ","
     
+    enum ScheduleFile {
+        static let selectedSubjects = "selectedSubjects"
+        static let subjectID = "id"
+        static let subjectTitle = "title"
+        static let allowedSections = "allowedSections"
+        static let selectedSections = "selectedSections"
+    }
+    
     override func readUserCourses(from file: String) throws {
         try super.readUserCourses(from: file)
         
+        let data = try Data(contentsOf: URL(fileURLWithPath: file))
+        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) else {
+            print("Trying legacy read")
+            try legacyReadCourses(from: file)
+            return
+        }
+        
+        guard let fileDict = json as? [String: Any],
+            let selectedSubjectsList = fileDict[ScheduleFile.selectedSubjects] as? [[String: Any]] else {
+                print("Malformed JSON: \(json)")
+                return
+        }
+        
+        var newSections: [Course: [String: [Int]]]?
+        var newCourses: [Course] = []
+        for subjectJSON in selectedSubjectsList {
+            guard let subjectID = subjectJSON[ScheduleFile.subjectID] as? String,
+                let title = subjectJSON[ScheduleFile.subjectTitle] as? String else {
+                    print("Malformed subject entry: \(subjectJSON)")
+                    continue
+            }
+            let course = CourseManager.shared.getCourse(withID: subjectID) ?? Course(courseID: subjectID, courseTitle: title, courseDescription: "")
+            if let constraints = subjectJSON[ScheduleFile.allowedSections] as? [String: [Int]] {
+                if newSections == nil {
+                    newSections = [:]
+                }
+                newSections?[course] = constraints
+            }
+            if let selected = subjectJSON[ScheduleFile.selectedSections] as? [String: Int] {
+                if preloadSections == nil {
+                    preloadSections = [:]
+                }
+                preloadSections?[course] = selected
+            }
+            newCourses.append(course)
+        }
+        allowedSections = newSections
+        courses = newCourses
+    }
+    
+    private func legacyReadCourses(from file: String) throws {
         let contents = try String(contentsOfFile: file)
         
         var newCourses: [Course] = []
@@ -206,18 +259,49 @@ class ScheduleDocument: UserDocument {
     
     override func writeUserCourses(to file: String) throws {
         try super.writeUserCourses(to: file)
-        var result = "\(displayedScheduleIndex)\n"
-        for course in courses {
-            var comps = [course.subjectID ?? "", course.subjectTitle ?? ""]
-            if let sections = allowedSections?[course] {
-                let sectionString = sections.map({ (section, allowed) in
-                    [section, allowed.map({ "\($0)" }).joined(separator: sectionValueSeparator)].joined(separator: sectionKeyValueSeparator)
-                }).joined(separator: sectionSeparator)
-                comps.append(sectionString)
-            }
-            result += comps.joined(separator: separator) + "\n"
+        
+        guard !readOnly else {
+            return
         }
         
-        try result.write(toFile: file, atomically: true, encoding: .utf8)
+        var selectedSubjectsJSON: [[String: Any]] = []
+        for subject in courses {
+            guard let id = subject.subjectID,
+                let title = subject.subjectTitle else {
+                    print("No information to write for \(subject)")
+                    continue
+            }
+            var subjectJSON: [String: Any] = [
+                ScheduleFile.subjectID: id,
+                ScheduleFile.subjectTitle: title
+            ]
+            if let sections = allowedSections?[subject] {
+                subjectJSON[ScheduleFile.allowedSections] = sections
+            }
+            if let courseSections = selectedSchedule?.scheduleItems.filter({ $0.course == subject }) {
+                var selectedJSON: [String: Int] = [:]
+                for unit in courseSections {
+                    guard let sections = subject.schedule?[unit.sectionType],
+                        let index = sections.index(of: unit.scheduleItems) else {
+                        continue
+                    }
+                    selectedJSON[unit.sectionType] = index
+                }
+                subjectJSON[ScheduleFile.selectedSections] = selectedJSON
+            }
+            selectedSubjectsJSON.append(subjectJSON)
+        }
+        let fileJSON: [String: Any] = [
+            ScheduleFile.selectedSubjects: selectedSubjectsJSON
+        ]
+        let contentsData = try JSONSerialization.data(withJSONObject: fileJSON, options: .prettyPrinted)
+        
+        if !FileManager.default.fileExists(atPath: file) {
+            let success = FileManager.default.createFile(atPath: file, contents: nil, attributes: nil)
+            if !success {
+                print("Failed to create file at \(file)")
+            }
+        }
+        try contentsData.write(to: URL(fileURLWithPath: file), options: .atomic)
     }
 }

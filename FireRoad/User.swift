@@ -487,6 +487,16 @@ class User: UserDocument {
     
     // MARK: - File Handling
     
+    enum RoadFile {
+        static let coursesOfStudy = "coursesOfStudy"
+        static let selectedSubjects = "selectedSubjects"
+        static let subjectID = "id"
+        static let subjectTitle = "title"
+        static let semesterNumber = "semester"
+        static let units = "units"
+        static let overrideWarnings = "overrideWarnings"
+    }
+    
     override func setNeedsSave() {
         super.setNeedsSave()
         clearWarningsCache()
@@ -498,6 +508,54 @@ class User: UserDocument {
     override func readUserCourses(from file: String) throws {
         try super.readUserCourses(from: file)
         
+        defer {
+            if !CourseManager.shared.isLoaded {
+                NotificationCenter.default.addObserver(self, selector: #selector(courseManagerFinishedLoading), name: .CourseManagerFinishedLoading, object: nil)
+            }
+        }
+        
+        let data = try Data(contentsOf: URL(fileURLWithPath: file))
+        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) else {
+            print("Trying legacy read")
+            try legacyReadCourses(from: file)
+            return
+        }
+        
+        guard let fileDict = json as? [String: Any],
+            let courses = fileDict[RoadFile.coursesOfStudy] as? [String],
+            let selectedSubjectsList = fileDict[RoadFile.selectedSubjects] as? [[String: Any]] else {
+                print("Malformed JSON: \(json)")
+                return
+        }
+        coursesOfStudy = courses
+        
+        for subjectJSON in selectedSubjectsList {
+            guard let subjectID = subjectJSON[RoadFile.subjectID] as? String,
+                let title = subjectJSON[RoadFile.subjectTitle] as? String,
+                let units = subjectJSON[RoadFile.units] as? Int,
+                let semesterNumber = subjectJSON[RoadFile.semesterNumber] as? Int,
+                let override = subjectJSON[RoadFile.overrideWarnings] as? Bool else {
+                    print("Malformed subject entry: \(subjectJSON)")
+                    continue
+            }
+            guard let semester = UserSemester(rawValue: semesterNumber) else {
+                print("No semester number \(semesterNumber)")
+                continue
+            }
+            if CourseManager.shared.getCourse(withID: subjectID) == nil, Course.genericCourses[subjectID] == nil {
+                CourseManager.shared.addCourse(withID: subjectID, title: title, units: units)
+            }
+            guard let course = CourseManager.shared.getCourse(withID: subjectID) ?? Course.genericCourses[subjectID] else {
+                print("Unable to add course with ID \(subjectID) to course manager")
+                continue
+            }
+            
+            add(course, toSemester: semester)
+            overrides[course] = override
+        }
+    }
+    
+    private func legacyReadCourses(from file: String) throws {
         let contents = try String(contentsOfFile: file)
         var lines = contents.components(separatedBy: "\n")
         guard lines.count >= 2 else {
@@ -549,10 +607,6 @@ class User: UserDocument {
                 overrides[course] = (override >= 1)
             }
         }
-        
-        if !CourseManager.shared.isLoaded {
-            NotificationCenter.default.addObserver(self, selector: #selector(courseManagerFinishedLoading), name: .CourseManagerFinishedLoading, object: nil)
-        }
     }
     
     override func writeUserCourses(to file: String) throws {
@@ -564,12 +618,7 @@ class User: UserDocument {
         
         setBaselineRatings()
 
-        var contentsString = ""
-        // First line, header information
-        contentsString += "\(name);\(coursesOfStudy.joined(separator: ","))\n"
-        // Second line, future header information
-        contentsString += "\n"
-        // Subsequent lines, selected subjects
+        var selectedSubjectsJSON: [[String: Any]] = []
         for (semester, subjects) in selectedSubjects.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
             for subject in subjects {
                 guard let id = subject.subjectID,
@@ -578,9 +627,20 @@ class User: UserDocument {
                         continue
                 }
                 let units = subject.totalUnits
-                contentsString += ["\(semester.rawValue)", id, title, "\(units)", overridesWarnings(for: subject) ? "1" : "0"].joined(separator: subjectComponentSeparator) + "\n"
+                selectedSubjectsJSON.append([
+                    RoadFile.semesterNumber: semester.rawValue,
+                    RoadFile.subjectID: id,
+                    RoadFile.subjectTitle: title,
+                    RoadFile.units: units,
+                    RoadFile.overrideWarnings: overridesWarnings(for: subject)
+                    ])
             }
         }
+        let fileJSON: [String: Any] = [
+            RoadFile.coursesOfStudy: coursesOfStudy,
+            RoadFile.selectedSubjects: selectedSubjectsJSON
+        ]
+        let contentsData = try JSONSerialization.data(withJSONObject: fileJSON, options: .prettyPrinted)
         
         if !FileManager.default.fileExists(atPath: file) {
             let success = FileManager.default.createFile(atPath: file, contents: nil, attributes: nil)
@@ -588,7 +648,7 @@ class User: UserDocument {
                 print("Failed to create file at \(file)")
             }
         }
-        try contentsString.write(toFile: file, atomically: true, encoding: .utf8)
+        try contentsData.write(to: URL(fileURLWithPath: file), options: .atomic)
     }
     
     // MARK: - Thumbnails

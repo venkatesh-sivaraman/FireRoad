@@ -89,6 +89,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         updatePanelViewCollapseHeight()
         if justLoaded, let schedule = currentSchedule, scheduleOptions.count > 0 {
             schedule.displayedScheduleIndex = schedule.displayedScheduleIndex < self.scheduleOptions.count ? max(schedule.displayedScheduleIndex, 0) : 0
+            schedule.selectedSchedule = self.scheduleOptions[schedule.displayedScheduleIndex]
             updateScheduleGrid()
         }
         justLoaded = false
@@ -268,7 +269,25 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             return
         }
         loadScheduleOptions {
-            schedule.displayedScheduleIndex = schedule.displayedScheduleIndex < self.scheduleOptions.count ? max(schedule.displayedScheduleIndex, 0) : 0
+            // If the schedule document specifies a selected schedule, select it
+            if let preload = schedule.preloadSections,
+                let index = self.scheduleOptions.index(where: { (sched) -> Bool in
+                    for (course, selectedSections) in preload {
+                        for (section, index) in selectedSections {
+                            if !sched.scheduleItems.contains(where: { $0.course == course && $0.sectionType == section && $0.scheduleItems == course.schedule?[section]?[index] }) {
+                                return false
+                            }
+                        }
+                    }
+                    return true
+                }) {
+                schedule.displayedScheduleIndex = index
+                schedule.selectedSchedule = self.scheduleOptions[index]
+                schedule.preloadSections = nil
+            } else {
+                schedule.displayedScheduleIndex = schedule.displayedScheduleIndex < self.scheduleOptions.count ? max(schedule.displayedScheduleIndex, 0) : 0
+                schedule.selectedSchedule = self.scheduleOptions[schedule.displayedScheduleIndex]
+            }
             self.updateScheduleGrid()
             completion?()
         }
@@ -496,7 +515,10 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             vc.courseColors = courseColors
             vc.topPadding = (panelView?.collapseHeight ?? 0.0) + (panelView?.view.convert(.zero, to: self.view).y ?? 0.0) + 12.0
             self.scheduleNumberLabel?.text = "\(schedule.displayedScheduleIndex + 1) of \(scheduleOptions.count)"
-            vc.setSchedule(scheduleOptions[schedule.displayedScheduleIndex], animated: isViewLoaded && view.window != nil)
+            
+            let scheduleToDisplay = scheduleOptions[schedule.displayedScheduleIndex]
+            schedule.selectedSchedule = scheduleToDisplay
+            vc.setSchedule(scheduleToDisplay, animated: isViewLoaded && view.window != nil)
         } else {
             if let vc = currentScheduleVC {
                 vc.willMove(toParentViewController: nil)
@@ -510,6 +532,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                 self.scheduleNumberLabel?.text = "\(schedule.displayedScheduleIndex + 1) of \(scheduleOptions.count)"
             } else if let noSchedulesView = self.storyboard?.instantiateViewController(withIdentifier: "NoSchedulesView") {
                 currentScheduleVC = noSchedulesView
+                currentSchedule?.selectedSchedule = nil
                 self.scheduleNumberLabel?.text = "--"
             }
             if let vc = currentScheduleVC {
@@ -576,6 +599,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         }
         
         schedule.displayedScheduleIndex = 0
+        schedule.selectedSchedule = nil
         validateAndUpdateSchedules()
         
         self.panelView?.collapseView(to: self.panelView!.collapseHeight)
@@ -585,6 +609,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     func deleteCourseFromSchedules(_ course: Course) {
         currentSchedule?.remove(course: course)
         currentSchedule?.displayedScheduleIndex = 0
+        currentSchedule?.selectedSchedule = nil
         updateDisplayedSchedules()
     }
     
@@ -619,6 +644,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         }
         currentSchedule?.allowedSections?[course] = newAllowedSections
         currentSchedule?.displayedScheduleIndex = 0
+        currentSchedule?.selectedSchedule = nil
         updateDisplayedSchedules()
     }
     
