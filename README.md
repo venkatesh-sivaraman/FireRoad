@@ -35,4 +35,8 @@ The maintenance of the requirements lists (in the Requirements tab of FireRoad) 
 
 The way I handle changing requirements lists is by keeping a local copy of the requirements directory in the `venkats` locker. Then, when a requirements list needs to be changed, I modify it, `scp` it to the repo, then run the same delta computation as in "Subject Listing" to transfer the updates into the directory served by web_scripts.
 
-To learn how to write requirements list files, see `FireRoad/course_requirements_spec.md` within this repo.
+## File Type Specifications
+
+* Requirements list files are written in the format specified at [`FireRoad/course_requirements_spec.md`](FireRoad/course_requirements_spec.md).
+* Road files are specified by [`FireRoad/road_file_spec.md`](FireRoad/road_file_spec.md).
+* Schedule files are specified by [`FireRoad/schedule_file_spec.md`](FireRoad/schedule_file_spec.md). 

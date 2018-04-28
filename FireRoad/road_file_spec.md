@@ -2,7 +2,7 @@
 
 The FireRoad road file (.road file extension) is a JSON file with a structure as defined below. Earlier versions of FireRoad used a CSV-like format, which from now on will only be read by the FireRoad app (not written).
 
-To see an example of read/write for .road files, see the code in User.swift.
+To see an example of read/write for .road files, see the code in [User.swift](User.swift).
 
 ## Top-Level Objects
 
@@ -25,3 +25,52 @@ The selected subjects list contains a list of subjects that the user has put on 
 
 1) The information contained in each subject is intentionally redundant so that the road file can be displayed in a preliminary way without loading the entire course database.
 2) The same subject ID may appear multiple times with different semester numbers, if the user selects the same subject for different semesters.
+3) Subjects in the selected subjects list may be **generic courses**, which are defined in [Course.swift](Course.swift). 
+
+## Example
+
+```
+{
+  "coursesOfStudy" : [
+    "girs",
+    "major6-7"
+  ],
+  "selectedSubjects" : [
+    {
+      "overrideWarnings" : false,
+      "semester" : 0,
+      "title" : "Generic Physics I GIR",
+      "id" : "PHY1",
+      "units" : 12
+    },
+    {
+      "overrideWarnings" : false,
+      "semester" : 1,
+      "title" : "Principles of Chemical Science",
+      "id" : "5.112",
+      "units" : 12
+    },
+    {
+      "overrideWarnings" : false,
+      "semester" : 4,
+      "title" : "Fundamentals of Programming",
+      "id" : "6.009",
+      "units" : 12
+    },
+    {
+      "overrideWarnings" : false,
+      "semester" : 4,
+      "title" : "Advanced Music Performance",
+      "id" : "21M.480",
+      "units" : 6
+    },
+    {
+      "overrideWarnings" : false,
+      "semester" : 6,
+      "title" : "Advanced Music Performance",
+      "id" : "21M.480",
+      "units" : 6
+    }
+  ]
+}
+```
