@@ -305,3 +305,31 @@ class ScheduleDocument: UserDocument {
         try contentsData.write(to: URL(fileURLWithPath: file), options: .atomic)
     }
 }
+
+struct ScheduleMask {
+    var bitMask: Int
+    
+    init(scheduleItems: [CourseScheduleItem], day: CourseScheduleDay) {
+        var allTimeSlots: [Bool] = ScheduleSlotManager.slots.map({ _ in false })  // List of indices in sortedItems
+        for element in scheduleItems {
+            guard element.days.contains(day) else {
+                continue
+            }
+            let startIndex = ScheduleSlotManager.slotIndex(for: element.startTime)
+            let endIndex = ScheduleSlotManager.slotIndex(for: element.endTime)
+            guard startIndex >= 0, startIndex < allTimeSlots.count,
+                endIndex >= 0, endIndex < allTimeSlots.count else {
+                    continue
+            }
+            for index in startIndex..<endIndex {
+                allTimeSlots[index] = true
+            }
+        }
+        
+        self.bitMask = allTimeSlots.enumerated().reduce(0, { $0 + ($1.element ? (1 << $1.offset) : 0) })
+    }
+    
+    func conflicts(with mask: ScheduleMask) -> Bool {
+        return (self.bitMask & mask.bitMask) != 0
+    }
+}

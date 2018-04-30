@@ -53,6 +53,10 @@ struct SearchOptions: OptionSet {
     static let searchCoreqs = SearchOptions(rawValue: 1 << 24)
     static let searchInstructors = SearchOptions(rawValue: 1 << 25)
     static let searchRequirements = SearchOptions(rawValue: 1 << 26)
+    
+    static let conflictsAllowed = SearchOptions(rawValue: 1 << 30)
+    static let noLectureConflicts = SearchOptions(rawValue: 1 << 31)
+    static let noConflicts = SearchOptions(rawValue: 1 << 32)
 
     static let searchAllFields: SearchOptions = [
         .searchID,
@@ -60,7 +64,7 @@ struct SearchOptions: OptionSet {
         .searchPrereqs,
         .searchCoreqs,
         .searchInstructors,
-        .searchRequirements
+        .searchRequirements,
     ]
     
     static let noFilter: SearchOptions = [
@@ -70,7 +74,8 @@ struct SearchOptions: OptionSet {
         .noLevelFilter,
         .offeredAnySemester,
         .containsSearchTerm,
-        .searchAllFields
+        .searchAllFields,
+        .conflictsAllowed
     ]
     
     var shouldAutoSearch: Bool {
@@ -120,6 +125,19 @@ class CourseSearchEngine: NSObject {
     var isSearching = false
     var shouldAbortSearch = false
     var showsGenericCourses = true
+    
+    var userSchedule: Schedule? {
+        didSet {
+            guard let sched = userSchedule else {
+                userScheduleMasks = nil
+                return
+            }
+            userScheduleMasks = CourseScheduleDay.ordering.map {
+                ScheduleMask(scheduleItems: sched.scheduleItems.map({ $0.scheduleItems }).flatMap({ $0 }), day: $0)
+            }
+        }
+    }
+    private var userScheduleMasks: [ScheduleMask]?
     
     private func courseSatisfiesSearchOptions(_ course: Course, searchTerm: String, options: SearchOptions) -> Bool {
         var fulfillsGIR = false
@@ -178,6 +196,38 @@ class CourseSearchEngine: NSObject {
         }
         
         return fulfillsGIR && fulfillsHASS && fulfillsCI && fulfillsOffered && fulfillsLevel
+    }
+    
+    private func courseSatisfiesTimeIntensiveSearchOptions(_ course: Course, searchTerm: String, options: SearchOptions) -> Bool {
+        var fulfillsConflicts = false
+        if let masks = userScheduleMasks, !options.contains(.conflictsAllowed) {
+            if let department = course.subjectCode {
+                CourseManager.shared.loadCourseDetailsSynchronously(for: department)
+            }
+            if let courseSched = course.schedule, courseSched.count > 0 {
+                fulfillsConflicts = true
+                for (type, units) in courseSched {
+                    guard !options.contains(.noLectureConflicts) || type == CourseScheduleType.lecture else {
+                        continue
+                    }
+                    
+                    // Find a section that doesn't conflict with the user schedule on any day
+                    if !units.contains(where: { section -> Bool in
+                        for (i, day) in CourseScheduleDay.ordering.enumerated() {
+                            if ScheduleMask(scheduleItems: section, day: day).conflicts(with: masks[i]) {
+                                return false
+                            }
+                        }
+                        return true
+                    }) {
+                        fulfillsConflicts = false
+                    }
+                }
+            }
+        } else {
+            fulfillsConflicts = true
+        }
+        return fulfillsConflicts
     }
     
     private func searchText(for course: Course, options: SearchOptions) -> [String: Float] {
@@ -289,6 +339,9 @@ class CourseSearchEngine: NSObject {
                 }
             }
             if relevance > 0.0 {
+                guard self.courseSatisfiesTimeIntensiveSearchOptions(course, searchTerm: searchTerm, options: options) else {
+                    continue
+                }
                 if course.isGeneric {
                     relevance *= 1e15
                 } else {

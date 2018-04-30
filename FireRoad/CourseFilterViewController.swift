@@ -40,6 +40,14 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
         FilterTableItem(type: .segmentedControl,
+                        title: "Schedule Conflicts",
+                        items: [
+                            ("Off", .conflictsAllowed),
+                            ("Lectures", .noLectureConflicts),
+                            ("No Conflict", .noConflicts)],
+                        tintColor: nil,
+                        firstOptionOverridesOthers: false),
+        FilterTableItem(type: .segmentedControl,
                         title: "HASS",
                         items: [
                             ("Off", .noHASSFilter),
@@ -94,7 +102,7 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Corequisites", .searchCoreqs),
                             ("Instructors", .searchInstructors)],
                         tintColor: nil,
-                        firstOptionOverridesOthers: true)
+                        firstOptionOverridesOthers: true),
     ]
     
     let buttonCellIdentifier = "ButtonCell"

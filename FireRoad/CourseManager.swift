@@ -295,6 +295,9 @@ class CourseManager: NSObject {
     }
     
     func loadCourseDetailsSynchronously(about course: Course) {
+        guard course.subjectID != nil, course.subjectCode != nil else {
+            return
+        }
         if self.getCourse(withID: course.subjectID!) == nil {
             return
         }
@@ -310,6 +313,9 @@ class CourseManager: NSObject {
     }
     
     func loadCourseDetails(about course: Course, _ completion: @escaping ((Bool) -> Void)) {
+        guard course.subjectID != nil, course.subjectCode != nil else {
+            return
+        }
         if self.getCourse(withID: course.subjectID!) == nil {
             completion(false)
             return

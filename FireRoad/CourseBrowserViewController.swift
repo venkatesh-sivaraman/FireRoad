@@ -368,6 +368,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         isShowingSearchResults = true
         
         var newAggregatedSearchResults: [Course: Float] = [:]
+        if let rootTab = rootParent as? RootTabViewController,
+            let schedule = rootTab.currentSchedule?.selectedSchedule {
+            self.searchEngine.userSchedule = schedule
+        }
         self.searchEngine.loadSearchResults(for: searchTerm, options: options) { newResults in
             self.updateQueue.async {
                 newAggregatedSearchResults.merge(newResults, uniquingKeysWith: { $0 + $1 })
