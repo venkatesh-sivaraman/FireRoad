@@ -282,11 +282,11 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                     return true
                 }) {
                 schedule.displayedScheduleIndex = index
-                schedule.selectedSchedule = self.scheduleOptions[index]
+                schedule.selectedSchedule = self.scheduleOptions.count > 0 ? self.scheduleOptions[index] : nil
                 schedule.preloadSections = nil
             } else {
                 schedule.displayedScheduleIndex = schedule.displayedScheduleIndex < self.scheduleOptions.count ? max(schedule.displayedScheduleIndex, 0) : 0
-                schedule.selectedSchedule = self.scheduleOptions[schedule.displayedScheduleIndex]
+                schedule.selectedSchedule = self.scheduleOptions.count > 0 ? self.scheduleOptions[schedule.displayedScheduleIndex] : nil
             }
             self.updateScheduleGrid()
             completion?()

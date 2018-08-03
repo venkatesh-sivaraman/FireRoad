@@ -78,7 +78,13 @@ func augmentCourseData(_ courseData: inout [[CourseAttribute: Any]], withEvaluat
                 continue
             }
             for key in keysToAverage.keys {
-                guard let value = termData[key] as? Float else {
+                var value: Float
+                // Could be a Double or a Float
+                if let f = termData[key] as? Float {
+                    value = f
+                } else if let d = termData[key] as? Double {
+                    value = Float(d)
+                } else {
                     continue
                 }
                 if averagingData[key] != nil {

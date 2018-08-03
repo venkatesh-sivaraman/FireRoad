@@ -85,6 +85,14 @@ struct SearchOptions: OptionSet {
         return true
     }
     
+    /// A broader criterion than shouldAutoSearch
+    var containsCourseFilters: Bool {
+        if union([.searchAllFields, .containsSearchTerm]).contains(.noFilter) {
+            return false
+        }
+        return true
+    }
+    
     // Convenience functions to replace certain axes of filter options
     
     func replace(oldValue: SearchOptions, with newValue: SearchOptions) -> SearchOptions {
@@ -126,18 +134,20 @@ class CourseSearchEngine: NSObject {
     var shouldAbortSearch = false
     var showsGenericCourses = true
     
-    var userSchedule: Schedule? {
+    var userSchedules: [Schedule]? {
         didSet {
-            guard let sched = userSchedule else {
+            guard let scheds = userSchedules else {
                 userScheduleMasks = nil
                 return
             }
-            userScheduleMasks = CourseScheduleDay.ordering.map {
-                ScheduleMask(scheduleItems: sched.scheduleItems.map({ $0.scheduleItems }).flatMap({ $0 }), day: $0)
+            userScheduleMasks = scheds.map { sched -> [ScheduleMask] in
+                CourseScheduleDay.ordering.map {
+                    ScheduleMask(scheduleItems: sched.scheduleItems.map({ $0.scheduleItems }).flatMap({ $0 }), day: $0)
+                }
             }
         }
     }
-    private var userScheduleMasks: [ScheduleMask]?
+    private var userScheduleMasks: [[ScheduleMask]]?
     
     private func courseSatisfiesSearchOptions(_ course: Course, searchTerm: String, options: SearchOptions) -> Bool {
         var fulfillsGIR = false
@@ -198,6 +208,28 @@ class CourseSearchEngine: NSObject {
         return fulfillsGIR && fulfillsHASS && fulfillsCI && fulfillsOffered && fulfillsLevel
     }
     
+    private func courseSchedule(_ courseSched: [String: [[CourseScheduleItem]]], satisfies schedule: [ScheduleMask], options: SearchOptions) -> Bool {
+        var fulfillsConflicts = true
+        for (type, units) in courseSched {
+            guard !options.contains(.noLectureConflicts) || type == CourseScheduleType.lecture else {
+                continue
+            }
+            
+            // Find a section that doesn't conflict with the user schedule on any day
+            if !units.contains(where: { section -> Bool in
+                for (i, day) in CourseScheduleDay.ordering.enumerated() {
+                    if ScheduleMask(scheduleItems: section, day: day).conflicts(with: schedule[i]) {
+                        return false
+                    }
+                }
+                return true
+            }) {
+                fulfillsConflicts = false
+            }
+        }
+        return fulfillsConflicts
+    }
+    
     private func courseSatisfiesTimeIntensiveSearchOptions(_ course: Course, searchTerm: String, options: SearchOptions) -> Bool {
         var fulfillsConflicts = false
         if let masks = userScheduleMasks, !options.contains(.conflictsAllowed) {
@@ -205,22 +237,9 @@ class CourseSearchEngine: NSObject {
                 CourseManager.shared.loadCourseDetailsSynchronously(for: department)
             }
             if let courseSched = course.schedule, courseSched.count > 0 {
-                fulfillsConflicts = true
-                for (type, units) in courseSched {
-                    guard !options.contains(.noLectureConflicts) || type == CourseScheduleType.lecture else {
-                        continue
-                    }
-                    
-                    // Find a section that doesn't conflict with the user schedule on any day
-                    if !units.contains(where: { section -> Bool in
-                        for (i, day) in CourseScheduleDay.ordering.enumerated() {
-                            if ScheduleMask(scheduleItems: section, day: day).conflicts(with: masks[i]) {
-                                return false
-                            }
-                        }
-                        return true
-                    }) {
-                        fulfillsConflicts = false
+                for sched in masks {
+                    if courseSchedule(courseSched, satisfies: sched, options: options) {
+                        fulfillsConflicts = true
                     }
                 }
             }
@@ -392,7 +411,7 @@ class CourseSearchEngine: NSObject {
     var queuedSearchTerm: String?
     var queuedSearchOptions: SearchOptions?
     
-    private func runSearchAlgorithm(for searchTerm: String, fast: Bool, options: SearchOptions = .noFilter, callback: @escaping ([Course: Float]) -> Void) {
+    private func runSearchAlgorithm(for searchTerm: String, fast: Bool, options: SearchOptions = .noFilter, within courses: [Course]? = nil, callback: @escaping ([Course: Float]) -> Void) {
         DispatchQueue.global().async {
             var searchTerm = searchTerm
             var options = options
@@ -420,7 +439,7 @@ class CourseSearchEngine: NSObject {
             }
             self.isSearching = true
             
-            var coursesToSearch = CourseManager.shared.courses
+            var coursesToSearch = courses ?? CourseManager.shared.courses
             if self.showsGenericCourses {
                 coursesToSearch += Course.genericCourses.values
             }
@@ -445,11 +464,11 @@ class CourseSearchEngine: NSObject {
         }
     }
     
-    func loadSearchResults(for searchTerm: String, options: SearchOptions = .noFilter, callback: @escaping ([Course: Float]) -> Void) {
-        runSearchAlgorithm(for: searchTerm, fast: false, options: options, callback: callback)
+    func loadSearchResults(for searchTerm: String, options: SearchOptions = .noFilter, within courses: [Course]? = nil, callback: @escaping ([Course: Float]) -> Void) {
+        runSearchAlgorithm(for: searchTerm, fast: false, options: options, within: courses, callback: callback)
     }
     
-    func loadFastSearchResults(for searchTerm: String, callback: @escaping ([Course: Float]) -> Void) {
-        runSearchAlgorithm(for: searchTerm, fast: true, callback: callback)
+    func loadFastSearchResults(for searchTerm: String, within courses: [Course]? = nil, callback: @escaping ([Course: Float]) -> Void) {
+        runSearchAlgorithm(for: searchTerm, fast: true, within: courses, callback: callback)
     }
 }

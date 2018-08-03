@@ -114,6 +114,13 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        if navigationController?.viewControllers.count == 1 {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(CourseFilterViewController.doneButtonTapped(_:)))
+        }
+    }
+    
+    @objc func doneButtonTapped(_ sender: AnyObject) {
+        delegate?.courseFilterWantsDismissal(self)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -224,8 +231,8 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                 delegate?.courseFilter(self, changed: options)
                 tableView.deselectRow(at: indexPath, animated: true)
                 tableView.reloadSections(IndexSet(1..<(tableItems.count + 1)), with: .fade)
-                delegate?.courseFilterWantsDismissal(self)
             }
+            delegate?.courseFilterWantsDismissal(self)
         } else if tableItems[indexPath.section - 1].type == .checkmark {
             updateTableItem(at: indexPath.section - 1, withSelectionOfOptionAt: indexPath.row)
             tableView.deselectRow(at: indexPath, animated: true)

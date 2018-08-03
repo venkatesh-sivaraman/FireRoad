@@ -29,7 +29,10 @@ enum UserSemester: Int {
     case SeniorFall = 10
     case SeniorIAP = 11
     case SeniorSpring = 12
-    
+    case SuperSeniorFall = 13
+    case SuperSeniorIAP = 14
+    case SuperSeniorSpring = 15
+
     func toString() -> String {
         switch self {
         case .PreviousCredit: return "Prior Credit"
@@ -45,33 +48,38 @@ enum UserSemester: Int {
         case .SeniorFall: return "4th Year Fall"
         case .SeniorIAP: return "4th Year IAP"
         case .SeniorSpring: return "4th Year Spring"
+        case .SuperSeniorFall: return "5th Year Fall"
+        case .SuperSeniorIAP: return "5th Year IAP"
+        case .SuperSeniorSpring: return "5th Year Spring"
         }
     }
     
     func isIAP() -> Bool {
-        return (self == .FreshmanIAP || self == .SophomoreIAP || self == .JuniorIAP || self == .SeniorIAP)
+        return (self == .FreshmanIAP || self == .SophomoreIAP || self == .JuniorIAP || self == .SeniorIAP || self == .SuperSeniorIAP)
     }
     
     func isFall() -> Bool {
-        return (self == .FreshmanFall || self == .SophomoreFall || self == .JuniorFall || self == .SeniorFall)
+        return (self == .FreshmanFall || self == .SophomoreFall || self == .JuniorFall || self == .SeniorFall || self == .SuperSeniorFall)
     }
     
     func isSpring() -> Bool {
-        return (self == .FreshmanSpring || self == .SophomoreSpring || self == .JuniorSpring || self == .SeniorSpring)
+        return (self == .FreshmanSpring || self == .SophomoreSpring || self == .JuniorSpring || self == .SeniorSpring || self == .SuperSeniorSpring)
     }
     
     static let allEnrolledSemesters: [UserSemester] = [
         .FreshmanFall, .FreshmanIAP, .FreshmanSpring,
         .SophomoreFall, .SophomoreIAP, .SophomoreSpring,
         .JuniorFall, .JuniorIAP, .JuniorSpring,
-        .SeniorFall, .SeniorIAP, .SeniorSpring
+        .SeniorFall, .SeniorIAP, .SeniorSpring,
+        .SuperSeniorFall, .SuperSeniorIAP, .SuperSeniorSpring
     ]
     
     static let allSemesters: [UserSemester] = [
         .PreviousCredit, .FreshmanFall, .FreshmanIAP, .FreshmanSpring,
         .SophomoreFall, .SophomoreIAP, .SophomoreSpring,
         .JuniorFall, .JuniorIAP, .JuniorSpring,
-        .SeniorFall, .SeniorIAP, .SeniorSpring
+        .SeniorFall, .SeniorIAP, .SeniorSpring,
+        .SuperSeniorFall, .SuperSeniorIAP, .SuperSeniorSpring
     ]
 }
 

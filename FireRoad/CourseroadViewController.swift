@@ -316,7 +316,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     // MARK: - Collection View
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 13
+        return UserSemester.allSemesters.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -480,17 +480,21 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         if destinationIndexPath != sourceIndexPath {
             indexPathOfMovedCell = destinationIndexPath
         }
-        self.collectionView.performBatchUpdates({
-            if self.currentUser!.courses(forSemester: UserSemester(rawValue: destinationIndexPath.section)!).count == 0 {
-                self.collectionView.deleteItems(at: [IndexPath(item: destinationIndexPath.item == 0 ? 1 : 0, section: destinationIndexPath.section)])
-            }
-            self.currentUser!.move(course, fromSemester: originalSemester, toSemester: destSemester, atIndex: destinationIndexPath.item)
-            if self.currentUser!.courses(forSemester: UserSemester(rawValue: sourceIndexPath.section)!).count == 0 {
-                self.collectionView.insertItems(at: [IndexPath(item: 0, section: sourceIndexPath.section)])
-            }
-        }, completion: { _ in
-            self.reloadViewAfterCollectionViewUpdate()
-        })
+        if self.currentUser!.courses(forSemester: destSemester).contains(course) {
+            self.reloadCollectionView()
+        } else {
+            self.collectionView.performBatchUpdates({
+                if self.currentUser!.courses(forSemester: UserSemester(rawValue: destinationIndexPath.section)!).count == 0 {
+                    self.collectionView.deleteItems(at: [IndexPath(item: destinationIndexPath.item == 0 ? 1 : 0, section: destinationIndexPath.section)])
+                }
+                self.currentUser!.move(course, fromSemester: originalSemester, toSemester: destSemester, atIndex: destinationIndexPath.item)
+                if self.currentUser!.courses(forSemester: UserSemester(rawValue: sourceIndexPath.section)!).count == 0 {
+                    self.collectionView.insertItems(at: [IndexPath(item: 0, section: sourceIndexPath.section)])
+                }
+            }, completion: { _ in
+                self.reloadViewAfterCollectionViewUpdate()
+            })
+        }
     }
     
     // MARK: - Menu Actions

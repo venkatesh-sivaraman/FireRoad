@@ -31,6 +31,7 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     static let oneButtonCellIdentifier = "OneButtonCell"
     static let buttonCellIdentifier = "ButtonCell"
     
+    // If changing number of headings, the height of the pop down menu may need to be changed in the storyboard
     let headings = [
         "Favorites",
         "Schedule",
@@ -38,7 +39,8 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
         "1st Year",
         "2nd Year",
         "3rd Year",
-        "4th Year"
+        "4th Year",
+        "5th Year"
     ]
     
     func semester(forButtonAt indexPath: IndexPath, tag: Int) -> UserSemester? {

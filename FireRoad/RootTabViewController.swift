@@ -233,6 +233,14 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         return scheduleVC.currentSchedule
     }
     
+    var currentScheduleOptions: [Schedule]? {
+        guard let scheduleVC = childViewController(where: { $0 is ScheduleViewController }) as? ScheduleViewController else {
+            print("Couldn't get schedule view controller")
+            return nil
+        }
+        return scheduleVC.scheduleOptions
+    }
+    
     func displaySchedule(with courses: [Course], name: String) {
         guard let scheduleVC = childViewController(where: { $0 is ScheduleViewController }) as? ScheduleViewController else {
             print("Couldn't get schedule view controller")

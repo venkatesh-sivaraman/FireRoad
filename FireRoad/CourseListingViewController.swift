@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseListingViewController: CourseListingDisplayController, UISearchResultsUpdating, UISearchControllerDelegate, UICollectionViewDelegateFlowLayout {
+class CourseListingViewController: CourseListingDisplayController, UISearchResultsUpdating, UISearchControllerDelegate, UICollectionViewDelegateFlowLayout, CourseFilterDelegate {
 
     var departmentCode: String = "1"
     var courses: [Course] = []
@@ -20,9 +20,12 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
     
     var searchController: UISearchController?
     
+    @IBOutlet var filterItem: UIBarButtonItem?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        collectionView?.alwaysBounceVertical = true
         // Do any additional setup after loading the view.
         searchController = UISearchController(searchResultsController: nil)
         searchController?.searchResultsUpdater = self
@@ -34,6 +37,12 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
         searchController?.searchBar.placeholder = "Filter subjects…"
         
         NotificationCenter.default.addObserver(self, selector: #selector(CourseListingViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+        
+        let options = UserDefaults.standard.integer(forKey: searchOptionsDefaultsKey)
+        if options > 0 {
+            searchOptions = SearchOptions(rawValue: options)
+        }
+        updateFilterButton()
     }
     
     deinit {
@@ -95,6 +104,9 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
     func setupCollectionViewData() {
         self.courses = CourseManager.shared.getCourses(forDepartment: self.departmentCode)
         self.collectionView?.reloadData()
+        if (currentSearchText?.count ?? 0) > 0 || searchOptions.containsCourseFilters {
+            self.loadSearchResults(withString: currentSearchText ?? "", options: searchOptions)
+        }
     }
     
     @objc func courseManagerFinishedLoading(_ note: Notification) {
@@ -241,12 +253,15 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
     
     // MARK: - Search
     
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.count > 0 {
-            filterCourses(with: searchBar)
-        } else {
-            clearSearch()
+    var searchOptions: SearchOptions = .noFilter {
+        didSet {
+            UserDefaults.standard.set(searchOptions.rawValue, forKey: searchOptionsDefaultsKey)
         }
+    }
+    let searchOptionsDefaultsKey = "CourseListing.searchOptions"
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        searchBarTextChanged(searchText)
     }
     
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
@@ -258,12 +273,12 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        clearSearch()
+        searchBarTextChanged(searchBar.text ?? "")
         searchBar.resignFirstResponder()
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        filterCourses(with: searchBar)
+        self.loadSearchResults(withString: searchBar.text!, options: searchOptions)
         searchBar.resignFirstResponder()
     }
     
@@ -282,28 +297,76 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
         }, completion: nil)
     }
     
-    func filterCourses(with searchBar: UISearchBar) {
-        let searchTerm = searchBar.text?.lowercased() ?? ""
-        currentSearchText = searchTerm
-        DispatchQueue.global().async {
+    lazy var searchEngine = CourseSearchEngine()
+    lazy var updateQueue = DispatchQueue(label: "BrowseSearchUpdateQueue")
+    
+    func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter, completion: (() -> Void)? = nil) {
+        self.updateQueue.async {
+            var newAggregatedSearchResults: Set<Course> = Set<Course>()
+            if let rootTab = self.rootParent as? RootTabViewController,
+                let schedules = rootTab.currentScheduleOptions {
+                self.searchEngine.userSchedules = schedules
+            }
+            self.searchEngine.loadSearchResults(for: searchTerm, options: options, within: self.courses) { newResults in
+                self.updateQueue.async {
+                    newAggregatedSearchResults.formUnion(Set<Course>(newResults.keys))
+                    if !self.searchEngine.isSearching {
+                        // It has stopped the search
+                        let sortedResults = newAggregatedSearchResults.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") })
+                        DispatchQueue.main.async {
+                            self.updateDisplayAfterSearch(with: sortedResults)
+                            completion?()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    func searchBarTextChanged(_ searchText: String) {
+        guard searchText.count > 0 || searchOptions.containsCourseFilters else {
+            clearSearch()
+            return
+        }
+        currentSearchText = searchText
+        
+        if self.searchOptions == .noFilter {
+            var updatedAlready = false
+            searchEngine.loadFastSearchResults(for: searchText, within: courses) { newResults in
+                self.updateQueue.async {
+                    guard newResults.count > 0 else {
+                        return
+                    }
+                    let sortedResults = newResults.keys.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") })
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if !updatedAlready {
+                            self.updateDisplayAfterSearch(with: sortedResults)
+                        }
+                    }
+                }
+            }
+            DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
+                guard DispatchQueue.main.sync(execute: { searchText == self.currentSearchText }) else {
+                    return
+                }
+                self.loadSearchResults(withString: searchText, options: self.searchOptions, completion: {
+                    updatedAlready = true
+                })
+            }
+        } else {
+            self.loadSearchResults(withString: searchText, options: self.searchOptions)
+        }
+    }
+    
+    func updateDisplayAfterSearch(with newCourses: [Course]) {
+        DispatchQueue.main.async {
+            let shouldResumeFirstResponder = self.searchController?.searchBar.isFirstResponder ?? false
+            
             let oldCourseCount = self.searchCourses?.count ?? self.courses.count
-            let newCourses = self.courses.filter {
-                var searchText: [String] = [
-                    $0.subjectID ?? "",
-                    $0.subjectTitle ?? "",
-                    $0.communicationRequirement?.descriptionText() ?? "",
-                    $0.girAttribute?.descriptionText() ?? ""]
-                searchText.append($0.communicationRequirement?.rawValue ?? "")
-                searchText.append($0.hassAttribute?.descriptionText() ?? "")
-                searchText.append($0.hassAttribute?.rawValue ?? "")
-                searchText += $0.instructors
-                return searchText.joined(separator: "\n").lowercased().contains(searchTerm)
-            }
-            guard searchTerm == self.currentSearchText else {
-                return
-            }
-            DispatchQueue.main.async {
-                self.searchCourses = newCourses
+            self.searchCourses = newCourses
+            if self.collectionView?.numberOfItems(inSection: 0) != oldCourseCount || !self.isViewLoaded {
+                self.collectionView?.reloadData()
+            } else {
                 self.collectionView?.performBatchUpdates({
                     if newCourses.count > oldCourseCount {
                         self.collectionView?.insertItems(at: (oldCourseCount..<newCourses.count).map({ IndexPath(item: $0, section: 0) }))
@@ -312,18 +375,56 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                     }
                     self.collectionView?.reloadItems(at: (0..<min(newCourses.count, oldCourseCount)).map({ IndexPath(item: $0, section: 0) }))
                 }, completion: nil)
-                searchBar.becomeFirstResponder()
+            }
+            if shouldResumeFirstResponder {
+                self.searchController?.searchBar.becomeFirstResponder()
             }
         }
     }
     
     func updateSearchResults(for searchController: UISearchController) {
         let searchText = searchController.searchBar.text ?? ""
-        if searchText.count > 0 {
-            filterCourses(with: searchController.searchBar)
+        if searchText.count > 0 || searchOptions.containsCourseFilters {
+            loadSearchResults(withString: searchText, options: searchOptions, completion: nil)
         } else {
             clearSearch()
         }
+    }
+    
+    // MARK: - Filtering
+    
+    func updateFilterButton() {
+        let image = (searchOptions == .noFilter ? UIImage(named: "filter") : UIImage(named: "filter-on"))
+        filterItem?.image = image
+    }
+    
+    @IBAction func filterButtonTapped(_ sender: AnyObject) {
+        guard CourseManager.shared.isLoaded else {
+            return
+        }
+        let filter = self.storyboard!.instantiateViewController(withIdentifier: "CourseFilter") as! CourseFilterViewController
+        filter.options = searchOptions
+        filter.delegate = self
+        let nav = UINavigationController(rootViewController: filter)
+        if traitCollection.horizontalSizeClass != .compact {
+            nav.modalPresentationStyle = .popover
+            nav.popoverPresentationController?.barButtonItem = filterItem
+        }
+        present(nav, animated: true, completion: nil)
+    }
+    
+    func courseFilter(_ filter: CourseFilterViewController, changed options: SearchOptions) {
+        searchOptions = options
+        updateFilterButton()
+        if (currentSearchText?.count ?? 0) > 0 || searchOptions.containsCourseFilters {
+            self.loadSearchResults(withString: currentSearchText ?? "", options: searchOptions)
+        } else {
+            self.clearSearch()
+        }
+    }
+    
+    func courseFilterWantsDismissal(_ filter: CourseFilterViewController) {
+        dismiss(animated: true, completion: nil)
     }
     
     // MARK: - Pop Down Table Menu
@@ -336,7 +437,7 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
             let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
                 return
         }
-        popDown.course = courses[indexPath.item]
+        popDown.course = (searchCourses ?? courses)[indexPath.item]
         popDown.delegate = self
         let containingView: UIView = self.view
         containingView.addSubview(popDown.view)
