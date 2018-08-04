@@ -117,11 +117,10 @@ class AppSettings: NSObject {
         AppSettingsGroup(items: [
             AppSettingsItem(title: "Allow Recommendations", type: .boolean, getter: { self.allowsRecommendations ?? false }, setter: { newValue in
                 self.allowsRecommendations = newValue as? Bool
-                if self.allowsRecommendations == true,
-                    CourseManager.shared.recommenderUserID == nil || CourseManager.shared.loadPassword() == nil {
+                if self.allowsRecommendations == true, !CourseManager.shared.isLoggedIn {
                     self.presentationDelegate?.showAuthenticationView()
                 }
-            })], header: nil, footer: "Your course selections and ratings will be securely sent to the FireRoad MIT server in order to help you find other courses you might like."),
+            })], header: nil, footer: "Your course ratings, roads, and schedules will be securely sent to the FireRoad MIT server in order to help you find other courses you might like."),
         AppSettingsGroup(items: [
             AppSettingsItem(title: "Hide All Warnings", type: .boolean, getter: { self.hidesAllWarnings }, setter: { newValue in
                 self.hidesAllWarnings = (newValue as? Bool) ?? false

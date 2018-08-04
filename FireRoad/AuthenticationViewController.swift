@@ -10,7 +10,7 @@ import UIKit
 
 protocol AuthenticationViewControllerDelegate: class {
     func authenticationViewControllerCanceled(_ auth: AuthenticationViewController)
-    func authenticationViewController(_ auth: AuthenticationViewController, finishedSuccessfully success: Bool)
+    func authenticationViewController(_ auth: AuthenticationViewController, finishedWith jsonString: String?)
     
 }
 
@@ -28,7 +28,7 @@ class AuthenticationViewController: UIViewController, UIWebViewDelegate {
 
         // Do any additional setup after loading the view.
         navigationItem.title = "FireRoad"
-        //navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(AuthenticationViewController.cancelButtonPressed(_:)))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(AuthenticationViewController.cancelButtonPressed(_:)))
         
         webView.delegate = self
         if let req = request {
@@ -46,12 +46,9 @@ class AuthenticationViewController: UIViewController, UIWebViewDelegate {
     }
     
     func webViewDidFinishLoad(_ webView: UIWebView) {
-        if webView.stringByEvaluatingJavaScript(from: "document.getElementById('username_field') != null") ?? "false" == "true" {
-            _ = webView.stringByEvaluatingJavaScript(from: "document.getElementById('username_field').value = '\(username)'")
-            _ = webView.stringByEvaluatingJavaScript(from: "document.getElementById('password_field').value = '\(password)'")
-        } else {
-            let success = (webView.stringByEvaluatingJavaScript(from: "document.body.innerText") ?? "false").contains("true")
-            delegate?.authenticationViewController(self, finishedSuccessfully: success)
+        if webView.stringByEvaluatingJavaScript(from: "document.getElementById('access_info') != null") ?? "false" == "true" {
+            let jsonString = webView.stringByEvaluatingJavaScript(from: "document.getElementById('access_info').innerHTML")
+            delegate?.authenticationViewController(self, finishedWith: jsonString)
         }
     }
 

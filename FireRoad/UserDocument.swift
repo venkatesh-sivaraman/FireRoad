@@ -25,6 +25,13 @@ class UserDocument: NSObject {
         }
     }
     
+    var fileName: String? {
+        guard let filePath = filePath else {
+            return nil
+        }
+        return URL(fileURLWithPath: filePath).deletingPathExtension().lastPathComponent
+    }
+    
     var needsSave = false
     var readOnly = false
     private var saveInterval = 2.0

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class RootTabViewController: UITabBarController, AuthenticationViewControllerDelegate, IntroViewControllerDelegate {
+class RootTabViewController: UITabBarController, AuthenticationViewControllerDelegate, IntroViewControllerDelegate, CourseManagerAuthenticationDelegate {
     
     var blurView: UIVisualEffectView?
     var courseUpdatingHUD: MBProgressHUD?
@@ -27,6 +27,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     override func viewDidLoad() {
         updateSemesters()
         justLoaded = true
+        CourseManager.shared.authenticationDelegate = self
         
         loadRecentCourseroad()
         
@@ -54,11 +55,20 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             showingIntro = true
             showIntro()
         }
-        if !showingIntro, AppSettings.shared.allowsRecommendations == nil ||
-            (AppSettings.shared.allowsRecommendations == true &&
-                (CourseManager.shared.recommenderUserID == nil ||
-                    CourseManager.shared.loadPassword() == nil)) {
-            showAuthenticationView()
+        if !showingIntro {
+            if AppSettings.shared.allowsRecommendations == nil {
+                let alert = UIAlertController(title: "FireRoad Recommendations", message: "Allow your course ratings, roads, and schedules to be uploaded to the FireRoad server to generate personalized subject recommendations?\n\nYou can change this later in the app settings.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Allow", style: .default, handler: { (ac) in
+                    AppSettings.shared.allowsRecommendations = true
+                    CourseManager.shared.loginIfNeeded { _ in }
+                }))
+                alert.addAction(UIAlertAction(title: "Don't Allow", style: .cancel, handler: { (ac) in
+                    AppSettings.shared.allowsRecommendations = false
+                }))
+                present(alert, animated: true, completion: nil)
+            } else if AppSettings.shared.allowsRecommendations == true {
+                CourseManager.shared.loginIfNeeded { _ in }
+            }
         }
     }
     
@@ -278,36 +288,45 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     // MARK: - Authentication
     
-    func showAuthenticationView() {
-        CourseManager.shared.getRecommenderUserID { (userID: Int?) in
-            DispatchQueue.main.async {
-                guard let id = userID,
-                    let auth = self.storyboard?.instantiateViewController(withIdentifier: "AuthenticationVC") as? AuthenticationViewController else {
-                        return
-                }
-                auth.delegate = self
-                auth.username = "\(id)"
-                auth.password = CourseManager.shared.generateRandomPassword()
-                if let url = URL(string: CourseManager.recommenderSignupURL) {
-                    auth.request = URLRequest(url: url)
-                }
-                let nav = UINavigationController(rootViewController: auth)
-                self.present(nav, animated: true, completion: nil)
+    var authenticationCompletionBlocks: [(String?) -> Void]?
+    
+    func showAuthenticationView(with request: URLRequest, completion: ((String?) -> Void)?) {
+        if authenticationCompletionBlocks == nil {
+            authenticationCompletionBlocks = []
+        }
+        if let comp = completion {
+            authenticationCompletionBlocks?.append(comp)
+        }
+        DispatchQueue.main.async {
+            guard let auth = self.storyboard?.instantiateViewController(withIdentifier: "AuthenticationVC") as? AuthenticationViewController else {
+                return
             }
+            auth.delegate = self
+            auth.request = request
+            let nav = UINavigationController(rootViewController: auth)
+            self.present(nav, animated: true, completion: nil)
         }
     }
-    
+
     func authenticationViewControllerCanceled(_ auth: AuthenticationViewController) {
         dismiss(animated: true, completion: nil)
+        AppSettings.shared.allowsRecommendations = false
+        if let blocks = authenticationCompletionBlocks {
+            for block in blocks {
+                block(nil)
+            }
+        }
+        authenticationCompletionBlocks = nil
     }
     
-    func authenticationViewController(_ auth: AuthenticationViewController, finishedSuccessfully success: Bool) {
-        AppSettings.shared.allowsRecommendations = success
-        if success {
-            CourseManager.shared.recommenderUserID = Int(auth.username)
-            CourseManager.shared.savePassword(auth.password)
-        }
+    func authenticationViewController(_ auth: AuthenticationViewController, finishedWith jsonString: String?) {
         dismiss(animated: true, completion: nil)
+        if let blocks = authenticationCompletionBlocks {
+            for block in blocks {
+                block(jsonString)
+            }
+        }
+        authenticationCompletionBlocks = nil
     }
     
     // MARK: - Handling Courseroads

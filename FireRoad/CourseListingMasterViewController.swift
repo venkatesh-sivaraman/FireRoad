@@ -410,7 +410,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     
     func settingsViewControllerWantsAuthenticationView(_ settings: AppSettingsViewController) {
         dismiss(animated: true) {
-            (self.rootParent as? RootTabViewController)?.showAuthenticationView()
+            CourseManager.shared.loginIfNeeded({ _ in })
         }
     }
 }

@@ -650,6 +650,11 @@ class User: UserDocument {
         ]
         let contentsData = try JSONSerialization.data(withJSONObject: fileJSON, options: .prettyPrinted)
         
+        // Save to server as well
+        CourseManager.shared.uploadRoad(with: fileJSON, name: fileName ?? name) { success in
+            print("Uploaded road", success)
+        }
+        
         if !FileManager.default.fileExists(atPath: file) {
             let success = FileManager.default.createFile(atPath: file, contents: nil, attributes: nil)
             if !success {
