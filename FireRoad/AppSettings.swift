@@ -17,6 +17,7 @@ struct AppSettingsItem {
         case boolean
         case readOnlyText
         case button
+        case checkmark
     }
     
     var title: String
@@ -36,6 +37,7 @@ struct AppSettingsGroup {
     var items: [AppSettingsItem]
     var header: String?
     var footer: String?
+    var reloadOnSelect: Bool
 }
 
 class AppSettings: NSObject {
@@ -97,6 +99,23 @@ class AppSettings: NSObject {
         }
     }
     
+    private let userCurrentSemesterDefaultsKey = "AppSettings.userCurrentSemester"
+    
+    var userCurrentSemester: Int {
+        get {
+            if UserDefaults.standard.object(forKey: userCurrentSemesterDefaultsKey) == nil {
+                UserDefaults.standard.set(0, forKey: userCurrentSemesterDefaultsKey)
+                return 0
+            }
+            return UserDefaults.standard.integer(forKey: userCurrentSemesterDefaultsKey)
+        } set {
+            if newValue != userCurrentSemester, let sem = UserSemester(rawValue: newValue) {
+                CourseManager.shared.updateUserSemester(sem)
+            }
+            UserDefaults.standard.set(newValue, forKey: userCurrentSemesterDefaultsKey)
+        }
+    }
+    
     private let showedIntroDefaultsKey = "AppSettings.showedIntro"
     
     var showedIntro: Bool {
@@ -120,13 +139,20 @@ class AppSettings: NSObject {
                 if self.allowsRecommendations == true, !CourseManager.shared.isLoggedIn {
                     self.presentationDelegate?.showAuthenticationView()
                 }
-            })], header: nil, footer: "Your course ratings, roads, and schedules will be securely sent to the FireRoad MIT server in order to help you find other courses you might like."),
+            })], header: nil, footer: "Your course ratings, roads, and schedules will be securely sent to the FireRoad MIT server in order to help you find other courses you might like.", reloadOnSelect: false),
         AppSettingsGroup(items: [
             AppSettingsItem(title: "Hide All Warnings", type: .boolean, getter: { self.hidesAllWarnings }, setter: { newValue in
                 self.hidesAllWarnings = (newValue as? Bool) ?? false
             }), AppSettingsItem(title: "Allow Corequisites Together", type: .boolean, getter: { self.allowsCorequisitesTogether }, setter: { newValue in
                 self.allowsCorequisitesTogether = (newValue as? Bool) ?? true
-            })], header: "My Road", footer: "Turn off Allow Corequisites Together to display a warning when corequisites are taken in the same semester."),
+            })], header: "My Road", footer: "Turn off Allow Corequisites Together to display a warning when corequisites are taken in the same semester.", reloadOnSelect: false),
+        AppSettingsGroup(items: [
+            self.yearSettingsItem(with: "1st Year", yearNumber: 1),
+            self.yearSettingsItem(with: "2nd Year", yearNumber: 2),
+            self.yearSettingsItem(with: "3rd Year", yearNumber: 3),
+            self.yearSettingsItem(with: "4th Year", yearNumber: 4),
+            self.yearSettingsItem(with: "5th Year", yearNumber: 5)
+            ], header: "Class Year", footer: "Choose your current or upcoming school year.", reloadOnSelect: true),
         AppSettingsGroup(items: [
             AppSettingsItem(title: "Created by Venkatesh Sivaraman. Course evaluation data courtesy of Edward Fan; additional major/minor requirements contributed by Tanya Smith, Maia Hannahs, and Cindy Shi. In-app icons courtesy of icons8.com.\n\nAll subject descriptions, evaluations, and course requirements © Massachusetts Institute of Technology. FireRoad is not intended to be your sole source of course information - please be sure to check your department's website to make sure you have the most up-to-date information.", type: .readOnlyText, getter: nil, setter: nil),
             AppSettingsItem(title: "Send Feedback", type: .button, getter: nil, setter: { _ in
@@ -134,6 +160,14 @@ class AppSettings: NSObject {
                     return
                 }
                 UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            })], header: "Acknowledgements", footer: nil)
+            })], header: "Acknowledgements", footer: nil, reloadOnSelect: false)
     ]
+    
+    func yearSettingsItem(with title: String, yearNumber: Int) -> AppSettingsItem {
+        return AppSettingsItem(title: title, type: .checkmark, getter: { UserSemester(rawValue: self.userCurrentSemester)?.yearNumber() == yearNumber }, setter: { newValue in
+            if (newValue as? Bool) == true {
+                self.userCurrentSemester = CourseManager.shared.inferSemester(from: yearNumber)
+            }
+        })
+    }
 }

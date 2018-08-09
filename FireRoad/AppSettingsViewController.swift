@@ -51,6 +51,8 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
             return "ButtonCell"
         case .readOnlyText:
             return "TextCell"
+        case .checkmark:
+            return "CheckmarkCell"
         }
     }
     
@@ -73,7 +75,7 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let setting = AppSettings.shared.settings[indexPath.section].items[indexPath.row]
         switch setting.type {
-        case .boolean, .button:
+        case .boolean, .button, .checkmark:
             return 44.0
         default:
             return UITableViewAutomaticDimension
@@ -97,18 +99,26 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
             }
         case .readOnlyText, .button:
             break
+        case .checkmark:
+            cell.accessoryType = (setting.currentValue as? Bool) == true ? .checkmark : .none
+            textLabel?.textColor = (setting.currentValue as? Bool) == true ? cell.tintColor : UIColor.black
         }
 
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let setting = AppSettings.shared.settings[indexPath.section].items[indexPath.row]
+        let group = AppSettings.shared.settings[indexPath.section]
+        let setting = group.items[indexPath.row]
         tableView.deselectRow(at: indexPath, animated: true)
-        guard setting.type == .button else {
-            return
+        if setting.type == .button {
+            setting.setter?(nil)
+        } else if setting.type == .checkmark {
+            setting.setter?(true)
         }
-        setting.setter?(nil)
+        if group.reloadOnSelect {
+            tableView.reloadRows(at: (0..<group.items.count).map({ IndexPath(row: $0, section: indexPath.section )}), with: .fade)
+        }
     }
     
     @objc func switchActivated(_ sender: UISwitch) {

@@ -43,20 +43,8 @@ class CourseManager: NSObject {
     var loadingProgress: Float = 0.0
     
     private var loadingCompletionBlock: ((Bool) -> Void)? = nil
-
-    /*
- Academic Year,Effective Term Code,Subject Id,Subject Code,Subject Number,Source Subject Id,Print Subject Id,Department Code,Department Name,Subject Short Title,Subject Title,Is Variable Units,Lecture Units,Lab Units,Preparation Units,Total Units,Gir Attribute,Gir Attribute Desc,Comm Req Attribute,Comm Req Attribute Desc,Write Req Attribute,Write Req Attribute Desc,Supervisor Attribute Desc,Prerequisites,Subject Description,Joint Subjects,School Wide Electives,Meets With Subjects,Equivalent Subjects,Is Offered This Year,Is Offered Fall Term,Is Offered Iap,Is Offered Spring Term,Is Offered Summer Term,Fall Instructors,Spring Instructors,Status Change,Last Activity Date,Warehouse Load Date,Master Subject Id,Hass Attribute,Hass Attribute Desc,Term Duration,On Line Page Number
-*/
     
     static let departmentNumbers = [
-        /*"3", "1", "4", "2", "22",
-        "16", "8", "18", "14", "17",
-        "24", "21", "21A", "21W", "CMS",
-        "MAS", "21G", "21H", "21L", "21M",
-        "WGS", "CC", "EC", "EM", "ES",
-        "IDS", "STS", "SWE", "SP", "SCM",
-        "15", "11", "12", "10", "5",
-        "20", "6", "7", "CSB", "HST", "9"*/
         "1", "2", "3", "4",
         "5", "6", "7", "8",
         "9", "10", "11", "12",
@@ -671,7 +659,13 @@ class CourseManager: NSObject {
     static let recommenderRoadUploadURL = "https://venkats.scripts.mit.edu/fireroad_dev/recommend/upload_road/"
 
     var loginRequest: URLRequest {
-        return URLRequest(url: URL(string: CourseManager.recommenderLoginURL)!)
+        var urlComps = URLComponents(string: CourseManager.recommenderLoginURL)!
+        if AppSettings.shared.userCurrentSemester != 0 {
+            urlComps.queryItems = [
+                URLQueryItem(name: "sem", value: String(AppSettings.shared.userCurrentSemester))
+            ]
+        }
+        return URLRequest(url: urlComps.url ?? URL(string: CourseManager.recommenderLoginURL)!)
     }
     
     func loginIfNeeded(_ completion: @escaping ((Bool) -> Void)) {
@@ -698,7 +692,7 @@ class CourseManager: NSObject {
         applyBasicAuthentication(to: &request)
         
         let task = URLSession.shared.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) in
-            guard error == nil, data != nil,
+            guard error == nil, let data = data,
                 let httpResponse = response as? HTTPURLResponse,
                 httpResponse.statusCode == 200 else {
                     print("Error retrieving data updates")
@@ -717,6 +711,18 @@ class CourseManager: NSObject {
                     return
             }
             self.isLoggedIn = true
+            // Get current semester
+            do {
+                let deserialized = try JSONSerialization.jsonObject(with: data, options: [])
+                if let info = deserialized as? [String: Any],
+                    let successFlag = info["success"] as? Bool,
+                    successFlag,
+                    let semester = info["current_semester"] as? Int {
+                        AppSettings.shared.userCurrentSemester = semester
+                }
+            } catch {
+                print("Error decoding JSON: \(error)")
+            }
             completion(true)
         })
         task.resume()
@@ -745,6 +751,10 @@ class CourseManager: NSObject {
                     return false
             }
             saveAccessToken(accessToken)
+            if let semester = info["current_semester"] as? Int {
+                print("Semester \(semester)")
+                AppSettings.shared.userCurrentSemester = semester
+            }
             return true
         } catch {
             print("Error decoding JSON: \(error)")
@@ -880,7 +890,7 @@ class CourseManager: NSObject {
             self.isLoadingSubjectRecommendations = false
             do {
                 let deserialized = try JSONSerialization.jsonObject(with: receivedData)
-                guard let lists = deserialized as? [String: [String: Float]] else {
+                guard let lists = deserialized as? [String: [String: Double]] else {
                     return
                 }
                 var recs: [String: [Course: Float]] = [:]
@@ -890,7 +900,7 @@ class CourseManager: NSObject {
                         guard let course = self.getCourse(withID: subject) else {
                             continue
                         }
-                        recs[key]?[course] = value
+                        recs[key]?[course] = Float(value)
                     }
                 }
                 self.subjectRecommendations = recs
@@ -931,6 +941,70 @@ class CourseManager: NSObject {
         }, successHandler: { _ in
             completion?(true)
         })
+    }
+    
+    func updateUserSemester(_ semester: UserSemester) {
+        guard AppSettings.shared.allowsRecommendations == true,
+            let url = URL(string: CourseManager.recommenderSetSemesterURL) else {
+                return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: ["semester": semester.rawValue])
+        } catch {
+            print(error.localizedDescription)
+        }
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        applyBasicAuthentication(to: &request)
+        
+        loginAndSendDataTask(with: request, errorHandler: {
+            print("Could not update user semester")
+        }, successHandler: { _ in
+            print("Successfully updated user semester")
+        })
+    }
+    
+    func inferSemester(from yearNumber: Int) -> Int {
+        let calendar = Calendar(identifier: .gregorian)
+        let month = calendar.component(.month, from: Date())
+        if month >= 5 && month <= 11 {
+            print("Fall")
+            switch yearNumber {
+            case 1:
+                return UserSemester.FreshmanFall.rawValue
+            case 2:
+                return UserSemester.SophomoreFall.rawValue
+            case 3:
+                return UserSemester.JuniorFall.rawValue
+            case 4:
+                return UserSemester.SeniorFall.rawValue
+            case 5:
+                return UserSemester.SuperSeniorFall.rawValue
+            default:
+                return UserSemester.FreshmanFall.rawValue
+            }
+        } else {
+            print("Spring")
+            switch yearNumber {
+            case 1:
+                return UserSemester.FreshmanSpring.rawValue
+            case 2:
+                return UserSemester.SophomoreSpring.rawValue
+            case 3:
+                return UserSemester.JuniorSpring.rawValue
+            case 4:
+                return UserSemester.SeniorSpring.rawValue
+            case 5:
+                return UserSemester.SuperSeniorSpring.rawValue
+            default:
+                return UserSemester.FreshmanSpring.rawValue
+            }
+        }
     }
     
     // MARK: - Course Notes

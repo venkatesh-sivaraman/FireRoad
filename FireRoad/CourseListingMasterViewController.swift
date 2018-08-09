@@ -178,6 +178,8 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     var recommendedCourses: [Course] = []
     var recommendationMessage: String?
     
+    var additionalRecommendations: [(String, [Course])] = []
+    
     let headings = [
         "For You",
         "Departments"
@@ -204,6 +206,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     
     func setupCollectionViewData() {
         recommendedCourses = []
+        additionalRecommendations = []
         if let recs = CourseManager.shared.subjectRecommendations {
             setRecommendedCourses(from: recs)
         } else {
@@ -215,7 +218,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
                     if let recs = recs {
                         self.setRecommendedCourses(from: recs)
                     }
-                    self.collectionView?.reloadItems(at: [IndexPath(item: 0, section: 0)])
+                    self.collectionView?.reloadSections(IndexSet(integer: 0))
                 }
             }
         }
@@ -223,15 +226,51 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     }
     
     func setRecommendedCourses(from subjectRecs: [String: [Course: Float]]) {
-        if var forYou = subjectRecs["for-you"] {
+        additionalRecommendations = []
+        for (recKey, recSet) in subjectRecs {
+            var newRecSet = recSet
             if let rootTab = rootParent as? RootTabViewController,
                 let user = rootTab.currentUser {
-                forYou = forYou.filter {
+                newRecSet = recSet.filter {
                     !user.allCourses.contains($0.key)
                 }
             }
-            self.recommendedCourses = forYou.sorted(by: { $0.value > $1.value }).map { $0.key }
+
+            if recKey == "for-you" {
+                self.recommendedCourses = newRecSet.sorted(by: { $0.value > $1.value }).map { $0.key }
+            } else if let title = recommendationTitle(for: recKey) {
+                additionalRecommendations.append((title, newRecSet.sorted(by: { $0.value > $1.value }).map { $0.key }))
+            }
         }
+    }
+    
+    private func recommendationTitle(for key: String) -> String? {
+        let components = key.components(separatedBy: ":")
+        RequirementsListManager.shared.loadRequirementsLists()
+        if components[0] == "course" {
+            if components[1] == "girs" {
+                return nil
+            }
+            guard let reqList = RequirementsListManager.shared.requirementList(withID: components[1]),
+                let shortTitle = reqList.shortTitle ?? reqList.mediumTitle ?? reqList.title else {
+                return nil
+            }
+            var category: String
+            if components[1].range(of: "major", options: .caseInsensitive) != nil {
+                category = "majors"
+            } else if components[1].range(of: "minor", options: .caseInsensitive) != nil {
+                category = "minors"
+            } else if components[1].range(of: "master", options: .caseInsensitive) != nil {
+                category = "masters students"
+            } else {
+                category = "students"
+            }
+
+            return "\(shortTitle) \(category) may also like…"
+        } else if components[0] == "subject" {
+            return "Because you selected \(components[1])…"
+        }
+        return nil
     }
 
     override func didReceiveMemoryWarning() {
@@ -267,7 +306,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if section == 0 {
-            return 1
+            return 1 + additionalRecommendations.count * 2
         } else if section == 1 {
             return CourseManager.shared.departments.count
         }
@@ -300,16 +339,26 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
                 }
                 return cell
             } else {
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseListCollectionCell", for: indexPath)
-                guard let listCell = cell as? CourseListCollectionCell else {
-                    print("Invalid course list cell")
+                if indexPath.item % 2 == 0 {
+                    // List of courses
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseListCollectionCell", for: indexPath)
+                    guard let listCell = cell as? CourseListCollectionCell else {
+                        print("Invalid course list cell")
+                        return cell
+                    }
+                    listCell.courses = indexPath.item == 0 ? recommendedCourses : additionalRecommendations[indexPath.item / 2 - 1].1
+                    listCell.delegate = self
+                    listCell.longPressTarget = self
+                    listCell.longPressAction = #selector(CourseListingMasterViewController.longPressOnListCell(_:))
+                    return listCell
+                } else {
+                    // Recommendation section header
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SubHeaderCell", for: indexPath)
+                    if let label = cell.viewWithTag(12) as? UILabel {
+                        label.text = additionalRecommendations[(indexPath.item - 1) / 2].0
+                    }
                     return cell
                 }
-                listCell.courses = recommendedCourses
-                listCell.delegate = self
-                listCell.longPressTarget = self
-                listCell.longPressAction = #selector(CourseListingMasterViewController.longPressOnListCell(_:))
-                return listCell
             }
         } else {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DepartmentCell", for: indexPath)
@@ -343,7 +392,11 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         if indexPath.section == 0 {
-            return CGSize(width: collectionView.frame.size.width, height: 124.0)
+            if indexPath.item % 2 == 0 {
+                return CGSize(width: collectionView.frame.size.width, height: 124.0)
+            } else {
+                return CGSize(width: collectionView.frame.size.width, height: 48.0)
+            }
         } else if indexPath.section == 1 {
             if traitCollection.horizontalSizeClass == .regular {
                 return CGSize(width: collectionView.frame.size.width / 2.0, height: 48.0)

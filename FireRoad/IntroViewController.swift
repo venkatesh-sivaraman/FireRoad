@@ -10,6 +10,7 @@ import UIKit
 
 protocol IntroViewControllerDelegate: class {
     func introViewControllerDismissed(_ intro: IntroViewController)
+    func introViewController(_ intro: IntroViewController, selected yearNumber: Int)
 }
 
 class IntroViewController: UIViewController, UIScrollViewDelegate {
@@ -18,6 +19,8 @@ class IntroViewController: UIViewController, UIScrollViewDelegate {
     @IBOutlet var scrollView: UIScrollView!
     @IBOutlet var imageViews: [UIImageView]?
     @IBOutlet var pageControl: UIPageControl!
+    @IBOutlet var yearButtons: [UIButton]?
+    @IBOutlet var doneButton: UIButton?
     
     var backgroundColors: [UIColor] = [
         UIColor(hue: 0.0, saturation: 0.86, brightness: 0.8, alpha: 1.0),
@@ -52,7 +55,7 @@ class IntroViewController: UIViewController, UIScrollViewDelegate {
         let newPage = min(backgroundColors.count, max(0, Int(round(scrollView.contentOffset.x / scrollView.frame.size.width))))
         if newPage != currentPage {
             UIView.animate(withDuration: 0.8, delay: 0.0, options: [.beginFromCurrentState, .curveEaseInOut], animations: {
-                self.backgroundView.backgroundColor = self.backgroundColors[newPage]
+                self.backgroundView.backgroundColor = self.backgroundColors[newPage % self.backgroundColors.count]
             }, completion: nil)
             currentPage = newPage
         }
@@ -63,7 +66,7 @@ class IntroViewController: UIViewController, UIScrollViewDelegate {
         currentPage = page
         pageControl.currentPage = currentPage
         UIView.animate(withDuration: 0.8, delay: 0.0, options: [.beginFromCurrentState, .curveEaseInOut], animations: {
-            self.backgroundView.backgroundColor = self.backgroundColors[page]
+            self.backgroundView.backgroundColor = self.backgroundColors[page % self.backgroundColors.count]
         }, completion: nil)
         scrollView.setContentOffset(CGPoint(x: CGFloat(page) * scrollView.frame.size.width, y: 0.0), animated: true)
     }
@@ -78,5 +81,22 @@ class IntroViewController: UIViewController, UIScrollViewDelegate {
     
     @IBAction func nextButtonTapped(_ sender: AnyObject) {
         scroll(to: currentPage + 1)
+    }
+    
+    @IBAction func yearButtonTapped(_ sender: UIButton) {
+        delegate?.introViewController(self, selected: sender.tag)
+        UIView.animate(withDuration: 0.2) {
+            sender.backgroundColor = UIColor(white: 0.7, alpha: 0.2)
+            sender.layer.cornerRadius = 6.0
+            
+            if let buttons = self.yearButtons {
+                for button in buttons {
+                    if button != sender {
+                        button.backgroundColor = UIColor.clear
+                    }
+                }
+            }
+        }
+        doneButton?.isEnabled = true
     }
 }

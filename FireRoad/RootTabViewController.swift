@@ -51,7 +51,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if !AppSettings.shared.showedIntro {
+        if !AppSettings.shared.showedIntro || AppSettings.shared.userCurrentSemester == 0 {
             showingIntro = true
             showIntro()
         }
@@ -446,6 +446,10 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         }
         intro.delegate = self
         present(intro, animated: true, completion: nil)
+    }
+    
+    func introViewController(_ intro: IntroViewController, selected yearNumber: Int) {
+        AppSettings.shared.userCurrentSemester = CourseManager.shared.inferSemester(from: yearNumber)
     }
     
     func introViewControllerDismissed(_ intro: IntroViewController) {

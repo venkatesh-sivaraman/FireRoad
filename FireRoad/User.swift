@@ -66,6 +66,28 @@ enum UserSemester: Int {
         return (self == .FreshmanSpring || self == .SophomoreSpring || self == .JuniorSpring || self == .SeniorSpring || self == .SuperSeniorSpring)
     }
     
+    func yearNumber() -> Int {
+        return UserSemester.yearMapping[self] ?? 0
+    }
+    
+    private static let yearMapping: [UserSemester: Int] = [
+        .FreshmanFall: 1,
+        .FreshmanIAP: 1,
+        .FreshmanSpring: 1,
+        .SophomoreFall: 2,
+        .SophomoreIAP: 2,
+        .SophomoreSpring: 2,
+        .JuniorFall: 3,
+        .JuniorIAP: 3,
+        .JuniorSpring: 3,
+        .SeniorFall: 4,
+        .SeniorIAP: 4,
+        .SeniorSpring: 4,
+        .SuperSeniorFall: 5,
+        .SuperSeniorIAP: 5,
+        .SuperSeniorSpring: 5,
+    ]
+    
     static let allEnrolledSemesters: [UserSemester] = [
         .FreshmanFall, .FreshmanIAP, .FreshmanSpring,
         .SophomoreFall, .SophomoreIAP, .SophomoreSpring,
