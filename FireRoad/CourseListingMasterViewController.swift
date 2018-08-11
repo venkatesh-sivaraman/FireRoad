@@ -244,16 +244,22 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         }
     }
     
+    /**
+     This function decodes the server's recommendation key names into human-readable
+     strings. Add new recommendation types here to ensure that they are presented
+     to the user.
+     */
     private func recommendationTitle(for key: String) -> String? {
         let components = key.components(separatedBy: ":")
         RequirementsListManager.shared.loadRequirementsLists()
-        if components[0] == "course" {
+        switch components[0] {
+        case "course":
             if components[1] == "girs" {
                 return nil
             }
             guard let reqList = RequirementsListManager.shared.requirementList(withID: components[1]),
                 let shortTitle = reqList.shortTitle ?? reqList.mediumTitle ?? reqList.title else {
-                return nil
+                    return nil
             }
             var category: String
             if components[1].range(of: "major", options: .caseInsensitive) != nil {
@@ -265,12 +271,19 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
             } else {
                 category = "students"
             }
-
+            
             return "\(shortTitle) \(category) may also like…"
-        } else if components[0] == "subject" {
+        case "subject":
             return "Because you selected \(components[1])…"
+        case "top-subjects":
+            return "Top rated"
+        case "after":
+            return "What to take after \(components[1])"
+        case "keyword":
+            return "If you like \(components[1])…"
+        default:
+            return nil
         }
-        return nil
     }
 
     override func didReceiveMemoryWarning() {
