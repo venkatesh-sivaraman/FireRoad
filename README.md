@@ -13,7 +13,7 @@ With this in mind, FireRoad is published under an MIT license and allows you to 
 
 ## Building and Running
 
-Upon cloning the repo to your local machine, you should be able to build and run FireRoad by opening the Xcode project in **Xcode 9.2**.
+Upon cloning the repo to your local machine, you should be able to build and run FireRoad by opening the Xcode project in **Xcode 9.4.1**.
 
 Below, I have provided a rudimentary description of how FireRoad's internals are structured.
 

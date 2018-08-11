@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate, UIPopoverPresentationControllerDelegate, UIDocumentInteractionControllerDelegate, CloudSyncManagerDelegate {
+class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate, UIPopoverPresentationControllerDelegate, UIDocumentInteractionControllerDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
@@ -57,9 +57,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         
         updateLayoutToggleButton()
                 
-        updateNavigationBar(animated: false)
-        
-        CloudSyncManager.roadManager.delegate = self
+        updateNavigationBar(animated: false)        
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -294,30 +292,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     func documentInteractionControllerDidDismissOptionsMenu(_ controller: UIDocumentInteractionController) {
         documentInteractionController = nil
     }
-    
-    func cloudSyncManager(_ manager: CloudSyncManager, modifiedFileNamed name: String) {
-        if name == currentUser?.fileName {
-            try? currentUser?.reloadContents()
-            reloadCollectionView()
-        }
-    }
-    
-    func cloudSyncManager(_ manager: CloudSyncManager, renamedFileNamed name: String, to newName: String) {
-        if name == currentUser?.fileName {
-            currentUser?.filePath = manager.urlForUserFile(named: newName)?.path
-            try? currentUser?.reloadContents()
-            reloadCollectionView()
-        }
-    }
-    
-    func cloudSyncManager(_ manager: CloudSyncManager, deletedFileNamed name: String) {
-        if name == currentUser?.fileName,
-            let rootTab = rootParent as? RootTabViewController {
-            rootTab.currentUser = nil
-            reloadCollectionView()
-        }
-    }
-    
+        
     // MARK: - State Restoration
     
     var collectionViewOffsetWhenLoaded: CGPoint?
@@ -899,12 +874,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             if self.currentUser?.filePath == url.path {
                 if let firstItem = browser.items.first {
                     self.loadCourseroad(named: firstItem.identifier)
-                } else if browser.navigationController?.modalPresentationStyle == .popover {
+                } else {
                     self.loadNewCourseroad(named: "Road.road")
                     self.dismiss(animated: true, completion: nil)
-                } else {
-                    rootTab.currentUser = nil
-                    self.reloadCollectionView()
                 }
             }
         }

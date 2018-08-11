@@ -109,6 +109,10 @@ class User: UserDocument {
     
     private var selectedSubjects: [UserSemester: [Course]] = [:]
     
+    override var isEmpty: Bool {
+        return allCourses.count == 0
+    }
+    
     var name: String = "No Name"
     /// Courses of study correspond to the filenames of .reql files.
     var coursesOfStudy: [String] = []

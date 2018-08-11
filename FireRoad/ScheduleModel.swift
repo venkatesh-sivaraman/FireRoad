@@ -113,6 +113,10 @@ class ScheduleDocument: UserDocument {
     /// Defines the selected sections before schedules are loaded
     var preloadSections: [Course: [String: Int]]?
     
+    override var isEmpty: Bool {
+        return courses.count == 0
+    }
+    
     convenience init(courses: [Course]) {
         self.init()
         self.courses = courses
@@ -126,6 +130,12 @@ class ScheduleDocument: UserDocument {
         courses.append(course)
         setNeedsSave()
         return true
+    }
+    
+    func setCourses(_ newCourses: [Course]) {
+        courses.removeAll()
+        courses.append(contentsOf: newCourses)
+        setNeedsSave()
     }
     
     func remove(course: Course) {

@@ -38,6 +38,10 @@ class UserDocument: NSObject {
     private var saveInterval = 2.0
     private var saveTimer: Timer?
     
+    var isEmpty: Bool {
+        return true
+    }
+    
     init(contentsOfFile path: String, readOnly: Bool = false) throws {
         super.init()
         self.readOnly = readOnly

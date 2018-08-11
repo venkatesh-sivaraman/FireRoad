@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="49e-Tb-3d3">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="49e-Tb-3d3">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
@@ -1344,7 +1344,13 @@
                             <outlet property="delegate" destination="YlC-Yb-mDi" id="2D7-6N-TF4"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Requirements" id="SMc-MR-d2z"/>
+                    <navigationItem key="navigationItem" title="Requirements" id="SMc-MR-d2z">
+                        <barButtonItem key="rightBarButtonItem" image="help" id="QnZ-X5-Wat">
+                            <connections>
+                                <action selector="helpButtonTapped:" destination="YlC-Yb-mDi" id="5BL-c5-Aot"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4ug-0l-Ejo" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -4060,6 +4066,7 @@
         <image name="first" width="30" height="30"/>
         <image name="forward" width="32" height="32"/>
         <image name="heart" width="30" height="30"/>
+        <image name="help" width="32" height="32"/>
         <image name="large-grid" width="26" height="26"/>
         <image name="my-road" width="32" height="32"/>
         <image name="open" width="32" height="32"/>

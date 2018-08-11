@@ -138,8 +138,12 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
         guard let selectedIndexPath = indexPath else {
             return
         }
-        var setting = AppSettings.shared.settings[selectedIndexPath.section].items[selectedIndexPath.row]
+        let group = AppSettings.shared.settings[selectedIndexPath.section]
+        var setting = group.items[selectedIndexPath.row]
         setting.currentValue = sender.isOn
+        if group.reloadOnSelect {
+            tableView.reloadSections(IndexSet(integer: selectedIndexPath.section), with: .fade)
+        }
     }
     
     /*

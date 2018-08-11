@@ -701,6 +701,9 @@ class RequirementsList: RequirementsListStatement {
             }
             let varName = undecoratedComponent(lines.removeFirst())
             let description = undecoratedComponent(lines.removeFirst().replacingOccurrences(of: "\\n", with: "\n"))
+            if varName.contains(":=") || description.contains(":=") {
+                print("\(listID): Encountered ':=' symbol in top-level section. Maybe you forgot the required empty line after the last section's description line?")
+            }
             topLevelSections.append((varName, description))
         }
         guard lines.count > 0 else {

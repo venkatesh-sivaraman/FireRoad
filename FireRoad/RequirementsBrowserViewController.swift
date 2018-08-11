@@ -223,6 +223,18 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
         loadRequirementsOrDisplay()
     }
     
+    @IBAction func helpButtonTapped(_ sender: AnyObject) {
+        let alert = UIAlertController(title: "Requirements Support", message: "To request a correction or update to a set of course requirements, please contact us with the name of the major or minor, as well as any specific errors.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Contact", style: .default, handler: { (ac) in
+            guard let url = URL(string: "mailto:base12apps@gmail.com?subject=FireRoad%20Requirements%20Feedback") else {
+                return
+            }
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+    
     // MARK: - Sorting
     
     @IBAction func sortButtonPressed(_ sender: UIBarButtonItem) {
@@ -298,7 +310,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if displayedRequirementLists[section].0 == .user {
-            return "Add courses of study by finding their requirements below, then toggling the heart icon. The courses you select are saved along with your roads in the My Road tab."
+            return "Add courses of study by finding their requirements below, then toggling the heart icon. You can select a different set of majors/minors for each road in the My Road tab."
         }
         return nil
     }

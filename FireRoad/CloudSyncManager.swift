@@ -21,6 +21,8 @@ func debugPrint(_ something: Any) {
     #endif
 }
 
+let InitialDocumentTitle = "First Steps"
+
 class CloudSyncManager: NSObject {
 
     struct URLSet {
@@ -96,7 +98,7 @@ class CloudSyncManager: NSObject {
     }
     
     static let downloadDatePreferencesSuffix = "downloadDates"
-    static let changedDatePreferencesSuffix = "changedDates"
+    static let cloudModifiedDatePreferencesSuffix = "cloudModifiedDates"
     static let fileIDPreferencesSuffix = "fileIDs"
     
     func setDocumentID(_ id: Int?, forFileNamed name: String) {
@@ -125,18 +127,30 @@ class CloudSyncManager: NSObject {
         return nil
     }
     
-    func setChangedDate(_ date: Date?, forFileNamed name: String) {
-        debugPrint("Setting change date for \(name) to \(date?.timeAgo() ?? "n/a")")
-        var dict: [String: String] = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.changedDatePreferencesSuffix) as? [String: String] ?? [:]
+    func setCloudModifiedDate(_ date: Date?, forFileNamed name: String) {
+        debugPrint("Setting cloud modified date for \(name) to \(date?.timeAgo() ?? "n/a")")
+        var dict: [String: String] = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.cloudModifiedDatePreferencesSuffix) as? [String: String] ?? [:]
         dict[name] = date != nil ? standardString(from: date!) : nil
-        UserDefaults.standard.set(dict, forKey: preferencesPrefix + CloudSyncManager.changedDatePreferencesSuffix)
+        UserDefaults.standard.set(dict, forKey: preferencesPrefix + CloudSyncManager.cloudModifiedDatePreferencesSuffix)
     }
     
-    func changedDate(forFileNamed name: String) -> Date? {
-        guard let dict = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.changedDatePreferencesSuffix) else {
+    func cloudModifiedDate(forFileNamed name: String) -> Date? {
+        guard let dict = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.cloudModifiedDatePreferencesSuffix) else {
             return nil
         }
         return date(from: dict[name] as? String ?? "")
+    }
+    
+    /// Returns the path with the most recent cloud modified date.
+    func recentlyModifiedDocumentName() -> String? {
+        guard let dict = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.cloudModifiedDatePreferencesSuffix) else {
+            return nil
+        }
+        if dict.count > 0,
+            let (name, _) = dict.map({ ($0.key, date(from: ($0.value as? String) ?? "") ?? Date.distantPast) }).max(by: { $0.1.compare($1.1) == .orderedAscending }) {
+            return name + pathExtension
+        }
+        return nil
     }
     
     func setDownloadDate(_ date: Date?, forFileNamed name: String) {
@@ -189,7 +203,7 @@ class CloudSyncManager: NSObject {
             } else {
                 let message = "The remote copy of \"\(file)\" was deleted."
                 
-                let alert = UIAlertController(title: "Sync Conflict", message: message, preferredStyle: .alert)
+                let alert = UIAlertController(title: "File Deleted", message: message, preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: ConflictResponse.delete, style: .destructive, handler: { ac in
                     DispatchQueue.global().async {
                         completion(ConflictResponse.delete)
@@ -330,14 +344,17 @@ class CloudSyncManager: NSObject {
         switch resultType {
         case SyncResult.updateRemote:
             self.setDownloadDate(Date(), forFileNamed: name)
-            self.setChangedDate(Date(), forFileNamed: name)
+            self.setCloudModifiedDate(Date(), forFileNamed: name)
             if let id = result["id"] as? Int {
                 self.setDocumentID(id, forFileNamed: name)
             }
             realCompletion(true, SyncResult(status: resultType, raw: result, newContents: nil, newName: nil))
         case SyncResult.updateLocal:
             self.setDownloadDate(Date(), forFileNamed: name)
-            self.setChangedDate(Date(), forFileNamed: name)
+            if let dateString = result["changed"] as? String,
+                let changeDate = date(from: dateString) {
+                self.setCloudModifiedDate(changeDate, forFileNamed: name)
+            }
             if let id = result["id"] as? Int {
                 self.setDocumentID(id, forFileNamed: name)
             }
@@ -351,11 +368,23 @@ class CloudSyncManager: NSObject {
             if modifiedDateString.count > 0 {
                 modifiedDate = self.date(from: modifiedDateString)
             }
-            self.isHandlingConflict = true
-            self.presentConflictMessage(for: name, modifiedAt: modifiedDate, by: modifiedAgentString, completion: { (action) in
-                self.conflictResponse(with: document, result: result, action: action, clientCompletion: completion, realCompletion: realCompletion)
-            })
+            if modifiedDate != nil {
+                self.isHandlingConflict = true
+                self.presentConflictMessage(for: name, modifiedAt: modifiedDate, by: modifiedAgentString, completion: { (action) in
+                    self.conflictResponse(with: document, result: result, action: action, clientCompletion: completion, realCompletion: realCompletion)
+                })
+            } else {
+                // The file was deleted on the server - just delete it locally
+                self.setDownloadDate(nil, forFileNamed: name)
+                self.setCloudModifiedDate(nil, forFileNamed: name)
+                self.deleteFile(with: name)
+                realCompletion(true, SyncResult(status: SyncResult.conflict, raw: result, newContents: nil, newName: nil))
+            }
         case SyncResult.noChange:
+            if let dateString = result["changed"] as? String,
+                let changeDate = date(from: dateString) {
+                self.setCloudModifiedDate(changeDate, forFileNamed: name)
+            }
             realCompletion(true, SyncResult(status: resultType, raw: result, newContents: nil, newName: nil))
         default:
             print("Unknown sync result \(resultType)")
@@ -376,20 +405,23 @@ class CloudSyncManager: NSObject {
             self.sync(with: document, override: true, pause: false) { success, result in
                 if success {
                     self.setDownloadDate(Date(), forFileNamed: name)
-                    self.setChangedDate(Date(), forFileNamed: name)
+                    self.setCloudModifiedDate(Date(), forFileNamed: name)
                 }
                 clientCompletion?(success, result)
             }
         case ConflictResponse.keepRemote:
             self.setDownloadDate(Date(), forFileNamed: name)
-            self.setChangedDate(Date(), forFileNamed: name)
+            if let dateString = result["other_date"] as? String,
+                let changeDate = date(from: dateString) {
+                self.setCloudModifiedDate(changeDate, forFileNamed: name)
+            }
             realCompletion(true, SyncResult(status: SyncResult.conflict, raw: result, newContents: result["other_contents"], newName: result["other_name"] as? String))
         case ConflictResponse.keepBoth:
             // Keep the remote copy in a duplicate file
             self.sync(with: document, override: true, pause: false) { success, result in
                 if success {
                     self.setDownloadDate(Date(), forFileNamed: name)
-                    self.setChangedDate(Date(), forFileNamed: name)
+                    self.setCloudModifiedDate(Date(), forFileNamed: name)
                 }
                 clientCompletion?(success, result)
             }
@@ -398,7 +430,7 @@ class CloudSyncManager: NSObject {
             }
         case ConflictResponse.delete:
             self.setDownloadDate(nil, forFileNamed: name)
-            self.setChangedDate(nil, forFileNamed: name)
+            self.setCloudModifiedDate(nil, forFileNamed: name)
             self.deleteFile(with: name)
             realCompletion(true, SyncResult(status: SyncResult.conflict, raw: result, newContents: nil, newName: nil))
         default:
@@ -446,7 +478,7 @@ class CloudSyncManager: NSObject {
     }
     
     func deleteFileFromCloud(with name: String, completion: ((Bool) -> Void)? = nil) {
-        setChangedDate(nil, forFileNamed: name)
+        setCloudModifiedDate(nil, forFileNamed: name)
         setDownloadDate(nil, forFileNamed: name)
         guard let id = documentID(forFileNamed: name) else {
             completion?(false)
@@ -454,7 +486,8 @@ class CloudSyncManager: NSObject {
         }
         setDocumentID(nil, forFileNamed: name)
         
-        guard let cloudURL = URL(string: urls.delete) else {
+        guard AppSettings.shared.allowsRecommendations == true,
+            let cloudURL = URL(string: urls.delete) else {
             completion?(false)
             return
         }
@@ -557,7 +590,7 @@ class CloudSyncManager: NSObject {
                 queue.async(taskName: myFileName, waitForSignal: true) {
                     if self.documentID(forFileNamed: myFileName) == nil {
                         // Upload the file
-                        self.syncAllUploadFile(named: myFileName, in: queue)
+                        self.syncAllUploadFile(named: myFileName, in: queue, deleteIfEmpty: (myFileName == InitialDocumentTitle))
                     } else if let id = self.documentID(forFileNamed: myFileName),
                         !files.keys.contains(String(id)) {
                         // Sync the file
@@ -594,6 +627,7 @@ class CloudSyncManager: NSObject {
             }
         } catch {
             print("Error writing JSON: \(error)")
+            queue.proceed()
         }
     }
     
@@ -606,6 +640,10 @@ class CloudSyncManager: NSObject {
                     queue.proceed()
                     return
             }
+            if let dateString = jsonDict["changed"] as? String,
+                let changeDate = self.date(from: dateString) {
+                self.setCloudModifiedDate(changeDate, forFileNamed: name)
+            }
             self.createFile(with: id, name: name, contents: contents) { newName in
                 if let newName = newName,
                     let downloadedString = jsonDict["downloaded"] as? String {
@@ -616,7 +654,7 @@ class CloudSyncManager: NSObject {
         }
     }
     
-    private func syncAllUploadFile(named name: String, in queue: ComputeQueue) {
+    private func syncAllUploadFile(named name: String, in queue: ComputeQueue, deleteIfEmpty: Bool = false) {
         debugPrint("Uploading \(name)")
         
         guard let dir = self.filesDirectory else {
@@ -634,6 +672,15 @@ class CloudSyncManager: NSObject {
             queue.proceed()
             return
         }
+        
+        if deleteIfEmpty && doc.isEmpty {
+            self.deleteFile(with: name) { (success) in
+                debugPrint("Uploaded empty file \(name) successfully: \(success)")
+                queue.proceed()
+            }
+            return
+        }
+        
         self.sync(with: doc, pause: false) { (success, result) in
             debugPrint("Uploaded \(name) successfully: \(success)")
             queue.proceed()
@@ -754,7 +801,7 @@ class CloudSyncManager: NSObject {
             print("Error reading contents from JSON: \(contents)")
         }
         newFile.setNeedsSave()
-        newFile.autosave(cloudSync: false)
+        newFile.autosave(cloudSync: false, sync: true)
         
         if id != nil {
             setDocumentID(id, forFileNamed: newName)
@@ -791,9 +838,9 @@ class CloudSyncManager: NSObject {
                 setDocumentID(nil, forFileNamed: originalBase)
                 setDocumentID(id, forFileNamed: newName)
             }
-            if let date = changedDate(forFileNamed: originalBase) {
-                setChangedDate(nil, forFileNamed: originalBase)
-                setChangedDate(date, forFileNamed: newName)
+            if let date = cloudModifiedDate(forFileNamed: originalBase) {
+                setCloudModifiedDate(nil, forFileNamed: originalBase)
+                setCloudModifiedDate(date, forFileNamed: newName)
             }
             if let date = downloadDate(forFileNamed: originalBase) {
                 setDownloadDate(nil, forFileNamed: originalBase)

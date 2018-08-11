@@ -10,7 +10,7 @@ import UIKit
 
 let CloudSyncInterval = 60.0
 
-class RootTabViewController: UITabBarController, AuthenticationViewControllerDelegate, IntroViewControllerDelegate, CourseManagerAuthenticationDelegate {
+class RootTabViewController: UITabBarController, AuthenticationViewControllerDelegate, IntroViewControllerDelegate, CourseManagerAuthenticationDelegate, CloudSyncManagerDelegate {
     
     var blurView: UIVisualEffectView?
     var courseUpdatingHUD: MBProgressHUD?
@@ -41,6 +41,8 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             UIMenuItem(title: MenuItemStrings.rate, action: #selector(CourseThumbnailCell.rate(_:))),
             UIMenuItem(title: MenuItemStrings.warnings, action: #selector(CourseThumbnailCell.showWarnings(_:)))
         ]
+        
+        CloudSyncManager.roadManager.delegate = self
     }
     
     var showingIntro = false
@@ -83,6 +85,9 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         }
         CloudSyncManager.roadManager.syncAll { (success) in
             print("Road syncing completed: \(success)")
+            if let recentName = CloudSyncManager.roadManager.recentlyModifiedDocumentName() {
+                self.loadCourseroad(named: recentName)
+            }
             CloudSyncManager.scheduleManager.syncAll { (success) in
                 print("Schedule syncing completed: \(success)")
             }
@@ -284,7 +289,13 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             print("Couldn't get schedule view controller")
             return
         }
-        scheduleVC.loadNewSchedule(named: name + SchedulePathExtension, courses: courses, addToEmptyIfPossible: true)
+        // If it's a version of the same semester, replace the current document
+        if let currentName = scheduleVC.currentSchedule?.fileName,
+            Int(currentName.replacingOccurrences(of: name, with: "").trimmingCharacters(in: .whitespaces)) != nil {
+            scheduleVC.setCourses(courses)
+        } else {
+            scheduleVC.loadNewSchedule(named: name + SchedulePathExtension, courses: courses, addToEmptyIfPossible: true)
+        }
         if let tab = viewControllers?.first(where: { scheduleVC.isDescendant(of: $0) }) {
             selectedViewController = tab
         }
@@ -394,7 +405,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     func loadRecentCourseroad() {
         var loaded = false
-        if let recentPath = UserDefaults.standard.string(forKey: recentCourseroadPathDefaultsKey),
+        if let recentPath = UserDefaults.standard.string(forKey: recentCourseroadPathDefaultsKey) ?? CloudSyncManager.roadManager.recentlyModifiedDocumentName(),
             let url = urlForCourseroad(named: recentPath) {
             do {
                 currentUser = try User(contentsOfFile: url.path)
@@ -410,7 +421,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
                     usleep(100)
                 }
                 DispatchQueue.main.async {
-                    self.loadNewCourseroad(named: "First Steps.road")
+                    self.loadNewCourseroad(named: "\(InitialDocumentTitle).road")
                     self.isLoadingUser = false
                 }
             }
@@ -479,4 +490,38 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         dismiss(animated: true, completion: nil)
     }
     
+    // MARK: - Cloud Sync
+    
+    func cloudSyncManager(_ manager: CloudSyncManager, modifiedFileNamed name: String) {
+        if name == currentUser?.fileName {
+            try? currentUser?.reloadContents()
+            if let courseroadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController {
+                courseroadVC.reloadCollectionView()
+            }
+        }
+    }
+    
+    func cloudSyncManager(_ manager: CloudSyncManager, renamedFileNamed name: String, to newName: String) {
+        if name == currentUser?.fileName {
+            currentUser?.filePath = manager.urlForUserFile(named: newName)?.path
+            try? currentUser?.reloadContents()
+            if let courseroadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController {
+                courseroadVC.reloadCollectionView()
+            }
+        }
+    }
+    
+    func cloudSyncManager(_ manager: CloudSyncManager, deletedFileNamed name: String) {
+        if name == currentUser?.fileName {
+            if let recentName = CloudSyncManager.roadManager.recentlyModifiedDocumentName() {
+                print("Loading recent \(recentName)")
+                loadCourseroad(named: recentName)
+            } else {
+                currentUser = nil
+                if let courseroadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController {
+                    courseroadVC.reloadCollectionView()
+                }
+            }
+        }
+    }
 }

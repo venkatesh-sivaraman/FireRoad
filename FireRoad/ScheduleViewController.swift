@@ -225,7 +225,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                 }
                 if !self.addingNewScheduleDocument {
                     var loaded = false
-                    if let recentPath = UserDefaults.standard.string(forKey: self.recentSchedulePathDefaultsKey),
+                    if let recentPath = UserDefaults.standard.string(forKey: self.recentSchedulePathDefaultsKey) ?? CloudSyncManager.scheduleManager.recentlyModifiedDocumentName(),
                         let url = self.urlForSchedule(named: recentPath) {
                         do {
                             try DispatchQueue.main.sync {
@@ -238,14 +238,14 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                     }
                     if !loaded {
                         DispatchQueue.main.async {
-                            self.loadNewSchedule(named: "First Steps\(SchedulePathExtension)")
+                            self.loadNewSchedule(named: "\(InitialDocumentTitle)\(SchedulePathExtension)")
                         }
                     }
                 }
             }
         } else if !addingNewScheduleDocument {
             var loaded = false
-            if let recentPath = UserDefaults.standard.string(forKey: recentSchedulePathDefaultsKey),
+            if let recentPath = UserDefaults.standard.string(forKey: recentSchedulePathDefaultsKey) ?? CloudSyncManager.scheduleManager.recentlyModifiedDocumentName(),
                 let url = urlForSchedule(named: recentPath) {
                 do {
                     currentSchedule = try ScheduleDocument(contentsOfFile: url.path)
@@ -255,7 +255,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                 }
             }
             if !loaded {
-                self.loadNewSchedule(named: "First Steps\(SchedulePathExtension)")
+                self.loadNewSchedule(named: "\(InitialDocumentTitle)\(SchedulePathExtension)")
             }
         }
     }
@@ -602,6 +602,22 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         
         self.panelView?.collapseView(to: self.panelView!.collapseHeight)
         return nil
+    }
+    
+    func setCourses(_ courses: [Course]) {
+        if currentSchedule == nil {
+            loadRecentSchedule()
+        }
+        guard let schedule = currentSchedule else {
+            return
+        }
+        schedule.setCourses(courses)
+        schedule.displayedScheduleIndex = 0
+        schedule.selectedSchedule = nil
+        validateAndUpdateSchedules()
+        
+        self.panelView?.collapseView(to: self.panelView!.collapseHeight)
+        return
     }
 
     func deleteCourseFromSchedules(_ course: Course) {
@@ -984,13 +1000,9 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             if self.currentSchedule?.filePath == url.path {
                 if let firstItem = browser.items.first {
                     self.loadSchedule(named: firstItem.identifier)
-                } else if browser.navigationController?.modalPresentationStyle == .popover {
+                } else {
                     self.loadNewSchedule(named: "Schedule" + SchedulePathExtension)
                     self.dismiss(animated: true, completion: nil)
-                } else {
-                    self.currentSchedule = nil
-                    self.scheduleOptions = []
-                    self.updateScheduleGrid()
                 }
             }
         }
@@ -1090,8 +1102,13 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     
     func cloudSyncManager(_ manager: CloudSyncManager, deletedFileNamed name: String) {
         if name == currentSchedule?.fileName {
-            currentSchedule = nil
-            updateDisplayedSchedules()
+            if let recentName = CloudSyncManager.scheduleManager.recentlyModifiedDocumentName() {
+                print("Loading recent \(recentName)")
+                loadSchedule(named: recentName)
+            } else {
+                currentSchedule = nil
+                updateDisplayedSchedules()
+            }
         }
     }
 }

@@ -763,6 +763,12 @@ class CourseManager: NSObject {
         return keychain["access_token"] as? String
     }
     
+    func deleteAccessToken() {
+        let keychain = KeychainItemWrapper(identifier: "FireRoadRecommendationUser", accessGroup: nil)
+        keychain["access_token"] = nil
+        isLoggedIn = false
+    }
+    
     func extractAccessInfo(from jsonString: String) -> Bool {
         guard let data = jsonString.data(using: .utf8) else {
             return false

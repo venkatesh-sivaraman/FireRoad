@@ -346,6 +346,10 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
                 if let label = cell.viewWithTag(12) as? UILabel {
                     if let message = recommendationMessage {
                         label.text = message
+                    } else if AppSettings.shared.allowsRecommendations != true {
+                        label.text = "Turn on Sync and Recommendations in the settings menu above to receive recommendations."
+                    } else if !CourseManager.shared.isLoggedIn {
+                        label.text = "Log in from the settings menu above to receive recommendations."
                     } else {
                         label.text = "You don't have any recommendations at the moment. Try again later!"
                     }
