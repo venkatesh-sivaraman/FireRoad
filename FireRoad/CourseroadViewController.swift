@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate, UIPopoverPresentationControllerDelegate, UIDocumentInteractionControllerDelegate {
+class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate, UIPopoverPresentationControllerDelegate, UIDocumentInteractionControllerDelegate, CloudSyncManagerDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
@@ -58,6 +58,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         updateLayoutToggleButton()
                 
         updateNavigationBar(animated: false)
+        
+        CloudSyncManager.roadManager.delegate = self
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -293,6 +295,29 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         documentInteractionController = nil
     }
     
+    func cloudSyncManager(_ manager: CloudSyncManager, modifiedFileNamed name: String) {
+        if name == currentUser?.fileName {
+            try? currentUser?.reloadContents()
+            reloadCollectionView()
+        }
+    }
+    
+    func cloudSyncManager(_ manager: CloudSyncManager, renamedFileNamed name: String, to newName: String) {
+        if name == currentUser?.fileName {
+            currentUser?.filePath = manager.urlForUserFile(named: newName)?.path
+            try? currentUser?.reloadContents()
+            reloadCollectionView()
+        }
+    }
+    
+    func cloudSyncManager(_ manager: CloudSyncManager, deletedFileNamed name: String) {
+        if name == currentUser?.fileName,
+            let rootTab = rootParent as? RootTabViewController {
+            rootTab.currentUser = nil
+            reloadCollectionView()
+        }
+    }
+    
     // MARK: - State Restoration
     
     var collectionViewOffsetWhenLoaded: CGPoint?
@@ -480,7 +505,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         if destinationIndexPath != sourceIndexPath {
             indexPathOfMovedCell = destinationIndexPath
         }
-        if self.currentUser!.courses(forSemester: destSemester).contains(course) {
+        if originalSemester != destSemester && self.currentUser!.courses(forSemester: destSemester).contains(course) {
+            // Don't allow
             self.reloadCollectionView()
         } else {
             self.collectionView.performBatchUpdates({
@@ -756,7 +782,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     @IBAction func openButtonPressed(_ sender: AnyObject) {
         guard let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
             let rootTab = rootParent as? RootTabViewController,
-            let roadDir = rootTab.courseroadDirectory,
+            let roadDir = CloudSyncManager.roadManager.filesDirectory,
             let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {
                 return
         }
@@ -869,24 +895,18 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             let url = rootTab.urlForCourseroad(named: item.identifier) else {
             return
         }
-        do {
-            try FileManager.default.removeItem(at: url)
-            if currentUser?.filePath == url.path {
+        CloudSyncManager.roadManager.deleteFile(with: (item.identifier as NSString).deletingPathExtension) { _ in
+            if self.currentUser?.filePath == url.path {
                 if let firstItem = browser.items.first {
-                    loadCourseroad(named: firstItem.identifier)
+                    self.loadCourseroad(named: firstItem.identifier)
                 } else if browser.navigationController?.modalPresentationStyle == .popover {
-                    loadNewCourseroad(named: "Road.road")
-                    dismiss(animated: true, completion: nil)
+                    self.loadNewCourseroad(named: "Road.road")
+                    self.dismiss(animated: true, completion: nil)
                 } else {
                     rootTab.currentUser = nil
-                    reloadCollectionView()
+                    self.reloadCollectionView()
                 }
             }
-        } catch {
-            let presenter = self.presentedViewController ?? self
-            let alert = UIAlertController(title: "Could Not Delete Road", message: error.localizedDescription, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-            presenter.present(alert, animated: true, completion: nil)
         }
     }
     
@@ -902,41 +922,28 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         alert.addAction(UIAlertAction(title: "Rename", style: .default, handler: { _ in
             guard let text = alert.textFields?.first?.text,
-                text.count > 0 else {
+                text.count > 0,
+                let rootTab = self.rootParent as? RootTabViewController else {
                     completion(nil)
                     return
             }
             
-            let newID = text + ".road"
-            guard let rootTab = self.rootParent as? RootTabViewController,
-                let oldURL = rootTab.urlForCourseroad(named: item.identifier),
-                let newURL = rootTab.urlForCourseroad(named: newID),
-                !FileManager.default.fileExists(atPath: newURL.path) else {
-                    let errorAlert = UIAlertController(title: "Road Already Exists", message: "Please choose another title.", preferredStyle: .alert)
-                    errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-                    presenter.present(errorAlert, animated: true, completion: nil)
-                    completion(nil)
-                    return
-            }
-            
-            do {
-                let newItem = DocumentBrowseViewController.Item(identifier: text + ".road", title: text, description: item.description, image: item.image)
-                var shouldOpenNewRoad = false
-                if (self.currentUser?.filePath as NSString?)?.lastPathComponent == item.identifier {
-                    rootTab.currentUser = nil
-                    shouldOpenNewRoad = true
+            CloudSyncManager.roadManager.renameFile(at: item.identifier, to: text, completion: { newURL in
+                if let destURL = newURL {
+                    let newItem = DocumentBrowseViewController.Item(identifier: destURL.lastPathComponent, title: text, description: item.description, image: item.image)
+                    var shouldOpenNewRoad = false
+                    if (self.currentUser?.filePath as NSString?)?.lastPathComponent == item.identifier {
+                        rootTab.currentUser = nil
+                        shouldOpenNewRoad = true
+                    }
+                    if shouldOpenNewRoad {
+                        self.loadCourseroad(named: newItem.identifier)
+                    }
+                    completion(newItem)
+                } else {
+                    print("Failed to rename road")
                 }
-                try FileManager.default.moveItem(at: oldURL, to: newURL)
-                if shouldOpenNewRoad {
-                    self.loadCourseroad(named: newItem.identifier)
-                }
-                completion(newItem)
-            } catch {
-                let alert = UIAlertController(title: "Could Not Rename Road", message: error.localizedDescription, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-                presenter.present(alert, animated: true, completion: nil)
-                completion(nil)
-            }
+            })
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         presenter.present(alert, animated: true, completion: nil)

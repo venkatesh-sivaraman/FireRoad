@@ -14,6 +14,9 @@
 		9611BE341F7EE43C0090137E /* ArrayExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611BE331F7EE43C0090137E /* ArrayExtension.swift */; };
 		9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */; };
 		9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9611CD821F9287CE00DE2BDE /* acknowledgements.txt */; };
+		961DBBD8211CDE4F002E516E /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961DBBD7211CDE4F002E516E /* CloudSyncManager.swift */; };
+		961DBBDA211CE650002E516E /* TimeAgo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961DBBD9211CE650002E516E /* TimeAgo.swift */; };
+		961DBBDC211D04FB002E516E /* UIAlertControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961DBBDB211D04FB002E516E /* UIAlertControllerExtension.swift */; };
 		961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */; };
 		961E49FD1EC6A8CB002BABB9 /* CourseDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */; };
 		961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E4A001EC7A8C5002BABB9 /* PanelViewController.swift */; };
@@ -114,6 +117,9 @@
 		9611BE331F7EE43C0090137E /* ArrayExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtension.swift; sourceTree = "<group>"; };
 		9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopDownTableMenuController.swift; sourceTree = "<group>"; };
 		9611CD821F9287CE00DE2BDE /* acknowledgements.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = acknowledgements.txt; sourceTree = "<group>"; };
+		961DBBD7211CDE4F002E516E /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
+		961DBBD9211CE650002E516E /* TimeAgo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeAgo.swift; sourceTree = "<group>"; };
+		961DBBDB211D04FB002E516E /* UIAlertControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIAlertControllerExtension.swift; sourceTree = "<group>"; };
 		961E498E1EBF97A4002BABB9 /* CourseBrowserCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserCell.swift; sourceTree = "<group>"; };
 		961E49FC1EC6A8CB002BABB9 /* CourseDetailsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseDetailsViewController.swift; sourceTree = "<group>"; };
 		961E49FE1EC7771D002BABB9 /* enrollment.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = enrollment.txt; sourceTree = "<group>"; };
@@ -265,6 +271,7 @@
 				96DD97382000B36800E45F5F /* FireRoad.entitlements */,
 				9646CFD21EB921FE005F87CB /* AppDelegate.swift */,
 				9646CFF61EB9251A005F87CB /* CourseManager.swift */,
+				961DBBD7211CDE4F002E516E /* CloudSyncManager.swift */,
 				9646CFF41EB922C3005F87CB /* Course.swift */,
 				962C9768201BF0FC0046C13D /* UserDocument.swift */,
 				9646CFF81EB92525005F87CB /* User.swift */,
@@ -338,6 +345,7 @@
 			isa = PBXGroup;
 			children = (
 				96AC5F13200B125700D80839 /* KeychainItemWrapper.swift */,
+				961DBBD9211CE650002E516E /* TimeAgo.swift */,
 				96C776A21FDF6D8600157F2D /* UITextViewPlaceholder.swift */,
 				961E4A021EC8082A002BABB9 /* FlatPushAnimator.swift */,
 				9611BE331F7EE43C0090137E /* ArrayExtension.swift */,
@@ -349,6 +357,7 @@
 				96DD9736200095B100E45F5F /* CustomActivity.swift */,
 				96DD97392005CCB000E45F5F /* ComputeQueue.swift */,
 				960A8A1920350AA600DF7819 /* UIScrollViewExtension.swift */,
+				961DBBDB211D04FB002E516E /* UIAlertControllerExtension.swift */,
 			);
 			name = Helpers;
 			sourceTree = "<group>";
@@ -582,6 +591,7 @@
 				962C976F201E4E7C0046C13D /* AppSettingsViewController.swift in Sources */,
 				968F2A221FE5C4BE0082EE40 /* CourseListingViewController.swift in Sources */,
 				965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */,
+				961DBBDA211CE650002E516E /* TimeAgo.swift in Sources */,
 				9646CFF51EB922C3005F87CB /* Course.swift in Sources */,
 				961E4A031EC8082A002BABB9 /* FlatPushAnimator.swift in Sources */,
 				96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */,
@@ -590,6 +600,7 @@
 				9659E38B1F89A93F00E55FA2 /* UIViewControllerExtension.swift in Sources */,
 				9626B6E11F8070EB009F6F96 /* StringExtension.swift in Sources */,
 				960A8A1A20350AA600DF7819 /* UIScrollViewExtension.swift in Sources */,
+				961DBBD8211CDE4F002E516E /* CloudSyncManager.swift in Sources */,
 				96C82F1A1EDB222900423C53 /* CourseThumbnailCell.swift in Sources */,
 				9626B6E61F815686009F6F96 /* RequirementsBrowserViewController.swift in Sources */,
 				96EBE56A1FBFDE5600FABE1E /* ScheduleGridViewController.swift in Sources */,
@@ -628,6 +639,7 @@
 				961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */,
 				96C776A51FDF717B00157F2D /* UIResponderExtension.swift in Sources */,
 				968F2A201FE5B2B80082EE40 /* HighlightCollectionCell.swift in Sources */,
+				961DBBDC211D04FB002E516E /* UIAlertControllerExtension.swift in Sources */,
 				96DD9737200095B100E45F5F /* CustomActivity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

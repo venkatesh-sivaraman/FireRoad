@@ -33,6 +33,7 @@ class UserDocument: NSObject {
     }
     
     var needsSave = false
+    var shouldCloudSync = true
     var readOnly = false
     private var saveInterval = 2.0
     private var saveTimer: Timer?
@@ -60,25 +61,40 @@ class UserDocument: NSObject {
         needsSave = true
     }
     
+    func reloadContents() throws {
+        if let path = filePath {
+            try readUserCourses(from: path)
+        }
+    }
+    
     func readUserCourses(from file: String) throws {
         self.filePath = file
     }
     
     private var currentlyWriting = false
     
+    func readCourses(fromJSON json: Any) throws {
+        
+    }
+    
+    func writeCoursesToJSON() throws -> Any {
+        let ret: [String: Any] = [:]
+        return ret
+    }
+    
     func writeUserCourses(to file: String) throws {
 
     }
     
-    func autosave() {
+    func autosave(cloudSync: Bool = true, sync: Bool = false) {
         guard needsSave, let path = filePath else {
             return
         }
+        self.shouldCloudSync = cloudSync
         
-        DispatchQueue.global().async { [weak self] in
-            guard let `self` = self,
-                !self.currentlyWriting else {
-                    return
+        if sync {
+            guard !self.currentlyWriting else {
+                return
             }
             self.currentlyWriting = true
             do {
@@ -88,6 +104,23 @@ class UserDocument: NSObject {
             }
             self.currentlyWriting = false
             self.needsSave = false
+            self.shouldCloudSync = true
+        } else {
+            DispatchQueue.global().async { [weak self] in
+                guard let `self` = self,
+                    !self.currentlyWriting else {
+                        return
+                }
+                self.currentlyWriting = true
+                do {
+                    try self.writeUserCourses(to: path)
+                } catch {
+                    print("Error writing file: \(error)")
+                }
+                self.currentlyWriting = false
+                self.needsSave = false
+                self.shouldCloudSync = true
+            }
         }
     }
     

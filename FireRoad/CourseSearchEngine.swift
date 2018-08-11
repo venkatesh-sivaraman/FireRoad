@@ -443,7 +443,7 @@ class CourseSearchEngine: NSObject {
             if self.showsGenericCourses {
                 coursesToSearch += Course.genericCourses.values
             }
-            let chunkSize = coursesToSearch.count / 4
+            let chunkSize = fast ? coursesToSearch.count : coursesToSearch.count / 4  // Don't chunk for fast search
             self.dispatch(jobs: coursesToSearch.chunked(by: chunkSize).map({ (courses) -> DispatchJob in
                 return { (completion) in
                     let result = fast ? self.fastSearchResults(within: courses, searchTerm: searchTerm) : self.searchResults(within: courses, searchTerm: searchTerm, options: options)

@@ -12,7 +12,7 @@ import EventKitUI
 
 let SchedulePathExtension = ".sched"
 
-class ScheduleViewController: UIViewController, PanelParentViewController, ScheduleGridDelegate, ScheduleConstraintDelegate, EKCalendarChooserDelegate, DocumentBrowseDelegate {
+class ScheduleViewController: UIViewController, PanelParentViewController, ScheduleGridDelegate, ScheduleConstraintDelegate, EKCalendarChooserDelegate, DocumentBrowseDelegate, CloudSyncManagerDelegate {
     var panelView: PanelViewController?
     var courseBrowser: CourseBrowserViewController?
     var showsSemesterDialogs: Bool {
@@ -63,6 +63,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         ]
         
         NotificationCenter.default.addObserver(self, selector: #selector(ScheduleViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+        
+        CloudSyncManager.scheduleManager.delegate = self
     }
     
     func updateToolbarButtons() {
@@ -134,11 +136,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     func urlForSchedule(named name: String) -> URL? {
-        guard let dirPath = schedulesDirectory else {
-            return nil
-        }
-        let url = URL(fileURLWithPath: dirPath).appendingPathComponent(name)
-        return url
+        return CloudSyncManager.scheduleManager.urlForUserFile(named: name)
     }
     
     func loadSchedule(named name: String) {
@@ -868,8 +866,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     @IBAction func openButtonPressed(_ sender: AnyObject) {
         guard CourseManager.shared.isLoaded,
             let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
-            let rootTab = rootParent as? RootTabViewController,
-            let roadDir = rootTab.courseroadDirectory,
+            let roadDir = CloudSyncManager.roadManager.filesDirectory,
             let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {
                 return
         }
@@ -899,8 +896,11 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                     components.append(otherFormatter.string(from: date))
                 }
             }
-            let pluralizer = tempSchedule.courses.count != 1 ? "s" : ""
+            var pluralizer = tempSchedule.courses.count != 1 ? "s" : ""
             components.append("\(tempSchedule.courses.count) course\(pluralizer)")
+            let totalUnits = tempSchedule.courses.reduce(0, { $0 + $1.totalUnits })
+            pluralizer = totalUnits != 1 ? "s" : ""
+            components.append("\(totalUnits) unit\(pluralizer)")
             var item = DocumentBrowseViewController.Item(identifier: path, title: (path as NSString).deletingPathExtension, description: components.joined(separator: " • "), image: tempSchedule.emptyThumbnailImage())
             thumbnailImageComputeQueue.async {
                 item.image = tempSchedule.generateThumbnailImage()
@@ -980,25 +980,19 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         guard let url = urlForSchedule(named: item.identifier) else {
             return
         }
-        do {
-            try FileManager.default.removeItem(at: url)
-            if currentSchedule?.filePath == url.path {
+        CloudSyncManager.scheduleManager.deleteFile(with: (item.identifier as NSString).deletingPathExtension) { _ in
+            if self.currentSchedule?.filePath == url.path {
                 if let firstItem = browser.items.first {
-                    loadSchedule(named: firstItem.identifier)
+                    self.loadSchedule(named: firstItem.identifier)
                 } else if browser.navigationController?.modalPresentationStyle == .popover {
-                    loadNewSchedule(named: "Schedule" + SchedulePathExtension)
-                    dismiss(animated: true, completion: nil)
+                    self.loadNewSchedule(named: "Schedule" + SchedulePathExtension)
+                    self.dismiss(animated: true, completion: nil)
                 } else {
-                    currentSchedule = nil
-                    scheduleOptions = []
-                    updateScheduleGrid()
+                    self.currentSchedule = nil
+                    self.scheduleOptions = []
+                    self.updateScheduleGrid()
                 }
             }
-        } catch {
-            let presenter = self.presentedViewController ?? self
-            let alert = UIAlertController(title: "Could Not Delete Schedule", message: error.localizedDescription, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-            presenter.present(alert, animated: true, completion: nil)
         }
     }
     
@@ -1019,35 +1013,22 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                     return
             }
             
-            let newID = text + SchedulePathExtension
-            guard let oldURL = self.urlForSchedule(named: item.identifier),
-                let newURL = self.urlForSchedule(named: newID),
-                !FileManager.default.fileExists(atPath: newURL.path) else {
-                    let errorAlert = UIAlertController(title: "Schedule Already Exists", message: "Please choose another title.", preferredStyle: .alert)
-                    errorAlert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-                    presenter.present(errorAlert, animated: true, completion: nil)
-                    completion(nil)
-                    return
-            }
-            
-            do {
-                let newItem = DocumentBrowseViewController.Item(identifier: text + SchedulePathExtension, title: text, description: item.description, image: item.image)
-                var shouldOpenNewRoad = false
-                if (self.currentSchedule?.filePath as NSString?)?.lastPathComponent == item.identifier {
-                    self.currentSchedule = nil
-                    shouldOpenNewRoad = true
+            CloudSyncManager.scheduleManager.renameFile(at: item.identifier, to: text, completion: { newURL in
+                if let destURL = newURL {
+                    let newItem = DocumentBrowseViewController.Item(identifier: destURL.lastPathComponent, title: text, description: item.description, image: item.image)
+                    var shouldOpenNewRoad = false
+                    if (self.currentSchedule?.filePath as NSString?)?.lastPathComponent == item.identifier {
+                        self.currentSchedule = nil
+                        shouldOpenNewRoad = true
+                    }
+                    if shouldOpenNewRoad {
+                        self.loadSchedule(named: newItem.identifier)
+                    }
+                    completion(newItem)
+                } else {
+                    print("Failed to rename schedule")
                 }
-                try FileManager.default.moveItem(at: oldURL, to: newURL)
-                if shouldOpenNewRoad {
-                    self.loadSchedule(named: newItem.identifier)
-                }
-                completion(newItem)
-            } catch {
-                let alert = UIAlertController(title: "Could Not Rename Schedule", message: error.localizedDescription, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-                presenter.present(alert, animated: true, completion: nil)
-                completion(nil)
-            }
+            })
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         presenter.present(alert, animated: true, completion: nil)
@@ -1090,5 +1071,27 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     func documentBrowser(_ browser: DocumentBrowseViewController, selectedItem item: DocumentBrowseViewController.Item) {
         loadSchedule(named: item.identifier)
         dismiss(animated: true, completion: nil)
+    }
+    
+    func cloudSyncManager(_ manager: CloudSyncManager, modifiedFileNamed name: String) {
+        if name == currentSchedule?.fileName {
+            try? currentSchedule?.reloadContents()
+            updateDisplayedSchedules()
+        }
+    }
+    
+    func cloudSyncManager(_ manager: CloudSyncManager, renamedFileNamed name: String, to newName: String) {
+        if name == currentSchedule?.fileName {
+            currentSchedule?.filePath = manager.urlForUserFile(named: newName)?.path
+            try? currentSchedule?.reloadContents()
+            updateDisplayedSchedules()
+        }
+    }
+    
+    func cloudSyncManager(_ manager: CloudSyncManager, deletedFileNamed name: String) {
+        if name == currentSchedule?.fileName {
+            currentSchedule = nil
+            updateDisplayedSchedules()
+        }
     }
 }

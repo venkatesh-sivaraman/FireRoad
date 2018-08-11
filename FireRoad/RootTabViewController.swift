@@ -8,6 +8,8 @@
 
 import UIKit
 
+let CloudSyncInterval = 60.0
+
 class RootTabViewController: UITabBarController, AuthenticationViewControllerDelegate, IntroViewControllerDelegate, CourseManagerAuthenticationDelegate {
     
     var blurView: UIVisualEffectView?
@@ -15,12 +17,14 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     var successHUD: MBProgressHUD?
     
     func hideHUD() {
-        self.courseUpdatingHUD?.hide(animated: true)
-        UIView.animate(withDuration: 0.3, animations: {
-            self.blurView?.effect = nil
-        }, completion: { completed in
-            self.blurView?.removeFromSuperview()
-        })
+        DispatchQueue.main.async {
+            self.courseUpdatingHUD?.hide(animated: true)
+            UIView.animate(withDuration: 0.3, animations: {
+                self.blurView?.effect = nil
+            }, completion: { completed in
+                self.blurView?.removeFromSuperview()
+            })
+        }
     }
     
     var justLoaded = false
@@ -51,24 +55,48 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        
         if !AppSettings.shared.showedIntro || AppSettings.shared.userCurrentSemester == 0 {
             showingIntro = true
             showIntro()
         }
         if !showingIntro {
-            if AppSettings.shared.allowsRecommendations == nil {
-                let alert = UIAlertController(title: "FireRoad Recommendations", message: "Allow your course ratings, roads, and schedules to be uploaded to the FireRoad server to generate personalized subject recommendations?\n\nYou can change this later in the app settings.", preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Allow", style: .default, handler: { (ac) in
-                    AppSettings.shared.allowsRecommendations = true
-                    CourseManager.shared.loginIfNeeded { _ in }
-                }))
-                alert.addAction(UIAlertAction(title: "Don't Allow", style: .cancel, handler: { (ac) in
-                    AppSettings.shared.allowsRecommendations = false
-                }))
-                present(alert, animated: true, completion: nil)
-            } else if AppSettings.shared.allowsRecommendations == true {
-                CourseManager.shared.loginIfNeeded { _ in }
+            CourseManager.shared.loginIfNeeded { success in
+                if success {
+                    self.setupCloudSync()
+                }
             }
+        }
+    }
+    
+    deinit {
+        if cloudSyncTimer?.isValid == true {
+            cloudSyncTimer?.invalidate()
+        }
+    }
+    
+    var cloudSyncTimer: Timer?
+    
+    func setupCloudSync() {
+        guard cloudSyncTimer == nil else {
+            return
+        }
+        CloudSyncManager.roadManager.syncAll { (success) in
+            print("Road syncing completed: \(success)")
+            CloudSyncManager.scheduleManager.syncAll { (success) in
+                print("Schedule syncing completed: \(success)")
+            }
+        }
+        
+        DispatchQueue.main.async {
+            self.cloudSyncTimer = Timer.scheduledTimer(withTimeInterval: CloudSyncInterval, repeats: true, block: { _ in
+                CloudSyncManager.roadManager.syncAll { (success) in
+                    print("Road syncing completed: \(success)")
+                    CloudSyncManager.scheduleManager.syncAll { (success) in
+                        print("Schedule syncing completed: \(success)")
+                    }
+                }
+            })
         }
     }
     
@@ -321,6 +349,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     func authenticationViewController(_ auth: AuthenticationViewController, finishedWith jsonString: String?) {
         dismiss(animated: true, completion: nil)
+        AppSettings.shared.allowsRecommendations = true
         if let blocks = authenticationCompletionBlocks {
             for block in blocks {
                 block(jsonString)
@@ -333,16 +362,8 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     let recentCourseroadPathDefaultsKey = "recent-courseroad-filepath"
     
-    var courseroadDirectory: String? {
-        return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first
-    }
-    
     func urlForCourseroad(named name: String) -> URL? {
-        guard let dirPath = courseroadDirectory else {
-            return nil
-        }
-        let url = URL(fileURLWithPath: dirPath).appendingPathComponent(name)
-        return url
+        return CloudSyncManager.roadManager.urlForUserFile(named: name)
     }
     
     func loadCourseroad(named name: String) {
@@ -457,4 +478,5 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         AppSettings.shared.showedIntro = true
         dismiss(animated: true, completion: nil)
     }
+    
 }

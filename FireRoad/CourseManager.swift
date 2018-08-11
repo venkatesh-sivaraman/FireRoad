@@ -39,6 +39,28 @@ class CourseManager: NSObject {
         return URL(fileURLWithPath: base).appendingPathComponent(name + ".txt").path
     }
     
+    // URLs
+    
+    /**
+     This allows the app to use one URL before a certain date, then switch to
+     another one at a specified date and time. Currently this is set to 8/20/2018
+     at 7pm eastern.
+     */
+    static let urlBaseChangeDate = Date(timeIntervalSinceReferenceDate: 556498800.0)
+    static var urlBase: String {
+        if Date().compare(CourseManager.urlBaseChangeDate) == .orderedAscending {
+            return "https://venkats.scripts.mit.edu/fireroad_dev" // "http://lvh.me:8000"
+        } else {
+            return "https://venkats.scripts.mit.edu/fireroad"
+        }
+    }
+    static let recommenderSignupURL = urlBase + "/signup/"
+    static let recommenderLoginURL = urlBase + "/login/"
+    static let recommenderVerifyURL = urlBase + "/verify/"
+    static let recommenderSubmitURL = urlBase + "/recommend/rate/"
+    static let recommenderFetchURL = urlBase + "/recommend/get/"
+    static let recommenderSetSemesterURL = urlBase + "/set_semester/"
+    
     var isLoaded = false
     var loadingProgress: Float = 0.0
     
@@ -99,8 +121,13 @@ class CourseManager: NSObject {
     }()
     
     typealias DispatchJob = ((Bool) -> Void) -> Void
+    var isLoading = false
     
     func loadCourses(completion: ((Bool) -> Void)? = nil) {
+        if isLoading {
+            return
+        }
+        isLoading = true
         isLoaded = false
         
         DispatchQueue.global(qos: .background).async {
@@ -123,6 +150,7 @@ class CourseManager: NSObject {
                 }
             }), completion: { (summarySuccess) in
                 guard summarySuccess else {
+                    self.isLoading = false
                     completion?(false)
                     return
                 }
@@ -136,6 +164,7 @@ class CourseManager: NSObject {
                     if success {
                         NotificationCenter.default.post(name: .CourseManagerFinishedLoading, object: self)
                     }
+                    self.isLoading = false
                     completion?(success)
                 }, totalProgress: 0.1)
             }, totalProgress: 0.0)
@@ -652,14 +681,8 @@ class CourseManager: NSObject {
         submitUserRatings(ratings: newRatings)
     }
     
-    static let recommenderLoginURL = "https://venkats.scripts.mit.edu/fireroad_dev/recommend/login/"
-    static let recommenderVerifyURL = "https://venkats.scripts.mit.edu/fireroad_dev/recommend/verify/"
-    static let recommenderSubmitURL = "https://venkats.scripts.mit.edu/fireroad_dev/recommend/rate/"
-    static let recommenderFetchURL = "https://venkats.scripts.mit.edu/fireroad_dev/recommend/get/"
-    static let recommenderRoadUploadURL = "https://venkats.scripts.mit.edu/fireroad_dev/recommend/upload_road/"
-
-    var loginRequest: URLRequest {
-        var urlComps = URLComponents(string: CourseManager.recommenderLoginURL)!
+    func loginRequest(withSignup: Bool = false) -> URLRequest {
+        var urlComps = URLComponents(string: withSignup ? CourseManager.recommenderSignupURL : CourseManager.recommenderLoginURL)!
         if AppSettings.shared.userCurrentSemester != 0 {
             urlComps.queryItems = [
                 URLQueryItem(name: "sem", value: String(AppSettings.shared.userCurrentSemester))
@@ -676,13 +699,14 @@ class CourseManager: NSObject {
         
         // Fetch access token and validate with server
         guard loadAccessToken() != nil else {
-            authenticationDelegate?.showAuthenticationView(with: loginRequest) { jsonString in
+            authenticationDelegate?.showAuthenticationView(with: loginRequest(withSignup: AppSettings.shared.allowsRecommendations == nil || !AppSettings.shared.hasShownSignup)) { jsonString in
                 guard let jsonString = jsonString else {
                     completion(false)
                     return
                 }
                 let success = self.extractAccessInfo(from: jsonString)
                 self.isLoggedIn = success
+                AppSettings.shared.hasShownSignup = success
                 completion(success)
             }
             return
@@ -699,13 +723,14 @@ class CourseManager: NSObject {
                     if error != nil {
                         print("\(error!)")
                     }
-                    self.authenticationDelegate?.showAuthenticationView(with: self.loginRequest) { jsonString in
+                    self.authenticationDelegate?.showAuthenticationView(with: self.loginRequest(withSignup: AppSettings.shared.allowsRecommendations == nil || !AppSettings.shared.hasShownSignup)) { jsonString in
                         guard let jsonString = jsonString else {
                             completion(false)
                             return
                         }
                         let success = self.extractAccessInfo(from: jsonString)
                         self.isLoggedIn = success
+                        AppSettings.shared.hasShownSignup = success
                         completion(success)
                     }
                     return
@@ -913,33 +938,6 @@ class CourseManager: NSObject {
                     completion?(nil, nil)
                 }
             }
-        })
-    }
-    
-    func uploadRoad(with json: Any, name: String, _ completion: ((Bool) -> Void)? = nil) {
-        guard AppSettings.shared.allowsRecommendations == true,
-            let url = URL(string: CourseManager.recommenderRoadUploadURL) else {
-                return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: ["name": name, "contents": json])
-        } catch {
-            print(error.localizedDescription)
-        }
-        
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        applyBasicAuthentication(to: &request)
-        
-        print(request)
-        loginAndSendDataTask(with: request, errorHandler: {
-            completion?(false)
-        }, successHandler: { _ in
-            completion?(true)
         })
     }
     

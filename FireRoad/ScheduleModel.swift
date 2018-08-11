@@ -173,6 +173,10 @@ class ScheduleDocument: UserDocument {
             return
         }
         
+        try readCourses(fromJSON: json)
+    }
+    
+    override func readCourses(fromJSON json: Any) throws {
         guard let fileDict = json as? [String: Any],
             let selectedSubjectsList = fileDict[ScheduleFile.selectedSubjects] as? [[String: Any]] else {
                 print("Malformed JSON: \(json)")
@@ -255,6 +259,7 @@ class ScheduleDocument: UserDocument {
         }
         courses = newCourses
         allowedSections = newSections
+        needsSave = false
     }
     
     override func writeUserCourses(to file: String) throws {
@@ -264,6 +269,24 @@ class ScheduleDocument: UserDocument {
             return
         }
         
+        let fileJSON = try writeCoursesToJSON()
+        let contentsData = try JSONSerialization.data(withJSONObject: fileJSON, options: .prettyPrinted)
+        
+        // Save to server as well
+        if self.needsSave && self.shouldCloudSync {
+            CloudSyncManager.scheduleManager.sync(with: self)
+        }
+        
+        if !FileManager.default.fileExists(atPath: file) {
+            let success = FileManager.default.createFile(atPath: file, contents: nil, attributes: nil)
+            if !success {
+                print("Failed to create file at \(file)")
+            }
+        }
+        try contentsData.write(to: URL(fileURLWithPath: file), options: .atomic)
+    }
+    
+    override func writeCoursesToJSON() throws -> Any {
         var selectedSubjectsJSON: [[String: Any]] = []
         for subject in courses {
             guard let id = subject.subjectID,
@@ -283,7 +306,7 @@ class ScheduleDocument: UserDocument {
                 for unit in courseSections {
                     guard let sections = subject.schedule?[unit.sectionType],
                         let index = sections.index(of: unit.scheduleItems) else {
-                        continue
+                            continue
                     }
                     selectedJSON[unit.sectionType] = index
                 }
@@ -294,15 +317,7 @@ class ScheduleDocument: UserDocument {
         let fileJSON: [String: Any] = [
             ScheduleFile.selectedSubjects: selectedSubjectsJSON
         ]
-        let contentsData = try JSONSerialization.data(withJSONObject: fileJSON, options: .prettyPrinted)
-        
-        if !FileManager.default.fileExists(atPath: file) {
-            let success = FileManager.default.createFile(atPath: file, contents: nil, attributes: nil)
-            if !success {
-                print("Failed to create file at \(file)")
-            }
-        }
-        try contentsData.write(to: URL(fileURLWithPath: file), options: .atomic)
+        return fileJSON
     }
 }
 

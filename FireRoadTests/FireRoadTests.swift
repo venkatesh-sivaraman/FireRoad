@@ -127,4 +127,41 @@ class FireRoadTests: XCTestCase {
         }
     }
     
+    func testComputeQueue() {
+        let q = ComputeQueue(label: "myTestComputeQ")
+        var results: [String] = []
+        for i in 1..<25 {
+            q.async(taskName: "\(i)", waitForSignal: true) {
+                let url = URL(string: "http://student.mit.edu/catalog/m\(i)a.html")!
+                let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) in
+                    print(i)
+                    if let resp = response {
+                        print((resp as? HTTPURLResponse)?.statusCode ?? 0)
+                        results.append("\(resp.url?.absoluteString ?? "No url")")
+                    } else {
+                        print("None")
+                        results.append("\(error?.localizedDescription ?? "")")
+                    }
+                    q.proceed()
+                })
+                task.resume()
+            }
+        }
+        while results.count < 24 {
+            usleep(500)
+        }
+        print(results)
+    }
+    
+    func testChangeDate() {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MM-dd-yyyy HH:mm:ss"
+        dateFormatter.timeZone = TimeZone.current
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        guard let date = dateFormatter.date(from: "08-20-2018 19:00:00") else {
+            XCTAssert(false, "Couldn't get date from string")
+            return
+        }
+        print(date, date.timeIntervalSinceReferenceDate)
+    }
 }

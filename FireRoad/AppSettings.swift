@@ -99,6 +99,19 @@ class AppSettings: NSObject {
         }
     }
     
+    private let hasShownSignupDefaultsKey = "CourseManager.hasShownSignup"
+    var hasShownSignup: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: hasShownSignupDefaultsKey) == nil {
+                UserDefaults.standard.set(false, forKey: hasShownSignupDefaultsKey)
+                return false
+            }
+            return UserDefaults.standard.bool(forKey: hasShownSignupDefaultsKey)
+        } set {
+            UserDefaults.standard.set(newValue, forKey: hasShownSignupDefaultsKey)
+        }
+    }
+
     private let userCurrentSemesterDefaultsKey = "AppSettings.userCurrentSemester"
     
     var userCurrentSemester: Int {
@@ -139,7 +152,7 @@ class AppSettings: NSObject {
                 if self.allowsRecommendations == true, !CourseManager.shared.isLoggedIn {
                     self.presentationDelegate?.showAuthenticationView()
                 }
-            })], header: nil, footer: "Your course ratings, roads, and schedules will be securely sent to the FireRoad MIT server in order to help you find other courses you might like.", reloadOnSelect: false),
+            })], header: nil, footer: "Your course selections will be securely sent to the FireRoad MIT server to generate helpful recommendations. MIT login is required.", reloadOnSelect: false),
         AppSettingsGroup(items: [
             AppSettingsItem(title: "Hide All Warnings", type: .boolean, getter: { self.hidesAllWarnings }, setter: { newValue in
                 self.hidesAllWarnings = (newValue as? Bool) ?? false

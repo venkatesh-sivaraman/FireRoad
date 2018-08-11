@@ -49,6 +49,8 @@ class AuthenticationViewController: UIViewController, UIWebViewDelegate {
         if webView.stringByEvaluatingJavaScript(from: "document.getElementById('access_info') != null") ?? "false" == "true" {
             let jsonString = webView.stringByEvaluatingJavaScript(from: "document.getElementById('access_info').innerHTML")
             delegate?.authenticationViewController(self, finishedWith: jsonString)
+        } else if let urlString = webView.request?.url?.absoluteString, urlString.lowercased().contains("decline") {
+            delegate?.authenticationViewControllerCanceled(self)
         }
     }
 

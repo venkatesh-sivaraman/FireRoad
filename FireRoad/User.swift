@@ -551,6 +551,10 @@ class User: UserDocument {
             return
         }
         
+        try readCourses(fromJSON: json)
+    }
+    
+    override func readCourses(fromJSON json: Any) throws {
         guard let fileDict = json as? [String: Any],
             let courses = fileDict[RoadFile.coursesOfStudy] as? [String],
             let selectedSubjectsList = fileDict[RoadFile.selectedSubjects] as? [[String: Any]] else {
@@ -558,6 +562,8 @@ class User: UserDocument {
                 return
         }
         coursesOfStudy = courses
+        selectedSubjects = [:]
+        overrides = [:]
         
         for subjectJSON in selectedSubjectsList {
             guard let subjectID = subjectJSON[RoadFile.subjectID] as? String,
@@ -583,6 +589,7 @@ class User: UserDocument {
             add(course, toSemester: semester)
             overrides[course] = override
         }
+        needsSave = false
     }
     
     private func legacyReadCourses(from file: String) throws {
@@ -648,6 +655,24 @@ class User: UserDocument {
         
         setBaselineRatings()
 
+        let fileJSON = try writeCoursesToJSON()
+        let contentsData = try JSONSerialization.data(withJSONObject: fileJSON, options: .prettyPrinted)
+        
+        // Save to server as well
+        if self.needsSave && self.shouldCloudSync {
+            CloudSyncManager.roadManager.sync(with: self)
+        }
+        
+        if !FileManager.default.fileExists(atPath: file) {
+            let success = FileManager.default.createFile(atPath: file, contents: nil, attributes: nil)
+            if !success {
+                print("Failed to create file at \(file)")
+            }
+        }
+        try contentsData.write(to: URL(fileURLWithPath: file), options: .atomic)
+    }
+    
+    override func writeCoursesToJSON() throws -> Any {
         var selectedSubjectsJSON: [[String: Any]] = []
         for (semester, subjects) in selectedSubjects.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
             for subject in subjects {
@@ -670,20 +695,7 @@ class User: UserDocument {
             RoadFile.coursesOfStudy: coursesOfStudy,
             RoadFile.selectedSubjects: selectedSubjectsJSON
         ]
-        let contentsData = try JSONSerialization.data(withJSONObject: fileJSON, options: .prettyPrinted)
-        
-        // Save to server as well
-        CourseManager.shared.uploadRoad(with: fileJSON, name: fileName ?? name) { success in
-            print("Uploaded road", success)
-        }
-        
-        if !FileManager.default.fileExists(atPath: file) {
-            let success = FileManager.default.createFile(atPath: file, contents: nil, attributes: nil)
-            if !success {
-                print("Failed to create file at \(file)")
-            }
-        }
-        try contentsData.write(to: URL(fileURLWithPath: file), options: .atomic)
+        return fileJSON
     }
     
     // MARK: - Thumbnails
