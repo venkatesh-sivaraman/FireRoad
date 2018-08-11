@@ -14,6 +14,13 @@ protocol CloudSyncManagerDelegate: class {
     func cloudSyncManager(_ manager: CloudSyncManager, deletedFileNamed name: String)
 }
 
+/// Used for printing success messages about cloud sync
+func debugPrint(_ something: Any) {
+    #if DEBUG
+    print(something)
+    #endif
+}
+
 class CloudSyncManager: NSObject {
 
     struct URLSet {
@@ -119,7 +126,7 @@ class CloudSyncManager: NSObject {
     }
     
     func setChangedDate(_ date: Date?, forFileNamed name: String) {
-        print("Setting change date for \(name) to \(date?.timeAgo() ?? "n/a")")
+        debugPrint("Setting change date for \(name) to \(date?.timeAgo() ?? "n/a")")
         var dict: [String: String] = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.changedDatePreferencesSuffix) as? [String: String] ?? [:]
         dict[name] = date != nil ? standardString(from: date!) : nil
         UserDefaults.standard.set(dict, forKey: preferencesPrefix + CloudSyncManager.changedDatePreferencesSuffix)
@@ -133,7 +140,7 @@ class CloudSyncManager: NSObject {
     }
     
     func setDownloadDate(_ date: Date?, forFileNamed name: String) {
-        print("Setting download date for \(name) to \(date?.timeAgo() ?? "n/a")")
+        debugPrint("Setting download date for \(name) to \(date?.timeAgo() ?? "n/a")")
         var dict: [String: String] = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.downloadDatePreferencesSuffix) as? [String: String] ?? [:]
         dict[name] = date != nil ? standardString(from: date!) : nil
         UserDefaults.standard.set(dict, forKey: preferencesPrefix + CloudSyncManager.downloadDatePreferencesSuffix)
@@ -231,11 +238,9 @@ class CloudSyncManager: NSObject {
                 print("Can't get filename, JSON, or URL")
                 return nil
         }
-        print("Executing sync with \(name)")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        print(name, json)
         
         var body: [String: Any] = ["name": name, "contents": json]
         body["changed"] = justModified ? self.standardString(from: Date()) : (self.standardString(from: self.downloadDate(forFileNamed: name) ?? Date()))
@@ -271,9 +276,9 @@ class CloudSyncManager: NSObject {
         }
         
         let realCompletion: (Bool, SyncResult?) -> Void = { (success, syncResult) in
-            print("Syncing of \(name) was successful: \(success), \(syncResult?.status ?? "no status")")
+            debugPrint("Syncing of \(name) was successful: \(success), \(syncResult?.status ?? "no status")")
             if let newContents = syncResult?.newContents {
-                print("Updating contents")
+                debugPrint("Updating contents")
                 do {
                     try document.readCourses(fromJSON: newContents)
                     if let newName = syncResult?.newName, newName != name {
@@ -307,7 +312,6 @@ class CloudSyncManager: NSObject {
                 return
         }
 
-        print("Received response for \(name): \(result)")
         guard (result["success"] as? Bool) == true else {
             if let message = result["error_msg"] as? String {
                 self.presentErrorMessage(with: message)
@@ -352,7 +356,6 @@ class CloudSyncManager: NSObject {
                 self.conflictResponse(with: document, result: result, action: action, clientCompletion: completion, realCompletion: realCompletion)
             })
         case SyncResult.noChange:
-            print("No change for \(name)")
             realCompletion(true, SyncResult(status: resultType, raw: result, newContents: nil, newName: nil))
         default:
             print("Unknown sync result \(resultType)")
@@ -370,8 +373,7 @@ class CloudSyncManager: NSObject {
 
         switch action {
         case ConflictResponse.keepLocal:
-            print("Keep local")
-            self.sync(with: document, override: true) { success, result in
+            self.sync(with: document, override: true, pause: false) { success, result in
                 if success {
                     self.setDownloadDate(Date(), forFileNamed: name)
                     self.setChangedDate(Date(), forFileNamed: name)
@@ -379,14 +381,12 @@ class CloudSyncManager: NSObject {
                 clientCompletion?(success, result)
             }
         case ConflictResponse.keepRemote:
-            print("Keep remote")
             self.setDownloadDate(Date(), forFileNamed: name)
             self.setChangedDate(Date(), forFileNamed: name)
             realCompletion(true, SyncResult(status: SyncResult.conflict, raw: result, newContents: result["other_contents"], newName: result["other_name"] as? String))
         case ConflictResponse.keepBoth:
-            print("Keep both")
             // Keep the remote copy in a duplicate file
-            self.sync(with: document, override: true) { success, result in
+            self.sync(with: document, override: true, pause: false) { success, result in
                 if success {
                     self.setDownloadDate(Date(), forFileNamed: name)
                     self.setChangedDate(Date(), forFileNamed: name)
@@ -397,7 +397,6 @@ class CloudSyncManager: NSObject {
                 self.createFile(with: nil, name: (result["other_name"] as? String) ?? self.conflictName(from: name), contents: contents)
             }
         case ConflictResponse.delete:
-            print("Delete")
             self.setDownloadDate(nil, forFileNamed: name)
             self.setChangedDate(nil, forFileNamed: name)
             self.deleteFile(with: name)
@@ -407,23 +406,40 @@ class CloudSyncManager: NSObject {
         }
     }
     
-    func sync(with document: UserDocument, justModified: Bool = true, override: Bool = false, _ completion: ((Bool, SyncResult?) -> Void)? = nil) {
+    func sync(with document: UserDocument, justModified: Bool = true, override: Bool = false, pause: Bool = true, _ completion: ((Bool, SyncResult?) -> Void)? = nil) {
         guard AppSettings.shared.allowsRecommendations == true else {
             return
         }
         
         DispatchQueue.global().async {
+            while pause && self.syncInProgress {
+                usleep(100)
+            }
+            if pause {
+                self.syncInProgress = true
+            }
+            
             guard let request = self.syncRequest(with: document, justModified: justModified, override: override) else {
-                print("Can't get URL request")
+                if pause {
+                    self.syncInProgress = false
+                }
                 completion?(false, nil)
                 return
             }
 
             CourseManager.shared.loginAndSendDataTask(with: request, errorHandler: {
+                if pause {
+                    self.syncInProgress = false
+                }
                 completion?(false, nil)
             }, successHandler: { data in
                 DispatchQueue.global().async {
-                    self.syncResponse(with: document, data: data, completion: completion)
+                    self.syncResponse(with: document, data: data, completion: { (success, result) in
+                        if pause {
+                            self.syncInProgress = false
+                        }
+                        completion?(success, result)
+                    })
                 }
             })
         }
@@ -477,7 +493,7 @@ class CloudSyncManager: NSObject {
                     return
                 }
                 
-                print("Successfully deleted \(name) from server.")
+                debugPrint("Successfully deleted \(name) from server.")
                 completion?(true)
             }
         })
@@ -521,39 +537,10 @@ class CloudSyncManager: NSObject {
             queue.async(taskName: fileID, waitForSignal: true) {
                 if let name = self.fileName(forDocumentID: id) {
                     // Sync the file
-                    print("Syncing \(name)")
-                    guard let url = self.urlForUserFile(named: name + self.pathExtension) else {
-                        queue.proceed()
-                        return
-                    }
-                    let doc = self.newDocumentGenerator()
-                    doc.filePath = url.path
-                    do {
-                        try doc.readUserCourses(from: url.path)
-                        self.sync(with: doc, justModified: false) { (success, result) in
-                            queue.proceed()
-                        }
-                    } catch {
-                        print("Error writing JSON: \(error)")
-                    }
+                    self.syncAllSyncFile(named: name, in: queue)
                 } else {
                     // Download the new file
-                    print("Downloading \(id)")
-                    self.downloadFile(with: id) { json in
-                        guard let jsonDict = json as? [String: Any],
-                            let name = jsonDict["name"] as? String,
-                            let contents = jsonDict["contents"] else {
-                                queue.proceed()
-                                return
-                        }
-                        self.createFile(with: id, name: name, contents: contents) { newName in
-                            if let newName = newName,
-                                let downloadedString = jsonDict["downloaded"] as? String {
-                                self.setDownloadDate(self.date(from: downloadedString) ?? Date(), forFileNamed: newName)
-                            }
-                            queue.proceed()
-                        }
-                    }
+                    self.syncAllDownloadFile(with: id, in: queue)
                 }
             }
         }
@@ -569,40 +556,12 @@ class CloudSyncManager: NSObject {
                 
                 queue.async(taskName: myFileName, waitForSignal: true) {
                     if self.documentID(forFileNamed: myFileName) == nil {
-                        print("Uploading \(myFileName)")
-                        
-                        let doc = self.newDocumentGenerator()
-                        let path = (dir as NSString).appendingPathComponent(file)
-                        doc.filePath = path
-                        do {
-                            try doc.readUserCourses(from: path)
-                        } catch {
-                            print("Couldn't read courses from file")
-                            queue.proceed()
-                            return
-                        }
-                        self.sync(with: doc, { (success, result) in
-                            print("Uploaded \(myFileName) successfully: \(success)")
-                            queue.proceed()
-                        })
+                        // Upload the file
+                        self.syncAllUploadFile(named: myFileName, in: queue)
                     } else if let id = self.documentID(forFileNamed: myFileName),
                         !files.keys.contains(String(id)) {
                         // Sync the file
-                        print("Syncing \(myFileName)")
-                        guard let url = self.urlForUserFile(named: myFileName + self.pathExtension) else {
-                            queue.proceed()
-                            return
-                        }
-                        let doc = self.newDocumentGenerator()
-                        doc.filePath = url.path
-                        do {
-                            try doc.readUserCourses(from: url.path)
-                            self.sync(with: doc, justModified: false) { (success, result) in
-                                queue.proceed()
-                            }
-                        } catch {
-                            print("Error writing JSON: \(error)")
-                        }
+                        self.syncAllSyncFile(named: myFileName, in: queue)
                     } else {
                         queue.proceed()
                     }
@@ -614,14 +573,75 @@ class CloudSyncManager: NSObject {
         
         // On completion
         queue.async {
-            print("Complete!")
+            debugPrint("Complete!")
             self.syncInProgress = false
             completion?(true)
         }
     }
     
+    private func syncAllSyncFile(named name: String, in queue: ComputeQueue) {
+        debugPrint("Syncing \(name)")
+        guard let url = self.urlForUserFile(named: name + self.pathExtension) else {
+            queue.proceed()
+            return
+        }
+        let doc = self.newDocumentGenerator()
+        doc.filePath = url.path
+        do {
+            try doc.readUserCourses(from: url.path)
+            self.sync(with: doc, justModified: false, pause: false) { (success, result) in
+                queue.proceed()
+            }
+        } catch {
+            print("Error writing JSON: \(error)")
+        }
+    }
+    
+    private func syncAllDownloadFile(with id: Int, in queue: ComputeQueue) {
+        debugPrint("Downloading \(id)")
+        self.downloadFile(with: id) { json in
+            guard let jsonDict = json as? [String: Any],
+                let name = jsonDict["name"] as? String,
+                let contents = jsonDict["contents"] else {
+                    queue.proceed()
+                    return
+            }
+            self.createFile(with: id, name: name, contents: contents) { newName in
+                if let newName = newName,
+                    let downloadedString = jsonDict["downloaded"] as? String {
+                    self.setDownloadDate(self.date(from: downloadedString) ?? Date(), forFileNamed: newName)
+                }
+                queue.proceed()
+            }
+        }
+    }
+    
+    private func syncAllUploadFile(named name: String, in queue: ComputeQueue) {
+        debugPrint("Uploading \(name)")
+        
+        guard let dir = self.filesDirectory else {
+            queue.proceed()
+            return
+        }
+        
+        let doc = self.newDocumentGenerator()
+        let path = (dir as NSString).appendingPathComponent(name + pathExtension)
+        doc.filePath = path
+        do {
+            try doc.readUserCourses(from: path)
+        } catch {
+            print("Couldn't read courses from file")
+            queue.proceed()
+            return
+        }
+        self.sync(with: doc, pause: false) { (success, result) in
+            debugPrint("Uploaded \(name) successfully: \(success)")
+            queue.proceed()
+        }
+    }
+    
     func syncAll(completion: ((Bool) -> Void)?) {
-        print("Sync all")
+        debugPrint("Sync all")
         guard AppSettings.shared.allowsRecommendations == true,
             let url = URL(string: urls.browse),
             !CloudSyncManager.isHandlingConflict else {
@@ -634,7 +654,7 @@ class CloudSyncManager: NSObject {
             }
             self.syncInProgress = true
 
-            print("Executing sync all")
+            debugPrint("Executing sync all")
             var request = URLRequest(url: url)
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -723,7 +743,7 @@ class CloudSyncManager: NSObject {
      from the server.
      */
     func createFile(with id: Int?, name: String, contents: Any, completion: ((String?) -> Void)? = nil) {
-        print("Creating file", name)
+        debugPrint("Creating file", name)
         let newFile = newDocumentGenerator()
         let newName = conflictName(from: name)
 
@@ -741,7 +761,7 @@ class CloudSyncManager: NSObject {
         }
         if id == nil || newName != name {
             setDownloadDate(Date(), forFileNamed: newName)
-            sync(with: newFile) { (success, result) in
+            sync(with: newFile, pause: false) { (success, result) in
                 completion?(success ? newName : nil)
             }
             setDownloadDate(Date(), forFileNamed: newName)
@@ -751,7 +771,7 @@ class CloudSyncManager: NSObject {
     }
     
     func renameFile(at originalName: String, to newName: String, shouldSync: Bool = true, completion: ((URL?) -> Void)? = nil) {
-        print("Renaming file at \(originalName) to \(newName), should sync \(shouldSync)")
+        debugPrint("Renaming file at \(originalName) to \(newName), should sync \(shouldSync)")
         let originalBase = (originalName as NSString).deletingPathExtension
 
         let newID = newName + pathExtension
@@ -786,7 +806,7 @@ class CloudSyncManager: NSObject {
                 let doc = newDocumentGenerator()
                 doc.filePath = newURL.path
                 try doc.readUserCourses(from: newURL.path)
-                sync(with: doc)
+                sync(with: doc, pause: false)
             }
         } catch {
             let alert = UIAlertController(title: "Could Not Rename File", message: error.localizedDescription, preferredStyle: .alert)
