@@ -141,6 +141,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
 
         NotificationCenter.default.addObserver(self, selector: #selector(RequirementsListViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(RequirementsListViewController.courseManagerSyncedPreferences(_:)), name: .CourseManagerPreferenceSynced, object: nil)
     }
     
     deinit {
@@ -203,6 +204,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     @objc func courseManagerFinishedLoading(_ note: Notification) {
         loadRequirementsOrDisplay()
+    }
+    
+    @objc func courseManagerSyncedPreferences(_ note: Notification) {
+        updateRequirementsStatus()
     }
     
     // MARK: - State Preservation

@@ -108,6 +108,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         }
 
         NotificationCenter.default.addObserver(self, selector: #selector(CourseBrowserViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseBrowserViewController.courseManagerSyncedPreferences(_:)), name: .CourseManagerPreferenceSynced, object: nil)
     }
     
     deinit {
@@ -222,6 +223,12 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     @objc func courseManagerFinishedLoading(_ note: Notification) {
         if let search = searchTerm {
             loadSearchResults(withString: search, options: searchOptions)
+        }
+    }
+    
+    @objc func courseManagerSyncedPreferences(_ note: Notification) {
+        if nonSearchViewMode == .favorites && !isShowingSearchResults {
+            updateCourseVisibility()
         }
     }
     
@@ -566,6 +573,9 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             CourseManager.shared.markCourseAsNotFavorite(course)
         } else {
             CourseManager.shared.markCourseAsFavorite(course)
+        }
+        if nonSearchViewMode == .favorites {
+            updateCourseVisibility()
         }
         popDownTableMenuCanceled(tableMenu)
     }

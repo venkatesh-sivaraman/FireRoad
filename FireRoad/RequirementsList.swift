@@ -582,16 +582,12 @@ class RequirementsListStatement: NSObject {
             guard let path = keyPath else {
                 return nil
             }
-            let ret = UserDefaults.standard.integer(forKey: path)
-            if ret != 0 {
-                return ret
-            }
-            return nil
+            return CourseManager.shared.getProgressOverride(with: path)
         } set {
             guard let path = keyPath else {
                 return
             }
-            UserDefaults.standard.set(newValue, forKey: path)
+            CourseManager.shared.setProgressOverride(with: path, to: newValue ?? 0)
         }
     }
 }

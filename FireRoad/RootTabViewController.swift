@@ -92,6 +92,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
                 print("Schedule syncing completed: \(success)")
             }
         }
+        CourseManager.shared.syncPreferences()
         
         DispatchQueue.main.async {
             self.cloudSyncTimer = Timer.scheduledTimer(withTimeInterval: CloudSyncInterval, repeats: true, block: { _ in
@@ -101,6 +102,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
                         print("Schedule syncing completed: \(success)")
                     }
                 }
+                CourseManager.shared.syncPreferences()
             })
         }
     }
