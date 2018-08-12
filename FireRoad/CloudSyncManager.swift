@@ -14,6 +14,10 @@ protocol CloudSyncManagerDelegate: class {
     func cloudSyncManager(_ manager: CloudSyncManager, deletedFileNamed name: String)
 }
 
+extension Notification.Name {
+    static let CloudSyncManagerFinishedSyncing = Notification.Name(rawValue: "CloudSyncManagerFinishedSyncingNotification")
+}
+
 /// Used for printing success messages about cloud sync
 func debugPrint(_ something: Any) {
     #if DEBUG
@@ -30,7 +34,7 @@ class CloudSyncManager: NSObject {
         var delete: String
         var browse: String
     }
-
+    
     var preferencesPrefix: String
     var urls: URLSet
     var filesDirectory: String?
@@ -100,6 +104,11 @@ class CloudSyncManager: NSObject {
     static let downloadDatePreferencesSuffix = "downloadDates"
     static let cloudModifiedDatePreferencesSuffix = "cloudModifiedDates"
     static let fileIDPreferencesSuffix = "fileIDs"
+    static let userIDPreferencesSuffix = "uploaderUserIDs"
+
+    private var documentIDs: [String: Int] {
+        return UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.fileIDPreferencesSuffix) as? [String: Int] ?? [:]
+    }
     
     func setDocumentID(_ id: Int?, forFileNamed name: String) {
         var documentIDs: [String: Int] = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.fileIDPreferencesSuffix) as? [String: Int] ?? [:]
@@ -110,6 +119,20 @@ class CloudSyncManager: NSObject {
     func documentID(forFileNamed name: String) -> Int? {
         guard let documentIDs = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.fileIDPreferencesSuffix),
             let id = documentIDs[name] as? Int else {
+                return nil
+        }
+        return id
+    }
+    
+    func setUserID(_ id: String?, forFileNamed name: String) {
+        var userIDs: [String: String] = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.userIDPreferencesSuffix) as? [String: String] ?? [:]
+        userIDs[name] = id
+        UserDefaults.standard.set(userIDs, forKey: preferencesPrefix + CloudSyncManager.userIDPreferencesSuffix)
+    }
+    
+    func userID(forFileNamed name: String) -> String? {
+        guard let userIDs = UserDefaults.standard.dictionary(forKey: preferencesPrefix + CloudSyncManager.userIDPreferencesSuffix),
+            let id = userIDs[name] as? String else {
                 return nil
         }
         return id
@@ -221,6 +244,25 @@ class CloudSyncManager: NSObject {
     
     // MARK: - Syncing
     
+    enum JSONKeys {
+        static let success = "success"
+        static let logError = "error"
+        static let userError = "error_msg"
+        static let changeDate = "changed"
+        static let downloadDate = "downloaded"
+        static let id = "id"
+        static let name = "name"
+        static let contents = "contents"
+        static let agent = "agent"
+        static let override = "override"
+        
+        // Conflicts
+        static let otherAgent = "other_agent"
+        static let otherDate = "other_date"
+        static let otherContents = "other_contents"
+        static let otherName = "other_name"
+    }
+
     struct SyncResult {
         static let updateRemote = "update_remote"
         static let updateLocal = "update_local"
@@ -256,17 +298,23 @@ class CloudSyncManager: NSObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
-        var body: [String: Any] = ["name": name, "contents": json]
-        body["changed"] = justModified ? self.standardString(from: Date()) : (self.standardString(from: self.downloadDate(forFileNamed: name) ?? Date()))
+        var body: [String: Any] = [JSONKeys.name: name, JSONKeys.contents: json]
+        body[JSONKeys.changeDate] = justModified ? self.standardString(from: Date()) : (self.standardString(from: self.downloadDate(forFileNamed: name) ?? Date()))
         if let id = self.documentID(forFileNamed: name) {
-            body["id"] = id
+            if let userID = self.userID(forFileNamed: name),
+                let currentUser = CourseManager.shared.recommenderUserID,
+                currentUser != userID {
+                // Pretend it's a new file
+            } else {
+                body[JSONKeys.id] = id
+            }
         }
         if let downloaded = self.downloadDate(forFileNamed: name) {
-            body["downloaded"] = self.standardString(from: downloaded)
+            body[JSONKeys.downloadDate] = self.standardString(from: downloaded)
         }
-        body["agent"] = UIDevice.current.name
+        body[JSONKeys.agent] = UIDevice.current.name
         if override {
-            body["override"] = true
+            body[JSONKeys.override] = true
         }
 
         do {
@@ -326,10 +374,10 @@ class CloudSyncManager: NSObject {
                 return
         }
 
-        guard (result["success"] as? Bool) == true else {
-            if let message = result["error_msg"] as? String {
+        guard (result[JSONKeys.success] as? Bool) == true else {
+            if let message = result[JSONKeys.userError] as? String {
                 self.presentErrorMessage(with: message)
-            } else if let message = result["error"] as? String {
+            } else if let message = result[JSONKeys.logError] as? String {
                 print("Sync error for \(name): \(message)")
             }
             realCompletion(false, SyncResult(status: SyncResult.error, raw: result, newContents: nil, newName: nil))
@@ -345,23 +393,29 @@ class CloudSyncManager: NSObject {
         case SyncResult.updateRemote:
             self.setDownloadDate(Date(), forFileNamed: name)
             self.setCloudModifiedDate(Date(), forFileNamed: name)
-            if let id = result["id"] as? Int {
+            if let id = result[JSONKeys.id] as? Int {
                 self.setDocumentID(id, forFileNamed: name)
+            }
+            if let userID = CourseManager.shared.recommenderUserID {
+                self.setUserID(userID, forFileNamed: name)
             }
             realCompletion(true, SyncResult(status: resultType, raw: result, newContents: nil, newName: nil))
         case SyncResult.updateLocal:
             self.setDownloadDate(Date(), forFileNamed: name)
-            if let dateString = result["changed"] as? String,
+            if let dateString = result[JSONKeys.changeDate] as? String,
                 let changeDate = date(from: dateString) {
                 self.setCloudModifiedDate(changeDate, forFileNamed: name)
             }
-            if let id = result["id"] as? Int {
+            if let id = result[JSONKeys.id] as? Int {
                 self.setDocumentID(id, forFileNamed: name)
             }
-            realCompletion(true, SyncResult(status: resultType, raw: result, newContents: result["contents"], newName: result["name"] as? String))
+            if let userID = CourseManager.shared.recommenderUserID {
+                self.setUserID(userID, forFileNamed: name)
+            }
+            realCompletion(true, SyncResult(status: resultType, raw: result, newContents: result[JSONKeys.contents], newName: result[JSONKeys.name] as? String))
         case SyncResult.conflict:
-            guard let modifiedDateString = result["other_date"] as? String,
-                let modifiedAgentString = result["other_agent"] as? String else {
+            guard let modifiedDateString = result[JSONKeys.otherDate] as? String,
+                let modifiedAgentString = result[JSONKeys.otherAgent] as? String else {
                     return
             }
             var modifiedDate: Date?
@@ -381,7 +435,7 @@ class CloudSyncManager: NSObject {
                 realCompletion(true, SyncResult(status: SyncResult.conflict, raw: result, newContents: nil, newName: nil))
             }
         case SyncResult.noChange:
-            if let dateString = result["changed"] as? String,
+            if let dateString = result[JSONKeys.changeDate] as? String,
                 let changeDate = date(from: dateString) {
                 self.setCloudModifiedDate(changeDate, forFileNamed: name)
             }
@@ -411,11 +465,11 @@ class CloudSyncManager: NSObject {
             }
         case ConflictResponse.keepRemote:
             self.setDownloadDate(Date(), forFileNamed: name)
-            if let dateString = result["other_date"] as? String,
+            if let dateString = result[JSONKeys.otherDate] as? String,
                 let changeDate = date(from: dateString) {
                 self.setCloudModifiedDate(changeDate, forFileNamed: name)
             }
-            realCompletion(true, SyncResult(status: SyncResult.conflict, raw: result, newContents: result["other_contents"], newName: result["other_name"] as? String))
+            realCompletion(true, SyncResult(status: SyncResult.conflict, raw: result, newContents: result[JSONKeys.otherContents], newName: result[JSONKeys.otherName] as? String))
         case ConflictResponse.keepBoth:
             // Keep the remote copy in a duplicate file
             self.sync(with: document, override: true, pause: false) { success, result in
@@ -425,8 +479,8 @@ class CloudSyncManager: NSObject {
                 }
                 clientCompletion?(success, result)
             }
-            if let contents = result["other_contents"] {
-                self.createFile(with: nil, name: (result["other_name"] as? String) ?? self.conflictName(from: name), contents: contents)
+            if let contents = result[JSONKeys.otherContents] {
+                self.createFile(with: nil, name: (result[JSONKeys.otherName] as? String) ?? self.conflictName(from: name), contents: contents)
             }
         case ConflictResponse.delete:
             self.setDownloadDate(nil, forFileNamed: name)
@@ -485,6 +539,7 @@ class CloudSyncManager: NSObject {
             return
         }
         setDocumentID(nil, forFileNamed: name)
+        setUserID(nil, forFileNamed: name)
         
         guard AppSettings.shared.allowsRecommendations == true,
             let cloudURL = URL(string: urls.delete) else {
@@ -496,7 +551,7 @@ class CloudSyncManager: NSObject {
         request.httpMethod = "POST"
         
         do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: ["id": id])
+            request.httpBody = try JSONSerialization.data(withJSONObject: [JSONKeys.id: id])
         } catch {
             print(error.localizedDescription)
         }
@@ -516,10 +571,10 @@ class CloudSyncManager: NSObject {
                         return
                 }
                 
-                guard (result["success"] as? Bool) == true else {
-                    if let message = result["error_msg"] as? String {
+                guard (result[JSONKeys.success] as? Bool) == true else {
+                    if let message = result[JSONKeys.userError] as? String {
                         self.presentErrorMessage(with: message)
-                    } else if let message = result["error"] as? String {
+                    } else if let message = result[JSONKeys.logError] as? String {
                         print("Sync error for \(name): \(message)")
                     }
                     completion?(false)
@@ -544,10 +599,10 @@ class CloudSyncManager: NSObject {
                 return
         }
         
-        guard (result["success"] as? Bool) == true else {
-            if let message = result["error_msg"] as? String {
+        guard (result[JSONKeys.success] as? Bool) == true else {
+            if let message = result[JSONKeys.userError] as? String {
                 self.presentErrorMessage(with: message)
-            } else if let message = result["error"] as? String {
+            } else if let message = result[JSONKeys.logError] as? String {
                 print("Sync error: \(message)")
             }
             self.syncInProgress = false
@@ -562,21 +617,7 @@ class CloudSyncManager: NSObject {
         }
         
         let queue = ComputeQueue(label: self.preferencesPrefix)
-        
-        for (fileID, _) in files {
-            guard let id = Int(fileID) else {
-                continue
-            }
-            queue.async(taskName: fileID, waitForSignal: true) {
-                if let name = self.fileName(forDocumentID: id) {
-                    // Sync the file
-                    self.syncAllSyncFile(named: name, in: queue)
-                } else {
-                    // Download the new file
-                    self.syncAllDownloadFile(with: id, in: queue)
-                }
-            }
-        }
+        var deletedInitial: String?
         
         // Upload existing files that don't have IDs
         if let dir = self.filesDirectory,
@@ -590,7 +631,10 @@ class CloudSyncManager: NSObject {
                 queue.async(taskName: myFileName, waitForSignal: true) {
                     if self.documentID(forFileNamed: myFileName) == nil {
                         // Upload the file
-                        self.syncAllUploadFile(named: myFileName, in: queue, deleteIfEmpty: (myFileName == InitialDocumentTitle))
+                        let deleted = self.syncAllUploadFile(named: myFileName, in: queue, deleteIfEmpty: (myFileName == InitialDocumentTitle))
+                        if deleted {
+                            deletedInitial = myFileName
+                        }
                     } else if let id = self.documentID(forFileNamed: myFileName),
                         !files.keys.contains(String(id)) {
                         // Sync the file
@@ -604,10 +648,35 @@ class CloudSyncManager: NSObject {
             print("Couldn't get files from \(self.filesDirectory ?? "<no dir>")")
         }
         
+        for (fileID, _) in files {
+            guard let id = Int(fileID) else {
+                continue
+            }
+            queue.async(taskName: fileID, waitForSignal: true) {
+                if let name = self.fileName(forDocumentID: id),
+                    let path = self.urlForUserFile(named: name + self.pathExtension)?.path,
+                    FileManager.default.fileExists(atPath: path) {
+                    // Sync the file
+                    self.syncAllSyncFile(named: name, in: queue)
+                } else {
+                    // Download the new file
+                    self.syncAllDownloadFile(with: id, in: queue)
+                }
+            }
+        }
+        
         // On completion
         queue.async {
             debugPrint("Complete!")
+            if let deleteName = deletedInitial {
+                DispatchQueue.main.async {
+                    self.delegate?.cloudSyncManager(self, deletedFileNamed: deleteName)
+                }
+            }
             self.syncInProgress = false
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .CloudSyncManagerFinishedSyncing, object: self)
+            }
             completion?(true)
         }
     }
@@ -635,31 +704,33 @@ class CloudSyncManager: NSObject {
         debugPrint("Downloading \(id)")
         self.downloadFile(with: id) { json in
             guard let jsonDict = json as? [String: Any],
-                let name = jsonDict["name"] as? String,
-                let contents = jsonDict["contents"] else {
+                let name = jsonDict[JSONKeys.name] as? String,
+                let contents = jsonDict[JSONKeys.contents] else {
                     queue.proceed()
                     return
             }
-            if let dateString = jsonDict["changed"] as? String,
-                let changeDate = self.date(from: dateString) {
-                self.setCloudModifiedDate(changeDate, forFileNamed: name)
-            }
             self.createFile(with: id, name: name, contents: contents) { newName in
-                if let newName = newName,
-                    let downloadedString = jsonDict["downloaded"] as? String {
-                    self.setDownloadDate(self.date(from: downloadedString) ?? Date(), forFileNamed: newName)
+                if let newName = newName {
+                    if let dateString = jsonDict[JSONKeys.changeDate] as? String,
+                        let changeDate = self.date(from: dateString) {
+                        self.setCloudModifiedDate(changeDate, forFileNamed: newName)
+                    }
+                    if let downloadedString = jsonDict[JSONKeys.downloadDate] as? String {
+                        self.setDownloadDate(self.date(from: downloadedString) ?? Date(), forFileNamed: newName)
+                    }
                 }
                 queue.proceed()
             }
         }
     }
     
-    private func syncAllUploadFile(named name: String, in queue: ComputeQueue, deleteIfEmpty: Bool = false) {
+    @discardableResult
+    private func syncAllUploadFile(named name: String, in queue: ComputeQueue, deleteIfEmpty: Bool = false) -> Bool {
         debugPrint("Uploading \(name)")
         
         guard let dir = self.filesDirectory else {
             queue.proceed()
-            return
+            return false
         }
         
         let doc = self.newDocumentGenerator()
@@ -670,7 +741,7 @@ class CloudSyncManager: NSObject {
         } catch {
             print("Couldn't read courses from file")
             queue.proceed()
-            return
+            return false
         }
         
         if deleteIfEmpty && doc.isEmpty {
@@ -678,13 +749,14 @@ class CloudSyncManager: NSObject {
                 debugPrint("Uploaded empty file \(name) successfully: \(success)")
                 queue.proceed()
             }
-            return
+            return true
         }
         
         self.sync(with: doc, pause: false) { (success, result) in
             debugPrint("Uploaded \(name) successfully: \(success)")
             queue.proceed()
         }
+        return false
     }
     
     func syncAll(completion: ((Bool) -> Void)?) {
@@ -692,6 +764,7 @@ class CloudSyncManager: NSObject {
         guard AppSettings.shared.allowsRecommendations == true,
             let url = URL(string: urls.browse),
             !CloudSyncManager.isHandlingConflict else {
+                debugPrint("Aborting sync")
                 return
         }
         
@@ -742,10 +815,10 @@ class CloudSyncManager: NSObject {
                     completion?(nil)
                     return
                 }
-                guard (result["success"] as? Bool) == true else {
-                    if let message = result["error_msg"] as? String {
+                guard (result[JSONKeys.success] as? Bool) == true else {
+                    if let message = result[JSONKeys.userError] as? String {
                         self.presentErrorMessage(with: message)
-                    } else if let message = result["error"] as? String {
+                    } else if let message = result[JSONKeys.logError] as? String {
                         print("Browse error: \(message)")
                     }
                     completion?(nil)
@@ -805,6 +878,9 @@ class CloudSyncManager: NSObject {
         
         if id != nil {
             setDocumentID(id, forFileNamed: newName)
+            if let userID = CourseManager.shared.recommenderUserID {
+                setUserID(userID, forFileNamed: name)
+            }
         }
         if id == nil || newName != name {
             setDownloadDate(Date(), forFileNamed: newName)
@@ -838,6 +914,10 @@ class CloudSyncManager: NSObject {
                 setDocumentID(nil, forFileNamed: originalBase)
                 setDocumentID(id, forFileNamed: newName)
             }
+            if let userID = userID(forFileNamed: originalBase) {
+                setUserID(nil, forFileNamed: originalBase)
+                setUserID(userID, forFileNamed: newName)
+            }
             if let date = cloudModifiedDate(forFileNamed: originalBase) {
                 setCloudModifiedDate(nil, forFileNamed: originalBase)
                 setCloudModifiedDate(date, forFileNamed: newName)
@@ -863,7 +943,7 @@ class CloudSyncManager: NSObject {
         }
     }
     
-    func deleteFile(with name: String, completion: ((Bool) -> Void)? = nil) {
+    func deleteFile(with name: String, localOnly: Bool = false, completion: ((Bool) -> Void)? = nil) {
         DispatchQueue.global().async {
             guard let url = self.urlForUserFile(named: name + self.pathExtension) else {
                 return
@@ -875,13 +955,38 @@ class CloudSyncManager: NSObject {
                 return
             }
             
-            self.deleteFileFromCloud(with: name, completion: { success in
-                if let comp = completion {
-                    DispatchQueue.main.async {
-                        comp(success)
+            if !localOnly {
+                self.deleteFileFromCloud(with: name, completion: { success in
+                    if let comp = completion {
+                        DispatchQueue.main.async {
+                            comp(success)
+                        }
                     }
+                })
+            } else {
+                DispatchQueue.main.async {
+                    self.delegate?.cloudSyncManager(self, deletedFileNamed: name)
                 }
-            })
+                completion?(true)
+            }
+        }
+    }
+    
+    func removeSyncInformation(forFileNamed name: String) {
+        self.setDocumentID(nil, forFileNamed: name)
+        self.setUserID(nil, forFileNamed: name)
+        self.setDownloadDate(nil, forFileNamed: name)
+        self.setCloudModifiedDate(nil, forFileNamed: name)
+    }
+    
+    /// Returns a list of existing file names (without extension).
+    func fileList() -> [String] {
+        return documentIDs.keys.compactMap { (file) -> String? in
+            if let path = urlForUserFile(named: file + pathExtension)?.path,
+                FileManager.default.fileExists(atPath: path) {
+                return file
+            }
+            return nil
         }
     }
 }

@@ -46,7 +46,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     override func viewDidLoad() {
         super.viewDidLoad()
         NotificationCenter.default.addObserver(self, selector: #selector(courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(cloudSyncManagerFinishedSyncing(_:)), name: .CloudSyncManagerFinishedSyncing, object: CloudSyncManager.roadManager)
+
         self.collectionView.collectionViewLayout = UICollectionViewFlowLayout() //CustomCollectionViewFlowLayout() //LeftAlignedCollectionViewFlowLayout()
         self.collectionView.allowsSelection = true
         updateCollectionViewLayout()
@@ -752,17 +753,48 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     // MARK: - Loading Different Roads
     
+    var documentBrowser: DocumentBrowseViewController?
     lazy var thumbnailImageComputeQueue = ComputeQueue(label: "CourseroadVC.thumbnailImage")
     
     @IBAction func openButtonPressed(_ sender: AnyObject) {
         guard let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
-            let rootTab = rootParent as? RootTabViewController,
-            let roadDir = CloudSyncManager.roadManager.filesDirectory,
-            let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {
+            let rootTab = rootParent as? RootTabViewController else {
                 return
         }
+        documentBrowser = browser
         browser.delegate = self
         // Generate items
+        browser.items = loadDocumentBrowserItems()
+        if browser.items.count > 1 {
+            browser.itemToHighlight = browser.items.first(where: { $0.identifier == (rootTab.currentUser?.filePath as NSString?)?.lastPathComponent })
+        }
+        
+        let nav = UINavigationController(rootViewController: browser)
+        browser.navigationItem.title = "My Roads"
+        if let barItem = sender as? UIBarButtonItem {
+            browser.showsCancelButton = false
+            nav.modalPresentationStyle = .popover
+            nav.popoverPresentationController?.barButtonItem = barItem
+            present(nav, animated: true, completion: nil)
+        } else {
+            browser.navigationItem.prompt = "Select an existing road or add a new one."
+            browser.showsCancelButton = true
+            present(nav, animated: true, completion: nil)
+        }
+    }
+    
+    @objc func cloudSyncManagerFinishedSyncing(_ note: Notification) {
+        if let browser = documentBrowser {
+            browser.items = loadDocumentBrowserItems()
+        }
+    }
+    
+    func loadDocumentBrowserItems() -> [DocumentBrowseViewController.Item] {
+        guard let roadDir = CloudSyncManager.roadManager.filesDirectory,
+            let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {
+                return []
+        }
+        
         var items: [(DocumentBrowseViewController.Item, Date?)] = []
         let todayFormatter = DateFormatter()
         todayFormatter.dateStyle = .none
@@ -793,12 +825,12 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             thumbnailImageComputeQueue.async {
                 item.image = tempUser.generateThumbnailImage()
                 DispatchQueue.main.async {
-                    browser.update(item: item)
+                    self.documentBrowser?.update(item: item)
                 }
             }
             items.append((item, modDate))
         }
-        browser.items = items.sorted(by: {
+        return items.sorted(by: {
             if $1.1 == nil && $0.1 == nil {
                 return false
             } else if $1.1 == nil {
@@ -808,26 +840,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             }
             return $0.1!.compare($1.1!) == .orderedDescending
         }).map({ $0.0 })
-        if browser.items.count > 1 {
-            browser.itemToHighlight = browser.items.first(where: { $0.identifier == (rootTab.currentUser?.filePath as NSString?)?.lastPathComponent })
-        }
-        
-        let nav = UINavigationController(rootViewController: browser)
-        browser.navigationItem.title = "My Roads"
-        if let barItem = sender as? UIBarButtonItem {
-            browser.showsCancelButton = false
-            nav.modalPresentationStyle = .popover
-            nav.popoverPresentationController?.barButtonItem = barItem
-            present(nav, animated: true, completion: nil)
-        } else {
-            browser.navigationItem.prompt = "Select an existing road or add a new one."
-            browser.showsCancelButton = true
-            present(nav, animated: true, completion: nil)
-        }
     }
     
     func documentBrowserDismissed(_ browser: DocumentBrowseViewController) {
         dismiss(animated: true, completion: nil)
+        documentBrowser = nil
     }
     
     func documentBrowserAddedItem(_ browser: DocumentBrowseViewController) {
@@ -859,6 +876,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             }
 
             self.dismiss(animated: true, completion: nil)
+            self.documentBrowser = nil
             self.loadNewCourseroad(named: newID)
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -875,8 +893,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 if let firstItem = browser.items.first {
                     self.loadCourseroad(named: firstItem.identifier)
                 } else {
-                    self.loadNewCourseroad(named: "Road.road")
+                    self.loadNewCourseroad(named: InitialDocumentTitle + CloudSyncManager.roadManager.pathExtension)
                     self.dismiss(animated: true, completion: nil)
+                    self.documentBrowser = nil
                 }
             }
         }
@@ -959,6 +978,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     func documentBrowser(_ browser: DocumentBrowseViewController, selectedItem item: DocumentBrowseViewController.Item) {
         loadCourseroad(named: item.identifier)
         dismiss(animated: true, completion: nil)
+        documentBrowser = nil
     }
     
     // MARK: - Warnings

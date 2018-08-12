@@ -8,7 +8,7 @@
 
 import UIKit
 
-let CloudSyncInterval = 60.0
+let CloudSyncInterval = 30.0
 
 class RootTabViewController: UITabBarController, AuthenticationViewControllerDelegate, IntroViewControllerDelegate, CourseManagerAuthenticationDelegate, CloudSyncManagerDelegate {
     
@@ -43,6 +43,9 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         ]
         
         CloudSyncManager.roadManager.delegate = self
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(RootTabViewController.courseManagerLoggedOut(_:)), name: .CourseManagerLoggedOut, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(RootTabViewController.courseManagerLoggedIn(_:)), name: .CourseManagerLoggedIn, object: nil)
     }
     
     var showingIntro = false
@@ -75,36 +78,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         if cloudSyncTimer?.isValid == true {
             cloudSyncTimer?.invalidate()
         }
-    }
-    
-    var cloudSyncTimer: Timer?
-    
-    func setupCloudSync() {
-        guard cloudSyncTimer == nil else {
-            return
-        }
-        CloudSyncManager.roadManager.syncAll { (success) in
-            print("Road syncing completed: \(success)")
-            if let recentName = CloudSyncManager.roadManager.recentlyModifiedDocumentName() {
-                self.loadCourseroad(named: recentName)
-            }
-            CloudSyncManager.scheduleManager.syncAll { (success) in
-                print("Schedule syncing completed: \(success)")
-            }
-        }
-        CourseManager.shared.syncPreferences()
-        
-        DispatchQueue.main.async {
-            self.cloudSyncTimer = Timer.scheduledTimer(withTimeInterval: CloudSyncInterval, repeats: true, block: { _ in
-                CloudSyncManager.roadManager.syncAll { (success) in
-                    print("Road syncing completed: \(success)")
-                    CloudSyncManager.scheduleManager.syncAll { (success) in
-                        print("Schedule syncing completed: \(success)")
-                    }
-                }
-                CourseManager.shared.syncPreferences()
-            })
-        }
+        NotificationCenter.default.removeObserver(self)
     }
     
     func updateSemesters() {
@@ -327,6 +301,119 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         }
     }
     
+    // MARK: - Cloud Sync
+    
+    var cloudSyncTimer: Timer?
+    var cloudSyncPaused = false
+    
+    func setupCloudSync() {
+        guard cloudSyncTimer == nil else {
+            return
+        }
+        CloudSyncManager.roadManager.syncAll { (success) in
+            print("Road syncing completed: \(success)")
+            if let recentName = CloudSyncManager.roadManager.recentlyModifiedDocumentName() {
+                self.loadCourseroad(named: recentName)
+            }
+            CloudSyncManager.scheduleManager.syncAll { (success) in
+                print("Schedule syncing completed: \(success)")
+            }
+        }
+        CourseManager.shared.syncPreferences()
+        
+        DispatchQueue.main.async {
+            self.cloudSyncTimer = Timer.scheduledTimer(timeInterval: CloudSyncInterval, target: self, selector: #selector(RootTabViewController.autosync), userInfo: nil, repeats: true)
+        }
+    }
+    
+    @objc func autosync() {
+        guard !cloudSyncPaused else {
+            return
+        }
+        CloudSyncManager.roadManager.syncAll { (success) in
+            print("Road syncing completed: \(success)")
+            CloudSyncManager.scheduleManager.syncAll { (success) in
+                print("Schedule syncing completed: \(success)")
+            }
+        }
+        CourseManager.shared.syncPreferences()
+    }
+    
+    @objc func courseManagerLoggedOut(_ note: Notification) {
+        if CloudSyncManager.allManagers.contains(where: { $0.fileList().count > 0 }) {
+            // Ask to delete or keep files
+            cloudSyncPaused = true
+            let alert = UIAlertController(title: "Local Files", message: "Would you like to keep a local copy of your roads and schedules? If logging in as another user, choose Delete.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Keep", style: .default, handler: { ac in
+                self.cloudSyncPaused = false
+            }))
+            alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { ac in
+                self.cloudSyncPaused = false
+                guard !CourseManager.shared.isLoggedIn else {
+                    print("Logged in again!")
+                    return
+                }
+                for manager in CloudSyncManager.allManagers {
+                    for file in manager.fileList() {
+                        manager.deleteFile(with: file, localOnly: true)
+                        manager.removeSyncInformation(forFileNamed: file)
+                    }
+                }
+            }))
+            alert.show()
+        }
+    }
+    
+    @objc func courseManagerLoggedIn(_ note: Notification) {
+        guard let userID = CourseManager.shared.recommenderUserID,
+            userID.count > 0 else {
+                return
+        }
+        var users = Set<String>(CloudSyncManager.allManagers.flatMap({ m in m.fileList().compactMap({ m.userID(forFileNamed: $0) }) }))
+        users.remove(userID)
+        if users.count > 0 {
+            let userString = users.count > 1 ? "\(users.count) users" : "another user"
+                
+            // Ask to delete or merge other users' files
+            cloudSyncPaused = true
+            let alert = UIAlertController(title: "Local Files", message: "You have files from \(userString) on your device.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Merge", style: .default, handler: { ac in
+                self.cloudSyncPaused = false
+                for manager in CloudSyncManager.allManagers {
+                    for file in manager.fileList() {
+                        guard let fileUser = manager.userID(forFileNamed: file), fileUser != userID else {
+                            continue
+                        }
+                        manager.removeSyncInformation(forFileNamed: file)
+                    }
+                }
+                DispatchQueue.global().async {
+                    self.autosync()
+                }
+            }))
+            alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { ac in
+                self.cloudSyncPaused = false
+                for manager in CloudSyncManager.allManagers {
+                    for file in manager.fileList() {
+                        guard let fileUser = manager.userID(forFileNamed: file), fileUser != userID else {
+                            continue
+                        }
+                        manager.deleteFile(with: file, localOnly: true)
+                        manager.removeSyncInformation(forFileNamed: file)
+                    }
+                }
+                DispatchQueue.global().async {
+                    self.autosync()
+                }
+            }))
+            alert.show()
+        } else {
+            DispatchQueue.global().async {
+                self.autosync()
+            }
+        }
+    }
+    
     // MARK: - Authentication
     
     var authenticationCompletionBlocks: [(String?) -> Void]?
@@ -519,10 +606,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
                 print("Loading recent \(recentName)")
                 loadCourseroad(named: recentName)
             } else {
-                currentUser = nil
-                if let courseroadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController {
-                    courseroadVC.reloadCollectionView()
-                }
+                loadNewCourseroad(named: InitialDocumentTitle + CloudSyncManager.roadManager.pathExtension)
             }
         }
     }

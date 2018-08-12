@@ -63,7 +63,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         ]
         
         NotificationCenter.default.addObserver(self, selector: #selector(ScheduleViewController.courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(ScheduleViewController.cloudSyncManagerFinishedSyncing(_:)), name: .CloudSyncManagerFinishedSyncing, object: CloudSyncManager.scheduleManager)
+
         CloudSyncManager.scheduleManager.delegate = self
     }
     
@@ -112,6 +113,12 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     
     @objc func courseManagerFinishedLoading(_ note: Notification) {
         updateDisplayedSchedules()
+    }
+    
+    @objc func cloudSyncManagerFinishedSyncing(_ note: Notification) {
+        if let browser = documentBrowser {
+            browser.items = loadDocumentBrowserItems()
+        }
     }
     
     // MARK: - State Restoration
@@ -877,17 +884,41 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     
     // MARK: - Loading Different Roads
     
+    var documentBrowser: DocumentBrowseViewController?
     lazy var thumbnailImageComputeQueue = ComputeQueue(label: "ScheduleVC.thumbnailImage")
     
     @IBAction func openButtonPressed(_ sender: AnyObject) {
         guard CourseManager.shared.isLoaded,
-            let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController,
-            let roadDir = CloudSyncManager.roadManager.filesDirectory,
-            let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {
+            let browser = storyboard?.instantiateViewController(withIdentifier: "DocumentBrowser") as? DocumentBrowseViewController else {
                 return
         }
+        documentBrowser = browser
         browser.delegate = self
         // Generate items
+        browser.items = loadDocumentBrowserItems()
+        if browser.items.count > 1 {
+            browser.itemToHighlight = browser.items.first(where: { $0.identifier == (currentSchedule?.filePath as NSString?)?.lastPathComponent })
+        }
+        
+        let nav = UINavigationController(rootViewController: browser)
+        browser.navigationItem.title = "My Schedules"
+        if let barItem = sender as? UIBarButtonItem {
+            browser.showsCancelButton = false
+            nav.modalPresentationStyle = .popover
+            nav.popoverPresentationController?.barButtonItem = barItem
+            present(nav, animated: true, completion: nil)
+        } else {
+            browser.navigationItem.prompt = "Select an existing schedule or add a new one."
+            browser.showsCancelButton = true
+            present(nav, animated: true, completion: nil)
+        }
+    }
+    
+    func loadDocumentBrowserItems() -> [DocumentBrowseViewController.Item] {
+        guard let roadDir = CloudSyncManager.roadManager.filesDirectory,
+            let dirContents = try? FileManager.default.contentsOfDirectory(atPath: roadDir) else {
+                return []
+        }
         var items: [(DocumentBrowseViewController.Item, Date?)] = []
         let todayFormatter = DateFormatter()
         todayFormatter.dateStyle = .none
@@ -921,12 +952,12 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             thumbnailImageComputeQueue.async {
                 item.image = tempSchedule.generateThumbnailImage()
                 DispatchQueue.main.async {
-                    browser.update(item: item)
+                    self.documentBrowser?.update(item: item)
                 }
             }
             items.append((item, modDate))
         }
-        browser.items = items.sorted(by: {
+        return items.sorted(by: {
             if $1.1 == nil && $0.1 == nil {
                 return false
             } else if $1.1 == nil {
@@ -936,26 +967,11 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             }
             return $0.1!.compare($1.1!) == .orderedDescending
         }).map({ $0.0 })
-        if browser.items.count > 1 {
-            browser.itemToHighlight = browser.items.first(where: { $0.identifier == (currentSchedule?.filePath as NSString?)?.lastPathComponent })
-        }
-        
-        let nav = UINavigationController(rootViewController: browser)
-        browser.navigationItem.title = "My Schedules"
-        if let barItem = sender as? UIBarButtonItem {
-            browser.showsCancelButton = false
-            nav.modalPresentationStyle = .popover
-            nav.popoverPresentationController?.barButtonItem = barItem
-            present(nav, animated: true, completion: nil)
-        } else {
-            browser.navigationItem.prompt = "Select an existing schedule or add a new one."
-            browser.showsCancelButton = true
-            present(nav, animated: true, completion: nil)
-        }
     }
     
     func documentBrowserDismissed(_ browser: DocumentBrowseViewController) {
         dismiss(animated: true, completion: nil)
+        documentBrowser = nil
     }
     
     func documentBrowserAddedItem(_ browser: DocumentBrowseViewController) {
@@ -986,6 +1002,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             }
             
             self.dismiss(animated: true, completion: nil)
+            self.documentBrowser = nil
             self.loadNewSchedule(named: newID)
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -1003,6 +1020,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                 } else {
                     self.loadNewSchedule(named: "Schedule" + SchedulePathExtension)
                     self.dismiss(animated: true, completion: nil)
+                    self.documentBrowser = nil
                 }
             }
         }
@@ -1083,6 +1101,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     func documentBrowser(_ browser: DocumentBrowseViewController, selectedItem item: DocumentBrowseViewController.Item) {
         loadSchedule(named: item.identifier)
         dismiss(animated: true, completion: nil)
+        documentBrowser = nil
     }
     
     func cloudSyncManager(_ manager: CloudSyncManager, modifiedFileNamed name: String) {

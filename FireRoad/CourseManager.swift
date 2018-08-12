@@ -13,6 +13,8 @@ import MobileCoreServices
 extension Notification.Name {
     static let CourseManagerFinishedLoading = Notification.Name(rawValue: "CourseManagerFinishedLoadingNotification")
     static let CourseManagerPreferenceSynced = Notification.Name(rawValue: "CourseManagerPreferenceSyncedNotification")
+    static let CourseManagerLoggedOut = Notification.Name(rawValue: "CourseManagerLoggedOutNotification")
+    static let CourseManagerLoggedIn = Notification.Name(rawValue: "CourseManagerLoggedInNotification")
 }
 
 protocol CourseManagerAuthenticationDelegate {
@@ -589,19 +591,29 @@ class CourseManager: NSObject {
     static let userRatingsDefaultsKey = "CourseManager.userRatings"
     static let allSubjectRatingsDefaultsKey = "CourseManager.allSubjectRatings"
 
-    private var _recommenderUserID: Int?
-    var recommenderUserID: Int? {
+    private var _recommenderUserID: String?
+    var recommenderUserID: String? {
         get {
             if _recommenderUserID == nil {
-                _recommenderUserID = UserDefaults.standard.integer(forKey: CourseManager.userIDDefaultsKey)
-            }
-            if _recommenderUserID == 0 {
-                _recommenderUserID = nil
+                _recommenderUserID = UserDefaults.standard.string(forKey: CourseManager.userIDDefaultsKey)
             }
             return _recommenderUserID
         } set {
             _recommenderUserID = newValue
             UserDefaults.standard.set(_recommenderUserID, forKey: CourseManager.userIDDefaultsKey)
+        }
+    }
+    
+    private var _recommenderUsername: String?
+    var recommenderUsername: String? {
+        get {
+            if _recommenderUsername == nil {
+                _recommenderUsername = UserDefaults.standard.string(forKey: CourseManager.userNameDefaultsKey)
+            }
+            return _recommenderUsername
+        } set {
+            _recommenderUsername = newValue
+            UserDefaults.standard.set(_recommenderUsername, forKey: CourseManager.userNameDefaultsKey)
         }
     }
     
@@ -669,8 +681,14 @@ class CourseManager: NSObject {
                     return
                 }
                 let success = self.extractAccessInfo(from: jsonString)
+                let wasLoggedIn = self.isLoggedIn
                 self.isLoggedIn = success
                 AppSettings.shared.hasShownSignup = success
+                if !wasLoggedIn {
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .CourseManagerLoggedIn, object: self)
+                    }
+                }
                 completion(success)
             }
             return
@@ -699,6 +717,7 @@ class CourseManager: NSObject {
                     }
                     return
             }
+            let wasLoggedIn = self.isLoggedIn
             self.isLoggedIn = true
             // Get current semester
             do {
@@ -711,6 +730,11 @@ class CourseManager: NSObject {
                 }
             } catch {
                 print("Error decoding JSON: \(error)")
+            }
+            if !wasLoggedIn {
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .CourseManagerLoggedIn, object: self)
+                }
             }
             completion(true)
         })
@@ -727,10 +751,18 @@ class CourseManager: NSObject {
         return keychain["access_token"] as? String
     }
     
-    func deleteAccessToken() {
+    func logout() {
         let keychain = KeychainItemWrapper(identifier: "FireRoadRecommendationUser", accessGroup: nil)
         keychain["access_token"] = nil
         isLoggedIn = false
+        recommenderUserID = nil
+        recommenderUsername = nil
+        URLSession.shared.reset {
+            print("Reset session")
+        }
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .CourseManagerLoggedOut, object: self)
+        }
     }
     
     func extractAccessInfo(from jsonString: String) -> Bool {
@@ -746,6 +778,18 @@ class CourseManager: NSObject {
                     return false
             }
             saveAccessToken(accessToken)
+            if let academicID = info["academic_id"] as? String {
+                print("User name \(academicID)")
+                recommenderUsername = academicID
+            } else {
+                recommenderUsername = nil
+            }
+            if let userID = info["sub"] as? String {
+                print("User ID \(userID)")
+                recommenderUserID = userID
+            } else {
+                recommenderUserID = nil
+            }
             if let semester = info["current_semester"] as? Int {
                 print("Semester \(semester)")
                 AppSettings.shared.userCurrentSemester = semester

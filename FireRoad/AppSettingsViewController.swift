@@ -88,7 +88,9 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath)
         let textLabel = (cell.viewWithTag(12) as? UILabel) ?? cell.textLabel
+        let detailTextLabel = (cell.viewWithTag(34) as? UILabel) ?? cell.detailTextLabel
         textLabel?.text = setting.title
+        detailTextLabel?.text = ""
         
         switch setting.type {
         case .boolean:
@@ -98,7 +100,9 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
                 cellSwitch.addTarget(self, action: #selector(switchActivated(_:)), for: .valueChanged)
             }
         case .readOnlyText, .button:
-            break
+            if let value = setting.currentValue as? String {
+                detailTextLabel?.text = value
+            }
         case .checkmark:
             cell.accessoryType = (setting.currentValue as? Bool) == true ? .checkmark : .none
             textLabel?.textColor = (setting.currentValue as? Bool) == true ? cell.tintColor : UIColor.black
@@ -117,7 +121,7 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
             setting.setter?(true)
         }
         if group.reloadOnSelect {
-            tableView.reloadRows(at: (0..<group.items.count).map({ IndexPath(row: $0, section: indexPath.section )}), with: .fade)
+            tableView.reloadSections(IndexSet(integer: indexPath.section), with: .fade)
         }
     }
     

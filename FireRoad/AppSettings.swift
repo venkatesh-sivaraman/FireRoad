@@ -154,11 +154,13 @@ class AppSettings: NSObject {
                 }
             })]
         if self.allowsRecommendations == true {
-            recItems.append(AppSettingsItem(title: CourseManager.shared.isLoggedIn ? "Log Out" : "Log In", type: .button, getter: nil, setter: { _ in
+            recItems.append(AppSettingsItem(title: CourseManager.shared.isLoggedIn ? "Log Out" : "Log In", type: .button, getter: { CourseManager.shared.recommenderUsername }, setter: { _ in
                 if CourseManager.shared.isLoggedIn {
-                    CourseManager.shared.deleteAccessToken()
+                    self.allowsRecommendations = false
+                    CourseManager.shared.logout()
+                } else {
+                    self.presentationDelegate?.showAuthenticationView()
                 }
-                CourseManager.shared.loginIfNeeded({ _ in })
             }))
         }
         return [

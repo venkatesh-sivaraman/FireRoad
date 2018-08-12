@@ -30,9 +30,16 @@ class DocumentBrowseViewController: UITableViewController {
         }
     }
     
-    var items: [Item] = []
+    var items: [Item] = [] {
+        didSet {
+            if isViewLoaded && !isEditingRow {
+                tableView.reloadSections(IndexSet(integer: 0), with: .fade)
+            }
+        }
+    }
     var showsCancelButton = false
     var itemToHighlight: Item? = nil
+    var isEditingRow = false
     
     weak var delegate: DocumentBrowseDelegate?
     
@@ -145,14 +152,24 @@ class DocumentBrowseViewController: UITableViewController {
         }
     }
     
+    override func tableView(_ tableView: UITableView, willBeginEditingRowAt indexPath: IndexPath) {
+        isEditingRow = true
+    }
+    
+    override func tableView(_ tableView: UITableView, didEndEditingRowAt indexPath: IndexPath?) {
+        isEditingRow = false
+    }
+    
     @available(iOS 11.0, *)
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let delete = UIContextualAction(style: .destructive, title: "Delete") { (_, _, completionHandler) in
             self.deleteItem(at: indexPath)
+            self.isEditingRow = false
             completionHandler(true)
         }
         let rename = UIContextualAction(style: .normal, title: "Rename") { (_, _, completionHandler) in
             self.delegate?.documentBrowser(self, wantsRename: self.items[indexPath.row], completion: { (newItem) in
+                self.isEditingRow = false
                 if let item = newItem {
                     self.items[indexPath.row] = item
                     self.tableView.reloadRows(at: [indexPath], with: .fade)
@@ -165,6 +182,7 @@ class DocumentBrowseViewController: UITableViewController {
         rename.backgroundColor = self.view.tintColor
         let duplicate = UIContextualAction(style: .normal, title: "Duplicate") { (_, _, completionHandler) in
             self.delegate?.documentBrowser(self, wantsDuplicate: self.items[indexPath.row], completion: { (newItem) in
+                self.isEditingRow = false
                 if let item = newItem {
                     self.items.insert(item, at: 0)
                     self.tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .fade)
