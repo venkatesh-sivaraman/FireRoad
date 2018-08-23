@@ -64,6 +64,8 @@ class CourseCatalogParser: NSObject {
         } else if nodeIsDelimitingATag(node) {
             shouldStop?.pointee = true
             return informationItems
+        } else if node.tagText.lowercased() == "a" {
+            informationItems.append(node.contents.trimmingCharacters(in: .whitespacesAndNewlines))
         } else if node.tagText.lowercased() == "span", node.contents.count > 0 {
             informationItems.append(node.contents.trimmingCharacters(in: .whitespacesAndNewlines))
         } else {
@@ -211,10 +213,8 @@ class CourseCatalogParser: NSObject {
             } else {
                 attributes[.prerequisites] = filterCourseListString(String(item[prereqRange.upperBound..<item.endIndex]))
             }
-            
         } else if let coreqRange = item.range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) {
             attributes[.corequisites] = filterCourseListString(String(item[coreqRange.upperBound..<item.endIndex]))
-            
         } else if item.contains(CourseCatalogConstants.urlPrefix) {
             // Don't save URLs
         } else if classTimeRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)) != nil {
@@ -228,7 +228,6 @@ class CourseCatalogParser: NSObject {
             if quarterInformation.count > 0 {
                 attributes[.quarterInformation] = quarterInformation
             }
-            
         } else if let subjectID = attributes[.subjectID] as? String,
             let firstMatch = courseIDListRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)),
             let firstMatchRange = Range(firstMatch.range, in: item),
@@ -240,18 +239,14 @@ class CourseCatalogParser: NSObject {
         } else if item.range(of: CourseCatalogConstants.graduate, options: .caseInsensitive) != nil,
             abs(item.count - CourseCatalogConstants.graduate.count) < 10 {
             attributes[.subjectLevel] = CourseCatalogConstants.graduateValue
-        } else if item.count > 75 {
-            if let existingDescription = attributes[.description] as? String,
-                existingDescription.count > item.count {
-                if let notes = attributes[.notes] as? String {
-                    attributes[.notes] = notes + "\n" + item.trimmingCharacters(in: .whitespacesAndNewlines)
-                } else {
-                    attributes[.notes] = item.trimmingCharacters(in: .whitespacesAndNewlines)
-                }
+        } else if item.count > 75,
+            let existingDescription = attributes[.description] as? String,
+            existingDescription.count > item.count {
+            if let notes = attributes[.notes] as? String {
+                attributes[.notes] = notes + "\n" + item.trimmingCharacters(in: .whitespacesAndNewlines)
             } else {
-                attributes[.description] = item.trimmingCharacters(in: .whitespacesAndNewlines)
+                attributes[.notes] = item.trimmingCharacters(in: .whitespacesAndNewlines)
             }
-            
         } else if item.range(of: CourseCatalogConstants.meetsWithPrefix, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.equivalentSubjectsPrefix, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.jointSubjectsPrefix, options: .caseInsensitive) != nil {
@@ -283,6 +278,9 @@ class CourseCatalogParser: NSObject {
                 }
             }
             
+        } else if item.count > 75 {
+            // Long but not a subject list
+            attributes[.description] = item.trimmingCharacters(in: .whitespacesAndNewlines)
         } else if let notOfferedRange = item.range(of: CourseCatalogConstants.notOfferedPrefix, options: .caseInsensitive) {
             attributes[.notOfferedYear] = String(item[notOfferedRange.upperBound..<item.endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
             

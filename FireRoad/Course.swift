@@ -83,7 +83,7 @@ enum CommunicationAttribute: String, AttributeEnum {
     }
     
     func satisfies(_ attribute: CommunicationAttribute?) -> Bool {
-        return attribute != nil && attribute == self
+        return attribute != nil && (self == .ciHW || attribute == self)
     }
 }
 

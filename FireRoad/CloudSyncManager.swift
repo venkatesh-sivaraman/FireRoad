@@ -879,7 +879,7 @@ class CloudSyncManager: NSObject {
         if id != nil {
             setDocumentID(id, forFileNamed: newName)
             if let userID = CourseManager.shared.recommenderUserID {
-                setUserID(userID, forFileNamed: name)
+                setUserID(userID, forFileNamed: newName)
             }
         }
         if id == nil || newName != name {
