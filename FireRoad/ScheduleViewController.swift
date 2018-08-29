@@ -116,7 +116,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     @objc func cloudSyncManagerFinishedSyncing(_ note: Notification) {
-        if let browser = documentBrowser {
+        if let browser = documentBrowser,
+            (note.object as? CloudSyncManager)?.lastSyncHadChange == true {
             browser.items = loadDocumentBrowserItems()
         }
     }
@@ -415,6 +416,10 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             for item in unit.scheduleItems {
                 let startSlot = ScheduleSlotManager.slotIndex(for: item.startTime)
                 let endSlot = ScheduleSlotManager.slotIndex(for: item.endTime)
+                guard startSlot < endSlot else {
+                    // Invalid schedule unit
+                    continue
+                }
                 for slot in startSlot..<endSlot {
                     guard slot >= 0 && slot < ScheduleSlotManager.slots.count else {
                         continue

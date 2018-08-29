@@ -530,8 +530,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             let semester = UserSemester(rawValue: indexPath.section) else {
                 return
         }
-        let course = user.courses(forSemester: semester)[indexPath.item]
-        viewDetails(for: course)
+        let courses = user.courses(forSemester: semester)
+        guard indexPath.item < courses.count else {
+            return
+        }
+        viewDetails(for: courses[indexPath.item])
     }
     
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
@@ -657,6 +660,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             let item = user.courses(forSemester: semester).index(of: course) else {
                 return
         }
+        print("Current user is \(user)")
         let indexPath = IndexPath(item: item, section: semester.rawValue)
         user.delete(course, fromSemester: semester)
         if let cell = collectionView.cellForItem(at: indexPath) {
@@ -784,7 +788,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     @objc func cloudSyncManagerFinishedSyncing(_ note: Notification) {
-        if let browser = documentBrowser {
+        if let browser = documentBrowser,
+            (note.object as? CloudSyncManager)?.lastSyncHadChange == true {
             browser.items = loadDocumentBrowserItems()
         }
     }

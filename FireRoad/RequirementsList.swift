@@ -425,7 +425,8 @@ class RequirementsListStatement: NSObject {
     }
     
     func ceilingThreshold(_ threshold: (Int, Int)) -> (Int, Int) {
-        return (min(max(0, threshold.0), threshold.1), threshold.1)
+        let maxFirstVal = threshold.1 == 0 ? Int.max : threshold.1
+        return (min(max(0, threshold.0), maxFirstVal), threshold.1)
     }
     
     /**
@@ -486,7 +487,7 @@ class RequirementsListStatement: NSObject {
         
         var totalSatisfyingCourses = satisfyingPerCategory.reduce(Set<Course>(), { $0.union($1.value) })
         // Set isFulfilled and fulfillmentProgresses
-        var sortedProgresses = reqs.sorted(by: { $0.percentageFulfilled > $1.percentageFulfilled })
+        var sortedProgresses = reqs.sorted(by: { $0.rawPercentageFulfilled > $1.rawPercentageFulfilled })
         if threshold == nil, distinctThreshold == nil {
             // Simple "any" statement
             isFulfilled = (numRequirementsSatisfied > 0)
@@ -543,12 +544,20 @@ class RequirementsListStatement: NSObject {
         return totalSatisfyingCourses
     }
     
+    var rawPercentageFulfilled: Float {
+        if connectionType == .none, manualProgress == nil {
+            return 0.0
+        }
+        let fulfilled = fulfillmentProgress
+        return Float(fulfilled.0) / Float(max(fulfilled.1, threshold?.criterion == .units ? Threshold.defaultUnitCount : 1)) * 100.0
+    }
+    
     var percentageFulfilled: Float {
         if connectionType == .none, manualProgress == nil {
             return 0.0
         }
         let fulfilled = fulfillmentProgress
-        if fulfilled.0 == 0, fulfilled.1 == 0 {
+        if fulfilled.1 == 0 {
             return 0.0
         }
         return min(1.0, Float(fulfilled.0) / Float(fulfilled.1)) * 100.0

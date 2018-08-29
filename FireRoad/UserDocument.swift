@@ -14,14 +14,24 @@ class UserDocument: NSObject {
             if filePath != oldValue {
                 needsSave = true
             }
-            if saveTimer?.isValid == true {
+            setupTimer()
+        }
+    }
+    
+    func setupTimer() {
+        if saveTimer?.isValid == true {
+            if readOnly {
                 saveTimer?.invalidate()
             }
-            if !readOnly {
-                saveTimer = Timer.scheduledTimer(withTimeInterval: saveInterval, repeats: true, block: { _ in
-                    self.autosave()
-                })
-            }
+            return
+        }
+        if !readOnly {
+            saveTimer = Timer.scheduledTimer(withTimeInterval: saveInterval, repeats: true, block: { [weak self] _ in
+                guard let `self` = self else {
+                    return
+                }
+                self.autosave()
+            })
         }
     }
     
@@ -34,7 +44,15 @@ class UserDocument: NSObject {
     
     var needsSave = false
     var shouldCloudSync = true
-    var readOnly = false
+    var readOnly = false {
+        didSet {
+            if readOnly, saveTimer?.isValid == true {
+                saveTimer?.invalidate()
+            } else if !readOnly && oldValue {
+                setupTimer()
+            }
+        }
+    }
     private var saveInterval = 2.0
     private var saveTimer: Timer?
     
@@ -46,6 +64,7 @@ class UserDocument: NSObject {
         super.init()
         self.readOnly = readOnly
         try readUserCourses(from: path)
+        setupTimer()
     }
 
     deinit {

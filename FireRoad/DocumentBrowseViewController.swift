@@ -185,7 +185,6 @@ class DocumentBrowseViewController: UITableViewController {
                 self.isEditingRow = false
                 if let item = newItem {
                     self.items.insert(item, at: 0)
-                    self.tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .fade)
                     completionHandler(true)
                 } else {
                     completionHandler(false)

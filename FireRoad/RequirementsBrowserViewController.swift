@@ -224,9 +224,9 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     }
     
     @IBAction func helpButtonTapped(_ sender: AnyObject) {
-        let alert = UIAlertController(title: "Requirements Support", message: "To request a correction or update to a set of course requirements, please contact us with the name of the major or minor, as well as any specific errors.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Contact", style: .default, handler: { (ac) in
-            guard let url = URL(string: "mailto:base12apps@gmail.com?subject=FireRoad%20Requirements%20Feedback") else {
+        let alert = UIAlertController(title: "Requirements Support", message: "To request a correction or update to a set of course requirements, please visit the online Requirements Editor.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Go", style: .default, handler: { (ac) in
+            guard let url = URL(string: "https://venkats.scripts.mit.edu/fireroad/requirements") else {
                 return
             }
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
@@ -356,6 +356,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
                             fulfillmentIndicator?.backgroundColor = UIColor(hue: 0.005 * CGFloat(progress), saturation: 0.9, brightness: 0.7, alpha: 1.0)
                             fulfillmentIndicator?.layer.cornerRadius = RequirementsListViewController.fulfillmentIndicatorCornerRadius
                             fulfillmentIndicator?.layer.masksToBounds = true
+                            detailTextLabel?.sizeToFit()
                         }, completion: nil)
                     } else {
                         detailTextLabel?.text = ""

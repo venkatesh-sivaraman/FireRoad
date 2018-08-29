@@ -325,6 +325,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 fulfillmentIndicator?.backgroundColor = color
                 fulfillmentIndicator?.layer.cornerRadius = RequirementsListViewController.fulfillmentIndicatorCornerRadius
                 fulfillmentIndicator?.layer.masksToBounds = true
+                detailTextLabel?.sizeToFit()
                 return cell
             }
         }

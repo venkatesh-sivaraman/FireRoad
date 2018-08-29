@@ -348,6 +348,8 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
                         label.text = message
                     } else if AppSettings.shared.allowsRecommendations != true {
                         label.text = "Turn on Sync and Recommendations in the settings menu above to receive recommendations."
+                    } else if !CourseManager.shared.isConnectedToNetwork {
+                        label.text = "Couldn't connect to the server to receive recommendations."
                     } else if !CourseManager.shared.isLoggedIn {
                         label.text = "Log in from the settings menu above to receive recommendations."
                     } else {

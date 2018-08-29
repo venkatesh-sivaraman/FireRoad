@@ -110,6 +110,14 @@ class CourseCatalogParser: NSObject {
         return regex
     }()
     
+    let spaceRegex = try! NSRegularExpression(pattern: "(?<=[^\\s])\\s+(?=[\\s,\\.;-])", options: [])
+    
+    func condenseSpaces(in string: String) -> String {
+        let mut = NSMutableString(string: string)
+        spaceRegex.replaceMatches(in: mut, options: [], range: NSRange(location: 0, length: mut.length), withTemplate: "")
+        return (mut as String).trimmingCharacters(in: .whitespaces)
+    }
+    
     let informationSeparator = CharacterSet.newlines.union(CharacterSet(charactersIn: "-/,;"))
     
     func filterCourseListString(_ list: String) -> [[String]] {
@@ -151,7 +159,7 @@ class CourseCatalogParser: NSObject {
         // Time regex matches "MTWRF9-11 ( 1-123 )" or "MTWRF EVE (8-10) ( 1-234 )".
         guard let classTypeRegex = try? NSRegularExpression(pattern: "(\\w+):(.+?)(?=\\z|\\w+:)", options: .dotMatchesLineSeparators),
             let timeRegex = try? NSRegularExpression(pattern: "(?<!\\(\\s\\w?)([MTWRFS]+)\\s*(?:([0-9-\\.:]+)|(EVE\\s*\\(\\s*(.+?)\\s*\\)))", options: []),
-            let locationRegex = try? NSRegularExpression(pattern: "[A-Z]*[0-9ABCN-]+", options: []) else {
+            let locationRegex = try? NSRegularExpression(pattern: "\\(\\s*([A-Z0-9,\\s-]+)\\s*\\)", options: []) else {
             print("Failed to load class type/time regex")
             return schedule
         }
@@ -169,9 +177,23 @@ class CourseCatalogParser: NSObject {
             } else {
                 let times = contents.components(separatedBy: "or")
                 for time in times {
-                    var locationStart = 0
+                    var locationStart = time.count
+                    var locationComps: [String] = [""]
+                    if let locationMatch = locationRegex.matches(in: time, options: [], range: NSRange(location: 0, length: time.count)).first(where: {
+                        if let locationRange = Range($0.range(at: 1), in: time),
+                            !String(time[locationRange]).contains("PM") {
+                            return true
+                        }
+                        return false
+                    }), let locationRange = Range(locationMatch.range(at: 1), in: time),
+                        !String(time[locationRange]).contains("PM") {
+                        
+                        // Replace the empty component
+                        locationComps = String(time[locationRange]).components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        locationStart = min(locationStart, locationMatch.range(at: 0).location)
+                    }
                     var timeComps: [String] = []
-                    for submatch in timeRegex.matches(in: time, options: [], range: NSRange(location: 0, length: time.count)) {
+                    for submatch in timeRegex.matches(in: time, options: [], range: NSRange(location: 0, length: locationStart)) {
                         guard let dayRange = Range(submatch.range(at: 1), in: time) else {
                             print("Couldn't get days in \(time)")
                             continue
@@ -186,13 +208,9 @@ class CourseCatalogParser: NSObject {
                         } else {
                             print("Couldn't get time of day in \(time)")
                         }
-                        locationStart = submatch.range.location + submatch.range.length
                     }
-                    for locationMatch in locationRegex.matches(in: time, options: [], range: NSRange(location: locationStart, length: time.count - locationStart)) {
-                        guard let locationRange = Range(locationMatch.range(at: 0), in: time) else {
-                            continue
-                        }
-                        typeComps.append(([String(time[locationRange])] + timeComps).joined(separator: "/"))
+                    for loc in locationComps {
+                        typeComps.append(([loc] + timeComps).joined(separator: "/"))
                     }
                 }
             }

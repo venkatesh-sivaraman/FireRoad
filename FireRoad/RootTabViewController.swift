@@ -61,7 +61,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        if !AppSettings.shared.showedIntro || AppSettings.shared.userCurrentSemester == 0 {
+        if !AppSettings.shared.showedIntro {
             showingIntro = true
             showIntro()
         }
@@ -238,6 +238,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
 
     var currentUser: User? {
         didSet {
+            print("SET CURRENT USER to \(currentUser)")
             if CourseManager.shared.isLoaded {
                 currentUser?.setBaselineRatings()
             }
@@ -313,7 +314,9 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         CloudSyncManager.roadManager.syncAll { (success) in
             print("Road syncing completed: \(success)")
             if let recentName = CloudSyncManager.roadManager.recentlyModifiedDocumentName() {
-                self.loadCourseroad(named: recentName)
+                DispatchQueue.main.async {
+                    self.loadCourseroad(named: recentName)
+                }
             }
             CloudSyncManager.scheduleManager.syncAll { (success) in
                 print("Schedule syncing completed: \(success)")

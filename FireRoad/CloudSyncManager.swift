@@ -21,7 +21,7 @@ extension Notification.Name {
 /// Used for printing success messages about cloud sync
 func debugPrint(_ something: Any) {
     #if DEBUG
-    print(something)
+    //print(something)
     #endif
 }
 
@@ -284,6 +284,7 @@ class CloudSyncManager: NSObject {
     }
     
     var syncInProgress = false
+    var lastSyncHadChange = false
     
     // MARK: Individual Files
     
@@ -341,6 +342,7 @@ class CloudSyncManager: NSObject {
             debugPrint("Syncing of \(name) was successful: \(success), \(syncResult?.status ?? "no status")")
             if let newContents = syncResult?.newContents {
                 debugPrint("Updating contents")
+                document.readOnly = false
                 do {
                     try document.readCourses(fromJSON: newContents)
                     if let newName = syncResult?.newName, newName != name {
@@ -631,6 +633,7 @@ class CloudSyncManager: NSObject {
                 queue.async(taskName: myFileName, waitForSignal: true) {
                     if self.documentID(forFileNamed: myFileName) == nil {
                         // Upload the file
+                        self.lastSyncHadChange = true
                         let deleted = self.syncAllUploadFile(named: myFileName, in: queue, deleteIfEmpty: (myFileName == InitialDocumentTitle))
                         if deleted {
                             deletedInitial = myFileName
@@ -660,6 +663,7 @@ class CloudSyncManager: NSObject {
                     self.syncAllSyncFile(named: name, in: queue)
                 } else {
                     // Download the new file
+                    self.lastSyncHadChange = true
                     self.syncAllDownloadFile(with: id, in: queue)
                 }
             }
@@ -688,10 +692,15 @@ class CloudSyncManager: NSObject {
             return
         }
         let doc = self.newDocumentGenerator()
+        doc.readOnly = true
         doc.filePath = url.path
         do {
             try doc.readUserCourses(from: url.path)
             self.sync(with: doc, justModified: false, pause: false) { (success, result) in
+                if let result = result,
+                    result.status != SyncResult.noChange {
+                    self.lastSyncHadChange = true
+                }
                 queue.proceed()
             }
         } catch {
@@ -734,6 +743,7 @@ class CloudSyncManager: NSObject {
         }
         
         let doc = self.newDocumentGenerator()
+        doc.readOnly = true
         let path = (dir as NSString).appendingPathComponent(name + pathExtension)
         doc.filePath = path
         do {
@@ -773,7 +783,8 @@ class CloudSyncManager: NSObject {
                 usleep(500)
             }
             self.syncInProgress = true
-
+            self.lastSyncHadChange = false
+            
             debugPrint("Executing sync all")
             var request = URLRequest(url: url)
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -931,6 +942,7 @@ class CloudSyncManager: NSObject {
             
             if shouldSync {
                 let doc = newDocumentGenerator()
+                doc.readOnly = true
                 doc.filePath = newURL.path
                 try doc.readUserCourses(from: newURL.path)
                 sync(with: doc, pause: false)

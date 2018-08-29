@@ -185,7 +185,13 @@ class AppSettings: NSObject {
                         return
                     }
                     UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                })], header: "Acknowledgements", footer: nil, reloadOnSelect: false)
+                }),
+                AppSettingsItem(title: "Requirements Editor", type: .button, getter: nil, setter: { _ in
+                    guard let url = URL(string: "https://venkats.scripts.mit.edu/fireroad/requirements") else {
+                        return
+                    }
+                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                })], header: "About and Contact", footer: "Use the Requirements Editor to request changes to major and minor specifications. For other corrections or feedback, choose Send Feedback.", reloadOnSelect: false)
         ]}
     
     func yearSettingsItem(with title: String, yearNumber: Int) -> AppSettingsItem {
