@@ -376,6 +376,7 @@ class RequirementsListStatement: NSObject {
             // Turns out this requirement is a variable
             if let subReq = dictionary[req] {
                 subReq.substituteVariableDefinitions(from: dictionary)
+                requirement = nil
                 requirements = [subReq]
             }
         } else if let reqList = requirements {

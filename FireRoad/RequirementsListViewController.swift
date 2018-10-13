@@ -74,14 +74,18 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             !(requirement.connectionType != .all || alwaysShowTitle) {
             items.append(PresentationItem(cellType: .title2, statement: nil, text: requirement.thresholdDescription.capitalizingFirstLetter() + ":"))
         }
-        if requirement.minimumNestDepth <= 1, (requirement.maximumNestDepth <= 2 || level > 0),
+        if requirement.minimumNestDepth <= 1 ||
+            (requirement.requirements != nil &&
+            requirement.requirements!.filter({ $0.requirement != nil }).count > 0),
             requirement.requirements?.first(where: { $0.title != nil && $0.title!.count > 0 }) == nil {
+            // Show all the child requirements in a single row
             items.append(PresentationItem(cellType: .courseList, statement: requirement, text: nil))
             if requirement.thresholdDescription.count > 0 {
                 //items.append(PresentationItem(cellType: .courseListAccessory, statement: nil, text: requirement.thresholdDescription))
                 // Indicate this on the cell somehow
             }
         } else if let reqs = requirement.requirements {
+            // Show each child requirement as a separate row
             let showTitles = reqs.contains(where: { $0.connectionType == .all && $0.requirements != nil && $0.requirements!.count > 0 }) && reqs.contains(where: { $0.connectionType == .any })
             for req in reqs {
                 items += presentationItems(for: req, at: level + 1, alwaysShowTitle: showTitles)

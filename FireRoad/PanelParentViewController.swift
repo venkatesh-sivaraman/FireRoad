@@ -105,7 +105,7 @@ extension CourseViewControllerProvider {
         if let gir = course.girAttribute, gir != .lab, gir != .rest {
             listVC.searchTerm = gir.rawValue
         }
-        listVC.searchOptions = SearchOptions.noFilter.filterSearchFields(.searchPrereqs)
+        listVC.searchOptions = SearchOptions.noFilter.filterSearchFields(.searchPrereqs).replace(oldValue: .containsSearchTerm, with: .matchesSearchTerm)
         listVC.showsHeaderBar = false
         completion(listVC)
     }
