@@ -261,77 +261,33 @@ class User: UserDocument {
         if let warnings = warningsCache[course] {
             return warnings
         }
-        var unsatisfiedPrereqs: [String] = []
-        for prereqList in course.prerequisites {
-            var satisfied = false
-            var satisfiedByNonAuto = false
-            var containsNonAuto = false
-            for prereq in prereqList {
-                for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
-                    for otherCourse in courses(forSemester: otherSemester) {
-                        if otherCourse.satisfies(requirement: prereq),
-                            otherSemester.rawValue < semester.rawValue || (course.quarterOffered != .beginningOnly && otherCourse.quarterOffered == .beginningOnly) {
-                            satisfied = true
-                            break
-                        }
-                    }
-                    if satisfied {
-                        break
-                    }
+        var unsatisfiedPrereqs = false
+        var priorCourses: [Course] = []
+        for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
+            for otherCourse in courses(forSemester: otherSemester) {
+                if otherSemester.rawValue < semester.rawValue || (course.quarterOffered != .beginningOnly && otherCourse.quarterOffered == .beginningOnly) {
+                    priorCourses.append(otherCourse)
                 }
-                let auto = Course.isRequirementAutomaticallySatisfied(prereq)
-                if !auto {
-                    if satisfied {
-                        satisfiedByNonAuto = true
-                    }
-                    containsNonAuto = true
-                }
-                if !satisfied {
-                    satisfied = auto
-                }
-                if satisfied {
-                    break
-                }
-            }
-            if !satisfied || (satisfied && !satisfiedByNonAuto && containsNonAuto) {
-                unsatisfiedPrereqs += prereqList
             }
         }
-        var unsatisfiedCoreqs: [String] = []
-        for coreqList in course.corequisites {
-            var satisfied = false
-            var satisfiedByNonAuto = false
-            var containsNonAuto = false
-            for coreq in coreqList {
-                for otherSemester in UserSemester.allSemesters where (AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue <= semester.rawValue) || (!AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue < semester.rawValue) {
-                    for course in courses(forSemester: otherSemester) {
-                        if course.satisfies(requirement: coreq) {
-                            satisfied = true
-                            break
-                        }
-                    }
-                    if satisfied {
-                        break
-                    }
-                }
-                let auto = Course.isRequirementAutomaticallySatisfied(coreq)
-                if !auto {
-                    if satisfied {
-                        satisfiedByNonAuto = true
-                    }
-                    containsNonAuto = true
-                }
-                if !satisfied {
-                    satisfied = auto
-                }
-                if satisfied {
-                    break
-                }
-            }
-            if !satisfied || (satisfied && !satisfiedByNonAuto && containsNonAuto) {
-                unsatisfiedCoreqs += coreqList
+
+        if let prereqs = course.prerequisites {
+            prereqs.computeRequirementStatus(with: priorCourses, autoManual: true)
+            unsatisfiedPrereqs = !prereqs.isFulfilled
+        }
+        
+        var unsatisfiedCoreqs = false
+        for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
+            for otherSemester in UserSemester.allSemesters where (AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue <= semester.rawValue) || (!AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue < semester.rawValue) {
+                priorCourses += courses(forSemester: otherSemester)
             }
         }
+        
+        if let coreqs = course.corequisites {
+            coreqs.computeRequirementStatus(with: priorCourses, autoManual: true)
+            unsatisfiedCoreqs = !coreqs.isFulfilled
+        }
+
         var warnings: [CourseWarning] = []
         if semester.isFall(), !course.isOfferedFall {
             warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered in the fall."))
@@ -340,36 +296,20 @@ class User: UserDocument {
         } else if semester.isSpring(), !course.isOfferedSpring {
             warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered in the spring."))
         }
-        if !course.eitherPrereqOrCoreq || (unsatisfiedPrereqs.count != 0 && unsatisfiedCoreqs.count != 0) {
-            if unsatisfiedPrereqs.count > 0 {
-                warnings.append(CourseWarning(type: .unsatisfiedPrerequisites, message: formatUnsatisfiedRequirements(label: "prerequisites", unsatisfiedItems: unsatisfiedPrereqs, requirements: course.prerequisites)))
+        if !course.eitherPrereqOrCoreq || (unsatisfiedPrereqs && unsatisfiedCoreqs) {
+            if unsatisfiedPrereqs, let prereqs = course.prerequisites {
+                warnings.append(CourseWarning(type: .unsatisfiedPrerequisites, message: formatUnsatisfiedRequirements(label: "prerequisites", requirements: prereqs)))
             }
-            if unsatisfiedCoreqs.count > 0 {
-                warnings.append(CourseWarning(type: .unsatisfiedCorequisites, message: formatUnsatisfiedRequirements(label: "corequisites", unsatisfiedItems: unsatisfiedCoreqs, requirements: course.corequisites)))
+            if unsatisfiedCoreqs, let coreqs = course.corequisites {
+                warnings.append(CourseWarning(type: .unsatisfiedCorequisites, message: formatUnsatisfiedRequirements(label: "corequisites", requirements: coreqs)))
             }
         }
         warningsCache[course] = warnings
         return warnings
     }
     
-    private func formatUnsatisfiedRequirements(label: String, unsatisfiedItems: [String], requirements: [[String]]) -> String {
-        var message = "One or more \(label) is not satisfied"
-        if requirements.count == requirements.compactMap({ $0 }).count {
-            var prereqStrings = unsatisfiedItems
-            if prereqStrings.count >= 2 {
-                prereqStrings[prereqStrings.count - 1] = "and " + prereqStrings[prereqStrings.count - 1]
-            }
-            message += ": " + prereqStrings.joined(separator: ", ") + "."
-        } else if requirements.count == 1 {
-            var prereqStrings = unsatisfiedItems
-            if prereqStrings.count >= 2 {
-                prereqStrings[prereqStrings.count - 1] = "or " + prereqStrings[prereqStrings.count - 1]
-            }
-            message += ": " + prereqStrings.joined(separator: ", ") + "."
-        } else {
-            message += "."
-        }
-        return message
+    private func formatUnsatisfiedRequirements(label: String, requirements: RequirementsListStatement) -> String {
+        return "One or more \(label) is not satisfied."
     }
     
     func overridesWarnings(for course: Course) -> Bool {

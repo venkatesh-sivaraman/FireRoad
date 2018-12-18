@@ -384,7 +384,12 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             for (section, sectionOptions) in schedule {
                 var filteredOptions = sectionOptions
                 if let constraint = currentSchedule?.allowedSections?[course]?[section] {
-                    filteredOptions = constraint.map({ filteredOptions[$0] })
+                    if constraint.contains(where: { filteredOptions.count <= $0 }) {
+                        // Constraint out of bounds - reset it
+                        currentSchedule?.allowedSections?[course] = nil
+                    } else {
+                        filteredOptions = constraint.map({ filteredOptions[$0] })
+                    }
                 }
                 // Filter out sections with the same exact days and times
                 var uniqueTimeOptions: [String: [CourseScheduleItem]] = [:]

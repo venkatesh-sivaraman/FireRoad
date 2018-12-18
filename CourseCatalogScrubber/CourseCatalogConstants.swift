@@ -75,6 +75,7 @@ enum CourseCatalogConstants {
     ]
     
     static let jointClass = "[J]"
+    static let girSuffix = "[GIR]"
 }
 
 enum CourseAttribute: String, CustomDebugStringConvertible {
@@ -92,6 +93,8 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
     case isVariableUnits
     case pdfOption
     case instructors
+    case oldPrerequisites
+    case oldCorequisites
     case prerequisites
     case corequisites
     case notes
@@ -136,8 +139,10 @@ enum CourseAttribute: String, CustomDebugStringConvertible {
         .pdfOption: "PDF Option",
         .hasFinal: "Has Final",
         .instructors: "Instructors",
-        .prerequisites: "Prerequisites",
-        .corequisites: "Corequisites",
+        .oldPrerequisites: "Prerequisites",
+        .oldCorequisites: "Corequisites",
+        .prerequisites: "Prereqs",
+        .corequisites: "Coreqs",
         .notes: "Notes",
         .schedule: "Schedule",
         .notOfferedYear: "Not Offered Year",

@@ -23,7 +23,7 @@ protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, CourseListCellDelegate, CourseDetailsDelegate, CourseBrowserDelegate, RequirementsProgressDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, RequirementsListDisplay, CourseDetailsDelegate, RequirementsProgressDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -35,10 +35,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     var requirementsList: RequirementsListStatement?
     var presentationItems: [(title: String, statement: RequirementsListStatement, items: [PresentationItem])] = []
     
-    let courseCellIdentifier = "CourseCell"
-    let listVCIdentifier = "RequirementsList"
-    let courseListVCIdentifier = "CourseListVC"
-    let requirementsProgressVCIdentifier = "RequirementsProgressVC"
+    var showsManualProgressControls: Bool = true
+    
     static let fulfillmentIndicatorCornerRadius = CGFloat(6.0)
     
     weak var delegate: RequirementsListViewControllerDelegate?
@@ -214,6 +212,37 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         updateRequirementsStatus()
     }
     
+    // MARK: - Appearance
+    
+    var displayStandardMode = true {
+        didSet {
+            updateScrollViewForDisplayMode()
+        }
+    }
+    
+    func updateScrollViewForDisplayMode() {
+        loadViewIfNeeded()
+        self.tableView.contentInset = UIEdgeInsets(top: 8.0, left: 0.0, bottom: 8.0, right: 0.0)
+        if !displayStandardMode {
+            self.view.backgroundColor = UIColor.clear
+            self.tableView.backgroundColor = UIColor.clear
+            self.tableView.estimatedRowHeight = 60.0
+            if #available(iOS 11.0, *) {
+                self.tableView.contentInsetAdjustmentBehavior = .automatic
+            }
+            //self.navigationController?.navigationBar.shadowImage = UIImage()
+            self.navigationController?.navigationBar.isTranslucent = true
+        } else {
+            self.view.backgroundColor = UIColor.white
+            self.tableView.backgroundColor = UIColor.white
+            self.tableView.estimatedRowHeight = 60.0
+            if #available(iOS 11.0, *) {
+                self.tableView.contentInsetAdjustmentBehavior = .automatic
+            }
+            self.navigationController?.navigationBar.shadowImage = nil
+        }
+    }
+    
     // MARK: - State Preservation
     
     static let selectedIndexPathRestorationKey = "requirementsList.selectedIndexPath"
@@ -339,6 +368,11 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let item = presentationItems[indexPath.section].items[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: item.cellType.rawValue, for: indexPath)
+        if displayStandardMode {
+            cell.backgroundColor = UIColor.white
+        } else {
+            cell.backgroundColor = UIColor.clear
+        }
         
         var textLabel = cell.viewWithTag(12) as? UILabel,
         detailTextLabel = cell.viewWithTag(34) as? UILabel
@@ -353,33 +387,10 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             let courseListCell = cell as? CourseListTableCell,
             let statement = item.statement {
             
-            let requirementStrings = (statement.requirements?.map({ $0.shortDescription })) ?? [statement.shortDescription]
-            courseListCell.courses = requirementStrings.map {
-                if let course = CourseManager.shared.getCourse(withID: $0) {
-                    return course
-                } else if let gir = GIRAttribute(rawValue: $0) {
-                    return Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: "")
-                }
-                if let whitespaceRange = $0.rangeOfCharacter(from: .whitespaces),
-                    Int(String($0[$0.startIndex..<whitespaceRange.lowerBound])) != nil ||
-                        String($0[$0.startIndex..<whitespaceRange.lowerBound]).contains(".") {
-                    return Course(courseID: String($0[$0.startIndex..<whitespaceRange.lowerBound]), courseTitle: String($0[whitespaceRange.upperBound..<$0.endIndex]), courseDescription: "")
-                } else if $0.count > 8 {
-                    return Course(courseID: "", courseTitle: $0, courseDescription: "")
-                }
-                return Course(courseID: $0, courseTitle: "", courseDescription: "")
-            }
-            if let reqs = statement.requirements {
-                courseListCell.fulfillmentIndications = reqs.map {
-                    ($0.fulfillmentProgress.0, $0.fulfillmentProgress.1, $0.threshold?.criterion == .units)
-                }
-            } else {
-                courseListCell.fulfillmentIndications = [(statement.fulfillmentProgress.0, statement.fulfillmentProgress.1, statement.threshold?.criterion == .units)]
-            }
-            
-            courseListCell.delegate = self
+            fillCourseListCell(courseListCell, with: statement)
             courseListCell.longPressTarget = self
             courseListCell.longPressAction = #selector(RequirementsListViewController.longPressOnRequirementsCell(_:))
+
         } else {
             textLabel?.text = item.text ?? ""
             let fulfillmentIndicator = cell.viewWithTag(56)
@@ -420,69 +431,14 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func courseListCell(_ cell: CourseListCell, selected course: Course) {
-        guard let tableCell = cell as? CourseListTableCell,
-            let courseIndex = cell.courses.index(of: course),
-            let selectedCell = cell.collectionView.cellForItem(at: IndexPath(item: courseIndex, section: 0)) else {
-                return
+        guard let tableCell = cell as? CourseListTableCell else {
+            return
         }
-        if let id = course.subjectID,
-            let actualCourse = CourseManager.shared.getCourse(withID: id),
-            actualCourse == course {
-            viewDetails(for: course, from: selectedCell.convert(selectedCell.bounds, to: self.view))
-        } else if let ip = tableView.indexPath(for: tableCell) {
-            guard let item = presentationItems[ip.section].items[ip.row].statement else {
-                return
-            }
-            let requirements = item.requirements ?? [item]
-            
-            if requirements[min(requirements.count, courseIndex)].isPlainString {
-                // Show the progress selector
-                guard let progressVC = self.storyboard?.instantiateViewController(withIdentifier: requirementsProgressVCIdentifier) as? RequirementsProgressController else {
-                    return
-                }
-                progressVC.delegate = self
-                progressVC.requirement = requirements[min(requirements.count, courseIndex)]
-                progressVC.modalPresentationStyle = .popover
-                progressVC.popoverPresentationController?.delegate = self
-                progressVC.popoverPresentationController?.sourceRect = selectedCell.bounds
-                progressVC.popoverPresentationController?.sourceView = selectedCell
-                self.present(progressVC, animated: true, completion: nil)
-
-            } else if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
-                // Configure a browser VC with the appropriate search term and filters to find this
-                // requirement (e.g. "GIR:PHY1" or "HASS-A" or "CI-H")
-                let listVC = self.storyboard!.instantiateViewController(withIdentifier: courseListVCIdentifier) as! CourseBrowserViewController
-                listVC.searchTerm = reqString
-                if let ciAttribute = CommunicationAttribute(rawValue: reqString) {
-                    listVC.searchOptions = SearchOptions.noFilter.filterSearchFields(.searchRequirements).filterCI(ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW)
-                } else if let hass = HASSAttribute(rawValue: reqString) {
-                    var baseOption: SearchOptions
-                    switch hass {
-                    case .any: baseOption = .fulfillsHASS
-                    case .arts: baseOption = .fulfillsHASSA
-                    case .socialSciences: baseOption = .fulfillsHASSS
-                    case .humanities: baseOption = .fulfillsHASSH
-                    }
-                    listVC.searchOptions = SearchOptions.noFilter.filterSearchFields(.searchRequirements).filterHASS(baseOption)
-                } else if GIRAttribute(rawValue: reqString) != nil {
-                    listVC.searchOptions = SearchOptions.noFilter.filterSearchFields(.searchRequirements).filterGIR(.fulfillsGIR)
-                } else {
-                    listVC.searchOptions = SearchOptions.noFilter.filterSearchFields(.searchRequirements)
-                }
-                listVC.delegate = self
-                listVC.showsHeaderBar = false
-                listVC.managesNavigation = false
-                showInformationalViewController(listVC, from: selectedCell.convert(selectedCell.bounds, to: self.view))
-            } else {
-                if let tableIP = tableView.indexPath(for: tableCell) {
-                    selectedIndexPath = [tableIP.section, tableIP.row, courseIndex]
-                }
-                let listVC = self.storyboard!.instantiateViewController(withIdentifier: listVCIdentifier) as! RequirementsListViewController
-                listVC.requirementsList = requirements[courseIndex]
-                listVC.delegate = self.delegate
-                self.navigationController?.pushViewController(listVC, animated: true)
-            }
+        var statement: RequirementsListStatement?
+        if let ip = tableView.indexPath(for: tableCell) {
+            statement = presentationItems[ip.section].items[ip.row].statement
         }
+        handleCourseListCellSelection(tableCell, of: course, with: statement)
     }
     
     func courseDetails(added course: Course, to semester: UserSemester?) {
@@ -541,6 +497,34 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         tabVC.addCourseToSchedule(course)
     }
     
+    // MARK: - View Controller Transitions
+    
+    func showManualProgressViewController(for requirement: RequirementsListStatement, from selectedCell: UICollectionViewCell) {
+        guard showsManualProgressControls,
+            let progressVC = self.storyboard?.instantiateViewController(withIdentifier: RequirementsConstants.requirementsProgressVCIdentifier) as? RequirementsProgressController else {
+            return
+        }
+        progressVC.delegate = self
+        progressVC.requirement = requirement
+        progressVC.modalPresentationStyle = .popover
+        progressVC.popoverPresentationController?.delegate = self
+        progressVC.popoverPresentationController?.sourceRect = selectedCell.bounds
+        progressVC.popoverPresentationController?.sourceView = selectedCell
+        self.present(progressVC, animated: true, completion: nil)
+    }
+    
+    func childRequirementsViewController() -> RequirementsListViewController? {
+        guard let listVC = self.storyboard!.instantiateViewController(withIdentifier: RequirementsConstants.listVCIdentifier) as? RequirementsListViewController else {
+            return nil
+        }
+        listVC.delegate = self.delegate
+        return listVC
+    }
+    
+    func courseBrowserViewController() -> CourseBrowserViewController? {
+        return self.storyboard!.instantiateViewController(withIdentifier: RequirementsConstants.courseListVCIdentifier) as? CourseBrowserViewController
+    }
+    
     var popoverNavigationController: UINavigationController?
     
     /// Shows the view controller in a popover on iPad, and pushes it on iPhone.
@@ -564,6 +548,21 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
     }
     
+    func showInformationalViewController(_ vc: UIViewController, from cell: UICollectionViewCell) {
+        let bounds = cell.convert(cell.bounds, to: self.view)
+        showInformationalViewController(vc, from: bounds)
+    }
+    
+    func selectIndexPath(for tableCell: CourseListTableCell, at courseIndex: Int) {
+        if let tableIP = tableView.indexPath(for: tableCell) {
+            selectedIndexPath = [tableIP.section, tableIP.row, courseIndex]
+        }
+    }
+    
+    func pushViewController(_ viewController: UIViewController, animated: Bool) {
+        self.navigationController?.pushViewController(viewController, animated: animated)
+    }
+    
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
         if popoverNavigationController != nil {
             dismiss(animated: true, completion: nil)
@@ -575,16 +574,24 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         viewDetails(for: course, from: nil, showGenericDetails: showGenericDetails)
     }
     
+    func viewDetails(for course: Course, from cell: UICollectionViewCell, showGenericDetails: Bool) {
+        let bounds = cell.convert(cell.bounds, to: self.view)
+        viewDetails(for: course, from: bounds, showGenericDetails: showGenericDetails)
+    }
+    
     func viewDetails(for course: Course, from rect: CGRect?, showGenericDetails: Bool = false) {
         generateDetailsViewController(for: course, showGenericDetails: showGenericDetails) { (details, list) in
             if let detailVC = details {
                 detailVC.delegate = self
-                detailVC.displayStandardMode = true
+                detailVC.displayStandardMode = self.displayStandardMode
                 self.showInformationalViewController(detailVC, from: rect ?? CGRect.zero)
             } else if let listVC = list {
                 listVC.delegate = self
                 listVC.showsHeaderBar = false
                 listVC.managesNavigation = false
+                if !self.displayStandardMode {
+                    listVC.view.backgroundColor = UIColor.clear
+                }
                 self.showInformationalViewController(listVC, from: rect ?? CGRect.zero)
             }
         }

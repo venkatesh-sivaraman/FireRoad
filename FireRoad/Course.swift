@@ -426,8 +426,8 @@ enum CourseAttribute: String {
         "Equivalent Subjects": .equivalentSubjects,
         "Joint Subjects": .jointSubjects,
         "Meets With Subjects": .meetsWithSubjects,
-        "Prerequisites": .prerequisites,
-        "Corequisites": .corequisites,
+        "Prereqs": .prerequisites,
+        "Coreqs": .corequisites,
         "Gir Attribute": .girAttribute,
         "Comm Req Attribute": .communicationRequirement,
         "Hass Attribute": .hassAttribute,
@@ -531,11 +531,12 @@ class Course: NSObject {
             _meetsWithSubjects = newValue
         }
     }
-    private var _prerequisites: [[String]] = []
-    @objc dynamic var prerequisites: [[String]] {
+    
+    private var _prerequisites: RequirementsListStatement? = nil
+    @objc dynamic var prerequisites: RequirementsListStatement? {
         get {
             if let cache = parseDeferredValues[.prerequisites] {
-                _prerequisites = extractCourseListString(cache)
+                _prerequisites = RequirementsListStatement(statement: cache.replacingOccurrences(of: "'", with: "\""))
                 parseDeferredValues[.prerequisites] = nil
             }
             return _prerequisites
@@ -543,11 +544,13 @@ class Course: NSObject {
             _prerequisites = newValue
         }
     }
-    private var _corequisites: [[String]] = []
-    @objc dynamic var corequisites: [[String]] {
+    private var _corequisites: RequirementsListStatement? = nil
+    @objc dynamic var corequisites: RequirementsListStatement? {
         get {
             if let cache = parseDeferredValues[.corequisites] {
-                _corequisites = extractCourseListString(cache)
+                if cache.count > 0 {
+                    _corequisites = RequirementsListStatement(statement: cache.replacingOccurrences(of: "'", with: "\""))
+                }
                 parseDeferredValues[.corequisites] = nil
             }
             return _corequisites
@@ -718,7 +721,7 @@ class Course: NSObject {
         if let attribute = CourseAttribute(rawValue: key) {
             switch attribute {
             case .prerequisites, .corequisites:
-                if (value as? [[String]]) != nil {
+                if (value as? RequirementsListStatement) != nil {
                     super.setValue(value, forKey: key)
                 } else {
                     parseDeferredValues[attribute] = value as? String

@@ -27,6 +27,7 @@ enum CourseDetailItem {
     case related
     case equivalent
     case joint
+    case reqHeader
     case prerequisites
     case corequisites
     case schedule
@@ -53,7 +54,7 @@ enum CourseDetailSectionTitle {
     static let ratings = "Ratings"
 }
 
-class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CourseListCellDelegate, PopDownTableMenuDelegate, UITextViewDelegate {
+class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CourseListCellDelegate, PopDownTableMenuDelegate, UITextViewDelegate, RequirementsListDisplay, RequirementsListViewControllerDelegate {
 
     var course: Course? = nil {
         didSet {
@@ -178,6 +179,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 DispatchQueue.main.async {
                     self.navigationItem.rightBarButtonItem?.isEnabled = true
                     self.course = newCourse
+                    self.updateRequirementsStatus()
                     self.tableView.reloadData()
                     hud.hide(animated: true)
                 }
@@ -185,12 +187,14 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             return
         }
         self.navigationItem.rightBarButtonItem?.isEnabled = true
+        self.updateRequirementsStatus()
         if course == nil, let id = restoredCourseID,
             let newCourse = CourseManager.shared.getCourse(withID: id) {
             self.course = newCourse
             self.tableView.reloadData()
             CourseManager.shared.loadCourseDetails(about: newCourse, { _ in
                 self.course = newCourse
+                self.updateRequirementsStatus()
                 self.tableView.reloadData()
             })
         }
@@ -332,42 +336,32 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         rowIndex = 0
         sectionIndex += 1
 
-        if course!.prerequisites.flatMap({ $0 }).count > 0 {
+        if let prereqs = course?.prerequisites {
             titles.append(CourseDetailSectionTitle.prerequisites)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-            if course!.eitherPrereqOrCoreq || course!.prerequisites.flatMap({ $0 }).count > 1 {
+            if course!.eitherPrereqOrCoreq {
                 rowIndex += 1
                 mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .description
             }
-            if course!.prerequisites.first(where: { $0.count > 1 }) != nil {
-                for _ in course!.prerequisites {
-                    rowIndex += 1
-                    mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .prerequisites
-                }
-            } else {
+            if prereqs.requirements != nil {
                 rowIndex += 1
-                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .prerequisites
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .reqHeader
             }
+            rowIndex += 1
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .prerequisites
             //mapping[IndexPath(row: rowIndex + 1, section: sectionIndex)] = .courseListAccessory
             rowIndex = 0
             sectionIndex += 1
         }
-        if course!.corequisites.flatMap({ $0 }).count > 0 {
+        if let coreqs = course!.corequisites {
             titles.append(CourseDetailSectionTitle.corequisites)
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .header
-            if course!.corequisites.flatMap({ $0 }).count > 1 {
+            if coreqs.requirements != nil {
                 rowIndex += 1
-                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .description
+                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .reqHeader
             }
-            if course!.corequisites.first(where: { $0.count > 1 }) != nil {
-                for _ in course!.corequisites {
-                    rowIndex += 1
-                    mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .corequisites
-                }
-            } else {
-                rowIndex += 1
-                mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .corequisites
-            }
+            rowIndex += 1
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .corequisites
             //mapping[IndexPath(row: rowIndex + 1, section: sectionIndex)] = .courseListAccessory
             rowIndex = 0
             sectionIndex += 1
@@ -457,6 +451,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "ButtonCell"
         case .url, .courseEvaluations:
             id = "URLCell"
+        case .reqHeader:
+            id = "ReqHeaderCell"
         case .notes:
             id = "NotesCell"
         case .rate:
@@ -534,28 +530,21 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             }
         case .description:
             if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites {
-                var text = ""
                 if course!.eitherPrereqOrCoreq {
-                    text += "Fulfill either the prerequisites or the corequisites.\n\nPrereqs: "
-                }
-                if course!.prerequisites.first(where: { $0.count > 1 }) == nil {
-                    text += "Fulfill all of the following:"
-                } else if course!.prerequisites.count == 1 {
-                    text += "Fulfill any of the following:"
-                } else {
-                    text += "Fulfill one from each row:"
-                }
-                textLabel?.text = text
-            } else if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.corequisites {
-                if course!.corequisites.first(where: { $0.count > 1 }) == nil {
-                    textLabel?.text = "Fulfill all of the following:"
-                } else if course!.corequisites.count == 1 {
-                    textLabel?.text = "Fulfill any of the following:"
-                } else {
-                    textLabel?.text = "Fulfill one from each row:"
+                    textLabel?.text = "Fulfill either the prerequisites or the corequisites."
                 }
             } else {
                 textLabel?.text = self.course!.subjectDescription
+            }
+        case .reqHeader:
+            if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.prerequisites {
+                if let title = course!.prerequisites?.thresholdDescription {
+                    textLabel?.text = title.capitalizingFirstLetter() + ":"
+                }
+            } else if self.sectionTitles[indexPath.section] == CourseDetailSectionTitle.corequisites {
+                if let title = course!.corequisites?.thresholdDescription {
+                    textLabel?.text = title.capitalizingFirstLetter() + ":"
+                }
             }
         case .units:
             textLabel?.text = "Units"
@@ -679,47 +668,26 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             (cell as! CourseListTableCell).delegate = self
             (cell as! CourseListTableCell).collectionView.reloadData()
         case .prerequisites:
-            (cell as! CourseListTableCell).courses = []
-            let prereqs = self.course!.prerequisites.contains(where: { $0.count > 1 }) ? self.course!.prerequisites[indexPath.row - 2] : self.course!.prerequisites.flatMap({ $0 })
-            for myID in prereqs {
-                if myID.range(of: "[") != nil || myID.range(of: "{") != nil {
-                    continue
-                }
-                let equivCourse = CourseManager.shared.getCourse(withID: myID)
-                if equivCourse != nil {
-                    (cell as! CourseListTableCell).courses.append(equivCourse!)
-                } else if myID.lowercased().contains("permission of instructor") {
-                    (cell as! CourseListTableCell).courses.append(Course(courseID: "--", courseTitle: "Permission of Instructor", courseDescription: ""))
-                } else if let gir = GIRAttribute(rawValue: myID) {
-                    (cell as! CourseListTableCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
-                } else {
-                    (cell as! CourseListTableCell).courses.append(Course(courseID: "--", courseTitle: myID, courseDescription: ""))
-                }
+            if let tableCell = cell as? CourseListTableCell,
+                let prereqs = course?.prerequisites {
+                fillCourseListCell(tableCell, with: prereqs)
             }
-            (cell as! CourseListTableCell).delegate = self
-            (cell as! CourseListTableCell).collectionView.reloadData()
+//            (cell as! CourseListTableCell).delegate = self
+//            (cell as! CourseListTableCell).collectionView.reloadData()
         case .corequisites:
-            (cell as! CourseListTableCell).courses = []
-            let coreqs = self.course!.corequisites.contains(where: { $0.count > 1 }) ? self.course!.corequisites[indexPath.row - 2] : self.course!.corequisites.flatMap({ $0 })
-            for myID in coreqs {
-                // Useful when the corequisites were notated in brackets, but not anymore
-                //let myID = String(id[(id.index(id.startIndex, offsetBy: 1))..<(id.index(id.endIndex, offsetBy: -1))])
-                let equivCourse = CourseManager.shared.getCourse(withID: myID)
-                if equivCourse != nil {
-                    (cell as! CourseListTableCell).courses.append(equivCourse!)
-                } else if let gir = GIRAttribute(rawValue: myID) {
-                    (cell as! CourseListTableCell).courses.append(Course(courseID: "GIR", courseTitle: gir.descriptionText().replacingOccurrences(of: "GIR", with: "").trimmingCharacters(in: .whitespaces), courseDescription: myID))
-                }
+            if let tableCell = cell as? CourseListTableCell,
+                let coreqs = course?.corequisites {
+                fillCourseListCell(tableCell, with: coreqs)
             }
-            (cell as! CourseListTableCell).delegate = self
-            (cell as! CourseListTableCell).collectionView.reloadData()
+//            (cell as! CourseListTableCell).delegate = self
+//            (cell as! CourseListTableCell).collectionView.reloadData()
         case .courseListAccessory:
             var list: [String] = []
             switch self.detailMapping[IndexPath(row: indexPath.row - 1, section: indexPath.section)]! {
             case .prerequisites:
-                list = self.course!.prerequisites.flatMap({ $0 })
+                list = self.course!.prerequisites?.requiredCourses.compactMap({ $0.subjectID }) ?? []
             case .corequisites:
-                list = self.course!.corequisites.flatMap({ $0 })
+                list = self.course!.corequisites?.requiredCourses.compactMap({ $0.subjectID }) ?? []
             case .equivalent:
                 list = self.course!.equivalentSubjects
             case .joint:
@@ -772,7 +740,15 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     }
     
     func courseListCell(_ cell: CourseListCell, selected course: Course) {
-        self.delegate?.courseDetailsRequestedDetails(about: course)
+        guard let tableCell = cell as? CourseListTableCell,
+            let indexPath = tableView.indexPath(for: tableCell),
+            let detailItemType = self.detailMapping[indexPath] else {
+            return
+        }
+        let statement: RequirementsListStatement? = detailItemType == .prerequisites ? self.course?.prerequisites : self.course?.corequisites
+        
+        handleCourseListCellSelection(tableCell, of: course, with: statement)
+        //self.delegate?.courseDetailsRequestedDetails(about: course)
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -829,6 +805,57 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             popDown.show(animated: true)
             generator.impactOccurred()
         }
+    }
+    
+    // MARK: - Requirements Cells
+    
+    func updateRequirementsStatus() {
+        guard let rootTab = rootParent as? RootTabViewController,
+            let user = rootTab.currentUser else {
+                return
+        }
+        course?.prerequisites?.computeRequirementStatus(with: user.allCourses)
+        course?.corequisites?.computeRequirementStatus(with: user.allCourses)
+    }
+    
+    func showManualProgressViewController(for requirement: RequirementsListStatement, from cell: UICollectionViewCell) {
+        // Do nothing - we don't want to show manual progress controls
+    }
+    
+    func courseBrowserViewController() -> CourseBrowserViewController? {
+        let browser = self.storyboard!.instantiateViewController(withIdentifier: RequirementsConstants.courseListVCIdentifier) as? CourseBrowserViewController
+        browser?.view.backgroundColor = UIColor.clear
+        return browser
+    }
+    
+    func childRequirementsViewController() -> RequirementsListViewController? {
+        guard let listVC = self.storyboard!.instantiateViewController(withIdentifier: RequirementsConstants.listVCIdentifier) as? RequirementsListViewController else {
+            return nil
+        }
+        listVC.showsManualProgressControls = false
+        listVC.delegate = self
+        listVC.displayStandardMode = displayStandardMode
+        return listVC
+    }
+
+    func selectIndexPath(for tableCell: CourseListTableCell, at courseIndex: Int) {
+        // Do nothing
+    }
+    
+    func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController) {
+        
+    }
+    
+    func requirementsListViewControllerUpdatedFulfillmentStatus(_ vc: RequirementsListViewController) {
+        updateRequirementsStatus()
+    }
+    
+    func showInformationalViewController(_ vc: UIViewController, from cell: UICollectionViewCell) {
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func pushViewController(_ viewController: UIViewController, animated: Bool) {
+        navigationController?.pushViewController(viewController, animated: animated)
     }
     
     // MARK: - Text View
@@ -914,4 +941,23 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     }
     */
 
+    // MARK: - Course Display Manager
+    
+    func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
+        delegate?.courseDetails(added: course, to: semester)
+        updateRequirementsStatus()
+        return semester
+    }
+    
+    func addCourseToSchedule(_ course: Course) {
+        delegate?.courseDetails(addedCourseToSchedule: course)
+    }
+
+    func viewDetails(for course: Course, showGenericDetails: Bool) {
+        delegate?.courseDetailsRequestedDetails(about: course)
+    }
+    
+    func viewDetails(for course: Course, from cell: UICollectionViewCell, showGenericDetails: Bool) {
+        delegate?.courseDetailsRequestedDetails(about: course)
+    }
 }

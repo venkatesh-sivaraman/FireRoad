@@ -261,12 +261,12 @@ class CourseSearchEngine: NSObject {
         if options.contains(.searchRequirements) {
             courseComps += [course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText(), course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText(), course.girAttribute?.rawValue, course.girAttribute?.descriptionText()]
         }
-        if options.contains(.searchPrereqs) {
-            let prereqs: [String?] = course.prerequisites.flatMap({ $0 })
+        if options.contains(.searchPrereqs),
+            let prereqs = course.prerequisites?.requiredCourses.map({ $0.subjectID }) {
             courseComps += prereqs
         }
-        if options.contains(.searchCoreqs) {
-            let coreqs: [String?] = course.corequisites.flatMap({ $0 })
+        if options.contains(.searchCoreqs),
+            let coreqs = course.corequisites?.requiredCourses.map({ $0.subjectID }) {
             courseComps += coreqs
         }
         

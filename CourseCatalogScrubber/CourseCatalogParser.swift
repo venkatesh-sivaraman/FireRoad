@@ -223,16 +223,20 @@ class CourseCatalogParser: NSObject {
         if let prereqRange = item.range(of: CourseCatalogConstants.prerequisitesPrefix, options: .caseInsensitive) {
             if let coreqRange = item.range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) {
                 let prereqString = String(item[prereqRange.upperBound..<coreqRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-                attributes[.prerequisites] = filterCourseListString(prereqString)
-                attributes[.corequisites] = filterCourseListString(String(item[coreqRange.upperBound..<item.endIndex]))
+                attributes[.oldPrerequisites] = filterCourseListString(prereqString)
+                attributes[.prerequisites] = processRequirementsListItem(prereqString)
+                attributes[.oldCorequisites] = filterCourseListString(String(item[coreqRange.upperBound..<item.endIndex]))
+                attributes[.corequisites] = processRequirementsListItem(String(item[coreqRange.upperBound..<item.endIndex]))
                 if prereqString.range(of: CourseCatalogConstants.eitherPrereqOrCoreqFlag, options: .caseInsensitive)?.upperBound == prereqString.endIndex {
                     attributes[.eitherPrereqOrCoreq] = true
                 }
             } else {
-                attributes[.prerequisites] = filterCourseListString(String(item[prereqRange.upperBound..<item.endIndex]))
+                attributes[.oldPrerequisites] = filterCourseListString(String(item[prereqRange.upperBound..<item.endIndex]))
+                attributes[.prerequisites] = processRequirementsListItem(String(item[prereqRange.upperBound..<item.endIndex]))
             }
         } else if let coreqRange = item.range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) {
-            attributes[.corequisites] = filterCourseListString(String(item[coreqRange.upperBound..<item.endIndex]))
+            attributes[.oldCorequisites] = filterCourseListString(String(item[coreqRange.upperBound..<item.endIndex]))
+            attributes[.corequisites] = processRequirementsListItem(String(item[coreqRange.upperBound..<item.endIndex]))
         } else if item.contains(CourseCatalogConstants.urlPrefix) {
             // Don't save URLs
         } else if classTimeRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)) != nil {
@@ -339,6 +343,150 @@ class CourseCatalogParser: NSObject {
         } else if item.range(of: CourseCatalogConstants.summer, options: .caseInsensitive) != nil {
             attributes[.offeredSummer] = true
         }
+    }
+    
+    // This only handles one level of parenthesization, I think
+    private static let requirementsListComponent = "([^(),;]+(\\s*\\[GIR\\])?|\\((.*)\\))"
+    private let requirementsListComponentRegex: NSRegularExpression = try! NSRegularExpression(pattern: "\(CourseCatalogParser.requirementsListComponent)((\\s*,)|(\\s+(?=and))|(\\s+(?=or)))", options: .dotMatchesLineSeparators)
+    private let requirementsListAndFinalRegex: NSRegularExpression = try! NSRegularExpression(pattern: "^\\s*(and)?\\s*\(CourseCatalogParser.requirementsListComponent)\\s*;?", options: .dotMatchesLineSeparators)
+    private let requirementsListOrFinalRegex: NSRegularExpression = try! NSRegularExpression(pattern: "^\\s*or\\s*\(CourseCatalogParser.requirementsListComponent)\\s*;?", options: .dotMatchesLineSeparators)
+
+    /**
+     Convert the registrar site string into a requirements list-parseable string.
+     If the requirements contain more than one element, the result is parenthesized.
+     */
+    func processRequirementsListItem(_ item: String) -> String {
+        let filteredItem = item.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: " ").replacingOccurrences(of: "(GIR)", with: "[GIR]")
+        guard filteredItem.count > 0, !filteredItem.lowercased().contains("none") else {
+            return ""
+        }
+        
+        // Search for parenthetical groups and replace them with macros
+        var parenLevels: [String] = [""]
+        var substitutions: [String: String] = [:]
+        for i in filteredItem.indices {
+            if filteredItem[i] == "(" {
+                parenLevels.append("")
+            } else if filteredItem[i] == ")" {
+                guard parenLevels.count > 1,
+                    let lastItem = parenLevels.popLast() else {
+                    print("Invalid prerequisite syntax: \(item)")
+                    continue
+                }
+                let key = "#@%\(substitutions.count)%@#"
+                //print("Processing \(lastItem)")
+                var subResult = processSingleLevelRequirementsItem(lastItem)
+                for (key, sub) in substitutions {
+                    subResult = subResult.replacingOccurrences(of: "''" + key + "''", with: "(" + sub + ")")
+                }
+                substitutions[key] = subResult
+                parenLevels[parenLevels.endIndex - 1] = parenLevels.last! + key
+            } else {
+                parenLevels[parenLevels.endIndex - 1] = parenLevels.last! + String(filteredItem[i])
+            }
+14        }
+        
+        guard var result = parenLevels.last else {
+            print("Unmatched parentheses: \(item)")
+            return ""
+        }
+        result = processSingleLevelRequirementsItem(result)
+        for (key, sub) in substitutions {
+            result = result.replacingOccurrences(of: "''" + key + "''", with: "(" + sub + ")")
+        }
+        //print(item, "becomes", result)
+        return result
+    }
+    
+    func processSingleLevelRequirementsItem(_ item: String) -> String {
+        guard item.count > 0 else {
+            return ""
+        }
+        
+        var filteredItem = item.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: " ")
+        guard !filteredItem.lowercased().contains("none") else {
+            return ""
+        }
+        
+        var components: [String] = []
+        var isOr = false
+        while filteredItem.count > 0 {
+            //print("Testing", filteredItem)
+            if let match = requirementsListComponentRegex.firstMatch(in: filteredItem, range: NSRange(location: 0, length: filteredItem.count)) {
+                let range = Range(match.range(at: 1), in: filteredItem)!
+                //print(String(filteredItem[Range(match.range, in: filteredItem)!]), match.numberOfRanges)
+                var currentComponent = filteredItem[range].trimmingCharacters(in: .whitespacesAndNewlines)
+                if currentComponent[currentComponent.startIndex] == "(",
+                    currentComponent[currentComponent.index(before: currentComponent.endIndex)] == ")" {
+                    currentComponent = String(currentComponent[currentComponent.index(after: currentComponent.startIndex)..<currentComponent.index(before: currentComponent.endIndex)])
+                }
+                components.append(processSingleLevelRequirementsItem(currentComponent))
+                let wholeRange = Range(match.range, in: filteredItem)!
+                filteredItem = String(filteredItem[wholeRange.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            } else if let match = requirementsListOrFinalRegex.firstMatch(in: filteredItem, range: NSRange(location: 0, length: filteredItem.count)) {
+                let lastComponent = String(filteredItem[Range(match.range(at: 1), in: filteredItem)!])
+                if lastComponent == filteredItem {
+                    // The component hasn't changed - simply return it
+                    components.append(lastComponent)
+                } else {
+                    components.append(processSingleLevelRequirementsItem(lastComponent))
+                }
+                isOr = true
+                
+                let wholeRange = Range(match.range, in: filteredItem)!
+                filteredItem = String(filteredItem[wholeRange.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+                
+            } else if let match = requirementsListAndFinalRegex.firstMatch(in: filteredItem, range: NSRange(location: 0, length: filteredItem.count)) {
+                let lastComponent = String(filteredItem[Range(match.range(at: 2), in: filteredItem)!])
+                if lastComponent == filteredItem {
+                    // The component hasn't changed - simply return it
+                    components.append(lastComponent)
+                } else {
+                    components.append(processSingleLevelRequirementsItem(lastComponent))
+                }
+                
+                let wholeRange = Range(match.range, in: filteredItem)!
+                filteredItem = String(filteredItem[wholeRange.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            } else {
+                print("\(filteredItem) doesn't match anything")
+                break
+            }
+        }
+        
+        //print("Components:", components)
+        var base: String
+        if isOr {
+            base = components.joined(separator: "/")
+        } else {
+            base = components.joined(separator: ", ")
+        }
+        if components.count > 1 {
+            return base
+        } else {
+            return processBaseRequirement(base)
+        }
+    }
+    
+    private let courseRegex = try! NSRegularExpression(pattern: "([A-z0-9]+)\\.([A-z0-9]+)", options: [])
+    
+    /**
+     Processes an atomic requirement, such as "6.031" or "permission of instructor."
+     */
+    private func processBaseRequirement(_ item: String) -> String {
+        // Handle GIRs
+        if item.contains(CourseCatalogConstants.girSuffix) {
+            let girSymbol = item.replacingOccurrences(of: CourseCatalogConstants.girSuffix, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let girID = CourseCatalogConstants.GIRRequirements[girSymbol]!
+            return "GIR:" + girID
+        }
+        
+        // Handle courses, already-processed items
+        if courseRegex.numberOfMatches(in: item, options: [], range: NSRange(location: 0, length: item.count)) > 0 || item.contains("GIR:") || item.contains("''") {
+            return item
+        }
+        
+        // The rest are plain strings
+        return "''" + item + "''"
     }
     
     /**

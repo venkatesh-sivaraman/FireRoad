@@ -264,7 +264,7 @@ class RequirementsListStatement: NSObject {
                 components[components.count - 1] += String(character)
             }
         }
-        return (components.map({ undecoratedComponent($0) }), connectionType)
+        return (/*components.map({ undecoratedComponent($0) })*/ components, connectionType)
     }
     
     fileprivate lazy var modifierRegex: NSRegularExpression = {
@@ -281,9 +281,22 @@ class RequirementsListStatement: NSObject {
     
     fileprivate func unwrappedComponent(_ component: String) -> String {
         var unwrapping = component.trimmingCharacters(in: .whitespacesAndNewlines)
+        outer:
         while unwrapping.first == Character("("),
             unwrapping.last == Character(")") {
-            unwrapping = String(unwrapping[unwrapping.index(after: unwrapping.startIndex)..<unwrapping.index(before: unwrapping.endIndex)])
+                // Make sure these parentheses are not closed within the string
+                var indentLevel = 0
+                for i in unwrapping.indices {
+                    if unwrapping[i] == "(" {
+                        indentLevel += 1
+                    } else if unwrapping[i] == ")" {
+                        indentLevel -= 1
+                        if indentLevel == 0, i < unwrapping.index(before: unwrapping.endIndex) {
+                            break outer
+                        }
+                    }
+                }
+                unwrapping = String(unwrapping[unwrapping.index(after: unwrapping.startIndex)..<unwrapping.index(before: unwrapping.endIndex)])
         }
         return unwrapping
     }
@@ -431,13 +444,14 @@ class RequirementsListStatement: NSObject {
     }
     
     /**
+     - Parameter autoManual: whether to automatically count plain strings as fulfilled
      - Returns: The set of courses that satisfy this requirement.
      */
-    @discardableResult func computeRequirementStatus(with courses: [Course]) -> Set<Course> {
+    @discardableResult func computeRequirementStatus(with courses: [Course], autoManual: Bool = false) -> Set<Course> {
         if requirement != nil {
             var satisfiedCourses = Set<Course>()
-            if isPlainString, let manual = manualProgress,
-                let threshold = threshold {
+            if isPlainString, let threshold = threshold,
+                let manual = autoManual ? manualProgress : threshold.cutoff {
                 isFulfilled = manual == threshold.cutoff
                 var subjects = 0
                 var units = 0
@@ -479,7 +493,7 @@ class RequirementsListStatement: NSObject {
         var satisfyingPerCategory: [RequirementsListStatement: Set<Course>] = [:]
         var numRequirementsSatisfied = 0
         for req in reqs {
-            let satisfiedCourses = req.computeRequirementStatus(with: courses)
+            let satisfiedCourses = req.computeRequirementStatus(with: courses, autoManual: autoManual)
             if req.isFulfilled {
                 numRequirementsSatisfied += 1
             }
