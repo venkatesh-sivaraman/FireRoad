@@ -32,7 +32,17 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     @IBOutlet var tableView: UITableView!
-    var requirementsList: RequirementsListStatement?
+    var requirementsList: RequirementsListStatement? {
+        didSet {
+            if isViewLoaded, requirementsList != oldValue {
+                if let reqsList = requirementsList {
+                    presentationItems = buildPresentationItems(from: reqsList)
+                } else {
+                    presentationItems = []
+                }
+            }
+        }
+    }
     var presentationItems: [(title: String, statement: RequirementsListStatement, items: [PresentationItem])] = []
     
     var showsManualProgressControls: Bool = true
@@ -455,7 +465,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         if let gir = course.girAttribute, gir != .lab, gir != .rest {
             listVC.searchTerm = gir.rawValue
         }
-        listVC.searchOptions = SearchOptions.noFilter.filterSearchFields(.searchPrereqs)
+        listVC.searchOptions = SearchOptions.noFilter.filterSearchFields(.searchPrereqs).replace(oldValue: .containsSearchTerm, with: .matchesSearchTerm)
         listVC.showsHeaderBar = false
         listVC.delegate = self
         listVC.managesNavigation = false

@@ -536,7 +536,9 @@ class Course: NSObject {
     @objc dynamic var prerequisites: RequirementsListStatement? {
         get {
             if let cache = parseDeferredValues[.prerequisites] {
-                _prerequisites = RequirementsListStatement(statement: cache.replacingOccurrences(of: "'", with: "\""))
+                if cache.count > 0 {
+                    _prerequisites = RequirementsListStatement(statement: cache.replacingOccurrences(of: "'", with: "\""))
+                }
                 parseDeferredValues[.prerequisites] = nil
             }
             return _prerequisites

@@ -450,21 +450,32 @@ class RequirementsListStatement: NSObject {
     @discardableResult func computeRequirementStatus(with courses: [Course], autoManual: Bool = false) -> Set<Course> {
         if requirement != nil {
             var satisfiedCourses = Set<Course>()
-            if isPlainString, let threshold = threshold,
-                let manual = autoManual ? manualProgress : threshold.cutoff {
-                isFulfilled = manual == threshold.cutoff
-                var subjects = 0
-                var units = 0
-                if threshold.criterion == .units {
-                    units = manual
-                    subjects = manual / 12
-                } else {
-                    subjects = manual
-                    units = manual * 12
+            if isPlainString {
+                if autoManual {
+                    // We assume the requirement is fulfilled (e.g. "permission of instructor")
+                    isFulfilled = true
+                    let fakeThreshold = threshold ?? Threshold(.greaterThanOrEqual, number: 1, of: .subjects)
+                    let subjects = fakeThreshold.cutoff / (fakeThreshold.criterion == .units ? Threshold.defaultUnitCount : 1)
+                    let units = fakeThreshold.cutoff * (fakeThreshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)
+                    subjectFulfillmentProgress = ceilingThreshold((subjects, subjects))
+                    unitFulfillmentProgress = ceilingThreshold((units, units))
+                } else if let threshold = threshold,
+                    let manual = manualProgress {
+                    isFulfilled = manual == threshold.cutoff
+                    var subjects = 0
+                    var units = 0
+                    if threshold.criterion == .units {
+                        units = manual
+                        subjects = manual / 12
+                    } else {
+                        subjects = manual
+                        units = manual * 12
+                    }
+                    subjectFulfillmentProgress = ceilingThreshold((subjects, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
+                    unitFulfillmentProgress = ceilingThreshold((units, threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
                 }
-                subjectFulfillmentProgress = ceilingThreshold((subjects, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
-                unitFulfillmentProgress = ceilingThreshold((units, threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
                 
+                // Generate dummy courses to show that this requirement has been fulfilled
                 for _ in 0..<subjectFulfillmentProgress.0 {
                     let id = arc4random() % UInt32(1e9)
                     satisfiedCourses.insert(Course(courseID: "generatedCourse\(id)", courseTitle: "generatedCourse\(id)", courseDescription: ""))
