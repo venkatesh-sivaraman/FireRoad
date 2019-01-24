@@ -187,7 +187,7 @@ class AppSettings: NSObject {
                     UIApplication.shared.open(url, options: [:], completionHandler: nil)
                 }),
                 AppSettingsItem(title: "Requirements Editor", type: .button, getter: nil, setter: { _ in
-                    guard let url = URL(string: "https://venkats.scripts.mit.edu/fireroad/requirements") else {
+                    guard let url = URL(string: CourseManager.urlBase + "/requirements") else {
                         return
                     }
                     UIApplication.shared.open(url, options: [:], completionHandler: nil)

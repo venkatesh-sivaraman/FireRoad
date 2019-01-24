@@ -14,4 +14,6 @@ enum MenuItemStrings {
     static let constrain = "Constrain"
     static let warnings = "Warnings"
     static let rate = "Rate"
+    static let edit = "Edit"
+    static let add = "Add"
 }

@@ -410,6 +410,9 @@ enum CourseAttribute: String {
     case subjectLevel
     case url
     case eitherPrereqOrCoreq
+    case isPublic
+    case creator
+    case customColor
     
     case rating
     case inClassHours
@@ -460,15 +463,73 @@ enum CourseAttribute: String {
         "In-Class Hours": .inClassHours,
         "Out-of-Class Hours": .outOfClassHours,
         "Enrollment": .enrollmentNumber,
-        "Prereq or Coreq": .eitherPrereqOrCoreq
+        "Prereq or Coreq": .eitherPrereqOrCoreq,
+        "Custom Color": .customColor
     ]
-    
+
+    static let jsonKeys: [String: CourseAttribute] = [
+        "subject_id": .subjectID,
+        "title": .subjectTitle,
+        "level": .subjectLevel,
+        "description": .subjectDescription,
+        "department": .department,
+        "equivalent_subjects": .equivalentSubjects,
+        "joint_subjects": .jointSubjects,
+        "meets_with_subjects": .meetsWithSubjects,
+        "prerequisites": .prerequisites,
+        "corequisites": .corequisites,
+        "gir_attribute": .girAttribute,
+        "communication_requirement": .communicationRequirement,
+        "hass_attribute": .hassAttribute,
+        "instructors": .instructors,
+        "offered_fall": .isOfferedFall,
+        "offered_IAP": .isOfferedIAP,
+        "offered_spring": .isOfferedSpring,
+        "offered_summer": .isOfferedSummer,
+        "offered_this_year": .isOfferedThisYear,
+        "units": .totalUnits,
+        "total_units": .totalUnits,
+        "is_variable_units": .isVariableUnits,
+        "lab_units": .labUnits,
+        "lecture_units": .lectureUnits,
+        "design_units": .designUnits,
+        "preparation_units": .preparationUnits,
+        "pdf_option": .pdfOption,
+        "has_final": .hasFinal,
+        "not_offered_year": .notOfferedYear,
+        "quarter_information": .quarterInformation,
+        "offering_pattern": .offeringPattern,
+        "enrollment_number": .enrollmentNumber,
+        "related_subjects": .relatedSubjects,
+        "schedule": .schedule,
+        "url": .url,
+        "rating": .rating,
+        "in_class_hours": .inClassHours,
+        "out_of_class_hours": .outOfClassHours,
+        "prereq_or_coreq": .eitherPrereqOrCoreq,
+        "public": .isPublic,
+        "creator": .creator,
+        "custom_color": .customColor
+    ]
+
     init?(csvHeader: String) {
         if let val = CourseAttribute.csvHeaders[csvHeader] {
             self = val
         } else {
             return nil
         }
+    }
+    
+    init?(jsonKey: String) {
+        if let val = CourseAttribute.jsonKeys[jsonKey] {
+            self = val
+        } else {
+            return nil
+        }
+    }
+    
+    func jsonKey() -> String {
+        return CourseAttribute.jsonKeys.first(where: { $1 == self })?.key ?? "KEY_NOT_FOUND"
     }
 }
 
@@ -654,6 +715,11 @@ class Course: NSObject {
     @objc dynamic var outOfClassHours: Float = 0.0
     
     var isGeneric = false
+    /// If non-null and beginning with @, defines an index for which to retrieve a color
+    @objc dynamic var customColor: String?
+    @objc dynamic var isPublic: Bool = true
+    /// If non-null, indicates that this is a custom course
+    @objc dynamic var creator: String?
     
     static let genericCourses: [String: Course] = {
         var ret: [String: Course] = [:]
@@ -713,10 +779,48 @@ class Course: NSObject {
         }
     }
     
+    init(json: [String: Any]) {
+        super.init()
+        defer {
+            readJSON(json)
+        }
+    }
+    
     override var debugDescription: String {
         get {
             return "<Course \(self.subjectID!): \(self.subjectTitle!)>"
         }
+    }
+    
+    func readJSON(_ json: [String: Any]) {
+        for (key, val) in json {
+            guard let attr = CourseAttribute(jsonKey: key) else {
+                continue
+            }
+            setValue(val, forKey: attr.rawValue)
+        }
+    }
+    
+    /// Not a full JSON encoding - just enough to identify the course
+    func toJSON() -> [String: Any] {
+        var ret: [String: Any] = [:]
+        ret[CourseAttribute.subjectID.jsonKey()] = subjectID
+        ret[CourseAttribute.subjectTitle.jsonKey()] = subjectTitle
+        ret["units"] = totalUnits // Used in road file as an alternate syntax for "total_units"
+        if creator != nil {
+            ret[CourseAttribute.creator.jsonKey()] = creator
+            ret[CourseAttribute.isPublic.jsonKey()] = isPublic
+            ret[CourseAttribute.inClassHours.jsonKey()] = inClassHours
+            ret[CourseAttribute.outOfClassHours.jsonKey()] = outOfClassHours
+            ret[CourseAttribute.isOfferedFall.jsonKey()] = isOfferedFall
+            ret[CourseAttribute.isOfferedIAP.jsonKey()] = isOfferedIAP
+            ret[CourseAttribute.isOfferedSpring.jsonKey()] = isOfferedSpring
+            ret[CourseAttribute.isOfferedSummer.jsonKey()] = isOfferedSummer
+        }
+        if let color = customColor {
+            ret[CourseAttribute.customColor.jsonKey()] = color
+        }
+        return ret
     }
     
     override func setValue(_ value: Any?, forKey key: String) {
@@ -735,7 +839,7 @@ class Course: NSObject {
                     parseDeferredValues[attribute] = value as? String
                 }
             case .isOfferedFall, .isOfferedIAP, .isOfferedSpring, .isOfferedSummer, .isOfferedThisYear,
-                 .isVariableUnits, .hasFinal, .pdfOption, .eitherPrereqOrCoreq:
+                 .isVariableUnits, .hasFinal, .pdfOption, .eitherPrereqOrCoreq, .isPublic:
                 if (value as? Bool) != nil {
                     super.setValue(value, forKey: key)
                 } else {
@@ -779,6 +883,10 @@ class Course: NSObject {
                     self.subjectLevel = CourseLevel(rawValue: string)
                 } else {
                     print("Unidentified subject level: \(value ?? "nil")")
+                }
+            case .customColor:
+                if let string = value as? String {
+                    self.customColor = string
                 }
             default:
                 if let string = value as? String {

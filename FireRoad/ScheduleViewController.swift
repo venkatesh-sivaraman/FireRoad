@@ -12,7 +12,7 @@ import EventKitUI
 
 let SchedulePathExtension = ".sched"
 
-class ScheduleViewController: UIViewController, PanelParentViewController, ScheduleGridDelegate, ScheduleConstraintDelegate, EKCalendarChooserDelegate, DocumentBrowseDelegate, CloudSyncManagerDelegate {
+class ScheduleViewController: UIViewController, PanelParentViewController, ScheduleGridDelegate, ScheduleConstraintDelegate, EKCalendarChooserDelegate, DocumentBrowseDelegate, CloudSyncManagerDelegate, CustomCourseEditDelegate, CustomCoursesViewControllerDelegate, UIBarPositioningDelegate {
     var panelView: PanelViewController?
     var courseBrowser: CourseBrowserViewController?
     var showsSemesterDialogs: Bool {
@@ -32,10 +32,12 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     @IBOutlet var scheduleNumberLabel: UILabel?
     @IBOutlet var shareButton: UIButton?
     @IBOutlet var shareItem: UIBarButtonItem?
+    @IBOutlet var customActivityItem: UIBarButtonItem?
     @IBOutlet var previousButton: UIButton?
     @IBOutlet var nextButton: UIButton?
     @IBOutlet var containerView: UIView!
     @IBOutlet var openButton: UIButton?
+    @IBOutlet var customActivityButton: UIButton?
     @IBOutlet var openItem: UIBarButtonItem?
     
     var scheduleOptions: [Schedule] = []
@@ -66,11 +68,14 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         NotificationCenter.default.addObserver(self, selector: #selector(ScheduleViewController.cloudSyncManagerFinishedSyncing(_:)), name: .CloudSyncManagerFinishedSyncing, object: CloudSyncManager.scheduleManager)
 
         CloudSyncManager.scheduleManager.delegate = self
+        
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     func updateToolbarButtons() {
         shareButton?.setImage(shareButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
         openButton?.setImage(openButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        customActivityButton?.setImage(customActivityButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
         nextButton?.setImage(nextButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
         previousButton?.setImage(previousButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
@@ -99,20 +104,28 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
-        updateNavigationBar(newTraits: newCollection)
+        //updateNavigationBar(newTraits: newCollection)
     }
     
     func updateNavigationBar(animated: Bool = true, newTraits: UITraitCollection? = nil) {
-        let traits = newTraits ?? traitCollection
+        /*let traits = newTraits ?? traitCollection
         navigationItem.title = "Schedule"
         let newHiddenValue = traits.horizontalSizeClass != .regular || traits.verticalSizeClass != .regular || traits.userInterfaceIdiom != .pad
         if newHiddenValue != navigationController?.isNavigationBarHidden {
             navigationController?.setNavigationBarHidden(newHiddenValue, animated: animated)
-        }
+        }*/
     }
     
     @objc func courseManagerFinishedLoading(_ note: Notification) {
         updateDisplayedSchedules()
+    }
+    
+    func position(for bar: UIBarPositioning) -> UIBarPosition {
+        guard traitCollection.horizontalSizeClass == .regular,
+            traitCollection.verticalSizeClass == .regular else {
+                return .any
+        }
+        return .topAttached
     }
     
     @objc func cloudSyncManagerFinishedSyncing(_ note: Notification) {
@@ -308,7 +321,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         let peripheralLoad = scheduleOptions.count > 0
         loadingScheduleOptions = true
         DispatchQueue.main.async {
-            if !peripheralLoad {
+            if !peripheralLoad, self.isViewLoaded {
                 self.containerView.alpha = 0.0
             }
             self.loadingView?.alpha = 1.0
@@ -1140,4 +1153,49 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             }
         }
     }
+    
+    // MARK: - Custom Courses
+    
+    @IBAction func customActivityItemTapped(_ sender: Any) {
+        showCustomCourseMenu()
+    }
+    
+    func showCustomCourseMenu() {
+        guard let customCourseVC = storyboard?.instantiateViewController(withIdentifier: "CustomCourseVC") as? CustomCoursesViewController else {
+            return
+        }
+        customCourseVC.delegate = self
+        
+        let nav = UINavigationController(rootViewController: customCourseVC)
+        nav.modalPresentationStyle = .formSheet
+        present(nav, animated: true, completion: nil)
+    }
+    
+    func customCoursesViewController(_ controller: CustomCoursesViewController, addedCourseToSchedule course: Course) {
+        dismiss(animated: true, completion: nil)
+        addCourseToSchedule(course)
+    }
+    
+    func customCoursesViewController(_ controller: CustomCoursesViewController, added course: Course, to semester: UserSemester) {
+        dismiss(animated: true, completion: nil)
+        _ = addCourse(course, to: semester)
+    }
+    
+    func customCoursesViewControllerDismissed(_ controller: CustomCoursesViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func customCourseEditViewController(_ controller: CustomCourseEditViewController, finishedEditing course: Course) {
+        CourseManager.shared.setCustomCourse(course, for: course.subjectID ?? "NO_ID")
+        if let schedule = currentSchedule {
+            schedule.setNeedsSave()
+        }
+        updateDisplayedSchedules()
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func customCourseEditViewControllerDismissed(_ controller: CustomCourseEditViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+
 }

@@ -37,7 +37,9 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         
         let menu = UIMenuController.shared
         menu.menuItems = [
+            UIMenuItem(title: MenuItemStrings.add, action: #selector(CourseThumbnailCell.add(_:))),
             UIMenuItem(title: MenuItemStrings.view, action: #selector(CourseThumbnailCell.viewDetails(_:))),
+            UIMenuItem(title: MenuItemStrings.edit, action: #selector(CourseThumbnailCell.edit(_:))),
             UIMenuItem(title: MenuItemStrings.rate, action: #selector(CourseThumbnailCell.rate(_:))),
             UIMenuItem(title: MenuItemStrings.warnings, action: #selector(CourseThumbnailCell.showWarnings(_:)))
         ]
@@ -229,6 +231,9 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         guard let scheduleVC = childViewController(where: { $0 is ScheduleViewController }) as? ScheduleViewController else {
             print("Couldn't get schedule view controller")
             return
+        }
+        if !scheduleVC.isViewLoaded {
+            scheduleVC.loadViewIfNeeded()
         }
         _ = scheduleVC.addCourse(course)
         if let tab = viewControllers?.first(where: { scheduleVC.isDescendant(of: $0) }) {

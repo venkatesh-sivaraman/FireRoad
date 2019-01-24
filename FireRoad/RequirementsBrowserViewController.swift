@@ -226,7 +226,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
     @IBAction func helpButtonTapped(_ sender: AnyObject) {
         let alert = UIAlertController(title: "Requirements Support", message: "To request a correction or update to a set of course requirements, please visit the online Requirements Editor.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Go", style: .default, handler: { (ac) in
-            guard let url = URL(string: "https://venkats.scripts.mit.edu/fireroad/requirements") else {
+            guard let url = URL(string: CourseManager.urlBase + "/requirements") else {
                 return
             }
             UIApplication.shared.open(url, options: [:], completionHandler: nil)

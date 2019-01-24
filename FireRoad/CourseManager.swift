@@ -50,7 +50,7 @@ class CourseManager: NSObject {
      at 7pm eastern.
      */
     //static let urlBaseChangeDate = Date(timeIntervalSinceReferenceDate: 556498800.0)
-    static var urlBase: String = "https://venkats.scripts.mit.edu/fireroad" /*{
+    static var urlBase: String = "https://fireroad.mit.edu" /*"https://venkats.scripts.mit.edu/fireroad" {
         if Date().compare(CourseManager.urlBaseChangeDate) == .orderedAscending {
             return "https://venkats.scripts.mit.edu/fireroad_dev" // "http://lvh.me:8000"
         } else {
@@ -63,6 +63,10 @@ class CourseManager: NSObject {
     static let recommenderSubmitURL = urlBase + "/recommend/rate/"
     static let recommenderFetchURL = urlBase + "/recommend/get/"
     static let recommenderSetSemesterURL = urlBase + "/set_semester/"
+    
+    private let semesterUpdateURL = urlBase + "/courseupdater/semesters/"
+    private let baseUpdateURL = urlBase + "/courseupdater/check/"
+    private let baseStaticURL = "https://fireroad.mit.edu/catalogs/"
     
     var isLoaded = false
     var loadingProgress: Float = 0.0
@@ -81,12 +85,12 @@ class CourseManager: NSObject {
         "EM", "ES", "HST", "IDS",
         "MAS", "SCM", "STS", "SWE", "SP"
     ]
+    private static let colorBaseValues: [(s: CGFloat, v: CGFloat)] = [
+        (0.7, 0.87),
+        (0.52, 0.71),
+        (0.88, 0.71)
+    ]
     static let colorMapping: [String: UIColor] = {
-        let baseValues: [(s: CGFloat, v: CGFloat)] = [
-            (0.7, 0.87),
-            (0.52, 0.71),
-            (0.88, 0.71)
-        ]
         let directive: [String: (h: CGFloat, base: Int)] = [
             "1": (0.0, 0), "2": (20.0, 0),
             "3": (225.0, 0), "4": (128.0, 1),
@@ -110,7 +114,7 @@ class CourseManager: NSObject {
             "STS": (276.0, 2), "SWE": (13.0, 2),
             "SP": (240.0, 0)
         ]
-        var ret = directive.mapValues({ UIColor(hue: $0.h / 360.0, saturation: baseValues[$0.base].s, brightness: baseValues[$0.base].v, alpha: 1.0) })
+        var ret = directive.mapValues({ UIColor(hue: $0.h / 360.0, saturation: colorBaseValues[$0.base].s, brightness: colorBaseValues[$0.base].v, alpha: 1.0) })
         let saturation = CGFloat(0.7)
         let brightness = CGFloat(0.87)
         ret["GIR"] = UIColor(hue: 0.05, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
@@ -121,6 +125,27 @@ class CourseManager: NSObject {
         ret["CI-H"] = UIColor(hue: 0.85, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
         ret["CI-HW"] = UIColor(hue: 0.95, saturation: saturation * 0.75, brightness: brightness, alpha: 1.0)
         return ret
+    }()
+    
+    static let colorTemplates: [UIColor] = {
+        let directive: [(h: CGFloat, base: Int)] = [
+            (0.0, 1), (30.0, 1), (60.0, 1), (90.0, 1), (120.0, 1), (150.0, 1),
+            (0.0, 0), (30.0, 0), (60.0, 0), (90.0, 0), (120.0, 0), (150.0, 0),
+            (0.0, 2), (30.0, 2), (60.0, 2), (90.0, 2), (120.0, 2), (150.0, 2),
+            (180.0, 1), (210.0, 1), (240.0, 1), (270.0, 1), (300.0, 1), (330.0, 1),
+            (180.0, 0), (210.0, 0), (240.0, 0), (270.0, 0), (300.0, 0), (330.0, 0),
+            (180.0, 2), (210.0, 2), (240.0, 2), (270.0, 2), (300.0, 2), (330.0, 2)
+        ]
+        var templates = directive.map { UIColor(hue: $0.h / 360.0, saturation: colorBaseValues[$0.base].s, brightness: colorBaseValues[$0.base].v, alpha: 1.0) }
+        templates += [
+            UIColor(hue: 0.0, saturation: 0.0, brightness: 0.0, alpha: 1.0),
+            UIColor(hue: 0.0, saturation: 0.0, brightness: 0.15, alpha: 1.0),
+            UIColor(hue: 0.0, saturation: 0.0, brightness: 0.3, alpha: 1.0),
+            UIColor(hue: 0.0, saturation: 0.0, brightness: 0.45, alpha: 1.0),
+            UIColor(hue: 0.0, saturation: 0.0, brightness: 0.6, alpha: 1.0),
+            UIColor(hue: 0.0, saturation: 0.0, brightness: 0.75, alpha: 1.0)
+        ]
+        return templates
     }()
     
     typealias DispatchJob = ((Bool) -> Void) -> Void
@@ -444,12 +469,16 @@ class CourseManager: NSObject {
     
     func color(forCourse course: Course, variantNumber: Int = 0) -> UIColor {
         var ret: UIColor?
-        if course.subjectCode != nil {
+        if let customColor = course.customColor, customColor.count > 0 {
+            ret = color(forColorLabel: customColor)
+        }
+        if ret == nil, course.subjectCode != nil {
             if let color = CourseManager.colorMapping[course.subjectCode!] {
                 ret = color
             }
         }
-        if let id = course.subjectID,
+        if ret == nil,
+            let id = course.subjectID,
             Int(id) == nil,
             let color = CourseManager.colorMapping[id] {
             ret = color
@@ -494,6 +523,17 @@ class CourseManager: NSObject {
     
     func color(forDepartment department: String) -> UIColor {
         return CourseManager.colorMapping[department] ?? UIColor.lightGray
+    }
+    
+    func color(forColorLabel label: String) -> UIColor {
+        if label.contains("@"),
+            let index = Int(label.replacingOccurrences(of: "@", with: "")) {
+            if index >= 0, index < CourseManager.colorTemplates.count {
+                return CourseManager.colorTemplates[index]
+            }
+            return UIColor.lightGray
+        }
+        return UIColor.lightGray
     }
     
     // MARK: - Departments
@@ -907,11 +947,11 @@ class CourseManager: NSObject {
             print("No access token")
             return
         }
-        guard let loginData = token.data(using: .utf8) else {
+        /*guard let loginData = token.data(using: .utf8) else {
             return
         }
-        let base64LoginString = loginData.base64EncodedString()
-        request.setValue("Bearer \(base64LoginString)", forHTTPHeaderField: "Authorization")
+        let base64LoginString = loginData.base64EncodedString()*/
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     }
     
     var subjectRecommendations: [String: [Course: Float]]?
@@ -1037,6 +1077,9 @@ class CourseManager: NSObject {
     static let progressOverridesSetURL = urlBase + "/prefs/set_progress_overrides/"
     static let notesGetURL = urlBase + "/prefs/notes/"
     static let notesSetURL = urlBase + "/prefs/set_notes/"
+    static let customCoursesGetURL = urlBase + "/prefs/custom_courses/"
+    static let customCoursesSetURL = urlBase + "/prefs/set_custom_course/"
+    static let customCoursesRemoveURL = urlBase + "/prefs/remove_custom_course/"
 
     func syncPreferences(_ completion: ((Bool) -> Void)? = nil) {
         getSyncedPreference(from: CourseManager.favoritesGetURL) { object in
@@ -1073,6 +1116,17 @@ class CourseManager: NSObject {
             }
             
             self.syncProgressOverrides(newValue: dict)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .CourseManagerPreferenceSynced, object: self)
+            }
+        }
+        getSyncedPreference(from: CourseManager.customCoursesGetURL) { object in
+            guard let dict = object as? [[String: Any]], dict.count > 0 else {
+                self.saveCustomCourses()
+                return
+            }
+            
+            self.loadCustomCourseCache(from: dict)
             DispatchQueue.main.async {
                 NotificationCenter.default.post(name: .CourseManagerPreferenceSynced, object: self)
             }
@@ -1215,6 +1269,63 @@ class CourseManager: NSObject {
         setSyncedPreference(at: CourseManager.progressOverridesSetURL, with: dict)
     }
     
+    // MARK: Custom Courses
+    
+    static let customCoursesDefaultsKey = "CourseManager.customCourses"
+    
+    /// Dictionary keyed by subject IDs and whose values are the custom courses
+    private var customCourseCache: [String: Course] = [:]
+    
+    func customCourses() -> [String: Course] {
+        if customCourseCache.count == 0 {
+            loadCustomCourseCache()
+        }
+        return customCourseCache
+    }
+    
+    func setCustomCourse(_ course: Course, for subjectID: String) {
+        if customCourseCache.count == 0 {
+            loadCustomCourseCache()
+        }
+        customCourseCache[subjectID] = course
+        saveCustomCourses()
+        setSyncedPreference(at: CourseManager.customCoursesSetURL, with: course.toJSON(), completion: { success in
+            print("Successfully updated course: \(success)")
+        })
+    }
+    
+    func removeCustomCourse(with subjectID: String) {
+        customCourseCache[subjectID] = nil
+        saveCustomCourses()
+        setSyncedPreference(at: CourseManager.customCoursesRemoveURL, with: [CourseAttribute.subjectID.jsonKey(): subjectID], completion: { success in
+            print("Successfully removed course: \(success)")
+        })
+    }
+    
+    func loadCustomCourseCache(from courses: [[String: Any]]? = nil) {
+        let courseList = (courses ?? []) + ((UserDefaults.standard.array(forKey: CourseManager.customCoursesDefaultsKey) as? [[String: Any]]) ?? [])
+        let oldCourseCache = customCourseCache
+        customCourseCache = [:]
+        for json in courseList {
+            guard let subjectID = json[CourseAttribute.subjectID.jsonKey()] as? String else {
+                continue
+            }
+            if let course = oldCourseCache[subjectID] {
+                course.readJSON(json)
+                customCourseCache[subjectID] = course
+            } else {
+                customCourseCache[subjectID] = Course(json: json)
+            }
+        }
+        for course in customCourseCache.values {
+            course.creator = recommenderUserID ?? UIDevice.current.name
+        }
+    }
+    
+    func saveCustomCourses() {
+        UserDefaults.standard.set(customCourseCache.values.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") }).map({ $0.toJSON() }), forKey: CourseManager.customCoursesDefaultsKey)
+    }
+
     // MARK: Course Notes
     
     private let subjectNotesKey = "CourseManager.subjectNotes"
@@ -1384,10 +1495,6 @@ class CourseManager: NSObject {
 
     // MARK: - Updating Course Database
     
-    private let semesterUpdateURL = "https://venkats.scripts.mit.edu/fireroad/courseupdater/semesters/"
-    private let baseUpdateURL = "https://venkats.scripts.mit.edu/fireroad/courseupdater/check/"
-    private let baseStaticURL = "https://venkats.scripts.mit.edu/catalogs/"
-
     enum CatalogUpdateState {
         case newVersionAvailable
         case noUpdatesAvailable

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate, UIPopoverPresentationControllerDelegate, UIDocumentInteractionControllerDelegate {
+class CourseroadViewController: UIViewController, PanelParentViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CourseDetailsDelegate, CourseThumbnailCellDelegate, CourseroadWarningsDelegate, UIBarPositioningDelegate, DocumentBrowseDelegate, UIPopoverPresentationControllerDelegate, UIDocumentInteractionControllerDelegate, CustomCoursesViewControllerDelegate, CustomCourseEditDelegate {
 
     @IBOutlet var collectionView: UICollectionView! = nil
     var currentUser: User? {
@@ -34,11 +34,13 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     @IBOutlet var warningsButton: UIButton?
     @IBOutlet var openButton: UIButton?
     @IBOutlet var shareButton: UIButton?
+    @IBOutlet var customActivityButton: UIButton?
 
     @IBOutlet var layoutToggleItem: UIBarButtonItem?
     @IBOutlet var warningsItem: UIBarButtonItem?
     @IBOutlet var openItem: UIBarButtonItem?
     @IBOutlet var shareItem: UIBarButtonItem?
+    @IBOutlet var customActivityItem: UIBarButtonItem?
     @IBOutlet var toolbarTitleLabel: UILabel?
     
     @IBOutlet var placeholderView: UIView?
@@ -159,6 +161,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func reloadCollectionView() {
+        guard isViewLoaded else {
+            return
+        }
         collectionView.reloadData()
         reloadViewAfterCollectionViewUpdate()
     }
@@ -370,7 +375,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             cell.showsWarningIcon = false
             cell.showsWarningsMenuItem = false
         }
-        cell.showsRateMenuItem = !course.isGeneric
+        cell.showsRateMenuItem = !course.isGeneric && course.creator == nil
+        cell.showsEditMenuItem = course.creator != nil
+        cell.showsViewMenuItem = course.creator == nil
         
         return cell
     }
@@ -434,12 +441,13 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             let semesterCourses = currentUser?.courses(forSemester: semester) {
             let totalUnits = semesterCourses.reduce(0, { $0 + $1.totalUnits })
             var unitsText = "\(totalUnits) units"
+            var totalHours: Float = 0.0
             if semester != .PreviousCredit, CourseManager.shared.isLoaded {
-                let totalHours = semesterCourses.reduce(0.0, { $0 + ($1.inClassHours + $1.outOfClassHours) / ($1.quarterOffered != .wholeSemester ? 2.0 : 1.0) })
+                totalHours = semesterCourses.reduce(0.0, { $0 + ($1.inClassHours + $1.outOfClassHours) / ($1.quarterOffered != .wholeSemester ? 2.0 : 1.0) })
                 unitsText += " • " + String(format: "%.1f hours", totalHours)
             }
             unitsLabel.text = unitsText
-            unitsLabel.isHidden = (totalUnits == 0)
+            unitsLabel.isHidden = (totalUnits == 0 && totalHours == 0.0)
         }
     }
     
@@ -537,6 +545,30 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         viewDetails(for: courses[indexPath.item])
     }
     
+    func courseThumbnailCellWantsEdit(_ cell: CourseThumbnailCell) {
+        guard let user = currentUser,
+            let indexPath = collectionView.indexPath(for: cell),
+            let semester = UserSemester(rawValue: indexPath.section) else {
+                return
+        }
+        let courses = user.courses(forSemester: semester)
+        guard indexPath.item < courses.count,
+            courses[indexPath.item].creator != nil else {
+            return
+        }
+        
+        guard let editVC = storyboard?.instantiateViewController(withIdentifier: "CustomCourseEditVC") as? CustomCourseEditViewController else {
+            return
+        }
+        editVC.delegate = self
+        editVC.course = courses[indexPath.item]
+        editVC.showsCancelButton = true
+        editVC.doneButtonMode = .save
+        let nav = UINavigationController(rootViewController: editVC)
+        nav.modalPresentationStyle = .formSheet
+        present(nav, animated: true, completion: nil)
+    }
+    
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
         guard let user = currentUser,
             let indexPath = collectionView.indexPath(for: cell),
@@ -594,6 +626,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         let courses = user.courses(forSemester: semester)
         actionMenu.addAction(UIAlertAction(title: "View Schedule", style: .default, handler: { (action) in
             tabVC.displaySchedule(with: courses, name: semester.toString())
+        }))
+        actionMenu.addAction(UIAlertAction(title: "Add Custom Activity", style: .default, handler: { (action) in
+            self.showCustomCourseMenu(from: semester)
         }))
         actionMenu.addAction(UIAlertAction(title: "Clear", style: .destructive, handler: { (action) in
             for course in courses {
@@ -744,6 +779,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         
         openButton?.setImage(openButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
         shareButton?.setImage(shareButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        customActivityButton?.setImage(customActivityButton?.image(for: .normal)?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
     
     @IBAction func toggleViewLayoutMode(_ sender: AnyObject) {
@@ -1047,5 +1083,50 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     func warningsController(_ warningsController: CourseroadWarningsViewController, setOverride override: Bool, for course: Course) {
         currentUser?.setOverridesWarnings(override, for: course)
         reloadCollectionView()
+    }
+    
+    // MARK: - Custom Courses
+    
+    @IBAction func customActivityItemTapped(_ sender: Any) {
+        showCustomCourseMenu()
+    }
+    
+    func showCustomCourseMenu(from semester: UserSemester? = nil) {
+        guard let customCourseVC = storyboard?.instantiateViewController(withIdentifier: "CustomCourseVC") as? CustomCoursesViewController else {
+            return
+        }
+        customCourseVC.delegate = self
+        customCourseVC.semester = semester
+        
+        let nav = UINavigationController(rootViewController: customCourseVC)
+        nav.modalPresentationStyle = .formSheet
+        present(nav, animated: true, completion: nil)
+    }
+    
+    func customCoursesViewController(_ controller: CustomCoursesViewController, addedCourseToSchedule course: Course) {
+        dismiss(animated: true, completion: nil)
+        addCourseToSchedule(course)
+    }
+    
+    func customCoursesViewController(_ controller: CustomCoursesViewController, added course: Course, to semester: UserSemester) {
+        dismiss(animated: true, completion: nil)
+        _ = addCourse(course, to: semester)
+    }
+    
+    func customCoursesViewControllerDismissed(_ controller: CustomCoursesViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func customCourseEditViewController(_ controller: CustomCourseEditViewController, finishedEditing course: Course) {
+        CourseManager.shared.setCustomCourse(course, for: course.subjectID ?? "NO_ID")
+        if let user = currentUser {
+            user.setNeedsSave()
+        }
+        reloadCollectionView()
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func customCourseEditViewControllerDismissed(_ controller: CustomCourseEditViewController) {
+        dismiss(animated: true, completion: nil)
     }
 }

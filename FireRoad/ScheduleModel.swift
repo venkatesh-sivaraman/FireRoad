@@ -167,7 +167,8 @@ class ScheduleDocument: UserDocument {
     
     enum ScheduleFile {
         static let selectedSubjects = "selectedSubjects"
-        static let subjectID = "id"
+        static let subjectIDAlt = "id"
+        static let subjectID = "subject_id"
         static let subjectTitle = "title"
         static let allowedSections = "allowedSections"
         static let selectedSections = "selectedSections"
@@ -196,12 +197,13 @@ class ScheduleDocument: UserDocument {
         var newSections: [Course: [String: [Int]]]?
         var newCourses: [Course] = []
         for subjectJSON in selectedSubjectsList {
-            guard let subjectID = subjectJSON[ScheduleFile.subjectID] as? String,
+            guard let subjectID = (subjectJSON[ScheduleFile.subjectID] ?? subjectJSON[ScheduleFile.subjectIDAlt]) as? String,
                 let title = subjectJSON[ScheduleFile.subjectTitle] as? String else {
                     print("Malformed subject entry: \(subjectJSON)")
                     continue
             }
-            let course = CourseManager.shared.getCourse(withID: subjectID) ?? Course(courseID: subjectID, courseTitle: title, courseDescription: "")
+            let course = CourseManager.shared.getCourse(withID: subjectID) ?? CourseManager.shared.customCourses()[subjectID] ?? Course(courseID: subjectID, courseTitle: title, courseDescription: "")
+            course.readJSON(subjectJSON)
             if let constraints = subjectJSON[ScheduleFile.allowedSections] as? [String: [Int]] {
                 if newSections == nil {
                     newSections = [:]
@@ -299,15 +301,7 @@ class ScheduleDocument: UserDocument {
     override func writeCoursesToJSON() throws -> Any {
         var selectedSubjectsJSON: [[String: Any]] = []
         for subject in courses {
-            guard let id = subject.subjectID,
-                let title = subject.subjectTitle else {
-                    print("No information to write for \(subject)")
-                    continue
-            }
-            var subjectJSON: [String: Any] = [
-                ScheduleFile.subjectID: id,
-                ScheduleFile.subjectTitle: title
-            ]
+            var subjectJSON: [String: Any] = subject.toJSON()
             if let sections = allowedSections?[subject] {
                 subjectJSON[ScheduleFile.allowedSections] = sections
             }

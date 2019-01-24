@@ -158,7 +158,7 @@ class UserDocument: NSObject {
     private func colorProportionsForThumbnail() -> [(UIColor, CGFloat)] {
         var departmentProportions: [String: CGFloat] = [:]
         for course in coursesForThumbnail {
-            guard let code = course.subjectCode else {
+            guard let code = course.subjectCode ?? course.customColor else {
                 continue
             }
             if departmentProportions[code] != nil {
@@ -174,7 +174,7 @@ class UserDocument: NSObject {
             }
         }
         let total = departmentProportions.values.reduce(CGFloat(0.0), +)
-        let props = departmentProportions.sorted(by: { $0.key.lexicographicallyPrecedes($1.key) }).map({ (CourseManager.shared.color(forDepartment: $0.key), $0.value / total) })
+        let props = departmentProportions.sorted(by: { $0.key.lexicographicallyPrecedes($1.key) }).map({ ($0.key.contains("@") ? CourseManager.shared.color(forColorLabel: $0.key) : CourseManager.shared.color(forDepartment: $0.key), $0.value / total) })
         if props.count > 0 {
             return props
         } else {

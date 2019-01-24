@@ -14,6 +14,8 @@ protocol CourseThumbnailCellDelegate: class {
     func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsShowWarnings(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsEdit(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsAdd(_ cell: CourseThumbnailCell)
 }
 
 extension CourseThumbnailCellDelegate {
@@ -32,6 +34,12 @@ extension CourseThumbnailCellDelegate {
     func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell) {
         
     }
+    func courseThumbnailCellWantsEdit(_ cell: CourseThumbnailCell) {
+        
+    }
+    func courseThumbnailCellWantsAdd(_ cell: CourseThumbnailCell) {
+        
+    }
 }
 
 class CourseThumbnailCell: UICollectionViewCell {
@@ -43,6 +51,10 @@ class CourseThumbnailCell: UICollectionViewCell {
     var showsConstraintMenuItem = false
     var showsWarningsMenuItem = false
     var showsRateMenuItem = true
+    var showsEditMenuItem = false
+    var showsAddMenuItem = false
+    var showsViewMenuItem = true
+    var showsDeleteMenuItem = true
 
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
@@ -67,6 +79,9 @@ class CourseThumbnailCell: UICollectionViewCell {
             updateLongPressGestureRecognizer()
         }
     }
+    
+    /// If this is non-null, a menu will *not* be shown and this action will be fired instead.
+    var action: (() -> Void)?
     
     func updateLongPressGestureRecognizer() {
         if let longPress = gestureRecognizers?.first(where: { $0 is UILongPressGestureRecognizer }) {
@@ -227,7 +242,9 @@ class CourseThumbnailCell: UICollectionViewCell {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
         isHighlighted = false
-        if delegate != nil {
+        if let action = action {
+            action()
+        } else if delegate != nil {
             self.becomeFirstResponder()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 let menu = UIMenuController.shared
@@ -252,15 +269,19 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         if action == #selector(viewDetails(_:)) {
-            return delegate != nil
+            return delegate != nil && showsViewMenuItem
         } else if action == #selector(delete(_:)) {
-            return delegate != nil
+            return delegate != nil && showsDeleteMenuItem
         } else if action == #selector(constrain(_:)) {
             return delegate != nil && showsConstraintMenuItem
         } else if action == #selector(showWarnings(_:)) {
             return delegate != nil && showsWarningsMenuItem
         } else if action == #selector(rate(_:)) {
             return delegate != nil && showsRateMenuItem
+        } else if action == #selector(edit(_:)) {
+            return delegate != nil && showsEditMenuItem
+        } else if action == #selector(add(_:)) {
+            return delegate != nil && showsAddMenuItem
         }
         return false
     }
@@ -283,6 +304,14 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     @objc func rate(_ sender: AnyObject) {
         delegate?.courseThumbnailCellWantsRate(self)
+    }
+    
+    @objc func edit(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsEdit(self)
+    }
+    
+    @objc func add(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsAdd(self)
     }
     
     // MARK: - Requirement Fulfillment

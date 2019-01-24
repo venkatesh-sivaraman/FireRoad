@@ -464,7 +464,8 @@ class User: UserDocument {
     enum RoadFile {
         static let coursesOfStudy = "coursesOfStudy"
         static let selectedSubjects = "selectedSubjects"
-        static let subjectID = "id"
+        static let subjectIDAlt = "id"
+        static let subjectID = "subject_id"
         static let subjectTitle = "title"
         static let semesterNumber = "semester"
         static let units = "units"
@@ -510,7 +511,7 @@ class User: UserDocument {
         overrides = [:]
         
         for subjectJSON in selectedSubjectsList {
-            guard let subjectID = subjectJSON[RoadFile.subjectID] as? String,
+            guard let subjectID = (subjectJSON[RoadFile.subjectID] ?? subjectJSON[RoadFile.subjectIDAlt]) as? String,
                 let title = subjectJSON[RoadFile.subjectTitle] as? String,
                 let units = subjectJSON[RoadFile.units] as? Int,
                 let semesterNumber = subjectJSON[RoadFile.semesterNumber] as? Int,
@@ -522,13 +523,21 @@ class User: UserDocument {
                 print("No semester number \(semesterNumber)")
                 continue
             }
-            if CourseManager.shared.getCourse(withID: subjectID) == nil, Course.genericCourses[subjectID] == nil {
+            if subjectJSON[CourseAttribute.creator.jsonKey()] != nil,
+                CourseManager.shared.customCourses()[subjectID] == nil {
+                let course = Course(json: subjectJSON)
+                CourseManager.shared.setCustomCourse(course, for: subjectID)
+            } else if subjectJSON[CourseAttribute.creator.jsonKey()] == nil,
+                CourseManager.shared.getCourse(withID: subjectID) == nil,
+                Course.genericCourses[subjectID] == nil {
                 CourseManager.shared.addCourse(withID: subjectID, title: title, units: units)
             }
-            guard let course = CourseManager.shared.getCourse(withID: subjectID) ?? Course.genericCourses[subjectID] else {
+            guard let course = CourseManager.shared.getCourse(withID: subjectID) ?? Course.genericCourses[subjectID] ?? CourseManager.shared.customCourses()[subjectID] else {
                 print("Unable to add course with ID \(subjectID) to course manager")
                 continue
             }
+            // Add additional keys from JSON
+            course.readJSON(subjectJSON)
             
             add(course, toSemester: semester)
             overrides[course] = override
@@ -620,19 +629,10 @@ class User: UserDocument {
         var selectedSubjectsJSON: [[String: Any]] = []
         for (semester, subjects) in selectedSubjects.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
             for subject in subjects {
-                guard let id = subject.subjectID,
-                    let title = subject.subjectTitle else {
-                        print("No information to write for \(subject)")
-                        continue
-                }
-                let units = subject.totalUnits
-                selectedSubjectsJSON.append([
-                    RoadFile.semesterNumber: semester.rawValue,
-                    RoadFile.subjectID: id,
-                    RoadFile.subjectTitle: title,
-                    RoadFile.units: units,
-                    RoadFile.overrideWarnings: overridesWarnings(for: subject)
-                    ])
+                var json = subject.toJSON()
+                json[RoadFile.semesterNumber] = semester.rawValue
+                json[RoadFile.overrideWarnings] = overridesWarnings(for: subject)
+                selectedSubjectsJSON.append(json)
             }
         }
         let fileJSON: [String: Any] = [
