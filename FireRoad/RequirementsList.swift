@@ -232,11 +232,12 @@ class RequirementsListStatement: NSObject {
         return regex
     }
     
+    fileprivate let manualProgressItemRegex = try! NSRegularExpression(pattern: "^\"\"[^\"]\"\"$", options: [])
+    
     fileprivate func separateTopLevelItems(in text: String) -> ([String], ConnectionType) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.count >= 4,
-            trimmed[trimmed.startIndex..<trimmed.index(trimmed.startIndex, offsetBy: 2)] == "\"\"",
-            trimmed[trimmed.index(trimmed.endIndex, offsetBy: -2)..<trimmed.endIndex] == "\"\"" {
+            manualProgressItemRegex.firstMatch(in: trimmed, options: .anchored, range: NSRange(location: 0, length: trimmed.count)) != nil {
             return ([undecoratedComponent(trimmed)], .none)
         }
         var components: [String] = []
@@ -378,7 +379,7 @@ class RequirementsListStatement: NSObject {
         isPlainString = cType == .none
         
         if components.count == 1 {
-            requirement = components[0]
+            requirement = undecoratedComponent(components[0])
         } else {
             requirements = components.map({ RequirementsListStatement(statement: unwrappedComponent($0)) })
         }
@@ -414,7 +415,7 @@ class RequirementsListStatement: NSObject {
         var satisfying: [Course] = []
         if let req = requirement {
             for course in courses {
-                if course.satisfies(requirement: req) {
+                if course.satisfies(requirement: req, allCourses: courses) {
                     satisfying.append(course)
                 }
             }
@@ -447,34 +448,24 @@ class RequirementsListStatement: NSObject {
      - Parameter autoManual: whether to automatically count plain strings as fulfilled
      - Returns: The set of courses that satisfy this requirement.
      */
-    @discardableResult func computeRequirementStatus(with courses: [Course], autoManual: Bool = false) -> Set<Course> {
+    @discardableResult func computeRequirementStatus(with courses: [Course]) -> Set<Course> {
         if requirement != nil {
             var satisfiedCourses = Set<Course>()
-            if isPlainString {
-                if autoManual {
-                    // We assume the requirement is fulfilled (e.g. "permission of instructor")
-                    isFulfilled = true
-                    let fakeThreshold = threshold ?? Threshold(.greaterThanOrEqual, number: 1, of: .subjects)
-                    let subjects = fakeThreshold.cutoff / (fakeThreshold.criterion == .units ? Threshold.defaultUnitCount : 1)
-                    let units = fakeThreshold.cutoff * (fakeThreshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)
-                    subjectFulfillmentProgress = ceilingThreshold((subjects, subjects))
-                    unitFulfillmentProgress = ceilingThreshold((units, units))
-                } else if let threshold = threshold,
-                    let manual = manualProgress {
-                    isFulfilled = manual == threshold.cutoff
-                    var subjects = 0
-                    var units = 0
-                    if threshold.criterion == .units {
-                        units = manual
-                        subjects = manual / 12
-                    } else {
-                        subjects = manual
-                        units = manual * 12
-                    }
-                    subjectFulfillmentProgress = ceilingThreshold((subjects, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
-                    unitFulfillmentProgress = ceilingThreshold((units, threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
+            if isPlainString, let threshold = threshold,
+                let manual = manualProgress {
+                isFulfilled = manual == threshold.cutoff
+                var subjects = 0
+                var units = 0
+                if threshold.criterion == .units {
+                    units = manual
+                    subjects = manual / 12
+                } else {
+                    subjects = manual
+                    units = manual * 12
                 }
-                
+                subjectFulfillmentProgress = ceilingThreshold((subjects, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
+                unitFulfillmentProgress = ceilingThreshold((units, threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
+
                 // Generate dummy courses to show that this requirement has been fulfilled
                 for _ in 0..<subjectFulfillmentProgress.0 {
                     let id = arc4random() % UInt32(1e9)
@@ -504,14 +495,14 @@ class RequirementsListStatement: NSObject {
         var satisfyingPerCategory: [RequirementsListStatement: Set<Course>] = [:]
         var numRequirementsSatisfied = 0
         for req in reqs {
-            let satisfiedCourses = req.computeRequirementStatus(with: courses, autoManual: autoManual)
-            if req.isFulfilled {
+            let satisfiedCourses = req.computeRequirementStatus(with: courses)
+            if req.isFulfilled, satisfiedCourses.count > 0 {
                 numRequirementsSatisfied += 1
             }
             satisfyingPerCategory[req] = satisfiedCourses
         }
         
-        var totalSatisfyingCourses = satisfyingPerCategory.reduce(Set<Course>(), { $0.union($1.value) })
+        let totalSatisfyingCourses = satisfyingPerCategory.reduce(Set<Course>(), { $0.union($1.value) })
         // Set isFulfilled and fulfillmentProgresses
         var sortedProgresses = reqs.sorted(by: { $0.rawPercentageFulfilled > $1.rawPercentageFulfilled })
         if threshold == nil, distinctThreshold == nil {
@@ -527,7 +518,6 @@ class RequirementsListStatement: NSObject {
         } else {
             if let distinct = distinctThreshold {
                 sortedProgresses = [RequirementsListStatement](sortedProgresses[0..<min(distinct.actualCutoff, sortedProgresses.count)])
-                totalSatisfyingCourses = sortedProgresses.reduce(Set<Course>(), { $0.union(satisfyingPerCategory[$1] ?? Set<Course>()) })
             }
             if threshold == nil, let distinct = distinctThreshold {
                 // required number of statements
@@ -541,14 +531,17 @@ class RequirementsListStatement: NSObject {
                 
             } else if let threshold = threshold {
                 // required number of subjects or units
-                subjectFulfillmentProgress = (totalSatisfyingCourses.count, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1))
-                unitFulfillmentProgress = (totalSatisfyingCourses.reduce(0, { $0 + $1.totalUnits }), threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1))
+                let subjectCutoff = threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)
+                let unitCutoff = threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)
+                
+                subjectFulfillmentProgress = (totalSatisfyingCourses.count, subjectCutoff)
+                unitFulfillmentProgress = (totalSatisfyingCourses.reduce(0, { $0 + $1.totalUnits }), unitCutoff)
+                
                 if let distinct = distinctThreshold,
                     distinct.type == .greaterThan || distinct.type == .greaterThanOrEqual {
                     isFulfilled = number(subjectFulfillmentProgress.0, withUnits: unitFulfillmentProgress.0, satisfies: threshold) && numRequirementsSatisfied >= distinct.actualCutoff
                     if numRequirementsSatisfied < distinct.actualCutoff {
-                        subjectFulfillmentProgress = sortedProgresses.reduce((0, 0), { ($0.0 + $1.subjectFulfillmentProgress.0, $0.1 + max($1.subjectFulfillmentProgress.1, 1)) })
-                        unitFulfillmentProgress = sortedProgresses.reduce((0, 0), { ($0.0 + $1.unitFulfillmentProgress.0, $0.1 + ($1.unitFulfillmentProgress.1 == 0 ? Threshold.defaultUnitCount : $1.unitFulfillmentProgress.1)) })
+                        forceUnfulfillProgresses(with: sortedProgresses, satisfyingPerCategory: satisfyingPerCategory, total: totalSatisfyingCourses)
                     }
                 } else {
                     isFulfilled = number(subjectFulfillmentProgress.0, withUnits: unitFulfillmentProgress.0, satisfies: threshold)
@@ -568,6 +561,46 @@ class RequirementsListStatement: NSObject {
         unitFulfillmentProgress = ceilingThreshold(unitFulfillmentProgress)
         fulfillmentProgress = (threshold != nil && threshold?.criterion == .units) ? unitFulfillmentProgress : subjectFulfillmentProgress
         return totalSatisfyingCourses
+    }
+    
+    /**
+     Makes sure that a requirement with a distinct threshold that has not been
+     met, but a threshold that *has* been met, is not counted as satisfied.
+     
+     - Parameter sortedProgresses: the child requirements sorted by their
+                fulfillment progress, and clipped to the distinct threshold
+     - Parameter satisfyingPerCategory: courses satisfying each child requirement
+     - Parameter total: the precomputed set union of satisfyingPerCategory
+     */
+    func forceUnfulfillProgresses(with sortedProgresses: [RequirementsListStatement], satisfyingPerCategory: [RequirementsListStatement: Set<Course>], total: Set<Course>) {
+        guard let threshold = threshold else {
+            return
+        }
+        
+        let subjectCutoff = threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)
+        let unitCutoff = threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)
+        
+        // Strategy: partition the threshold's worth of subjects/units into two
+        // sections: fixed and free. Fixed means we need at least one subject
+        // from each child requirement, and free means we can choose any maximally
+        // satisfying courses. To fill the fixed portion, we choose the maximum-
+        // unit course from each child requirement. To fill the free portion, we
+        // choose the maximum-unit courses from any child requirement.
+        //   > Example: threshold = 7, distinct = 2, among 3 child requirements
+        //   The input to this function would contain the 2 most-fulfilled child
+        //   requirements. We would fill 2 subjects worth of progress with the
+        //   maximum-unit course for each of those requirements, then fill the
+        //   remaining 5 with "free" courses from any requirement.
+        
+        let maxUnitSubjects = sortedProgresses.map { ($0, satisfyingPerCategory[$0]?.max(by: { $0.totalUnits < $1.totalUnits })) }
+        let fixedSubjectProgress = maxUnitSubjects.reduce((0, 0), { ($0.0 + ($1.1 != nil ? 1 : 0), $0.1 + 1)})
+        let fixedUnitProgress = maxUnitSubjects.reduce((0, 0), { ($0.0 + ($1.1?.totalUnits ?? 0), $0.1 + max($1.1?.totalUnits ?? 0, Threshold.defaultUnitCount)) })
+        let freeCourses = total.subtracting(maxUnitSubjects.compactMap({ $1 }))
+        let freeSubjectProgress = (min(freeCourses.count, subjectCutoff - fixedSubjectProgress.1), subjectCutoff - fixedSubjectProgress.1)
+        let freeUnitProgress = (min(freeCourses.reduce(0, { $0 + $1.totalUnits }), unitCutoff - fixedUnitProgress.1), unitCutoff - fixedUnitProgress.1)
+        
+        subjectFulfillmentProgress = (fixedSubjectProgress.0 + freeSubjectProgress.0, fixedSubjectProgress.1 + freeSubjectProgress.1)
+        unitFulfillmentProgress = (fixedUnitProgress.0 + freeUnitProgress.0, fixedUnitProgress.1 + freeUnitProgress.1)
     }
     
     var rawPercentageFulfilled: Float {
