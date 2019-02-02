@@ -202,7 +202,7 @@ class ScheduleDocument: UserDocument {
                     print("Malformed subject entry: \(subjectJSON)")
                     continue
             }
-            let course = CourseManager.shared.getCourse(withID: subjectID) ?? CourseManager.shared.customCourses()[subjectID] ?? Course(courseID: subjectID, courseTitle: title, courseDescription: "")
+            let course = CourseManager.shared.getCourse(withID: subjectID) ?? CourseManager.shared.getCustomCourse(with: subjectID, title: title) ?? Course(courseID: subjectID, courseTitle: title, courseDescription: "")
             course.readJSON(subjectJSON)
             if let constraints = subjectJSON[ScheduleFile.allowedSections] as? [String: [Int]] {
                 if newSections == nil {
@@ -215,6 +215,9 @@ class ScheduleDocument: UserDocument {
                     preloadSections = [:]
                 }
                 preloadSections?[course] = selected
+            }
+            if course.creator != nil {
+                CourseManager.shared.setCustomCourse(course)
             }
             newCourses.append(course)
         }

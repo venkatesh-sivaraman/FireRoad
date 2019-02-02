@@ -44,6 +44,22 @@ class AppSettings: NSObject {
 
     static var shared: AppSettings = AppSettings()
     
+    private let versionUpdateDefaultsKey = "AppSettings.versionUpdate"
+    private let recentAlert: (version: Int, message: String)? = (1, "∙ Tap the pencil icon to add custom activities\n∙ Mark subjects as easy, hard, listener, and more")
+    
+    func versionUpdateMessage() -> String? {
+        if allowsRecommendations == nil {
+            UserDefaults.standard.set(recentAlert?.version ?? 0, forKey: versionUpdateDefaultsKey)
+            return nil
+        }
+        let alertIndex = UserDefaults.standard.integer(forKey: versionUpdateDefaultsKey)
+        if let alert = recentAlert, alertIndex < alert.version {
+            UserDefaults.standard.set(alert.version, forKey: versionUpdateDefaultsKey)
+            return alert.message
+        }
+        return nil
+    }
+
     private let hidesAllWarningsDefaultsKey = "AppSettings.hidesAllWarnings"
     
     var hidesAllWarnings: Bool {

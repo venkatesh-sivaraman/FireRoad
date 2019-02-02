@@ -11,6 +11,7 @@ import UIKit
 protocol ScheduleGridDelegate: CourseDisplayManager {
     func deleteCourseFromSchedules(_ course: Course)
     func scheduleGrid(_ gridVC: ScheduleGridViewController, wantsConstraintMenuFor course: Course, sender: UIView?)
+    func scheduleGrid(_ gridVC: ScheduleGridViewController, wantsCustomCourseEditorFor course: Course)
 }
 
 class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate, UIPopoverPresentationControllerDelegate, UIScrollViewDelegate {
@@ -241,13 +242,22 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
                         courseCell.delegate = self
                         courseCell.course = course
                         courseCell.showsConstraintMenuItem = true
+                        courseCell.showsViewMenuItem = course.creator == nil
+                        courseCell.showsRateMenuItem = course.creator == nil
+                        courseCell.showsConstraintMenuItem = course.creator == nil
+                        courseCell.showsEditMenuItem = course.creator != nil
+                        courseCell.showsMarkMenuItem = false
                         
                         courseCell.generateLabels(withDetail: true)
                         courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)
                         courseCell.textLabel?.text = course.subjectID!
                         courseCell.textLabel?.numberOfLines = 1
                         courseCell.detailTextLabel?.font = UIFont.systemFont(ofSize: cellDescriptionFontSize)
-                        courseCell.detailTextLabel?.text = (CourseScheduleType.abbreviation(for: type)?.lowercased() ?? type.lowercased()) + (item.location != nil ?  " (\(item.location!))" : "")
+                        var detailText = (CourseScheduleType.abbreviation(for: type)?.lowercased() ?? type.lowercased()) + (item.location?.count != 0 ?  " (\(item.location!))" : "")
+                        if detailText.count == 0 {
+                            detailText = course.subjectTitle ?? ""
+                        }
+                        courseCell.detailTextLabel?.text = detailText
                         
                         if courseCells[unit] == nil {
                             courseCells[unit] = []
@@ -342,6 +352,13 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
         delegate?.viewDetails(for: course, showGenericDetails: true)
     }
     
+    func courseThumbnailCellWantsEdit(_ cell: CourseThumbnailCell) {
+        guard let course = cell.course else {
+            return
+        }
+        delegate?.scheduleGrid(self, wantsCustomCourseEditorFor: course)
+    }
+    
     func courseThumbnailCellWantsConstrain(_ cell: CourseThumbnailCell) {
         guard let course = cell.course else {
             return
@@ -383,4 +400,6 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
         let offsetY = max((scrollView.bounds.height - scrollView.contentSize.height) * 0.5, 0)
         scrollView.contentInset = UIEdgeInsetsMake(topPadding + offsetY, offsetX, 0, 0)
     }
+    
+    
 }

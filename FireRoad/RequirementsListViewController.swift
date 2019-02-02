@@ -175,7 +175,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
         if let tabVC = rootParent as? RootTabViewController,
             let currentUser = tabVC.currentUser {
-            requirementsList?.computeRequirementStatus(with: currentUser.allCourses)
+            requirementsList?.computeRequirementStatus(with: currentUser.creditCourses)
             if presentationItems.count == 0, let reqsList = requirementsList {
                 presentationItems = buildPresentationItems(from: reqsList)
             }

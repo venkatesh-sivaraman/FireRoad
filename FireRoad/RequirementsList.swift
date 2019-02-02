@@ -594,7 +594,7 @@ class RequirementsListStatement: NSObject {
         
         let maxUnitSubjects = sortedProgresses.map { ($0, satisfyingPerCategory[$0]?.max(by: { $0.totalUnits < $1.totalUnits })) }
         let fixedSubjectProgress = maxUnitSubjects.reduce((0, 0), { ($0.0 + ($1.1 != nil ? 1 : 0), $0.1 + 1)})
-        let fixedUnitProgress = maxUnitSubjects.reduce((0, 0), { ($0.0 + ($1.1?.totalUnits ?? 0), $0.1 + max($1.1?.totalUnits ?? 0, Threshold.defaultUnitCount)) })
+        let fixedUnitProgress = maxUnitSubjects.reduce((0, 0), { ($0.0 + ($1.1?.totalUnits ?? 0), $0.1 + ($1.1?.totalUnits ?? Threshold.defaultUnitCount)) })
         let freeCourses = total.subtracting(maxUnitSubjects.compactMap({ $1 }))
         let freeSubjectProgress = (min(freeCourses.count, subjectCutoff - fixedSubjectProgress.1), subjectCutoff - fixedSubjectProgress.1)
         let freeUnitProgress = (min(freeCourses.reduce(0, { $0 + $1.totalUnits }), unitCutoff - fixedUnitProgress.1), unitCutoff - fixedUnitProgress.1)

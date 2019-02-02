@@ -1156,6 +1156,23 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     
     // MARK: - Custom Courses
     
+    func scheduleGrid(_ gridVC: ScheduleGridViewController, wantsCustomCourseEditorFor course: Course) {
+        guard course.creator != nil else {
+            return
+        }
+        
+        guard let editVC = storyboard?.instantiateViewController(withIdentifier: "CustomCourseEditVC") as? CustomCourseEditViewController else {
+            return
+        }
+        editVC.delegate = self
+        editVC.course = course
+        editVC.showsCancelButton = true
+        editVC.doneButtonMode = .save
+        let nav = UINavigationController(rootViewController: editVC)
+        nav.modalPresentationStyle = .formSheet
+        present(nav, animated: true, completion: nil)
+    }
+    
     @IBAction func customActivityItemTapped(_ sender: Any) {
         showCustomCourseMenu()
     }
@@ -1165,6 +1182,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             return
         }
         customCourseVC.delegate = self
+        customCourseVC.addToSchedule = true
         
         let nav = UINavigationController(rootViewController: customCourseVC)
         nav.modalPresentationStyle = .formSheet
@@ -1186,7 +1204,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     }
     
     func customCourseEditViewController(_ controller: CustomCourseEditViewController, finishedEditing course: Course) {
-        CourseManager.shared.setCustomCourse(course, for: course.subjectID ?? "NO_ID")
+        CourseManager.shared.setCustomCourse(course)
         if let schedule = currentSchedule {
             schedule.setNeedsSave()
         }

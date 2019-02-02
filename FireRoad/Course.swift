@@ -337,17 +337,20 @@ enum CourseScheduleType {
     static let recitation = "Recitation"
     static let lab = "Lab"
     static let design = "Design"
-    
+    static let custom = "Custom"
+
     static let ordering = [CourseScheduleType.lecture,
                            CourseScheduleType.recitation,
                            CourseScheduleType.design,
-                           CourseScheduleType.lab]
+                           CourseScheduleType.lab,
+                           CourseScheduleType.custom]
     
     private static let abbreviations = [
         CourseScheduleType.lecture: "Lec",
         CourseScheduleType.recitation: "Rec",
         CourseScheduleType.lab: "Lab",
-        CourseScheduleType.design: "Des"
+        CourseScheduleType.design: "Des",
+        CourseScheduleType.custom: ""
     ]
     
     static func abbreviation(for scheduleType: String) -> String? {
@@ -521,7 +524,10 @@ enum CourseAttribute: String {
     }
     
     init?(jsonKey: String) {
-        if let val = CourseAttribute.jsonKeys[jsonKey] {
+        if jsonKey == "id" {
+            // Alternate key used in old road files
+            self = .subjectID
+        } else if let val = CourseAttribute.jsonKeys[jsonKey] {
             self = val
         } else {
             return nil
@@ -816,6 +822,19 @@ class Course: NSObject {
             ret[CourseAttribute.isOfferedIAP.jsonKey()] = isOfferedIAP
             ret[CourseAttribute.isOfferedSpring.jsonKey()] = isOfferedSpring
             ret[CourseAttribute.isOfferedSummer.jsonKey()] = isOfferedSummer
+            if let schedule = schedule {
+                let scheduleString = schedule.map({ (type, items) -> String in
+                    return type + "," + items.map({ (itemSet) -> String in
+                        return (itemSet.first?.location ?? "") + "/" + itemSet.map({ item -> String in
+                            return [item.days.stringEquivalent(),
+                                    item.isEvening ? "1" : "0",
+                                    item.startTime.stringEquivalent().replacingOccurrences(of: ":", with: ".") + "-" +
+                                        item.endTime.stringEquivalent().replacingOccurrences(of: ":", with: ".")].joined(separator: "/")
+                        }).joined(separator: "/")
+                    }).joined(separator: ",")
+                }).joined(separator: ";")
+                ret[CourseAttribute.schedule.jsonKey()] = scheduleString
+            }
         }
         if let color = customColor {
             ret[CourseAttribute.customColor.jsonKey()] = color

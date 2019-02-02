@@ -337,13 +337,16 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseCell", for: indexPath) as! CourseThumbnailCell
-        if self.currentUser?.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
+        if (self.currentUser?.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count ?? 0) <= indexPath.item {
             cell.alpha = 0.0
             cell.backgroundColor = UIColor.white
             cell.shadowEnabled = false
             cell.textLabel?.text = ""
             cell.detailTextLabel?.text = ""
             cell.showsWarningIcon = false
+            cell.showsViewMenuItem = false
+            cell.showsRateMenuItem = false
+            cell.showsMarkMenuItem = false
             return cell
         }
         cell.shadowEnabled = true
@@ -351,6 +354,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         let semester = UserSemester(rawValue: indexPath.section)!
         let course = self.currentUser!.courses(forSemester: semester)[indexPath.item]
         cell.course = course
+        cell.generateMarkerImageView()
+        cell.marker = self.currentUser!.subjectMarker(for: course, in: semester)
         cell.textLabel?.text = course.subjectID
         if traitCollection.userInterfaceIdiom == .phone {
             if let font = cell.textLabel?.font, font.pointSize != 19.0 {
@@ -378,6 +383,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         cell.showsRateMenuItem = !course.isGeneric && course.creator == nil
         cell.showsEditMenuItem = course.creator != nil
         cell.showsViewMenuItem = course.creator == nil
+        cell.showsMarkMenuItem = true
         
         return cell
     }
@@ -593,6 +599,28 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         rater.popoverPresentationController?.sourceRect = cell.bounds
         rater.popoverPresentationController?.sourceView = cell
         self.present(rater, animated: true, completion: nil)
+    }
+    
+    func courseThumbnailCellWantsMark(_ cell: CourseThumbnailCell) {
+        guard let user = currentUser,
+            let course = cell.course,
+            let indexPath = collectionView.indexPath(for: cell),
+            let semester = UserSemester(rawValue: indexPath.section) else {
+                return
+        }
+        let marker = user.subjectMarker(for: course, in: semester)
+        let tableMenu = TableMenuViewController()
+        tableMenu.items = [TableMenuItem(identifier: "none", title: "None")] + SubjectMarker.allMarkers.map({ TableMenuItem(identifier: $0.rawValue, title: $0.readableName(), image: UIImage(named: $0.imageName())) })
+        tableMenu.selectedItemIndex = tableMenu.items.index(where: { $0.identifier == marker?.rawValue ?? "none"}) ?? -1
+        tableMenu.action = { item in
+            user.setSubjectMarker(SubjectMarker(rawValue: item.identifier), for: course, in: semester)
+            self.reloadCollectionView()
+        }
+        tableMenu.modalPresentationStyle = .popover
+        tableMenu.popoverPresentationController?.delegate = self
+        tableMenu.popoverPresentationController?.sourceView = cell
+        tableMenu.popoverPresentationController?.sourceRect = cell.bounds
+        present(tableMenu, animated: true, completion: nil)
     }
     
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
@@ -1118,7 +1146,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func customCourseEditViewController(_ controller: CustomCourseEditViewController, finishedEditing course: Course) {
-        CourseManager.shared.setCustomCourse(course, for: course.subjectID ?? "NO_ID")
+        CourseManager.shared.setCustomCourse(course)
         if let user = currentUser {
             user.setNeedsSave()
         }

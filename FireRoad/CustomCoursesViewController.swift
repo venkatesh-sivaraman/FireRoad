@@ -18,6 +18,8 @@ class CustomCoursesViewController: CourseCollectionViewController, CourseCollect
 
     /// If present, the course will be added directly to this semester. Otherwise, a pop down menu will be shown.
     var semester: UserSemester?
+    /// If true, add directly to schedule.
+    var addToSchedule = false
     weak var delegate: CustomCoursesViewControllerDelegate?
     private let addCoursePlaceholder = Course(courseID: "+", courseTitle: "Create new activity…", courseDescription: "")
 
@@ -36,7 +38,7 @@ class CustomCoursesViewController: CourseCollectionViewController, CourseCollect
     }
     
     func loadCourses() {
-        courses = CourseManager.shared.customCourses().values.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") }) + [addCoursePlaceholder]
+        courses = CourseManager.shared.customCourses().sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") }) + [addCoursePlaceholder]
         collectionView?.reloadData()
     }
     
@@ -78,12 +80,11 @@ class CustomCoursesViewController: CourseCollectionViewController, CourseCollect
     }
     
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
-        guard let course = cell.course,
-            let id = course.subjectID else {
-                return
+        guard let course = cell.course else {
+            return
         }
         
-        CourseManager.shared.removeCustomCourse(with: id)
+        CourseManager.shared.removeCustomCourse(course)
         loadCourses()
     }
     
@@ -93,6 +94,8 @@ class CustomCoursesViewController: CourseCollectionViewController, CourseCollect
         }
         if let semester = semester {
             delegate?.customCoursesViewController(self, added: course, to: semester)
+        } else if addToSchedule {
+            delegate?.customCoursesViewController(self, addedCourseToSchedule: course)
         } else {
             addCourse(course)
         }
@@ -183,11 +186,13 @@ class CustomCoursesViewController: CourseCollectionViewController, CourseCollect
     }
     
     func customCourseEditViewController(_ controller: CustomCourseEditViewController, finishedEditing course: Course) {
-        CourseManager.shared.setCustomCourse(course, for: course.subjectID ?? "NO_ID")
+        CourseManager.shared.setCustomCourse(course)
 
         if controller.doneButtonMode == .add, let semester = semester {
             // Add the course directly to the selected semester
             delegate?.customCoursesViewController(self, added: course, to: semester)
+        } else if controller.doneButtonMode == .add, addToSchedule {
+            delegate?.customCoursesViewController(self, addedCourseToSchedule: course)
         } else {
             navigationController?.popViewController(animated: true)
             loadCourses()

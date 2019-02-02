@@ -16,6 +16,7 @@ protocol CourseThumbnailCellDelegate: class {
     func courseThumbnailCellWantsRate(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsEdit(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsAdd(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsMark(_ cell: CourseThumbnailCell)
 }
 
 extension CourseThumbnailCellDelegate {
@@ -40,6 +41,9 @@ extension CourseThumbnailCellDelegate {
     func courseThumbnailCellWantsAdd(_ cell: CourseThumbnailCell) {
         
     }
+    func courseThumbnailCellWantsMark(_ cell: CourseThumbnailCell) {
+        
+    }
 }
 
 class CourseThumbnailCell: UICollectionViewCell {
@@ -55,6 +59,7 @@ class CourseThumbnailCell: UICollectionViewCell {
     var showsAddMenuItem = false
     var showsViewMenuItem = true
     var showsDeleteMenuItem = true
+    var showsMarkMenuItem = false
 
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
@@ -77,6 +82,13 @@ class CourseThumbnailCell: UICollectionViewCell {
     var longPressAction: Selector? {
         didSet {
             updateLongPressGestureRecognizer()
+        }
+    }
+    
+    @IBOutlet var markerImageView: UIImageView?
+    var marker: SubjectMarker? {
+        didSet {
+            updateMarkerView()
         }
     }
     
@@ -207,10 +219,46 @@ class CourseThumbnailCell: UICollectionViewCell {
         }
     }
     
+    /// Used by the courseroad and schedule view controllers to display a marker in the top-left corner of the cell
+    func generateMarkerImageView() {
+        guard markerImageView == nil else {
+            return
+        }
+        
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(imageView)
+        imageView.topAnchor.constraint(equalTo: topAnchor, constant: -9.0).isActive = true
+        imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -9.0).isActive = true
+        imageView.widthAnchor.constraint(equalToConstant: 26.0).isActive = true
+        imageView.heightAnchor.constraint(equalToConstant: 26.0).isActive = true
+        markerImageView = imageView
+        
+        // shadow around marker (shadow path set in layoutSubviews)
+        markerImageView?.layer.shadowRadius = 1.0
+        markerImageView?.layer.shadowOpacity = 0.7
+        markerImageView?.layer.shadowOffset = CGSize(width: 1.0, height: 1.0)
+        markerImageView?.layer.shadowColor = UIColor.darkGray.cgColor
+        updateMarkerView()
+    }
+    
+    func updateMarkerView() {
+        if let name = marker?.imageName() {
+            markerImageView?.isHidden = false
+            markerImageView?.image = UIImage(named: name)
+        } else {
+            markerImageView?.isHidden = true
+        }
+    }
+    
     override func layoutSubviews() {
         super.layoutSubviews()
         backgroundColorLayer?.frame = self.layer.bounds
         repositionFulfillmentIndicators()
+        
+        if let marker = markerImageView {
+            marker.layer.shadowPath = CGPath(ellipseIn: marker.layer.bounds, transform: nil)
+        }
     }
     
     private var highlightPulseOffDate: Date?
@@ -282,6 +330,8 @@ class CourseThumbnailCell: UICollectionViewCell {
             return delegate != nil && showsEditMenuItem
         } else if action == #selector(add(_:)) {
             return delegate != nil && showsAddMenuItem
+        } else if action == #selector(mark(_:)) {
+            return delegate != nil && showsMarkMenuItem
         }
         return false
     }
@@ -313,7 +363,11 @@ class CourseThumbnailCell: UICollectionViewCell {
     @objc func add(_ sender: AnyObject) {
         delegate?.courseThumbnailCellWantsAdd(self)
     }
-    
+
+    @objc func mark(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsMark(self)
+    }
+
     // MARK: - Requirement Fulfillment
     
     private var fulfillmentIndicators: [CALayer] = []

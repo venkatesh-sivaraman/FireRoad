@@ -811,11 +811,11 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     func updateRequirementsStatus() {
         guard let rootTab = rootParent as? RootTabViewController,
-            let user = rootTab.currentUser else {
+            let user = rootTab.currentUser,
+            let course = course else {
                 return
         }
-        course?.prerequisites?.computeRequirementStatus(with: user.allCourses)
-        course?.corequisites?.computeRequirementStatus(with: user.allCourses)
+        user.evaluateRequirements(for: course)
     }
     
     func showManualProgressViewController(for requirement: RequirementsListStatement, from cell: UICollectionViewCell) {

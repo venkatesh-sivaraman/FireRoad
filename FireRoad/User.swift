@@ -116,6 +116,7 @@ class User: UserDocument {
     var name: String = "No Name"
     /// Courses of study correspond to the filenames of .reql files.
     var coursesOfStudy: [String] = []
+    private var markers: [UserSemester: [Course: SubjectMarker]] = [:]
     
     var allCourses: [Course] {
         var ret: [Course] = []
@@ -123,6 +124,11 @@ class User: UserDocument {
             ret += subjects
         }
         return ret
+    }
+    
+    var creditCourses: [Course] {
+        // Only courses that aren't marked as listener
+        return selectedSubjects.flatMap({ (semester, courses) in courses.filter({ subjectMarker(for: $0, in: semester) != .listener }) })
     }
     
     func courses(forSemester semester: UserSemester) -> [Course] {
@@ -141,6 +147,7 @@ class User: UserDocument {
         if removingOverrides {
             overrides[course] = nil
         }
+        setSubjectMarker(nil, for: course, in: semester)
         setNeedsSave()
         
         if CourseManager.shared.userRatings[course.subjectID!] == nil {
@@ -177,8 +184,15 @@ class User: UserDocument {
     }
     
     func move(_ course: Course, fromSemester semester: UserSemester, toSemester destSemester: UserSemester, atIndex idx: Int) {
+        // Update location of subject marker
+        let optMarker = subjectMarker(for: course, in: semester)
+        if let marker = optMarker, semester != destSemester {
+            setSubjectMarker(nil, for: course, in: semester)
+            setSubjectMarker(marker, for: course, in: destSemester)
+        }
         self.delete(course, fromSemester: semester, removingOverrides: false)
         self.insert(course, toSemester: destSemester, atIndex: idx)
+        setSubjectMarker(optMarker, for: course, in: destSemester)
         setNeedsSave()
     }
     
@@ -254,6 +268,41 @@ class User: UserDocument {
         warningsCache.removeAll()
     }
     
+    /**
+     Evaluates the prerequisites and corequisites for the user taking the course
+     in the given semester. If semester is nil, uses the first occurrence of
+     the course in the user's road that is not in Prior Credit.
+    */
+    func evaluateRequirements(for course: Course, in semester: UserSemester? = nil) {
+        guard let evalSemester = semester ?? UserSemester.allEnrolledSemesters.first(where: { courses(forSemester: $0).contains(course) }) else {
+            return
+        }
+        
+        var priorCourses: [Course] = []
+        
+        for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= evalSemester.rawValue {
+            for otherCourse in courses(forSemester: otherSemester) {
+                if otherSemester.rawValue < evalSemester.rawValue || (course.quarterOffered != .beginningOnly && otherCourse.quarterOffered == .beginningOnly) {
+                    priorCourses.append(otherCourse)
+                }
+            }
+        }
+
+        if let prereqs = course.prerequisites {
+            prereqs.computeRequirementStatus(with: priorCourses)
+        }
+        
+        for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= evalSemester.rawValue {
+            for otherSemester in UserSemester.allSemesters where (AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue <= evalSemester.rawValue) || (!AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue < evalSemester.rawValue) {
+                priorCourses += courses(forSemester: otherSemester)
+            }
+        }
+        
+        if let coreqs = course.corequisites {
+            coreqs.computeRequirementStatus(with: priorCourses)
+        }
+    }
+    
     func warningsForCourse(_ course: Course, in semester: UserSemester) -> [CourseWarning] {
         guard semester != .PreviousCredit else {
             return []
@@ -261,31 +310,15 @@ class User: UserDocument {
         if let warnings = warningsCache[course] {
             return warnings
         }
+        
+        
         var unsatisfiedPrereqs = false
-        var priorCourses: [Course] = []
-        for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
-            for otherCourse in courses(forSemester: otherSemester) {
-                if otherSemester.rawValue < semester.rawValue || (course.quarterOffered != .beginningOnly && otherCourse.quarterOffered == .beginningOnly) {
-                    priorCourses.append(otherCourse)
-                }
-            }
-        }
-
-        if let prereqs = course.prerequisites {
-            prereqs.computeRequirementStatus(with: priorCourses, autoManual: true)
-            unsatisfiedPrereqs = !prereqs.isFulfilled
-        }
-        
         var unsatisfiedCoreqs = false
-        for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= semester.rawValue {
-            for otherSemester in UserSemester.allSemesters where (AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue <= semester.rawValue) || (!AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue < semester.rawValue) {
-                priorCourses += courses(forSemester: otherSemester)
-            }
-        }
-        
-        if let coreqs = course.corequisites {
-            coreqs.computeRequirementStatus(with: priorCourses, autoManual: true)
-            unsatisfiedCoreqs = !coreqs.isFulfilled
+
+        if course.prerequisites != nil || course.corequisites != nil {
+            evaluateRequirements(for: course, in: semester)
+            unsatisfiedPrereqs = !(course.prerequisites?.isFulfilled ?? true)
+            unsatisfiedCoreqs = !(course.corequisites?.isFulfilled ?? true)
         }
 
         var warnings: [CourseWarning] = []
@@ -309,7 +342,7 @@ class User: UserDocument {
     }
     
     private func formatUnsatisfiedRequirements(label: String, requirements: RequirementsListStatement) -> String {
-        return "One or more \(label) is not satisfied."
+        return "One or more \(label) may not be satisfied."
     }
     
     func overridesWarnings(for course: Course) -> Bool {
@@ -319,6 +352,22 @@ class User: UserDocument {
     func setOverridesWarnings(_ override: Bool, for course: Course) {
         overrides[course] = override
         setNeedsSave()
+    }
+    
+    // MARK: - Subject Markers
+    
+    func setSubjectMarker(_ marker: SubjectMarker?, for course: Course, in semester: UserSemester, save: Bool = true) {
+        if markers[semester] == nil {
+            markers[semester] = [:]
+        }
+        markers[semester]?[course] = marker
+        if save {
+            setNeedsSave()
+        }
+    }
+    
+    func subjectMarker(for course: Course, in semester: UserSemester) -> SubjectMarker? {
+        return markers[semester]?[course]
     }
     
     // MARK: - Global Relevance Calculation
@@ -470,6 +519,7 @@ class User: UserDocument {
         static let semesterNumber = "semester"
         static let units = "units"
         static let overrideWarnings = "overrideWarnings"
+        static let marker = "marker"
     }
     
     override func setNeedsSave() {
@@ -509,6 +559,7 @@ class User: UserDocument {
         coursesOfStudy = courses
         selectedSubjects = [:]
         overrides = [:]
+        markers = [:]
         
         for subjectJSON in selectedSubjectsList {
             guard let subjectID = (subjectJSON[RoadFile.subjectID] ?? subjectJSON[RoadFile.subjectIDAlt]) as? String,
@@ -524,20 +575,30 @@ class User: UserDocument {
                 continue
             }
             if subjectJSON[CourseAttribute.creator.jsonKey()] != nil,
-                CourseManager.shared.customCourses()[subjectID] == nil {
+                CourseManager.shared.getCustomCourse(with: subjectID, title: title) == nil {
                 let course = Course(json: subjectJSON)
-                CourseManager.shared.setCustomCourse(course, for: subjectID)
+                CourseManager.shared.setCustomCourse(course)
             } else if subjectJSON[CourseAttribute.creator.jsonKey()] == nil,
                 CourseManager.shared.getCourse(withID: subjectID) == nil,
                 Course.genericCourses[subjectID] == nil {
                 CourseManager.shared.addCourse(withID: subjectID, title: title, units: units)
             }
-            guard let course = CourseManager.shared.getCourse(withID: subjectID) ?? Course.genericCourses[subjectID] ?? CourseManager.shared.customCourses()[subjectID] else {
+            guard let course = CourseManager.shared.getCourse(withID: subjectID) ?? Course.genericCourses[subjectID] ?? CourseManager.shared.getCustomCourse(with: subjectID, title: title) else {
                 print("Unable to add course with ID \(subjectID) to course manager")
                 continue
             }
             // Add additional keys from JSON
             course.readJSON(subjectJSON)
+            if course.creator != nil {
+                // Save course if it's custom
+                CourseManager.shared.setCustomCourse(course)
+            }
+            
+            // Subject marker
+            if let markerString = subjectJSON[RoadFile.marker] as? String,
+                let marker = SubjectMarker(rawValue: markerString) {
+                setSubjectMarker(marker, for: course, in: semester, save: false)
+            }
             
             add(course, toSemester: semester)
             overrides[course] = override
@@ -632,6 +693,9 @@ class User: UserDocument {
                 var json = subject.toJSON()
                 json[RoadFile.semesterNumber] = semester.rawValue
                 json[RoadFile.overrideWarnings] = overridesWarnings(for: subject)
+                if let marker = subjectMarker(for: subject, in: semester) {
+                    json[RoadFile.marker] = marker.rawValue
+                }
                 selectedSubjectsJSON.append(json)
             }
         }

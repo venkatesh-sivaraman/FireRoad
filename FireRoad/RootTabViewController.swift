@@ -15,6 +15,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     var blurView: UIVisualEffectView?
     var courseUpdatingHUD: MBProgressHUD?
     var successHUD: MBProgressHUD?
+    var cacheVersionMessage: String?
     
     func hideHUD() {
         DispatchQueue.main.async {
@@ -41,6 +42,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             UIMenuItem(title: MenuItemStrings.view, action: #selector(CourseThumbnailCell.viewDetails(_:))),
             UIMenuItem(title: MenuItemStrings.edit, action: #selector(CourseThumbnailCell.edit(_:))),
             UIMenuItem(title: MenuItemStrings.rate, action: #selector(CourseThumbnailCell.rate(_:))),
+            UIMenuItem(title: MenuItemStrings.mark, action: #selector(CourseThumbnailCell.mark(_:))),
             UIMenuItem(title: MenuItemStrings.warnings, action: #selector(CourseThumbnailCell.showWarnings(_:)))
         ]
         
@@ -63,9 +65,18 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
+        if let message = AppSettings.shared.versionUpdateMessage() {
+            cacheVersionMessage = message
+        }
+        
         if !AppSettings.shared.showedIntro {
             showingIntro = true
             showIntro()
+        } else if let message = cacheVersionMessage {
+            let alert = UIAlertController(title: "What's New", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Continue", style: .cancel, handler: nil))
+            alert.show()
+            cacheVersionMessage = nil
         }
         if !showingIntro {
             CourseManager.shared.loginIfNeeded { success in
@@ -318,7 +329,8 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         }
         CloudSyncManager.roadManager.syncAll { (success) in
             print("Road syncing completed: \(success)")
-            if let recentName = CloudSyncManager.roadManager.recentlyModifiedDocumentName() {
+            if let recentName = CloudSyncManager.roadManager.recentlyModifiedDocumentName(),
+                self.currentUser == nil || self.currentUser!.allCourses.count == 0 {
                 DispatchQueue.main.async {
                     self.loadCourseroad(named: recentName)
                 }

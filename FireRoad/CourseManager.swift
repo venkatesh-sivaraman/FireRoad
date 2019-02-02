@@ -947,11 +947,11 @@ class CourseManager: NSObject {
             print("No access token")
             return
         }
-        /*guard let loginData = token.data(using: .utf8) else {
+        guard let loginData = token.data(using: .utf8) else {
             return
         }
-        let base64LoginString = loginData.base64EncodedString()*/
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let base64LoginString = loginData.base64EncodedString()
+        request.setValue("Bearer \(base64LoginString)", forHTTPHeaderField: "Authorization")
     }
     
     var subjectRecommendations: [String: [Course: Float]]?
@@ -1077,9 +1077,9 @@ class CourseManager: NSObject {
     static let progressOverridesSetURL = urlBase + "/prefs/set_progress_overrides/"
     static let notesGetURL = urlBase + "/prefs/notes/"
     static let notesSetURL = urlBase + "/prefs/set_notes/"
-    static let customCoursesGetURL = urlBase + "/prefs/custom_courses/"
-    static let customCoursesSetURL = urlBase + "/prefs/set_custom_course/"
-    static let customCoursesRemoveURL = urlBase + "/prefs/remove_custom_course/"
+    //static let customCoursesGetURL = urlBase + "/prefs/custom_courses/"
+    //static let customCoursesSetURL = urlBase + "/prefs/set_custom_course/"
+    //static let customCoursesRemoveURL = urlBase + "/prefs/remove_custom_course/"
 
     func syncPreferences(_ completion: ((Bool) -> Void)? = nil) {
         getSyncedPreference(from: CourseManager.favoritesGetURL) { object in
@@ -1120,7 +1120,7 @@ class CourseManager: NSObject {
                 NotificationCenter.default.post(name: .CourseManagerPreferenceSynced, object: self)
             }
         }
-        getSyncedPreference(from: CourseManager.customCoursesGetURL) { object in
+        /*getSyncedPreference(from: CourseManager.customCoursesGetURL) { object in
             guard let dict = object as? [[String: Any]], dict.count > 0 else {
                 self.saveCustomCourses()
                 return
@@ -1130,7 +1130,7 @@ class CourseManager: NSObject {
             DispatchQueue.main.async {
                 NotificationCenter.default.post(name: .CourseManagerPreferenceSynced, object: self)
             }
-        }
+        }*/
     }
     
     func getSyncedPreference(from urlString: String, completion: ((Any?) -> Void)? = nil) {
@@ -1273,57 +1273,67 @@ class CourseManager: NSObject {
     
     static let customCoursesDefaultsKey = "CourseManager.customCourses"
     
-    /// Dictionary keyed by subject IDs and whose values are the custom courses
-    private var customCourseCache: [String: Course] = [:]
+    /// These are uniqued by subject ID AND title
+    private var customCourseCache: [Course] = []
     
-    func customCourses() -> [String: Course] {
+    func customCourses() -> [Course] {
         if customCourseCache.count == 0 {
             loadCustomCourseCache()
         }
-        return customCourseCache
+        return [Course](customCourseCache)
     }
     
-    func setCustomCourse(_ course: Course, for subjectID: String) {
+    func getCustomCourse(with subjectID: String, title: String) -> Course? {
+        return customCourseCache.first(where: { $0.subjectID == subjectID && $0.subjectTitle == title })
+    }
+    
+    func setCustomCourse(_ course: Course) {
         if customCourseCache.count == 0 {
             loadCustomCourseCache()
         }
-        customCourseCache[subjectID] = course
+        if let index = customCourseCache.index(where: { $0.subjectID == course.subjectID && $0.subjectTitle == course.subjectTitle }) {
+            customCourseCache[index] = course
+        } else {
+            customCourseCache.append(course)
+        }
         saveCustomCourses()
-        setSyncedPreference(at: CourseManager.customCoursesSetURL, with: course.toJSON(), completion: { success in
+        /*setSyncedPreference(at: CourseManager.customCoursesSetURL, with: course.toJSON(), completion: { success in
             print("Successfully updated course: \(success)")
-        })
+        })*/
     }
     
-    func removeCustomCourse(with subjectID: String) {
-        customCourseCache[subjectID] = nil
-        saveCustomCourses()
-        setSyncedPreference(at: CourseManager.customCoursesRemoveURL, with: [CourseAttribute.subjectID.jsonKey(): subjectID], completion: { success in
+    func removeCustomCourse(_ course: Course) {4
+        if let index = customCourseCache.index(where: { $0.subjectID == course.subjectID && $0.subjectTitle == course.subjectTitle }) {
+            customCourseCache.remove(at: index)
+            saveCustomCourses()
+        }
+        /*setSyncedPreference(at: CourseManager.customCoursesRemoveURL, with: [CourseAttribute.subjectID.jsonKey(): subjectID], completion: { success in
             print("Successfully removed course: \(success)")
-        })
+        })*/
     }
     
     func loadCustomCourseCache(from courses: [[String: Any]]? = nil) {
         let courseList = (courses ?? []) + ((UserDefaults.standard.array(forKey: CourseManager.customCoursesDefaultsKey) as? [[String: Any]]) ?? [])
         let oldCourseCache = customCourseCache
-        customCourseCache = [:]
+        customCourseCache = []
         for json in courseList {
-            guard let subjectID = json[CourseAttribute.subjectID.jsonKey()] as? String else {
+            guard let subjectID = json[CourseAttribute.subjectID.jsonKey()] as? String,
+                let title = json[CourseAttribute.subjectTitle.jsonKey()] as? String else {
                 continue
             }
-            if let course = oldCourseCache[subjectID] {
+            if let course = oldCourseCache.first(where: { $0.subjectID == subjectID && $0.subjectTitle == title }) {
                 course.readJSON(json)
-                customCourseCache[subjectID] = course
             } else {
-                customCourseCache[subjectID] = Course(json: json)
+                customCourseCache.append(Course(json: json))
             }
         }
-        for course in customCourseCache.values {
+        for course in customCourseCache {
             course.creator = recommenderUserID ?? UIDevice.current.name
         }
     }
     
     func saveCustomCourses() {
-        UserDefaults.standard.set(customCourseCache.values.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") }).map({ $0.toJSON() }), forKey: CourseManager.customCoursesDefaultsKey)
+        UserDefaults.standard.set(customCourseCache.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") }).map({ $0.toJSON() }), forKey: CourseManager.customCoursesDefaultsKey)
     }
 
     // MARK: Course Notes

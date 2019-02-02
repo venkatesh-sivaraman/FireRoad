@@ -341,7 +341,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             progressComputeQueue.async(taskName: list.listID) {
                 if !self.computedLists.contains(list.listID),
                     let user = (self.rootParent as? RootTabViewController)?.currentUser {
-                    list.computeRequirementStatus(with: user.allCourses)
+                    list.computeRequirementStatus(with: user.creditCourses)
                     self.computedLists.insert(list.listID)
                 }
                 let progress = list.percentageFulfilled

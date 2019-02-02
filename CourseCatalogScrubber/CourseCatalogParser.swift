@@ -8,6 +8,11 @@
 
 import Cocoa
 
+/// Courses for which to print all attributes as tests
+let auditCourses = [
+    "6.006", "6.141", "21G.740", "6.00", "21G.502", "21M.480"
+]
+
 class CourseCatalogParser: NSObject {
     
     var catalogURL: URL?
@@ -90,7 +95,7 @@ class CourseCatalogParser: NSObject {
     ]
     
     let classTimeRegex: NSRegularExpression = {
-        guard let regex = try? NSRegularExpression(pattern: "([MTWRF]+)(\\d+)", options: []) else {
+        guard let regex = try? NSRegularExpression(pattern: "([MTWRF]+)(\\s*EVE\\s*\\()?(\\d+)\\)?", options: []) else {
             fatalError("Couldn't initialize class time regex")
         }
         return regex
@@ -116,6 +121,33 @@ class CourseCatalogParser: NSObject {
         let mut = NSMutableString(string: string)
         spaceRegex.replaceMatches(in: mut, options: [], range: NSRange(location: 0, length: mut.length), withTemplate: "")
         return (mut as String).trimmingCharacters(in: .whitespaces)
+    }
+    
+    /**
+     Removes all parenthetical expressions from the given string and leaves
+     open/close parenthesis pairs, so that anything left is unparenthesized.
+     
+     Example: a, (b or c), (d and e) => a, (), ()
+     */
+    func collapseParentheses(in string: String) -> String {
+        let mut = NSMutableString()
+        var parenLevel = 0
+        for i in string.indices {
+            if string[i] == "(" {
+                parenLevel += 1
+                if parenLevel == 1 {
+                    mut.append(String(string[i]))
+                }
+            } else if string[i] == ")" {
+                parenLevel -= 1
+                if parenLevel == 0 {
+                    mut.append(String(string[i]))
+                }
+            } else if parenLevel == 0 {
+                mut.append(String(string[i]))
+            }
+        }
+        return mut as String
     }
     
     let informationSeparator = CharacterSet.newlines.union(CharacterSet(charactersIn: "-/,;"))
@@ -220,8 +252,14 @@ class CourseCatalogParser: NSObject {
     }
     
     func processInformationItem(_ item: String, into attributes: inout [CourseAttribute: Any]) {
+        var definitelyNotDesc = false // Filter out candidates for description
+        if attributes[.subjectID] as? String == "21M.480" {
+            print("Here")
+        }
         if let prereqRange = item.range(of: CourseCatalogConstants.prerequisitesPrefix, options: .caseInsensitive) {
-            if let coreqRange = item.range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) {
+            // First check if coreq is in parentheses, then find its range in the whole string
+            if collapseParentheses(in: item).range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) != nil,
+                let coreqRange = item.range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) {
                 let prereqString = String(item[prereqRange.upperBound..<coreqRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
                 attributes[.oldPrerequisites] = filterCourseListString(prereqString)
                 attributes[.prerequisites] = processRequirementsListItem(prereqString)
@@ -234,9 +272,11 @@ class CourseCatalogParser: NSObject {
                 attributes[.oldPrerequisites] = filterCourseListString(String(item[prereqRange.upperBound..<item.endIndex]))
                 attributes[.prerequisites] = processRequirementsListItem(String(item[prereqRange.upperBound..<item.endIndex]))
             }
+            definitelyNotDesc = true
         } else if let coreqRange = item.range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) {
             attributes[.oldCorequisites] = filterCourseListString(String(item[coreqRange.upperBound..<item.endIndex]))
             attributes[.corequisites] = processRequirementsListItem(String(item[coreqRange.upperBound..<item.endIndex]))
+            definitelyNotDesc = true
         } else if item.contains(CourseCatalogConstants.urlPrefix) {
             // Don't save URLs
         } else if classTimeRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)) != nil {
@@ -250,11 +290,13 @@ class CourseCatalogParser: NSObject {
             if quarterInformation.count > 0 {
                 attributes[.quarterInformation] = quarterInformation
             }
+            definitelyNotDesc = true
         } else if let subjectID = attributes[.subjectID] as? String,
             let firstMatch = courseIDListRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)),
             let firstMatchRange = Range(firstMatch.range, in: item),
             String(item[firstMatchRange]).contains(subjectID) {
             attributes[.title] = String(item[firstMatchRange.upperBound..<item.endIndex]).replacingOccurrences(of: CourseCatalogConstants.jointClass, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+            definitelyNotDesc = true
         } else if item.range(of: CourseCatalogConstants.undergrad, options: .caseInsensitive) != nil,
             abs(item.count - CourseCatalogConstants.undergrad.count) < 10 {
             attributes[.subjectLevel] = CourseCatalogConstants.undergradValue
@@ -300,9 +342,6 @@ class CourseCatalogParser: NSObject {
                 }
             }
             
-        } else if item.count > 75 {
-            // Long but not a subject list
-            attributes[.description] = item.trimmingCharacters(in: .whitespacesAndNewlines)
         } else if let notOfferedRange = item.range(of: CourseCatalogConstants.notOfferedPrefix, options: .caseInsensitive) {
             attributes[.notOfferedYear] = String(item[notOfferedRange.upperBound..<item.endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
             
@@ -329,7 +368,7 @@ class CourseCatalogParser: NSObject {
             attributes[.GIR] = girRequirement
         } else if instructorRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)) != nil {
             let newComponent = item.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: "")
-            if attributes[.instructors] != nil, (attributes[.instructors] as? String)?.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil, newComponent.range(of: CourseCatalogConstants.spring, options: .caseInsensitive) != nil {
+            if attributes[.instructors] != nil, (attributes[.instructors] as? String)?.range(of: CourseCatalogConstants.fall, options: .caseInsensitive) != nil || newComponent.range(of: CourseCatalogConstants.spring, options: .caseInsensitive) != nil {
                 attributes[.instructors] = (attributes[.instructors] as! String) + "\n" + newComponent
             } else {
                 attributes[.instructors] = newComponent
@@ -342,6 +381,12 @@ class CourseCatalogParser: NSObject {
             attributes[.offeredIAP] = true
         } else if item.range(of: CourseCatalogConstants.summer, options: .caseInsensitive) != nil {
             attributes[.offeredSummer] = true
+        }
+        // The longest item that is more than 30 characters long should be the description
+        if item.count > 30, !definitelyNotDesc {
+            if attributes[.description] == nil || (attributes[.description] as! String).count < item.count {
+                attributes[.description] = item.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
         }
     }
     
@@ -384,7 +429,7 @@ class CourseCatalogParser: NSObject {
             } else {
                 parenLevels[parenLevels.endIndex - 1] = parenLevels.last! + String(filteredItem[i])
             }
-14        }
+        }
         
         guard var result = parenLevels.last else {
             print("Unmatched parentheses: \(item)")
@@ -436,7 +481,7 @@ class CourseCatalogParser: NSObject {
                 let wholeRange = Range(match.range, in: filteredItem)!
                 filteredItem = String(filteredItem[wholeRange.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
                 
-            } else if let match = requirementsListAndFinalRegex.firstMatch(in: filteredItem, range: NSRange(location: 0, length: filteredItem.count)) {
+            } else if let match = requirementsListAndFinalRegex.firstMatch(in: filteredItem, range: NSRange(location: 0, length: filteredItem.count)), filteredItem != "or", filteredItem != "and" {
                 let lastComponent = String(filteredItem[Range(match.range(at: 2), in: filteredItem)!])
                 if lastComponent == filteredItem {
                     // The component hasn't changed - simply return it
@@ -481,7 +526,11 @@ class CourseCatalogParser: NSObject {
         }
         
         // Handle courses, already-processed items
-        if courseRegex.numberOfMatches(in: item, options: [], range: NSRange(location: 0, length: item.count)) > 0 || item.contains("GIR:") || item.contains("''") {
+        if let match = courseRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)),
+            match.range.location == 0 {
+            return item
+        }
+        if item.contains("GIR:") || item.contains("''") {
             return item
         }
         
@@ -502,7 +551,7 @@ class CourseCatalogParser: NSObject {
                     break
                 }
                 
-                let contents = node.contents.replacingOccurrences(of: "<br>", with: "\n", options: .caseInsensitive)
+                let contents = node.contents.replacingOccurrences(of: "<br>", with: "\n", options: .caseInsensitive).replacingOccurrences(of: "&nbsp;", with: " ")
                 let lines = contents.components(separatedBy: .newlines)
                 for line in lines {
                     guard unnecessaryLinesIdentifyingText.first(where: { line.lowercased().contains($0) }) == nil else {
@@ -553,6 +602,10 @@ class CourseCatalogParser: NSObject {
             }
             let escapedItem = HTMLNodeExtractor.stripHTMLTags(from: item).replacingOccurrences(of: "\"", with: "'").replacingOccurrences(of: "\n", with: " ")
             processInformationItem(escapedItem, into: &processedItems)
+        }
+        
+        if auditCourses.contains(processedItems[.subjectID] as? String ?? "") {
+            print(processedItems)
         }
         return processedItems
     }
