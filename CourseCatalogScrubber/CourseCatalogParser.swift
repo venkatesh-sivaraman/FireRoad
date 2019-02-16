@@ -253,9 +253,6 @@ class CourseCatalogParser: NSObject {
     
     func processInformationItem(_ item: String, into attributes: inout [CourseAttribute: Any]) {
         var definitelyNotDesc = false // Filter out candidates for description
-        if attributes[.subjectID] as? String == "21M.480" {
-            print("Here")
-        }
         if let prereqRange = item.range(of: CourseCatalogConstants.prerequisitesPrefix, options: .caseInsensitive) {
             // First check if coreq is in parentheses, then find its range in the whole string
             if collapseParentheses(in: item).range(of: CourseCatalogConstants.corequisitesPrefix, options: .caseInsensitive) != nil,

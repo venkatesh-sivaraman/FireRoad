@@ -1,5 +1,7 @@
 #  FireRoad Course Requirements Document
 
+The course requirements format is documented in more detail on the [Requirements Editor](https://fireroad.mit.edu/requirements).
+
 ## Comments
 Use the `%%` symbol for comments.
 

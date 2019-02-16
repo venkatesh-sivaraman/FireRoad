@@ -1057,7 +1057,7 @@ class Course: NSObject {
         let req = requirement.replacingOccurrences(of: "GIR:", with: "")
         if subjectID == req ||
             jointSubjects.contains(req) ||
-            //equivalentSubjects.contains(req) || // Policy change 10/12/18
+            equivalentSubjects.contains(req) ||
             girAttribute?.satisfies(GIRAttribute(rawValue: req)) == true ||
             hassAttribute?.satisfies(HASSAttribute(rawValue: req)) == true ||
             communicationRequirement?.satisfies(CommunicationAttribute(rawValue: req)) == true {

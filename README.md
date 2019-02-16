@@ -13,27 +13,23 @@ With this in mind, FireRoad is published under an MIT license and allows you to 
 
 ## Building and Running
 
-Upon cloning the repo to your local machine, you should be able to build and run FireRoad by opening the Xcode project in **Xcode 9.4.1**.
+Upon cloning the repo to your local machine, you should be able to build and run FireRoad by opening the Xcode project in **Xcode 10.1**.
 
 Below, I have provided a rudimentary description of how FireRoad's internals are structured.
 
 ## Server
 
-FireRoad depends on a server to provide subject ratings and recommendations, as well as to serve subject listings and requirements lists. As of 9/5/18, this server is located at `venkats.scripts.mit.edu`. There is a Django server at `/fireroad/` that handles determining which subject listing and requirement files need to be downloaded, as well as receives and provides ratings and recommendations. In addition, Scripts serves a static directory at `/catalogs/` that contains the subject listings and requirements files themselves. The Django server code lives in [a separate GitHub repo](https://github.com/venkatesh-sivaraman/fireroad-server/tree/develop). If you contact me, I can provide additional scripts that may help perform automatic updates.
+FireRoad depends on a server to provide subject ratings and recommendations, as well as to serve subject listings and requirements lists. As of 2/16/19, this server is located at `fireroad.mit.edu`. The server handles login, document cloud sync, and recommendations, and also serves a static directory at `/catalogs/` that contains the subject listings and requirements files themselves. The Django server code lives in [a separate GitHub repo](https://github.com/venkatesh-sivaraman/fireroad-server/tree/develop). If you contact me, I can provide additional scripts that may help perform automatic updates.
 
 ## Subject Listing
 
-The MIT subject listing is scraped from the [registrar's website](http://student.mit.edu/catalog/index.cgi) using the `CourseCatalogScrubber`. This is a Swift command-line tool that automatically reads each department's webpage(s) and writes the subject attributes to CSV.
-
-The subject listing is uploaded to the `venkats` Athena locker, where it is compared with the current listing to determine changed files. The `CourseManager` (in the main FireRoad target) handles downloading the new subject listing files to the device.
-
-The subject listing parsing pipeline is thus designed to be modular, so if one component changes, it should be relatively uncomplicated to modify that part while maintaining the formats necessary to present the subject listings to the user.
+The MIT subject listing is scraped from the [registrar's website](http://student.mit.edu/catalog/index.cgi) using the `CourseCatalogScrubber`. This is a Swift command-line tool that automatically reads each department's webpage(s) and writes the subject attributes to CSV. This CSV file is further processed using NLP to extract keywords, related subjects, and features for the recommendation engine. The parsing pipeline is designed to be modular, so if one component changes, it should be relatively uncomplicated to modify that part while maintaining the formats necessary to present the subject listings to the user.
 
 ## Requirements Lists
 
 The maintenance of the requirements lists (in the Requirements tab of FireRoad) will likely require the most frequent work - therefore, its format was carefully considered in order to make updating as straightforward as possible.
 
-The way I handle changing requirements lists is by keeping a local copy of the requirements directory in the `venkats` locker. Then, when a requirements list needs to be changed, I modify it, `scp` it to the repo, then run the same delta computation as in "Subject Listing" to transfer the updates into the directory served by web_scripts.
+Requirement edit requests are received on the server from the [Requirements Editor](https://fireroad.mit.edu/requirements). The way I handle changing requirements lists is by modifying my local copy of the requirements, then `scp`ing it to the repo, then running the same delta computation as in "Subject Listing" to transfer the updates into the served directory.
 
 ## File Type Specifications
 

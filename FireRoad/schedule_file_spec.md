@@ -36,7 +36,7 @@ The course database defines the schedule units for each subject, which is then i
         "Lecture" : 0
       },
       "title" : "Differential Equations",
-      "id" : "18.03",
+      "subject_id" : "18.03",
       "allowedSections" : {
         "Recitation" : [
           0,
@@ -49,14 +49,14 @@ The course database defines the schedule units for each subject, which is then i
       }
     },
     {
-      "id" : "6.031",
+      "subject_id" : "6.031",
       "selectedSections" : {
         "Lecture" : 0
       },
       "title" : "Elements of Software Construction"
     },
     {
-      "id" : "21G.501",
+      "subject_id" : "21G.501",
       "selectedSections" : {
         "Lecture" : 1
       },
