@@ -118,6 +118,9 @@ class User: UserDocument {
     var coursesOfStudy: [String] = []
     private var markers: [UserSemester: [Course: SubjectMarker]] = [:]
     
+    /// Dictionary from requirement key paths to manual progress override values
+    private var progressOverrides: [String: Int] = [:]
+    
     var allCourses: [Course] {
         var ret: [Course] = []
         for (_, subjects) in selectedSubjects.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
@@ -199,6 +202,13 @@ class User: UserDocument {
     @objc func courseManagerFinishedLoading() {
         for (semester, courses) in selectedSubjects {
             selectedSubjects[semester] = courses.map({ CourseManager.shared.getCourse(withID: $0.subjectID!) ?? $0 })
+        }
+        for (semester, markerSet) in markers {
+            var newMarkers: [Course: SubjectMarker] = [:]
+            for (course, marker) in markerSet {
+                newMarkers[CourseManager.shared.getCourse(withID: course.subjectID!) ?? course] = marker
+            }
+            markers[semester] = newMarkers
         }
         clearWarningsCache()
         var newOverrides: [Course: Bool] = [:]
@@ -370,6 +380,19 @@ class User: UserDocument {
         return markers[semester]?[course]
     }
     
+    // MARK: - Requirement Overrides
+    
+    func progressOverride(for keyPath: String) -> Int? {
+        return progressOverrides[keyPath]
+    }
+    
+    func setProgressOverride(for keyPath: String, to value: Int, save: Bool = true) {
+        progressOverrides[keyPath] = value
+        if save {
+            setNeedsSave()
+        }
+    }
+    
     // MARK: - Global Relevance Calculation
     
     private enum RelevanceCacheType: Int {
@@ -513,6 +536,7 @@ class User: UserDocument {
     enum RoadFile {
         static let coursesOfStudy = "coursesOfStudy"
         static let selectedSubjects = "selectedSubjects"
+        static let progressOverrides = "progressOverrides"
         static let subjectIDAlt = "id"
         static let subjectID = "subject_id"
         static let subjectTitle = "title"
@@ -559,6 +583,7 @@ class User: UserDocument {
         coursesOfStudy = courses
         selectedSubjects = [:]
         overrides = [:]
+        progressOverrides = [:]
         markers = [:]
         
         for subjectJSON in selectedSubjectsList {
@@ -602,6 +627,23 @@ class User: UserDocument {
             
             add(course, toSemester: semester)
             overrides[course] = override
+        }
+        
+        // Read requirement overrides
+        if let reqOverrides = fileDict[RoadFile.progressOverrides] as? [String: Any] {
+            for (keyPath, val) in reqOverrides {
+                guard let intVal = val as? Int else {
+                    continue
+                }
+                setProgressOverride(for: keyPath, to: intVal, save: false)
+            }
+        } else if progressOverrides.count == 0,
+            let savedOverrides = CourseManager.shared.getAllProgressOverrides(),
+            savedOverrides.count > 0 {
+            print("Adding courses from saved defaults")
+            for (keyPath, val) in savedOverrides {
+                setProgressOverride(for: keyPath, to: val, save: false)
+            }
         }
         needsSave = false
     }
@@ -701,7 +743,8 @@ class User: UserDocument {
         }
         let fileJSON: [String: Any] = [
             RoadFile.coursesOfStudy: coursesOfStudy,
-            RoadFile.selectedSubjects: selectedSubjectsJSON
+            RoadFile.selectedSubjects: selectedSubjectsJSON,
+            RoadFile.progressOverrides: progressOverrides
         ]
         return fileJSON
     }

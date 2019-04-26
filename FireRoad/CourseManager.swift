@@ -1256,6 +1256,10 @@ class CourseManager: NSObject {
         return ret
     }
     
+    func getAllProgressOverrides() -> [String: Int]? {
+        return UserDefaults.standard.dictionary(forKey: CourseManager.progressOverrideDefaultsKey) as? [String: Int]
+    }
+    
     func setProgressOverride(with keyPath: String, to value: Int) {
         var dict: [String: Any] = UserDefaults.standard.dictionary(forKey: CourseManager.progressOverrideDefaultsKey) ?? [:]
         dict[keyPath] = value
@@ -1302,7 +1306,7 @@ class CourseManager: NSObject {
         })*/
     }
     
-    func removeCustomCourse(_ course: Course) {4
+    func removeCustomCourse(_ course: Course) {
         if let index = customCourseCache.index(where: { $0.subjectID == course.subjectID && $0.subjectTitle == course.subjectTitle }) {
             customCourseCache.remove(at: index)
             saveCustomCourses()

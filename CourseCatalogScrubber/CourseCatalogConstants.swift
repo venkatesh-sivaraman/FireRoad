@@ -38,6 +38,10 @@ enum CourseCatalogConstants {
     static let hassH = "hass humanities"
     static let hassA = "hass arts"
     static let hassS = "hass social sciences"
+    static let hassABasic = "arts"
+    static let hassHBasic = "humanities"
+    static let hassSBasic = "social sciences"
+    
     static let ciH = "communication intensive hass"
     static let ciHW = "communication intensive writing"
     static let ciHAbbreviation = "CI-H"
@@ -51,6 +55,9 @@ enum CourseCatalogConstants {
         case self.hassH: return self.hassHAbbreviation
         case self.hassA: return self.hassAAbbreviation
         case self.hassS: return self.hassSAbbreviation
+        case self.hassHBasic: return self.hassHAbbreviation
+        case self.hassABasic: return self.hassAAbbreviation
+        case self.hassSBasic: return self.hassSAbbreviation
         case self.ciH: return self.ciHAbbreviation
         case self.ciHW: return self.ciHWAbbreviation
         default:

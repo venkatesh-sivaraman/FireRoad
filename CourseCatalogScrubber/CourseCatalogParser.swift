@@ -10,7 +10,7 @@ import Cocoa
 
 /// Courses for which to print all attributes as tests
 let auditCourses = [
-    "6.006", "6.141", "21G.740", "6.00", "21G.502", "21M.480"
+    "6.006", "6.141", "21G.740", "6.00", "21G.502", "21M.480", "18.701", "21L.013"
 ]
 
 class CourseCatalogParser: NSObject {
@@ -291,7 +291,8 @@ class CourseCatalogParser: NSObject {
         } else if let subjectID = attributes[.subjectID] as? String,
             let firstMatch = courseIDListRegex.firstMatch(in: item, options: [], range: NSRange(location: 0, length: item.count)),
             let firstMatchRange = Range(firstMatch.range, in: item),
-            String(item[firstMatchRange]).contains(subjectID) {
+            String(item[firstMatchRange]).contains(subjectID),
+            item.count <= 125 {
             attributes[.title] = String(item[firstMatchRange.upperBound..<item.endIndex]).replacingOccurrences(of: CourseCatalogConstants.jointClass, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
             definitelyNotDesc = true
         } else if item.range(of: CourseCatalogConstants.undergrad, options: .caseInsensitive) != nil,
@@ -358,6 +359,13 @@ class CourseCatalogParser: NSObject {
             item.range(of: CourseCatalogConstants.hassA, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.hassS, options: .caseInsensitive) != nil {
             attributes[.hassRequirement] = CourseCatalogConstants.abbreviation(for: item.trimmingCharacters(in: .whitespacesAndNewlines))
+        } else if item.contains("+"), item.count < 50,
+            item.range(of: CourseCatalogConstants.hassHBasic, options: .caseInsensitive) != nil ||
+            item.range(of: CourseCatalogConstants.hassABasic, options: .caseInsensitive) != nil ||
+            item.range(of: CourseCatalogConstants.hassSBasic, options: .caseInsensitive) != nil,
+            let firstComponent = item.components(separatedBy: "+").first?.trimmingCharacters(in: .whitespacesAndNewlines) {
+            // TODO: Include all components
+            attributes[.hassRequirement] = CourseCatalogConstants.abbreviation(for: firstComponent)
         } else if item.range(of: CourseCatalogConstants.ciH, options: .caseInsensitive) != nil ||
             item.range(of: CourseCatalogConstants.ciHW, options: .caseInsensitive) != nil {
             attributes[.communicationRequirement] = CourseCatalogConstants.abbreviation(for: item.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -540,6 +548,9 @@ class CourseCatalogParser: NSObject {
      */
     func extractCourseProperties(from region: HTMLNodeExtractor.HTMLRegion) -> [CourseAttribute: Any] {
         var informationItems: [String] = []
+        if region.title == "6.041A" {
+            print("Here")
+        }
         for node in region.nodes {
             if node.childNodes.count > 0 {
                 var shouldStop = false

@@ -29,6 +29,14 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         var cellType: RequirementsListCellType
         var statement: RequirementsListStatement?
         var text: String?
+        var url: String?
+        
+        init(cellType: RequirementsListCellType, statement: RequirementsListStatement?, text: String?, url: String? = nil) {
+            self.cellType = cellType
+            self.statement = statement
+            self.text = text
+            self.url = url
+        }
     }
     
     @IBOutlet var tableView: UITableView!
@@ -120,6 +128,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 rows.append(PresentationItem(cellType: .description, statement: list, text: description))
                 ret.append(("", list, rows))
             }
+            if let reqList = list as? RequirementsList {
+                ret.append(("", list, [PresentationItem(cellType: .url, statement: list, text: "Request a Correction", url: CourseManager.urlBase + "/requirements/edit/" + reqList.listID)]))
+            }
             for topLevelRequirement in requirements {
                 var rows: [PresentationItem] = presentationItems(for: topLevelRequirement)
                 // Remove the title
@@ -136,9 +147,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
                 ret.append((topLevelRequirement.title ?? "", topLevelRequirement, rows))
             }
         }
-        if ret.count > 0, (requirementsList as? RequirementsList)?.webURL != nil {
+        if ret.count > 0, let url = (requirementsList as? RequirementsList)?.webURL {
             let last = ret[ret.count - 1]
-            ret[ret.count - 1] = (last.title, last.statement, last.items + [PresentationItem(cellType: .url, statement: nil, text: "View Requirements on Catalog Site")])
+            ret[ret.count - 1] = (last.title, last.statement, last.items + [PresentationItem(cellType: .url, statement: nil, text: "View Requirements on Catalog Site", url: url.absoluteString)])
         }
         
         return ret
@@ -175,6 +186,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
         if let tabVC = rootParent as? RootTabViewController,
             let currentUser = tabVC.currentUser {
+            requirementsList?.currentUser = currentUser
             requirementsList?.computeRequirementStatus(with: currentUser.creditCourses)
             if presentationItems.count == 0, let reqsList = requirementsList {
                 presentationItems = buildPresentationItems(from: reqsList)
@@ -423,7 +435,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let item = presentationItems[indexPath.section].items[indexPath.row]
         guard item.cellType == .url,
-            let url = (requirementsList as? RequirementsList)?.webURL else {
+            let urlString = item.url,
+            let url = URL(string: urlString) else {
             return
         }
         tableView.deselectRow(at: indexPath, animated: true)

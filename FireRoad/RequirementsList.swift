@@ -96,6 +96,16 @@ class RequirementsListStatement: NSObject {
     
     var isPlainString = false
     
+    var currentUser: User? {
+        didSet {
+            if let reqs = self.requirements {
+                for req in reqs {
+                    req.currentUser = currentUser
+                }
+            }
+        }
+    }
+    
     /**
      Defines the bound on the number of distinct elements in the requirements list
      that courses must satisfy.
@@ -232,7 +242,7 @@ class RequirementsListStatement: NSObject {
         return regex
     }
     
-    fileprivate let manualProgressItemRegex = try! NSRegularExpression(pattern: "^\"\"[^\"]\"\"$", options: [])
+    fileprivate let manualProgressItemRegex = try! NSRegularExpression(pattern: "^\"\"[^\"]*\"\"(\\s*\\{.*\\})?$", options: [])
     
     fileprivate func separateTopLevelItems(in text: String) -> ([String], ConnectionType) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -417,6 +427,9 @@ class RequirementsListStatement: NSObject {
             for course in courses {
                 if course.satisfies(requirement: req, allCourses: courses) {
                     satisfying.append(course)
+                    break
+                } else if course.satisfiesGeneralRequirement(req) {
+                    satisfying.append(course)
                 }
             }
         }
@@ -495,6 +508,7 @@ class RequirementsListStatement: NSObject {
         var satisfyingPerCategory: [RequirementsListStatement: Set<Course>] = [:]
         var numRequirementsSatisfied = 0
         for req in reqs {
+            req.currentUser = currentUser // ensures that children compute manual progresses correctly
             let satisfiedCourses = req.computeRequirementStatus(with: courses)
             if req.isFulfilled, satisfiedCourses.count > 0 {
                 numRequirementsSatisfied += 1
@@ -650,12 +664,12 @@ class RequirementsListStatement: NSObject {
             guard let path = keyPath else {
                 return nil
             }
-            return CourseManager.shared.getProgressOverride(with: path)
+            return currentUser?.progressOverride(for: path)
         } set {
             guard let path = keyPath else {
                 return
             }
-            CourseManager.shared.setProgressOverride(with: path, to: newValue ?? 0)
+            currentUser?.setProgressOverride(for: path, to: newValue ?? 0)
         }
     }
 }

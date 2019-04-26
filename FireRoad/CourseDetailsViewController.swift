@@ -40,6 +40,7 @@ enum CourseDetailItem {
     case enrollment
     case evalRating
     case evalHours
+    case warning
 }
 
 enum CourseDetailSectionTitle {
@@ -290,13 +291,20 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     }
     
     func generateMapping() -> ([String], [IndexPath: CourseDetailItem]) {
-        var mapping: [IndexPath: CourseDetailItem] = [
-            IndexPath(row: 0, section: 0): .title,
-            IndexPath(row: 1, section: 0): .description,
-            IndexPath(row: 2, section: 0): .units,
-            ]
+        var mapping: [IndexPath: CourseDetailItem] = [ IndexPath(row: 0, section: 0): .title ]
         var titles: [String] = [CourseDetailSectionTitle.none]
-        var rowIndex: Int = 3, sectionIndex: Int = 0
+        var rowIndex: Int = 1, sectionIndex: Int = 0
+        
+        if course!.isHistorical {
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .warning
+            rowIndex += 1
+        }
+        
+        mapping[IndexPath(row: rowIndex, section: 0)] = .description
+        rowIndex += 1
+        mapping[IndexPath(row: rowIndex, section: 0)] = .units
+        rowIndex += 1
+        
         if course!.enrollmentNumber > 0 {
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .enrollment
             rowIndex += 1
@@ -457,6 +465,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "NotesCell"
         case .rate:
             id = "RateCell"
+        case .warning:
+            id = "WarningCell"
         }
         return id
     }
@@ -522,6 +532,15 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 title += " (\(level.rawValue))"
             }
             textLabel?.text = title
+        case .warning:
+            if course!.isHistorical {
+                if let lastOffered = course!.sourceSemester {
+                    let offeredSemester = lastOffered.components(separatedBy: "-").joined(separator: " ").capitalizingFirstLetter()
+                    textLabel?.text = "This subject is no longer offered (last offered in \(offeredSemester))."
+                } else {
+                    textLabel?.text = "This subject is no longer offered."
+                }
+            }
         case .button:
             if course?.isGeneric == true {
                 textLabel?.text = "Find Fulfilling Subjects"

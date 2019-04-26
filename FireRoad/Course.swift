@@ -420,6 +420,9 @@ enum CourseAttribute: String {
     case rating
     case inClassHours
     case outOfClassHours
+    
+    case sourceSemester
+    case isHistorical
 
     static let csvHeaders: [String: CourseAttribute] = [
         "Subject Id": .subjectID,
@@ -467,7 +470,9 @@ enum CourseAttribute: String {
         "Out-of-Class Hours": .outOfClassHours,
         "Enrollment": .enrollmentNumber,
         "Prereq or Coreq": .eitherPrereqOrCoreq,
-        "Custom Color": .customColor
+        "Custom Color": .customColor,
+        "Source Semester": .sourceSemester,
+        "Historical": .isHistorical
     ]
 
     static let jsonKeys: [String: CourseAttribute] = [
@@ -512,7 +517,9 @@ enum CourseAttribute: String {
         "prereq_or_coreq": .eitherPrereqOrCoreq,
         "public": .isPublic,
         "creator": .creator,
-        "custom_color": .customColor
+        "custom_color": .customColor,
+        "source_semester": .sourceSemester,
+        "is_historical": .isHistorical
     ]
 
     init?(csvHeader: String) {
@@ -709,6 +716,8 @@ class Course: NSObject {
     }
     
     @objc dynamic var url: String?
+    @objc dynamic var sourceSemester: String?
+    @objc dynamic var isHistorical: Bool = false
     
     // Supplemental attributes
     @objc dynamic var enrollmentNumber: Int = 0
@@ -858,7 +867,7 @@ class Course: NSObject {
                     parseDeferredValues[attribute] = value as? String
                 }
             case .isOfferedFall, .isOfferedIAP, .isOfferedSpring, .isOfferedSummer, .isOfferedThisYear,
-                 .isVariableUnits, .hasFinal, .pdfOption, .eitherPrereqOrCoreq, .isPublic:
+                 .isVariableUnits, .hasFinal, .pdfOption, .eitherPrereqOrCoreq, .isPublic, .isHistorical:
                 if (value as? Bool) != nil {
                     super.setValue(value, forKey: key)
                 } else {
@@ -1057,10 +1066,7 @@ class Course: NSObject {
         let req = requirement.replacingOccurrences(of: "GIR:", with: "")
         if subjectID == req ||
             jointSubjects.contains(req) ||
-            equivalentSubjects.contains(req) ||
-            girAttribute?.satisfies(GIRAttribute(rawValue: req)) == true ||
-            hassAttribute?.satisfies(HASSAttribute(rawValue: req)) == true ||
-            communicationRequirement?.satisfies(CommunicationAttribute(rawValue: req)) == true {
+            equivalentSubjects.contains(req) {
             return true
         }
         if equivalencePairs.contains(where: { req == $0 && subjectID == $1 }) {
@@ -1071,6 +1077,20 @@ class Course: NSObject {
                 let (eqReqs, eqReq) = arg
                 return eqReq == requirement && !eqReqs.contains(where: { id -> Bool in !courses.contains(where: { $0.subjectID == id }) })
             }) {
+            return true
+        }
+        return false
+    }
+    
+    /**
+     Returns whether or not this course satisfies a general requirement, such as
+     GIR, HASS, or CI.
+     */
+    func satisfiesGeneralRequirement(_ requirement: String) -> Bool {
+        let req = requirement.replacingOccurrences(of: "GIR:", with: "")
+        if girAttribute?.satisfies(GIRAttribute(rawValue: req)) == true ||
+            hassAttribute?.satisfies(HASSAttribute(rawValue: req)) == true ||
+            communicationRequirement?.satisfies(CommunicationAttribute(rawValue: req)) == true {
             return true
         }
         return false
