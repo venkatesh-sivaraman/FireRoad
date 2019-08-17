@@ -421,19 +421,27 @@ class RequirementsListStatement: NSObject {
     var subjectFulfillmentProgress = (0, 0)
     var unitFulfillmentProgress = (0, 0)
     
-    func coursesSatisfyingRequirement(in courses: [Course]) -> [Course] {
-        var satisfying: [Course] = []
+    /**
+     Returns the whole and half classes separately
+     */
+    func coursesSatisfyingRequirement(in courses: [Course]) -> ([Course], [Course]) {
+        var wholeClasses: [Course] = []
+        var halfClasses: [Course] = []
         if let req = requirement {
             for course in courses {
                 if course.satisfies(requirement: req, allCourses: courses) {
-                    satisfying.append(course)
+                    wholeClasses.append(course)
                     break
                 } else if course.satisfiesGeneralRequirement(req) {
-                    satisfying.append(course)
+                    if course.isHalfClass {
+                        halfClasses.append(course)
+                    } else {
+                        wholeClasses.append(course)
+                    }
                 }
             }
         }
-        return satisfying
+        return (wholeClasses, halfClasses)
     }
     
     func number(_ number: Int, withUnits units: Int, satisfies threshold: Threshold) -> Bool {
@@ -485,9 +493,10 @@ class RequirementsListStatement: NSObject {
                     satisfiedCourses.insert(Course(courseID: "generatedCourse\(id)", courseTitle: "generatedCourse\(id)", courseDescription: ""))
                 }
             } else {
-                satisfiedCourses = Set<Course>(coursesSatisfyingRequirement(in: courses))
+                let (whole, half) = coursesSatisfyingRequirement(in: courses)
+                satisfiedCourses = Set<Course>(whole + half)
                 if let threshold = threshold {
-                    subjectFulfillmentProgress = ceilingThreshold((satisfiedCourses.count, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
+                    subjectFulfillmentProgress = ceilingThreshold((whole.count + half.count / 2, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
                     unitFulfillmentProgress = ceilingThreshold((satisfiedCourses.reduce(0, { $0 + $1.totalUnits }), threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
                     isFulfilled = number(subjectFulfillmentProgress.0, withUnits: unitFulfillmentProgress.0, satisfies: threshold)
                 } else {
@@ -507,13 +516,23 @@ class RequirementsListStatement: NSObject {
         
         var satisfyingPerCategory: [RequirementsListStatement: Set<Course>] = [:]
         var numRequirementsSatisfied = 0
+        var numCoursesSatisfied = 0
         for req in reqs {
             req.currentUser = currentUser // ensures that children compute manual progresses correctly
-            let satisfiedCourses = req.computeRequirementStatus(with: courses)
-            if req.isFulfilled, satisfiedCourses.count > 0 {
+            let reqSatisfiedCourses = req.computeRequirementStatus(with: courses)
+            if req.isFulfilled, reqSatisfiedCourses.count > 0 {
                 numRequirementsSatisfied += 1
             }
-            satisfyingPerCategory[req] = satisfiedCourses
+            satisfyingPerCategory[req] = reqSatisfiedCourses
+            
+            // For thresholded ANY statements, children that are ALL statements
+            // count as a single satisfied course. ANY children count for
+            // all of their satisfied courses.
+            if req.connectionType == .all {
+                numCoursesSatisfied += (req.isFulfilled && reqSatisfiedCourses.count > 0) ? 1 : 0
+            } else {
+                numCoursesSatisfied += reqSatisfiedCourses.count
+            }
         }
         
         let totalSatisfyingCourses = satisfyingPerCategory.reduce(Set<Course>(), { $0.union($1.value) })
@@ -532,6 +551,18 @@ class RequirementsListStatement: NSObject {
         } else {
             if let distinct = distinctThreshold {
                 sortedProgresses = [RequirementsListStatement](sortedProgresses[0..<min(distinct.actualCutoff, sortedProgresses.count)])
+                // recount the number of courses satisfied
+                numCoursesSatisfied = 0
+                for req in sortedProgresses {
+                    guard let reqSatisfiedCourses = satisfyingPerCategory[req] else {
+                        continue
+                    }
+                    if req.connectionType == .all {
+                        numCoursesSatisfied += (req.isFulfilled && reqSatisfiedCourses.count > 0) ? 1 : 0
+                    } else {
+                        numCoursesSatisfied += reqSatisfiedCourses.count
+                    }
+                }
             }
             if threshold == nil, let distinct = distinctThreshold {
                 // required number of statements
@@ -548,7 +579,7 @@ class RequirementsListStatement: NSObject {
                 let subjectCutoff = threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)
                 let unitCutoff = threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)
                 
-                subjectFulfillmentProgress = (totalSatisfyingCourses.count, subjectCutoff)
+                subjectFulfillmentProgress = (numCoursesSatisfied, subjectCutoff)
                 unitFulfillmentProgress = (totalSatisfyingCourses.reduce(0, { $0 + $1.totalUnits }), unitCutoff)
                 
                 if let distinct = distinctThreshold,

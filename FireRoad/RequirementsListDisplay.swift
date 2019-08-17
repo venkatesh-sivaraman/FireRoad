@@ -83,7 +83,7 @@ extension RequirementsListDisplay {
                 } else if let hass = HASSAttribute(rawValue: reqString) {
                     var baseOption: SearchOptions
                     switch hass {
-                    case .any: baseOption = .fulfillsHASS
+                    case .any, .elective: baseOption = .fulfillsHASS
                     case .arts: baseOption = .fulfillsHASSA
                     case .socialSciences: baseOption = .fulfillsHASSS
                     case .humanities: baseOption = .fulfillsHASSH

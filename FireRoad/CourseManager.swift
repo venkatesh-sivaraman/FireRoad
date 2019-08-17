@@ -1387,7 +1387,8 @@ class CourseManager: NSObject {
             let attributeSet = CSSearchableItemAttributeSet()
             attributeSet.title = id + " – " + title
             
-            let infoItems: [String] = [course.girAttribute?.rawValue, course.hassAttribute?.rawValue, course.communicationRequirement?.rawValue].compactMap({ $0 }).filter({ $0.count > 0 })
+            let optionalItems = [course.girAttribute?.rawValue, course.communicationRequirement?.rawValue] + (course.hassAttribute ?? []).map({ $0.rawValue })
+            let infoItems: [String] = optionalItems.compactMap({ $0 }).filter({ $0.count > 0 })
             var infoString = infoItems.joined(separator: ", ")
             if course.instructors.count > 0 {
                 infoString += "\nTaught by \(course.instructors.joined(separator: ", "))"

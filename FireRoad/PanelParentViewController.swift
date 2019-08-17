@@ -81,10 +81,10 @@ extension CourseViewControllerProvider {
             base = base.filterCI(ciAttribute == .ciH ? .fulfillsCIH : .fulfillsCIHW)
         }
         
-        if let hass = course.hassAttribute {
+        if let hass = course.hassAttribute?.first {
             var option: SearchOptions
             switch hass {
-            case .any: option = .fulfillsHASS
+            case .any, .elective: option = .fulfillsHASS
             case .arts: option = .fulfillsHASSA
             case .socialSciences: option = .fulfillsHASSS
             case .humanities: option = .fulfillsHASSH

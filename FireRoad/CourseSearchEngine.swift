@@ -164,13 +164,13 @@ class CourseSearchEngine: NSObject {
         var fulfillsHASS = false
         if options.contains(.noHASSFilter) {
             fulfillsHASS = true
-        } else if options.contains(.fulfillsHASS), course.hassAttribute != nil {
+        } else if options.contains(.fulfillsHASS), course.hassAttribute?.count != 0 {
             fulfillsHASS = true
-        } else if options.contains(.fulfillsHASSA), course.hassAttribute == .arts {
+        } else if options.contains(.fulfillsHASSA), course.hassAttribute?.contains(.arts) == true {
             fulfillsHASS = true
-        } else if options.contains(.fulfillsHASSS), course.hassAttribute == .socialSciences {
+        } else if options.contains(.fulfillsHASSS), course.hassAttribute?.contains(.socialSciences) == true {
             fulfillsHASS = true
-        } else if options.contains(.fulfillsHASSH), course.hassAttribute == .humanities {
+        } else if options.contains(.fulfillsHASSH), course.hassAttribute?.contains(.humanities) == true {
             fulfillsHASS = true
         }
         
@@ -259,7 +259,11 @@ class CourseSearchEngine: NSObject {
         }
         var courseComps: [String?] = []
         if options.contains(.searchRequirements) {
-            courseComps += [course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText(), course.hassAttribute?.rawValue, course.hassAttribute?.descriptionText(), course.girAttribute?.rawValue, course.girAttribute?.descriptionText()]
+            courseComps += [course.communicationRequirement?.rawValue, course.communicationRequirement?.descriptionText(), course.girAttribute?.rawValue, course.girAttribute?.descriptionText()]
+            if let hasses = course.hassAttribute {
+                courseComps += hasses.map({ hass -> String? in hass.rawValue })
+                courseComps += hasses.map({ hass -> String? in hass.descriptionText() })
+            }
         }
         if options.contains(.searchPrereqs),
             let prereqs = course.prerequisites?.requiredCourses.map({ $0.subjectID }) {
@@ -363,6 +367,8 @@ class CourseSearchEngine: NSObject {
                 }
                 if course.isGeneric {
                     relevance *= 1e15
+                } else if course.isHistorical {
+                    relevance *= 0.1
                 } else {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
                 }
@@ -396,6 +402,8 @@ class CourseSearchEngine: NSObject {
             if relevance > 0.0 {
                 if course.isGeneric {
                     relevance *= 1e15
+                } else if course.isHistorical {
+                    relevance *= 0.1
                 } else {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
                 }

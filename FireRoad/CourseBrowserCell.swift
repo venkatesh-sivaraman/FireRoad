@@ -25,6 +25,9 @@ class CourseBrowserCell: UITableViewCell {
             if let level = course?.subjectLevel, level != .undergraduate {
                 title += " (\(level.rawValue))"
             }
+            if course?.isHistorical == true {
+                title = "⚠︎ " + title
+            }
             self.titleLabel.text = title
             if course?.subjectTitle == nil || course?.subjectTitle?.count == 0 {
                 print("Subject title nil")

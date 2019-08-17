@@ -92,12 +92,14 @@ enum HASSAttribute: String, AttributeEnum {
     case humanities = "HASS-H"
     case arts = "HASS-A"
     case socialSciences = "HASS-S"
-    
+    case elective = "HASS-E"
+
     static let descriptions: [HASSAttribute: String] = [
         .any: "HASS",
         .humanities: "HASS Humanities",
         .arts: "HASS Arts",
-        .socialSciences: "HASS Social Sciences"
+        .socialSciences: "HASS Social Sciences",
+        .elective: "HASS Elective"
     ]
     
     func descriptionText() -> String {
@@ -416,7 +418,10 @@ enum CourseAttribute: String {
     case isPublic
     case creator
     case customColor
-    
+    case parent
+    case children
+    case isHalfClass
+
     case rating
     case inClassHours
     case outOfClassHours
@@ -472,7 +477,10 @@ enum CourseAttribute: String {
         "Prereq or Coreq": .eitherPrereqOrCoreq,
         "Custom Color": .customColor,
         "Source Semester": .sourceSemester,
-        "Historical": .isHistorical
+        "Historical": .isHistorical,
+        "Parent": .parent,
+        "Children": .children,
+        "Half Class": .isHalfClass
     ]
 
     static let jsonKeys: [String: CourseAttribute] = [
@@ -519,7 +527,10 @@ enum CourseAttribute: String {
         "creator": .creator,
         "custom_color": .customColor,
         "source_semester": .sourceSemester,
-        "is_historical": .isHistorical
+        "is_historical": .isHistorical,
+        "parent": .parent,
+        "children": .children,
+        "is_half_class": .isHalfClass
     ]
 
     init?(csvHeader: String) {
@@ -639,7 +650,7 @@ class Course: NSObject {
 
     var girAttribute: GIRAttribute?
     var communicationRequirement: CommunicationAttribute?
-    var hassAttribute: HASSAttribute?
+    var hassAttribute: [HASSAttribute]?
 
     @objc dynamic var gradeRule: String?
     @objc dynamic var gradeType: String?
@@ -674,6 +685,7 @@ class Course: NSObject {
     @objc dynamic var preparationUnits: Int = 0
     @objc dynamic var hasFinal: Bool = false
     @objc dynamic var pdfOption: Bool = false
+    @objc dynamic var isHalfClass: Bool = false
     @objc dynamic var notOfferedYear: String? {
         didSet {
             updateOfferingPattern()
@@ -718,7 +730,21 @@ class Course: NSObject {
     @objc dynamic var url: String?
     @objc dynamic var sourceSemester: String?
     @objc dynamic var isHistorical: Bool = false
-    
+
+    @objc dynamic var parent: String?
+    @objc dynamic var _children: [String] = []
+    @objc dynamic var children: [String] {
+        get {
+            if let cache = parseDeferredValues[.children] {
+                _children = extractListString(cache)
+                parseDeferredValues[.children] = nil
+            }
+            return _children
+        } set {
+            _children = newValue
+        }
+    }
+
     // Supplemental attributes
     @objc dynamic var enrollmentNumber: Int = 0
     var relatedSubjects: [(String, Float)] = []
@@ -741,7 +767,7 @@ class Course: NSObject {
         let genericDesc = "Use this generic subject to indicate that you are fulfilling a requirement, but do not yet have a specific subject selected."
         for (value, description) in CommunicationAttribute.descriptions {
             let course = Course(courseID: value.rawValue, courseTitle: "Generic \(description)", courseDescription: genericDesc, generic: true)
-            course.hassAttribute = .any
+            course.hassAttribute = [.any]
             course.communicationRequirement = value
             course.isOfferedFall = true
             course.isOfferedSpring = true
@@ -750,7 +776,7 @@ class Course: NSObject {
         }
         for (value, description) in HASSAttribute.descriptions where value != .any {
             var course = Course(courseID: value.rawValue, courseTitle: "Generic \(description)", courseDescription: genericDesc, generic: true)
-            course.hassAttribute = value
+            course.hassAttribute = [value]
             course.isOfferedFall = true
             course.isOfferedSpring = true
             course.isOfferedIAP = true
@@ -758,7 +784,7 @@ class Course: NSObject {
             
             let ci = CommunicationAttribute.ciH
             course = Course(courseID: [ci.rawValue, value.rawValue].joined(separator: " "), courseTitle: "Generic \(ci.rawValue) \(description)", courseDescription: genericDesc, generic: true)
-            course.hassAttribute = value
+            course.hassAttribute = [value]
             course.communicationRequirement = ci
             course.isOfferedFall = true
             course.isOfferedSpring = true
@@ -860,14 +886,15 @@ class Course: NSObject {
                 } else {
                     parseDeferredValues[attribute] = value as? String
                 }
-            case .equivalentSubjects, .jointSubjects, .meetsWithSubjects, .instructors:
+            case .equivalentSubjects, .jointSubjects, .meetsWithSubjects, .instructors, .children:
                 if (value as? [String]) != nil {
                     super.setValue(value, forKey: key)
                 } else {
                     parseDeferredValues[attribute] = value as? String
                 }
             case .isOfferedFall, .isOfferedIAP, .isOfferedSpring, .isOfferedSummer, .isOfferedThisYear,
-                 .isVariableUnits, .hasFinal, .pdfOption, .eitherPrereqOrCoreq, .isPublic, .isHistorical:
+                 .isVariableUnits, .hasFinal, .pdfOption, .eitherPrereqOrCoreq, .isPublic,
+                 .isHistorical, .isHalfClass:
                 if (value as? Bool) != nil {
                     super.setValue(value, forKey: key)
                 } else {
@@ -897,7 +924,7 @@ class Course: NSObject {
             case .communicationRequirement:
                 self.communicationRequirement = CommunicationAttribute(rawValue: ((value as? String) ?? ""))
             case .hassAttribute:
-                self.hassAttribute = HASSAttribute(rawValue: (value as? String) ?? "")
+                self.hassAttribute = (value as? String)?.components(separatedBy: ",").compactMap { HASSAttribute(rawValue: $0) }
             case .schedule:
                 if let formattedSched = value as? [String: [[CourseScheduleItem]]] {
                     self.schedule = formattedSched
@@ -1041,23 +1068,6 @@ class Course: NSObject {
     // MARK: - Requirements
     
     /**
-     The first item is the requirement, the second is the subject ID required to
-     satisfy the requirement.
-     */
-    var equivalencePairs: [(String, String)] = [
-        ("6.0001", "6.00"),
-        ("6.0002", "6.00")
-    ]
-    
-    /**
-     The first item is a list of subject IDs of courses, and the second item is
-     the requirement string.
-     */
-    var equivalenceSets: [([String], String)] = [
-        (["6.0001", "6.0002"], "6.00")
-    ]
-    
-    /**
      If `allCourses` is not nil, it may be a list of courses that can potentially
      satisfy the requirement. If a combination of courses satisfies the requirement,
      this method will return true.
@@ -1069,16 +1079,26 @@ class Course: NSObject {
             equivalentSubjects.contains(req) {
             return true
         }
-        if equivalencePairs.contains(where: { req == $0 && subjectID == $1 }) {
+        
+        // For example: 6.00 satisfies the 6.0001 requirement
+        if self.children.count > 0, self.children.contains(req) {
             return true
         }
+        
+        // For example: 6.0001 and 6.0002 together satisfy the 6.00 requirement
         if let courses = allCourses,
-            equivalenceSets.contains(where: { (arg) -> Bool in
-                let (eqReqs, eqReq) = arg
-                return eqReq == requirement && !eqReqs.contains(where: { id -> Bool in !courses.contains(where: { $0.subjectID == id }) })
-            }) {
-            return true
+            req == self.parent,
+            let parentCourse = CourseManager.shared.getCourse(withID: req),
+            parentCourse.children.count > 0 {
+            
+            let courseIDs = Set<String>(courses.compactMap({ $0.subjectID }))
+            let childrenIDs = Set<String>(parentCourse.children)
+            // Check that all children are present in the list of courses
+            if childrenIDs.intersection(courseIDs) == childrenIDs {
+                return true
+            }
         }
+        
         return false
     }
     
@@ -1089,7 +1109,7 @@ class Course: NSObject {
     func satisfiesGeneralRequirement(_ requirement: String) -> Bool {
         let req = requirement.replacingOccurrences(of: "GIR:", with: "")
         if girAttribute?.satisfies(GIRAttribute(rawValue: req)) == true ||
-            hassAttribute?.satisfies(HASSAttribute(rawValue: req)) == true ||
+            hassAttribute?.first(where: { $0.satisfies(HASSAttribute(rawValue: req)) }) != nil ||
             communicationRequirement?.satisfies(CommunicationAttribute(rawValue: req)) == true {
             return true
         }

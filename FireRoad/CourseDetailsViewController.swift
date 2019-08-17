@@ -311,7 +311,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
         if course!.communicationRequirement != nil ||
             course!.girAttribute != nil ||
-            course?.hassAttribute != nil {
+            course?.hassAttribute?.count != 0 {
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .requirements
             rowIndex += 1
         }
@@ -596,7 +596,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 reqs.append(comm.rawValue)
             }
             if let hass = self.course?.hassAttribute {
-                reqs.append(hass.rawValue)
+                reqs.append(hass.map({ $0.rawValue }).joined(separator: ", "))
             }
             detailTextLabel?.text = reqs.joined(separator: ", ")
         case .offered:
