@@ -45,17 +45,10 @@
 		9646CFF51EB922C3005F87CB /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF41EB922C3005F87CB /* Course.swift */; };
 		9646CFF71EB9251A005F87CB /* CourseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF61EB9251A005F87CB /* CourseManager.swift */; };
 		9646CFF91EB92525005F87CB /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9646CFF81EB92525005F87CB /* User.swift */; };
-		964BE2BC21C8992200399474 /* CourseCatalogScrubberTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 964BE2BB21C8992200399474 /* CourseCatalogScrubberTests.swift */; };
-		964BE2C121C8996600399474 /* HTMLNodeExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */; };
-		964BE2C221C8996600399474 /* CourseCatalogConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965DDE062015218A0076F4EF /* CourseCatalogConstants.swift */; };
-		964BE2C321C8996600399474 /* CourseCatalogParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */; };
-		964BE2C421C8996600399474 /* CourseEvaluationParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965DDE04201521350076F4EF /* CourseEvaluationParser.swift */; };
 		96500EAE1F7A056400872F82 /* RoundedToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */; };
 		96500EB11F7C91C500872F82 /* CoreSpotlight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB01F7C91C400872F82 /* CoreSpotlight.framework */; };
 		96500EB31F7C91CA00872F82 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */; };
 		9659E38B1F89A93F00E55FA2 /* UIViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */; };
-		965DDE05201521360076F4EF /* CourseEvaluationParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965DDE04201521350076F4EF /* CourseEvaluationParser.swift */; };
-		965DDE072015218A0076F4EF /* CourseCatalogConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965DDE062015218A0076F4EF /* CourseCatalogConstants.swift */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
 		9664153621C42C0500823768 /* RequirementsListDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9664153521C42C0500823768 /* RequirementsListDisplay.swift */; };
 		9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 9669C7C71F90628300E60D89 /* MBProgressHUD.m */; };
@@ -65,8 +58,6 @@
 		968F2A1E1FE5A36E0082EE40 /* departments.txt in Resources */ = {isa = PBXBuildFile; fileRef = 968F2A1D1FE5A36E0082EE40 /* departments.txt */; };
 		968F2A201FE5B2B80082EE40 /* HighlightCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968F2A1F1FE5B2B80082EE40 /* HighlightCollectionCell.swift */; };
 		968F2A221FE5C4BE0082EE40 /* CourseListingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968F2A211FE5C4BE0082EE40 /* CourseListingViewController.swift */; };
-		968FE0581F75F86D0098E97F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE0571F75F86D0098E97F /* main.swift */; };
-		968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */; };
 		96AA1BB521FC216600544C64 /* SubjectMarker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AA1BB421FC216600544C64 /* SubjectMarker.swift */; };
 		96AA1BB721FC253C00544C64 /* TableMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AA1BB621FC253C00544C64 /* TableMenuViewController.swift */; };
 		96AB872D1F91B46500F4F905 /* RequirementsBrowserTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */; };
@@ -97,7 +88,6 @@
 		96EBE5681FBF9E2B00FABE1E /* PanelParentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */; };
 		96EBE56A1FBFDE5600FABE1E /* ScheduleGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */; };
 		96EBE56C1FBFDF0900FABE1E /* ScheduleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE56B1FBFDF0900FABE1E /* ScheduleModel.swift */; };
-		96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -109,18 +99,6 @@
 			remoteInfo = FireRoad;
 		};
 /* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		968FE0531F75F86D0098E97F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		960A1F071FDA1FCC00C53E43 /* CommonStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonStrings.swift; sourceTree = "<group>"; };
@@ -168,15 +146,10 @@
 		9646CFF41EB922C3005F87CB /* Course.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Course.swift; sourceTree = "<group>"; };
 		9646CFF61EB9251A005F87CB /* CourseManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseManager.swift; sourceTree = "<group>"; };
 		9646CFF81EB92525005F87CB /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
-		964BE2B921C8992200399474 /* CourseCatalogScrubberTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CourseCatalogScrubberTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		964BE2BB21C8992200399474 /* CourseCatalogScrubberTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseCatalogScrubberTests.swift; sourceTree = "<group>"; };
-		964BE2BD21C8992200399474 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		96500EAD1F7A056400872F82 /* RoundedToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedToolbarView.swift; sourceTree = "<group>"; };
 		96500EB01F7C91C400872F82 /* CoreSpotlight.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreSpotlight.framework; path = System/Library/Frameworks/CoreSpotlight.framework; sourceTree = SDKROOT; };
 		96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtension.swift; sourceTree = "<group>"; };
-		965DDE04201521350076F4EF /* CourseEvaluationParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseEvaluationParser.swift; sourceTree = "<group>"; };
-		965DDE062015218A0076F4EF /* CourseCatalogConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseCatalogConstants.swift; sourceTree = "<group>"; };
 		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
 		9664153521C42C0500823768 /* RequirementsListDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListDisplay.swift; sourceTree = "<group>"; };
 		9669C7C71F90628300E60D89 /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
@@ -187,11 +160,6 @@
 		968F2A1D1FE5A36E0082EE40 /* departments.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = departments.txt; sourceTree = "<group>"; };
 		968F2A1F1FE5B2B80082EE40 /* HighlightCollectionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightCollectionCell.swift; sourceTree = "<group>"; };
 		968F2A211FE5C4BE0082EE40 /* CourseListingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseListingViewController.swift; sourceTree = "<group>"; };
-		968F2A231FE6FA0C0082EE40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		968FE0551F75F86D0098E97F /* CourseCatalogScrubber */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CourseCatalogScrubber; sourceTree = BUILT_PRODUCTS_DIR; };
-		968FE0571F75F86D0098E97F /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTMLNodeExtractor.swift; sourceTree = "<group>"; };
-		968FE05E1F75FE270098E97F /* test_html.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_html.txt; sourceTree = "<group>"; };
 		96AA1BB421FC216600544C64 /* SubjectMarker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectMarker.swift; sourceTree = "<group>"; };
 		96AA1BB621FC253C00544C64 /* TableMenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableMenuViewController.swift; sourceTree = "<group>"; };
 		96AB872C1F91B46500F4F905 /* RequirementsBrowserTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsBrowserTableCell.swift; sourceTree = "<group>"; };
@@ -224,7 +192,6 @@
 		96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelParentViewController.swift; sourceTree = "<group>"; };
 		96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleGridViewController.swift; sourceTree = "<group>"; };
 		96EBE56B1FBFDF0900FABE1E /* ScheduleModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleModel.swift; sourceTree = "<group>"; };
-		96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseCatalogParser.swift; sourceTree = "<group>"; };
 		96F6530B2094F193006F5DAB /* road_file_spec.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = road_file_spec.md; sourceTree = "<group>"; };
 		96F6530C2094F401006F5DAB /* schedule_file_spec.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = schedule_file_spec.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -242,20 +209,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		9646CFE21EB921FF005F87CB /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		964BE2B621C8992200399474 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		968FE0521F75F86D0098E97F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -280,8 +233,6 @@
 				960A8A162035043500DF7819 /* Icon-180.png */,
 				9646CFD11EB921FE005F87CB /* FireRoad */,
 				9646CFE81EB921FF005F87CB /* FireRoadTests */,
-				968FE0561F75F86D0098E97F /* CourseCatalogScrubber */,
-				964BE2BA21C8992200399474 /* CourseCatalogScrubberTests */,
 				9646CFD01EB921FE005F87CB /* Products */,
 				96500EAF1F7C91C400872F82 /* Frameworks */,
 			);
@@ -292,8 +243,6 @@
 			children = (
 				9646CFCF1EB921FE005F87CB /* FireRoad.app */,
 				9646CFE51EB921FF005F87CB /* FireRoadTests.xctest */,
-				968FE0551F75F86D0098E97F /* CourseCatalogScrubber */,
-				964BE2B921C8992200399474 /* CourseCatalogScrubberTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -351,15 +300,6 @@
 				9646CFEB1EB921FF005F87CB /* Info.plist */,
 			);
 			path = FireRoadTests;
-			sourceTree = "<group>";
-		};
-		964BE2BA21C8992200399474 /* CourseCatalogScrubberTests */ = {
-			isa = PBXGroup;
-			children = (
-				964BE2BB21C8992200399474 /* CourseCatalogScrubberTests.swift */,
-				964BE2BD21C8992200399474 /* Info.plist */,
-			);
-			path = CourseCatalogScrubberTests;
 			sourceTree = "<group>";
 		};
 		96500EAF1F7C91C400872F82 /* Frameworks */ = {
@@ -461,20 +401,6 @@
 			name = "Browse View";
 			sourceTree = "<group>";
 		};
-		968FE0561F75F86D0098E97F /* CourseCatalogScrubber */ = {
-			isa = PBXGroup;
-			children = (
-				968FE0571F75F86D0098E97F /* main.swift */,
-				968FE05C1F75F93C0098E97F /* HTMLNodeExtractor.swift */,
-				965DDE062015218A0076F4EF /* CourseCatalogConstants.swift */,
-				96F194B51F78178600DA8D95 /* CourseCatalogParser.swift */,
-				965DDE04201521350076F4EF /* CourseEvaluationParser.swift */,
-				968FE05E1F75FE270098E97F /* test_html.txt */,
-				968F2A231FE6FA0C0082EE40 /* Info.plist */,
-			);
-			path = CourseCatalogScrubber;
-			sourceTree = "<group>";
-		};
 		96EBE5641FBEB3F900FABE1E /* Schedule */ = {
 			isa = PBXGroup;
 			children = (
@@ -525,40 +451,6 @@
 			productReference = 9646CFE51EB921FF005F87CB /* FireRoadTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		964BE2B821C8992200399474 /* CourseCatalogScrubberTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 964BE2C021C8992200399474 /* Build configuration list for PBXNativeTarget "CourseCatalogScrubberTests" */;
-			buildPhases = (
-				964BE2B521C8992200399474 /* Sources */,
-				964BE2B621C8992200399474 /* Frameworks */,
-				964BE2B721C8992200399474 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = CourseCatalogScrubberTests;
-			productName = CourseCatalogScrubberTests;
-			productReference = 964BE2B921C8992200399474 /* CourseCatalogScrubberTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		968FE0541F75F86D0098E97F /* CourseCatalogScrubber */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 968FE05B1F75F86D0098E97F /* Build configuration list for PBXNativeTarget "CourseCatalogScrubber" */;
-			buildPhases = (
-				968FE0511F75F86D0098E97F /* Sources */,
-				968FE0521F75F86D0098E97F /* Frameworks */,
-				968FE0531F75F86D0098E97F /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = CourseCatalogScrubber;
-			productName = CourseCatalogScrubber;
-			productReference = 968FE0551F75F86D0098E97F /* CourseCatalogScrubber */;
-			productType = "com.apple.product-type.tool";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -590,17 +482,6 @@
 						ProvisioningStyle = Automatic;
 						TestTargetID = 9646CFCE1EB921FE005F87CB;
 					};
-					964BE2B821C8992200399474 = {
-						CreatedOnToolsVersion = 10.1;
-						DevelopmentTeam = PTB6T29SN3;
-						ProvisioningStyle = Automatic;
-					};
-					968FE0541F75F86D0098E97F = {
-						CreatedOnToolsVersion = 8.3.3;
-						DevelopmentTeam = PTB6T29SN3;
-						LastSwiftMigration = 0900;
-						ProvisioningStyle = Automatic;
-					};
 				};
 			};
 			buildConfigurationList = 9646CFCA1EB921FE005F87CB /* Build configuration list for PBXProject "FireRoad" */;
@@ -618,8 +499,6 @@
 			targets = (
 				9646CFCE1EB921FE005F87CB /* FireRoad */,
 				9646CFE41EB921FF005F87CB /* FireRoadTests */,
-				968FE0541F75F86D0098E97F /* CourseCatalogScrubber */,
-				964BE2B821C8992200399474 /* CourseCatalogScrubberTests */,
 			);
 		};
 /* End PBXProject section */
@@ -646,13 +525,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				96ACBD312027C299007B4618 /* test.reql in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		964BE2B721C8992200399474 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -737,30 +609,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				9646CFEA1EB921FF005F87CB /* FireRoadTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		964BE2B521C8992200399474 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				964BE2C421C8996600399474 /* CourseEvaluationParser.swift in Sources */,
-				964BE2BC21C8992200399474 /* CourseCatalogScrubberTests.swift in Sources */,
-				964BE2C321C8996600399474 /* CourseCatalogParser.swift in Sources */,
-				964BE2C121C8996600399474 /* HTMLNodeExtractor.swift in Sources */,
-				964BE2C221C8996600399474 /* CourseCatalogConstants.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		968FE0511F75F86D0098E97F /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				96F194B61F78178600DA8D95 /* CourseCatalogParser.swift in Sources */,
-				965DDE05201521360076F4EF /* CourseEvaluationParser.swift in Sources */,
-				968FE0581F75F86D0098E97F /* main.swift in Sources */,
-				965DDE072015218A0076F4EF /* CourseCatalogConstants.swift in Sources */,
-				968FE05D1F75F93C0098E97F /* HTMLNodeExtractor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -980,85 +828,6 @@
 			};
 			name = Release;
 		};
-		964BE2BE21C8992200399474 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = PTB6T29SN3;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = CourseCatalogScrubberTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.CourseCatalogScrubberTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 4.2;
-			};
-			name = Debug;
-		};
-		964BE2BF21C8992200399474 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = PTB6T29SN3;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = CourseCatalogScrubberTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.CourseCatalogScrubberTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 4.2;
-			};
-			name = Release;
-		};
-		968FE0591F75F86D0098E97F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
-				INFOPLIST_FILE = "$(SRCROOT)/CourseCatalogScrubber/Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.CourseCatalogScrubber;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SDKROOT = macosx;
-				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
-			};
-			name = Debug;
-		};
-		968FE05A1F75F86D0098E97F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
-				INFOPLIST_FILE = "$(SRCROOT)/CourseCatalogScrubber/Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.CourseCatalogScrubber;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SDKROOT = macosx;
-				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1085,24 +854,6 @@
 			buildConfigurations = (
 				9646CFF21EB921FF005F87CB /* Debug */,
 				9646CFF31EB921FF005F87CB /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		964BE2C021C8992200399474 /* Build configuration list for PBXNativeTarget "CourseCatalogScrubberTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				964BE2BE21C8992200399474 /* Debug */,
-				964BE2BF21C8992200399474 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		968FE05B1F75F86D0098E97F /* Build configuration list for PBXNativeTarget "CourseCatalogScrubber" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				968FE0591F75F86D0098E97F /* Debug */,
-				968FE05A1F75F86D0098E97F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
