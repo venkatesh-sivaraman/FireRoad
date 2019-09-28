@@ -58,6 +58,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
         self.view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:[handleView(36)]", options: [], metrics: nil, views: ["handleView": handleView]))
         self.view.addConstraint(NSLayoutConstraint(item: handleView, attribute: .centerX, relatedBy: .equal, toItem: self.view, attribute: .centerX, multiplier: 1.0, constant: 0.0))
         handleView.layer.cornerRadius = 2.0
+        self.view.translatesAutoresizingMaskIntoConstraints = false
         /*self.view.layer.shadowRadius = 10.0
          self.view.layer.shadowOpacity = 0.4
          self.view.layer.shadowOffset = CGSize(width: 0.0, height: -0.5)*/
