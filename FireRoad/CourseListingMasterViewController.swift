@@ -305,6 +305,11 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
             dismiss(animated: true, completion: nil)
             popoverNavigationController = nil
         }
+        if #available(iOS 12.0, *) {
+            if traitCollection.userInterfaceStyle != newCollection.userInterfaceStyle {
+                collectionView?.reloadData()
+            }
+        }
     }
     
     @objc func courseManagerFinishedLoading(_ note: Notification) {

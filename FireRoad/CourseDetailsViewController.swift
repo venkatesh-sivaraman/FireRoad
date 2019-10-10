@@ -229,6 +229,14 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         }
     }
     
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        if #available(iOS 12.0, *) {
+            if traitCollection.userInterfaceStyle != previousTraitCollection?.userInterfaceStyle {
+                tableView.reloadData()
+            }
+        }
+    }
+    
     // MARK: - State Preservation
     
     static let courseIDRestorationKey = "CourseDetails.courseID"

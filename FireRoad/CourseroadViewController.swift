@@ -66,6 +66,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
         updateCollectionViewLayout(with: newCollection)
         updateNavigationBar(newTraits: newCollection)
+        if #available(iOS 12.0, *) {
+            if newCollection.userInterfaceStyle != traitCollection.userInterfaceStyle {
+                collectionView.reloadData()
+            }
+        }
     }
     
     func updateNavigationBar(animated: Bool = true, newTraits: UITraitCollection? = nil) {
@@ -339,7 +344,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseCell", for: indexPath) as! CourseThumbnailCell
         if (self.currentUser?.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count ?? 0) <= indexPath.item {
             cell.alpha = 0.0
-            cell.backgroundColor = UIColor.white
+            if #available(iOS 13.0, *) {
+                cell.backgroundColor = .systemBackground
+            } else {
+                cell.backgroundColor = .white
+            }
             cell.shadowEnabled = false
             cell.textLabel?.text = ""
             cell.detailTextLabel?.text = ""
@@ -349,7 +358,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             cell.showsMarkMenuItem = false
             return cell
         }
-        cell.shadowEnabled = true
+        if #available(iOS 13.0, *) {
+            cell.shadowEnabled = traitCollection.userInterfaceStyle != .dark
+        } else {
+            cell.shadowEnabled = true
+        }
         cell.delegate = self
         let semester = UserSemester(rawValue: indexPath.section)!
         let course = self.currentUser!.courses(forSemester: semester)[indexPath.item]
@@ -1102,7 +1115,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 listVC.delegate = self
                 listVC.managesNavigation = false
                 listVC.showsSemesterDialog = true
-                listVC.view.backgroundColor = .white
+                if #available(iOS 13.0, *) {
+                    listVC.view.backgroundColor = .systemBackground
+                } else {
+                    listVC.view.backgroundColor = .white
+                }
                 warningsController.navigationController?.pushViewController(listVC, animated: true)
             }
         }

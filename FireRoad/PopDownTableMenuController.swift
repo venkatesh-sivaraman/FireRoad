@@ -182,7 +182,12 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     }
     
     func show(animated: Bool) {
-        let effect = UIBlurEffect(style: .light)
+        var effect: UIBlurEffect
+        if #available(iOS 13.0, *) {
+            effect = UIBlurEffect(style: .systemMaterial)
+        } else {
+            effect = UIBlurEffect(style: .light)
+        }
         hideButton?.alpha = 0.0
         self.topConstraint?.constant = 0.0
         self.view.setNeedsLayout()
