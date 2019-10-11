@@ -255,8 +255,13 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             //self.navigationController?.navigationBar.shadowImage = UIImage()
             self.navigationController?.navigationBar.isTranslucent = true
         } else {
-            self.view.backgroundColor = UIColor.white
-            self.tableView.backgroundColor = UIColor.white
+            if #available(iOS 13.0, *) {
+                self.view.backgroundColor = UIColor.systemBackground
+                self.tableView.backgroundColor = UIColor.systemBackground
+            } else {
+                self.view.backgroundColor = UIColor.white
+                self.tableView.backgroundColor = UIColor.white
+            }
             self.tableView.estimatedRowHeight = 60.0
             if #available(iOS 11.0, *) {
                 self.tableView.contentInsetAdjustmentBehavior = .automatic
@@ -391,7 +396,11 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         let item = presentationItems[indexPath.section].items[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: item.cellType.rawValue, for: indexPath)
         if displayStandardMode {
-            cell.backgroundColor = UIColor.white
+            if #available(iOS 13.0, *) {
+                cell.backgroundColor = UIColor.systemBackground
+            } else {
+                cell.backgroundColor = UIColor.white
+            }
         } else {
             cell.backgroundColor = UIColor.clear
         }
@@ -482,7 +491,11 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         listVC.showsHeaderBar = false
         listVC.delegate = self
         listVC.managesNavigation = false
-        listVC.view.backgroundColor = UIColor.white
+        if #available(iOS 13.0, *) {
+            listVC.view.backgroundColor = UIColor.systemBackground
+        } else {
+            listVC.view.backgroundColor = UIColor.white
+        }
         showInformationalViewController(listVC)
     }
     
