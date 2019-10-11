@@ -74,9 +74,7 @@ class CourseListTableCell: UITableViewCell, CourseListCell {
         }
         cell.longPressTarget = longPressTarget
         cell.longPressAction = longPressAction
-        if #available(iOS 13.0, *) {
-            cell.shadowEnabled = UITraitCollection.current.userInterfaceStyle != .dark
-        }
+        cell.shadowEnabled = true
         return cell
     }
     

@@ -96,8 +96,13 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             //self.navigationController?.navigationBar.shadowImage = UIImage()
             self.navigationController?.navigationBar.isTranslucent = true
         } else {
-            self.view.backgroundColor = UIColor.white
-            self.tableView.backgroundColor = UIColor.white
+            if #available(iOS 13.0, *) {
+                self.view.backgroundColor = UIColor.systemBackground
+                self.tableView.backgroundColor = UIColor.systemBackground
+            } else {
+                self.view.backgroundColor = UIColor.white
+                self.tableView.backgroundColor = UIColor.white
+            }
             self.tableView.estimatedRowHeight = 60.0
             if #available(iOS 11.0, *) {
                 self.tableView.contentInsetAdjustmentBehavior = .automatic
@@ -226,14 +231,6 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             }
         } else {
             delegate?.courseDetails(added: self.course!, to: nil)
-        }
-    }
-    
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        if #available(iOS 12.0, *) {
-            if traitCollection.userInterfaceStyle != previousTraitCollection?.userInterfaceStyle {
-                tableView.reloadData()
-            }
         }
     }
     

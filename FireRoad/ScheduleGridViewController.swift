@@ -87,14 +87,6 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
             loadGrid(with: schedule)
             recenterScrollView()
         }
-        // Remove shadows if in dark mode
-        if #available(iOS 12.0, *), previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle {
-            for cellSet in courseCells.values {
-                for cell in cellSet {
-                    cell.shadowEnabled = traitCollection.userInterfaceStyle != .dark
-                }
-            }
-        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -261,9 +253,7 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
                         courseCell.showsConstraintMenuItem = course.creator == nil
                         courseCell.showsEditMenuItem = course.creator != nil
                         courseCell.showsMarkMenuItem = false
-                        if #available(iOS 12.0, *) {
-                            courseCell.shadowEnabled = traitCollection.userInterfaceStyle != .dark
-                        }
+                        courseCell.shadowEnabled = true
                         
                         courseCell.generateLabels(withDetail: true)
                         courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)

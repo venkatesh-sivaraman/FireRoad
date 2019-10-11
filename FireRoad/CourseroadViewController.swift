@@ -358,11 +358,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             cell.showsMarkMenuItem = false
             return cell
         }
-        if #available(iOS 13.0, *) {
-            cell.shadowEnabled = traitCollection.userInterfaceStyle != .dark
-        } else {
-            cell.shadowEnabled = true
-        }
+        cell.shadowEnabled = true
         cell.delegate = self
         let semester = UserSemester(rawValue: indexPath.section)!
         let course = self.currentUser!.courses(forSemester: semester)[indexPath.item]

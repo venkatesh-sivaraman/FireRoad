@@ -76,6 +76,13 @@ class DocumentBrowseViewController: UITableViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        if #available(iOS 12.0, *),
+            previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle {
+            tableView.reloadData()
+        }
+    }
+    
     @objc func doneButtonTapped(_ sender: AnyObject) {
         delegate?.documentBrowserDismissed(self)
     }
@@ -113,11 +120,17 @@ class DocumentBrowseViewController: UITableViewController {
         cell.textLabel?.text = item.title
         cell.detailTextLabel?.text = item.description
         cell.imageView?.image = item.image
-        cell.imageView?.layer.shadowColor = UIColor.lightGray.cgColor
-        cell.imageView?.layer.shadowOffset = CGSize(width: 1.0, height: 3.0)
-        cell.imageView?.layer.shadowRadius = 6.0
-        cell.imageView?.layer.shadowOpacity = 0.6
-        cell.imageView?.layer.masksToBounds = false
+        var shadowEnabled = true
+        if #available(iOS 12.0, *), traitCollection.userInterfaceStyle == .dark {
+            shadowEnabled = false
+        }
+        if shadowEnabled {
+            cell.imageView?.layer.shadowColor = UIColor.lightGray.cgColor
+            cell.imageView?.layer.shadowOffset = CGSize(width: 1.0, height: 3.0)
+            cell.imageView?.layer.shadowRadius = 6.0
+            cell.imageView?.layer.shadowOpacity = 0.6
+            cell.imageView?.layer.masksToBounds = false
+        }
         
         return cell
     }

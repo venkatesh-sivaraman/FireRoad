@@ -162,6 +162,15 @@ extension PanelParentViewController {
         viewDetails(for: course, showGenericDetails: false)
     }
     
+    /// Returns the appropriate background color object depending on the system version.
+    private var detailBackgroundColor: UIColor {
+        if #available(iOS 13.0, *) {
+            return UIColor.systemBackground
+        } else {
+            return UIColor.white
+        }
+    }
+    
     func viewDetails(for course: Course, showGenericDetails: Bool = true) {
         generateDetailsViewController(for: course, showGenericDetails: showGenericDetails) { (details, list) in
             if self.panelView?.isExpanded == false, self.presentedViewController == nil {
@@ -171,7 +180,7 @@ extension PanelParentViewController {
                 detailVC.showsSemesterDialog = self.showsSemesterDialogs
                 detailVC.delegate = self
                 if let presented = self.presentedViewController as? UINavigationController {
-                    detailVC.view.backgroundColor = UIColor.white
+                    detailVC.view.backgroundColor = self.detailBackgroundColor
                     presented.pushViewController(detailVC, animated: true)
                 } else if let browser = self.courseBrowser {
                     detailVC.view.backgroundColor = UIColor.clear
@@ -186,7 +195,7 @@ extension PanelParentViewController {
                 listVC.managesNavigation = false
                 listVC.showsSemesterDialog = self.showsSemesterDialogs
                 if let presented = self.presentedViewController as? UINavigationController {
-                    listVC.view.backgroundColor = UIColor.white
+                    listVC.view.backgroundColor = self.detailBackgroundColor
                     presented.pushViewController(listVC, animated: true)
                 } else if let browser = self.courseBrowser {
                     listVC.view.backgroundColor = UIColor.clear
@@ -224,7 +233,7 @@ extension PanelParentViewController {
             listVC.managesNavigation = false
             listVC.showsSemesterDialog = self.showsSemesterDialogs
             if let presented = self.presentedViewController as? UINavigationController {
-                listVC.view.backgroundColor = UIColor.white
+                listVC.view.backgroundColor = self.detailBackgroundColor
                 presented.pushViewController(listVC, animated: true)
             } else if let browser = self.courseBrowser {
                 listVC.view.backgroundColor = UIColor.clear
@@ -247,7 +256,7 @@ extension PanelParentViewController {
         }
 
         if let presented = self.presentedViewController as? UINavigationController {
-            webVC.view.backgroundColor = UIColor.white
+            webVC.view.backgroundColor = self.detailBackgroundColor
             presented.pushViewController(webVC, animated: true)
         } else if let browser = self.courseBrowser {
             webVC.view.backgroundColor = UIColor.clear
