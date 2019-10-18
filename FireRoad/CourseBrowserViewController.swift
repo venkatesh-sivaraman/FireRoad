@@ -597,8 +597,17 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     // MARK: - Filter Controller
     
     func updateFilterButton() {
-        let image = (searchOptions == .noFilter ? UIImage(named: "filter") : UIImage(named: "filter-on"))
-        filterButton?.setImage(image?.withRenderingMode(.alwaysTemplate), for: .normal)
+        if searchOptions == .noFilter {
+            // Simple icon, no background
+            filterButton?.tintColor = view.tintColor
+            filterButton?.backgroundColor = .clear
+        } else {
+            // Tinted background with corner radius (filters on)
+            filterButton?.tintColor = .white
+            filterButton?.backgroundColor = view.tintColor
+            filterButton?.layer.cornerRadius = 4.0
+        }
+        filterButton?.setImage(UIImage(named: "filter")?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
     
     @IBAction func filterButtonTapped(_ sender: UIButton) {

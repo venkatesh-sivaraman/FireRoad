@@ -21,6 +21,7 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
     var searchController: UISearchController?
     
     @IBOutlet var filterItem: UIBarButtonItem?
+    @IBOutlet var filterButton: UIButton? // The UIButton inside the filter item
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -394,8 +395,17 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
     // MARK: - Filtering
     
     func updateFilterButton() {
-        let image = (searchOptions == .noFilter ? UIImage(named: "filter") : UIImage(named: "filter-on"))
-        filterItem?.image = image
+        if searchOptions == .noFilter {
+            // Simple icon, no background
+            filterButton?.tintColor = .systemBlue
+            filterButton?.backgroundColor = .clear
+        } else {
+            // Tinted background with corner radius (filters on)
+            filterButton?.tintColor = .white
+            filterButton?.backgroundColor = .systemBlue
+            filterButton?.layer.cornerRadius = 4.0
+        }
+        filterButton?.setImage(UIImage(named: "filter")?.withRenderingMode(.alwaysTemplate), for: .normal)
     }
     
     @IBAction func filterButtonTapped(_ sender: AnyObject) {

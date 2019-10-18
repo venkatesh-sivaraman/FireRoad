@@ -34,6 +34,11 @@ class IntroViewController: UIViewController, UIScrollViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        // Force light interface style since it's a one-time presentation
+        if #available(iOS 13.0, *) {
+            overrideUserInterfaceStyle = .light
+        }
+        
         // Do any additional setup after loading the view.
         if let views = imageViews {
             for imageView in views {

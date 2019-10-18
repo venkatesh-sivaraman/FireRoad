@@ -61,7 +61,14 @@ class TableMenuViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell") ?? UITableViewCell(style: .default, reuseIdentifier: "ItemCell")
         let item = items[indexPath.row]
         cell.textLabel?.text = item.title
-        cell.textLabel?.textColor = indexPath.row == selectedItemIndex ? view.tintColor : UIColor.black
+        // Use adaptive label color if available
+        var labelColor: UIColor
+        if #available(iOS 13.0, *) {
+            labelColor = .label
+        } else {
+            labelColor = .black
+        }
+        cell.textLabel?.textColor = indexPath.row == selectedItemIndex ? view.tintColor : labelColor
         cell.accessoryType = indexPath.row == selectedItemIndex ? .checkmark : .none
         cell.imageView?.image = item.image
 

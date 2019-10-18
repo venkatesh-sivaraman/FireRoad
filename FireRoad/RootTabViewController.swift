@@ -169,9 +169,15 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
                     hud.mode = .determinateHorizontalBar
                     hud.label.text = "Updating subject catalog…"
                     self.courseUpdatingHUD = hud
+                    var effect: UIBlurEffect
+                    if #available(iOS 13.0, *) {
+                        effect = UIBlurEffect(style: .systemMaterial)
+                    } else {
+                        effect = UIBlurEffect(style: .light)
+                    }
                     
                     UIView.animate(withDuration: 0.3, animations: {
-                        blur.effect = UIBlurEffect(style: .light)
+                        blur.effect = effect
                     })
                 case .noUpdatesAvailable:
                     if !CourseManager.shared.isLoaded {
@@ -452,6 +458,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             auth.delegate = self
             auth.request = request
             let nav = UINavigationController(rootViewController: auth)
+            nav.modalPresentationStyle = .fullScreen
             self.present(nav, animated: true, completion: nil)
         }
     }
@@ -586,6 +593,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             return
         }
         intro.delegate = self
+        intro.modalPresentationStyle = .fullScreen
         present(intro, animated: true, completion: nil)
     }
     
