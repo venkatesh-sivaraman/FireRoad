@@ -43,6 +43,12 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
         if options > 0 {
             searchOptions = SearchOptions(rawValue: options)
         }
+        
+        // Make sure button is square
+        if let button = filterButton {
+            button.translatesAutoresizingMaskIntoConstraints = false
+            button.widthAnchor.constraint(equalTo: button.heightAnchor, multiplier: 1.0).isActive = true
+        }
         updateFilterButton()
     }
     
