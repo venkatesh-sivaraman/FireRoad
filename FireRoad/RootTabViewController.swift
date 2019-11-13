@@ -229,7 +229,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         let ret = courseRoadVC.addCourse(course, to: semester)
         let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
         hud.mode = .customView
-        let imageView = UIImageView(image: UIImage(named: "Checkmark"))
+        let imageView = UIImageView(image: UIImage(named: "Checkmark")?.withRenderingMode(.alwaysTemplate))
         imageView.frame = CGRect(x: 0.0, y: 0.0, width: 72.0, height: 72.0)
         hud.customView = imageView
         hud.label.text = "Added \(course.subjectID!)"
