@@ -97,7 +97,11 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
             listVC.delegate = self
             listVC.managesNavigation = false
             listVC.showsSemesterDialog = true
-            listVC.view.backgroundColor = .white
+            if #available(iOS 13.0, *) {
+                listVC.view.backgroundColor = .systemBackground
+            } else {
+                listVC.view.backgroundColor = .white
+            }
             self.showInformationalViewController(listVC)
         }
     }
