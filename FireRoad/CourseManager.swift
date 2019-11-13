@@ -340,14 +340,12 @@ class CourseManager: NSObject {
             return
         }
         courseDetailsQueue.sync {
-            print("Loading details for \(department)")
             guard let path = self.pathForCatalogResource(named: department) else {
                 print("Failed to load details for \(department)")
                 return
             }
             self.readSummaryFile(at: path)
             self.loadedDepartments.append(department)
-            print("Done loading details for department")
         }
     }
     
@@ -356,7 +354,6 @@ class CourseManager: NSObject {
             return
         }
         courseDetailsQueue.sync {
-            print("Loading details for \(course.subjectCode!) sync")
             if self.getCourse(withID: course.subjectID!) == nil {
                 return
             }
@@ -369,7 +366,6 @@ class CourseManager: NSObject {
             }
             self.readSummaryFile(at: path)
             self.loadedDepartments.append(course.subjectCode!)
-            print("Done loading details")
         }
     }
     
@@ -391,10 +387,8 @@ class CourseManager: NSObject {
             return
         }
         courseDetailsQueue.async {
-            print("Loading details for \(course.subjectCode!) async")
             self.readSummaryFile(at: path)
             self.loadedDepartments.append(course.subjectCode!)
-            print("Done loading details async")
             DispatchQueue.main.async {
                 completion(true)
             }
