@@ -64,6 +64,9 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+        guard isViewLoaded else {
+            return
+        }
         updateCollectionViewLayout(with: newCollection)
         updateNavigationBar(newTraits: newCollection)
         if #available(iOS 12.0, *) {

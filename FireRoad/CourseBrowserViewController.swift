@@ -88,6 +88,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     let nonSearchViewModeDefaultsKey = "CourseBrowserNonSearchViewMode"
     var justLoaded = false
+    var willSearchOnLoadedCourses = false
+    var viewHasAppeared = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -118,6 +120,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        viewHasAppeared = true
         navigationItem.title = showsHeaderBar ? "" : (searchTerm != nil && searchTerm!.count > 0 ? searchTerm : "Results")
         if managesNavigation {
             self.navigationController?.delegate = self
@@ -157,6 +160,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                 loadingIndicator?.startAnimating()
             }
             DispatchQueue.global().async {
+                self.willSearchOnLoadedCourses = true
                 while !CourseManager.shared.isLoaded {
                     usleep(100)
                 }
@@ -185,6 +189,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     } else if let initialSearch = self.searchTerm {
                         self.loadSearchResults(withString: initialSearch, options: self.searchOptions)
                     }
+                    self.willSearchOnLoadedCourses = false
                 }
             }
             
@@ -221,7 +226,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     }
     
     @objc func courseManagerFinishedLoading(_ note: Notification) {
-        if let search = searchTerm {
+        if let search = searchTerm, viewHasAppeared, !willSearchOnLoadedCourses {
             loadSearchResults(withString: search, options: searchOptions)
         }
     }
@@ -373,7 +378,6 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             return
         }
         isShowingSearchResults = true
-        
         var newAggregatedSearchResults: [Course: Float] = [:]
         if let rootTab = rootParent as? RootTabViewController,
             let schedules = rootTab.currentScheduleOptions {

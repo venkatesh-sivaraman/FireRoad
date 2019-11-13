@@ -333,34 +333,44 @@ class CourseManager: NSObject {
         taskCompletion(true)
     }
     
+    let courseDetailsQueue = DispatchQueue(label: "CourseManagerDetailsQueue")
+    
     func loadCourseDetailsSynchronously(for department: String) {
         if self.loadedDepartments.contains(department) {
             return
         }
-        guard let path = self.pathForCatalogResource(named: department) else {
-            print("Failed to load details for \(department)")
-            return
+        courseDetailsQueue.sync {
+            print("Loading details for \(department)")
+            guard let path = self.pathForCatalogResource(named: department) else {
+                print("Failed to load details for \(department)")
+                return
+            }
+            self.readSummaryFile(at: path)
+            self.loadedDepartments.append(department)
+            print("Done loading details for department")
         }
-        self.readSummaryFile(at: path)
-        self.loadedDepartments.append(department)
     }
     
     func loadCourseDetailsSynchronously(about course: Course) {
         guard course.subjectID != nil, course.subjectCode != nil else {
             return
         }
-        if self.getCourse(withID: course.subjectID!) == nil {
-            return
+        courseDetailsQueue.sync {
+            print("Loading details for \(course.subjectCode!) sync")
+            if self.getCourse(withID: course.subjectID!) == nil {
+                return
+            }
+            if self.loadedDepartments.contains(course.subjectCode!) {
+                return
+            }
+            guard let path = self.pathForCatalogResource(named: course.subjectCode!) else {
+                print("Failed to load details for \(course.subjectID!)")
+                return
+            }
+            self.readSummaryFile(at: path)
+            self.loadedDepartments.append(course.subjectCode!)
+            print("Done loading details")
         }
-        if self.loadedDepartments.contains(course.subjectCode!) {
-            return
-        }
-        guard let path = self.pathForCatalogResource(named: course.subjectCode!) else {
-            print("Failed to load details for \(course.subjectID!)")
-            return
-        }
-        self.readSummaryFile(at: path)
-        self.loadedDepartments.append(course.subjectCode!)
     }
     
     func loadCourseDetails(about course: Course, _ completion: @escaping ((Bool) -> Void)) {
@@ -380,9 +390,11 @@ class CourseManager: NSObject {
             completion(false)
             return
         }
-        DispatchQueue.global().async {
+        courseDetailsQueue.async {
+            print("Loading details for \(course.subjectCode!) async")
             self.readSummaryFile(at: path)
             self.loadedDepartments.append(course.subjectCode!)
+            print("Done loading details async")
             DispatchQueue.main.async {
                 completion(true)
             }
