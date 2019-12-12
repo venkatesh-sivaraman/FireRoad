@@ -126,9 +126,15 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
         }
     }
     
-    func addGridSpace(to sv: UIStackView, height: CGFloat, color: UIColor = .white) -> UIView {
+    func addGridSpace(to sv: UIStackView, height: CGFloat, color: UIColor? = nil) -> UIView {
+        var bgColor: UIColor
+        if #available(iOS 13.0, *) {
+            bgColor = color ?? .systemBackground
+        } else {
+            bgColor = color ?? .white
+        }
         let parentView = UIView(frame: .zero)
-        parentView.backgroundColor = color
+        parentView.backgroundColor = bgColor
         parentView.translatesAutoresizingMaskIntoConstraints = false
         parentView.clipsToBounds = false
         sv.addArrangedSubview(parentView)
@@ -247,6 +253,7 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
                         courseCell.showsConstraintMenuItem = course.creator == nil
                         courseCell.showsEditMenuItem = course.creator != nil
                         courseCell.showsMarkMenuItem = false
+                        courseCell.shadowEnabled = true
                         
                         courseCell.generateLabels(withDetail: true)
                         courseCell.textLabel?.font = courseCell.textLabel?.font.withSize(cellTitleFontSize)

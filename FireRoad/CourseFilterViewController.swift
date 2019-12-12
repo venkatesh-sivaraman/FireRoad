@@ -194,10 +194,19 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
             }
             segmentedControl.selectedSegmentIndex = selectedIndex
             if let tint = item.tintColor {
-                segmentedControl.tintColor = tint
+                if #available(iOS 13.0, *) {
+                    segmentedControl.selectedSegmentTintColor = tint
+                } else {
+                    segmentedControl.tintColor = tint
+                }
             } else {
-                segmentedControl.tintColor = self.view.tintColor
+                if #available(iOS 13.0, *) {
+                    segmentedControl.selectedSegmentTintColor = self.view.tintColor
+                } else {
+                    segmentedControl.tintColor = self.view.tintColor
+                }
             }
+            segmentedControl.setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.white], for: .selected)
             segmentedControl.removeTarget(nil, action: nil, for: .valueChanged)
             segmentedControl.addTarget(self, action: #selector(segmentedControlValueChanged(_:)), for: .valueChanged)
             return cell

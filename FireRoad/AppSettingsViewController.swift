@@ -105,7 +105,13 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
             }
         case .checkmark:
             cell.accessoryType = (setting.currentValue as? Bool) == true ? .checkmark : .none
-            textLabel?.textColor = (setting.currentValue as? Bool) == true ? cell.tintColor : UIColor.black
+            var labelColor: UIColor
+            if #available(iOS 13.0, *) {
+                labelColor = .label
+            } else {
+                labelColor = .black
+            }
+            textLabel?.textColor = (setting.currentValue as? Bool) == true ? cell.tintColor : labelColor
         }
 
         return cell

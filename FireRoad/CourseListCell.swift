@@ -74,6 +74,7 @@ class CourseListTableCell: UITableViewCell, CourseListCell {
         }
         cell.longPressTarget = longPressTarget
         cell.longPressAction = longPressAction
+        cell.shadowEnabled = true
         return cell
     }
     

@@ -97,7 +97,11 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
             listVC.delegate = self
             listVC.managesNavigation = false
             listVC.showsSemesterDialog = true
-            listVC.view.backgroundColor = .white
+            if #available(iOS 13.0, *) {
+                listVC.view.backgroundColor = .systemBackground
+            } else {
+                listVC.view.backgroundColor = .white
+            }
             self.showInformationalViewController(listVC)
         }
     }
@@ -304,6 +308,11 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         if popoverNavigationController != nil {
             dismiss(animated: true, completion: nil)
             popoverNavigationController = nil
+        }
+        if #available(iOS 12.0, *) {
+            if traitCollection.userInterfaceStyle != newCollection.userInterfaceStyle {
+                collectionView?.reloadData()
+            }
         }
     }
     

@@ -142,14 +142,31 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     var shadowEnabled: Bool = true {
         didSet {
-            if shadowEnabled {
-                self.layer.shadowColor = UIColor.lightGray.cgColor
-                self.layer.shadowOffset = CGSize(width: 1.0, height: 3.0)
-                self.layer.shadowRadius = 6.0
-                self.layer.shadowOpacity = 0.6
-                self.layer.masksToBounds = false
+            updateShadow()
+        }
+    }
+    
+    private func updateShadow() {
+        if shadowEnabled {
+            if #available(iOS 12.0, *), traitCollection.userInterfaceStyle == .dark {
+                self.layer.shadowColor = UIColor.black.cgColor
+                self.layer.shadowOpacity = 0.3
             } else {
-                self.layer.shadowOpacity = 0.0
+                self.layer.shadowColor = UIColor.lightGray.cgColor
+                self.layer.shadowOpacity = 0.6
+            }
+            self.layer.shadowOffset = CGSize(width: 1.0, height: 3.0)
+            self.layer.shadowRadius = 6.0
+            self.layer.masksToBounds = false
+        } else {
+            self.layer.shadowOpacity = 0.0
+        }
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        if #available(iOS 12.0, *) {
+            if previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle {
+                updateShadow()
             }
         }
     }

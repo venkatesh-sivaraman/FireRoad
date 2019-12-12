@@ -528,7 +528,7 @@ class RequirementsListStatement: NSObject {
             // For thresholded ANY statements, children that are ALL statements
             // count as a single satisfied course. ANY children count for
             // all of their satisfied courses.
-            if req.connectionType == .all {
+            if req.connectionType == .all, req.requirement == nil {
                 numCoursesSatisfied += (req.isFulfilled && reqSatisfiedCourses.count > 0) ? 1 : 0
             } else {
                 numCoursesSatisfied += reqSatisfiedCourses.count

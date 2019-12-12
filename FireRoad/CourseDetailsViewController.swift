@@ -73,6 +73,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     var detailMapping: [IndexPath: CourseDetailItem] = [:]
     
     var showsSemesterDialog = true
+    var hasViewAppeared = false
     
     @IBOutlet var tableView: UITableView!
     @IBOutlet var tableViewBottomConstraint: NSLayoutConstraint?
@@ -96,8 +97,13 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             //self.navigationController?.navigationBar.shadowImage = UIImage()
             self.navigationController?.navigationBar.isTranslucent = true
         } else {
-            self.view.backgroundColor = UIColor.white
-            self.tableView.backgroundColor = UIColor.white
+            if #available(iOS 13.0, *) {
+                self.view.backgroundColor = UIColor.systemBackground
+                self.tableView.backgroundColor = UIColor.systemBackground
+            } else {
+                self.view.backgroundColor = UIColor.white
+                self.tableView.backgroundColor = UIColor.white
+            }
             self.tableView.estimatedRowHeight = 60.0
             if #available(iOS 11.0, *) {
                 self.tableView.contentInsetAdjustmentBehavior = .automatic
@@ -137,6 +143,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardChangedFrame(_:)), name: .UIKeyboardDidChangeFrame, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardWillChangeFrame(_:)), name: .UIKeyboardWillChangeFrame, object: nil)
         
+        hasViewAppeared = true
         loadSubjectsOrDisplay()
     }
     
@@ -153,6 +160,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     var restoredCourseID: String?
     
     func loadSubjectsOrDisplay() {
+        guard hasViewAppeared else {
+            return
+        }
         self.navigationItem.title = self.restoredCourseID ?? self.course?.subjectID
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(CourseDetailsViewController.addCourseButtonPressed(sender:)))
         if !CourseManager.shared.isLoaded, restoredCourseID != nil {

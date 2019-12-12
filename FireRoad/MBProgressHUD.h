@@ -1,6 +1,6 @@
 //
 //  MBProgressHUD.h
-//  Version 1.0.0
+//  Version 1.1.0
 //  Created by Matej Bukovinski on 2.4.09.
 //
 
@@ -125,7 +125,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param view The view that is going to be searched.
  * @return A reference to the last HUD subview discovered.
  */
-+ (nullable MBProgressHUD *)HUDForView:(UIView *)view;
++ (nullable MBProgressHUD *)HUDForView:(UIView *)view NS_SWIFT_NAME(forView(_:));
 
 /**
  * A convenience constructor that initializes the HUD with the view's bounds. Calls the designated constructor with
@@ -179,16 +179,18 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) id<MBProgressHUDDelegate> delegate;
 
 /**
- * Called after the HUD is hiden.
+ * Called after the HUD is hidden.
  */
 @property (copy, nullable) MBProgressHUDCompletionBlock completionBlock;
 
-/*
+/**
  * Grace period is the time (in seconds) that the invoked method may be run without
  * showing the HUD. If the task finishes before the grace time runs out, the HUD will
  * not be shown at all.
  * This may be used to prevent HUD display for very short tasks.
  * Defaults to 0 (no grace time).
+ * @note The graceTime needs to be set before the hud is shown. You thus can't use `showHUDAddedTo:animated:`,
+ * but instead need to alloc / init the HUD, configure the grace time and than show it manually.
  */
 @property (assign, nonatomic) NSTimeInterval graceTime;
 
@@ -250,7 +252,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 /**
  * When enabled, the bezel center gets slightly affected by the device accelerometer data.
- * Has no effect on iOS < 7.0. Defaults to YES.
+ * Defaults to NO.
+ *
+ * @note This can cause main thread checker assertions on certain devices. https://github.com/jdg/MBProgressHUD/issues/552
  */
 @property (assign, nonatomic, getter=areDefaultMotionEffectsEnabled) BOOL defaultMotionEffectsEnabled UI_APPEARANCE_SELECTOR;
 
@@ -383,52 +387,20 @@ NS_ASSUME_NONNULL_BEGIN
 
 /**
  * The background style. 
- * Defaults to MBProgressHUDBackgroundStyleBlur on iOS 7 or later and MBProgressHUDBackgroundStyleSolidColor otherwise.
- * @note Due to iOS 7 not supporting UIVisualEffectView, the blur effect differs slightly between iOS 7 and later versions.
+ * Defaults to MBProgressHUDBackgroundStyleBlur.
  */
 @property (nonatomic) MBProgressHUDBackgroundStyle style;
 
 /**
+ * The blur effect style, when using MBProgressHUDBackgroundStyleBlur.
+ * Defaults to UIBlurEffectStyleLight.
+ */
+@property (nonatomic) UIBlurEffectStyle blurEffectStyle;
+
+/**
  * The background color or the blur tint color.
- * @note Due to iOS 7 not supporting UIVisualEffectView, the blur effect differs slightly between iOS 7 and later versions.
  */
 @property (nonatomic, strong) UIColor *color;
-
-@end
-
-@interface MBProgressHUD (Deprecated)
-
-+ (NSArray *)allHUDsForView:(UIView *)view __attribute__((deprecated("Store references when using more than one HUD per view.")));
-+ (NSUInteger)hideAllHUDsForView:(UIView *)view animated:(BOOL)animated __attribute__((deprecated("Store references when using more than one HUD per view.")));
-
-- (id)initWithWindow:(UIWindow *)window __attribute__((deprecated("Use initWithView: instead.")));
-
-- (void)show:(BOOL)animated __attribute__((deprecated("Use showAnimated: instead.")));
-- (void)hide:(BOOL)animated __attribute__((deprecated("Use hideAnimated: instead.")));
-- (void)hide:(BOOL)animated afterDelay:(NSTimeInterval)delay __attribute__((deprecated("Use hideAnimated:afterDelay: instead.")));
-
-- (void)showWhileExecuting:(SEL)method onTarget:(id)target withObject:(id)object animated:(BOOL)animated __attribute__((deprecated("Use GCD directly.")));
-- (void)showAnimated:(BOOL)animated whileExecutingBlock:(dispatch_block_t)block __attribute__((deprecated("Use GCD directly.")));
-- (void)showAnimated:(BOOL)animated whileExecutingBlock:(dispatch_block_t)block completionBlock:(nullable MBProgressHUDCompletionBlock)completion __attribute__((deprecated("Use GCD directly.")));
-- (void)showAnimated:(BOOL)animated whileExecutingBlock:(dispatch_block_t)block onQueue:(dispatch_queue_t)queue __attribute__((deprecated("Use GCD directly.")));
-- (void)showAnimated:(BOOL)animated whileExecutingBlock:(dispatch_block_t)block onQueue:(dispatch_queue_t)queue
-     completionBlock:(nullable MBProgressHUDCompletionBlock)completion __attribute__((deprecated("Use GCD directly.")));
-@property (assign) BOOL taskInProgress __attribute__((deprecated("No longer needed.")));
-
-@property (nonatomic, copy) NSString *labelText __attribute__((deprecated("Use label.text instead.")));
-@property (nonatomic, strong) UIFont *labelFont __attribute__((deprecated("Use label.font instead.")));
-@property (nonatomic, strong) UIColor *labelColor __attribute__((deprecated("Use label.textColor instead.")));
-@property (nonatomic, copy) NSString *detailsLabelText __attribute__((deprecated("Use detailsLabel.text instead.")));
-@property (nonatomic, strong) UIFont *detailsLabelFont __attribute__((deprecated("Use detailsLabel.font instead.")));
-@property (nonatomic, strong) UIColor *detailsLabelColor __attribute__((deprecated("Use detailsLabel.textColor instead.")));
-@property (assign, nonatomic) CGFloat opacity __attribute__((deprecated("Customize bezelView properties instead.")));
-@property (strong, nonatomic) UIColor *color __attribute__((deprecated("Customize the bezelView color instead.")));
-@property (assign, nonatomic) CGFloat xOffset __attribute__((deprecated("Set offset.x instead.")));
-@property (assign, nonatomic) CGFloat yOffset __attribute__((deprecated("Set offset.y instead.")));
-@property (assign, nonatomic) CGFloat cornerRadius __attribute__((deprecated("Set bezelView.layer.cornerRadius instead.")));
-@property (assign, nonatomic) BOOL dimBackground __attribute__((deprecated("Customize HUD background properties instead.")));
-@property (strong, nonatomic) UIColor *activityIndicatorColor __attribute__((deprecated("Use UIAppearance to customize UIActivityIndicatorView. E.g.: [UIActivityIndicatorView appearanceWhenContainedIn:[MBProgressHUD class], nil].color = [UIColor redColor];")));
-@property (atomic, assign, readonly) CGSize size __attribute__((deprecated("Get the bezelView.frame.size instead.")));
 
 @end
 

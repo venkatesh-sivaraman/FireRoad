@@ -125,16 +125,28 @@ class ScheduleConstraintViewController: UIViewController, UITableViewDelegate, U
             return cell
         }
         if itemSet.count > 1, indexPath.row == 0 {
-            cell.textLabel?.textColor = .black
+            if #available(iOS 13.0, *) {
+                cell.textLabel?.textColor = .label
+            } else {
+                cell.textLabel?.textColor = .black
+            }
             cell.textLabel?.text = "All Sections"
             cell.detailTextLabel?.text = ""
             let allowedItems = allowedScheduleItems(for: indexPath.section)
             cell.accessoryType = (allowedItems == nil || allowedItems!.count == itemSet.count) ? .checkmark : .none
         } else {
-            if itemSet.count == 1 {
-                cell.textLabel?.textColor = .lightGray
+            if #available(iOS 13.0, *) {
+                if itemSet.count == 1 {
+                    cell.textLabel?.textColor = .placeholderText
+                } else {
+                    cell.textLabel?.textColor = .label
+                }
             } else {
-                cell.textLabel?.textColor = .black
+                if itemSet.count == 1 {
+                    cell.textLabel?.textColor = .lightGray
+                } else {
+                    cell.textLabel?.textColor = .black
+                }
             }
             let item = itemSet[scheduleItemIndex(for: indexPath)]
             cell.textLabel?.text = item.map({ $0.stringEquivalent(withLocation: false) }).joined(separator: ", ")
