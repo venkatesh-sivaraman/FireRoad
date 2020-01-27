@@ -86,10 +86,10 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
         FilterTableItem(type: .segmentedControl,
                         title: "Sort By",
                         items: [
-                            ("Number", .sortByNumber),
+                            ("Relevance", .sortByRelevance),
                             ("Rating", .sortByRating),
                             ("Hours", .sortByHours),
-                            ("Relevance", .sortByRelevance)],
+                            ("Number", .sortByNumber)],
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
         FilterTableItem(type: .segmentedControl,

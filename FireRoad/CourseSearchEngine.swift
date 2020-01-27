@@ -58,11 +58,11 @@ struct SearchOptions: OptionSet {
     static let noLectureConflicts = SearchOptions(rawValue: 1 << 31)
     static let noConflicts = SearchOptions(rawValue: 1 << 32)
     
-    static let sortByNumber = SearchOptions(rawValue: 1 << 33)
+    static let sortByRelevance = SearchOptions(rawValue: 1 << 33)
     static let sortByRating = SearchOptions(rawValue: 1 << 34)
     static let sortByHours = SearchOptions(rawValue: 1 << 35)
-    static let sortByRelevance = SearchOptions(rawValue: 1 << 36)
-    private static let allSortingFilters: SearchOptions = [.sortByNumber, .sortByRating, .sortByHours, .sortByRelevance]
+    static let sortByNumber = SearchOptions(rawValue: 1 << 36)
+    private static let allSortingFilters: SearchOptions = [.sortByRelevance, .sortByRating, .sortByHours, .sortByNumber]
 
     static let searchAllFields: SearchOptions = [
         .searchID,
@@ -82,7 +82,7 @@ struct SearchOptions: OptionSet {
         .containsSearchTerm,
         .searchAllFields,
         .conflictsAllowed,
-        .sortByNumber
+        .sortByRelevance
     ]
     
     var shouldAutoSearch: Bool {
@@ -93,8 +93,8 @@ struct SearchOptions: OptionSet {
     }
     
     var whichSort: String {
-        if contains(.sortByNumber) {
-            return "Number"
+        if contains(.sortByRelevance) {
+            return "Relevance"
         }
         else if contains(.sortByRating) {
             return "Rating"
@@ -103,7 +103,7 @@ struct SearchOptions: OptionSet {
             return "Hours"
         }
         else {
-            return "Relevance"
+            return "Number"
         }
     }
     

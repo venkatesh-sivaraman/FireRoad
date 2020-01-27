@@ -403,11 +403,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     func backward(course1: (key: Course, value: Float), course2: (key: Course, value: Float)) -> Bool {
                         switch options.whichSort {
                             case "Number":
-                                let department1 = Int(String((course1.0.subjectID?.split(separator: ".")[0])!)) ?? 999
-                                let department2 = Int(String((course2.0.subjectID?.split(separator: ".")[0])!)) ?? 999
-                                
-                                
-                                return department1 < department2
+                                return (course1.0.subjectID ?? "").localizedStandardCompare(course2.0.subjectID ?? "") == .orderedAscending
                             case "Rating":
                                 return course1.0.rating > course2.0.rating
                             case "Hours":
@@ -424,27 +420,11 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                                 }
                                 
                             case "Relevance":
-                                return course1.1 + course1.1 < course2.1 + course2.1
+                                return course1.1 < course2.1
                             default:
-                                return course1.0.subjectID ?? "ZZZ" < course2.0.subjectID ?? "ZZZ"
+                                return course1.1 < course2.1
                         }
                     }
-                    
-                    
-                    
-//                    switch options.whichSort {
-//                        case "Number":
-//                            sortingClosure = {$0.0.subjectID ?? "ZZZ" < $1.0.subjectID ?? "ZZZ"}
-//                        case "Rating":
-//                            sortingClosure =  {$0.0.rating > $1.0.rating}
-//                        case "Hours":
-//
-//                            sortingClosure = {$0.0.inClassHours + $0.0.outOfClassHours < $1.0.inClassHours + $1.0.outOfClassHours}
-//                        case "Relevance":
-//                            sortingClosure = {$0.1 > $1.1}
-//                        default:
-//                            sortingClosure = {$0.0.subjectID ?? "ZZZ" < $1.0.subjectID ?? "ZZZ"}
-//                    }
                     var help: [Course: Float] = [:]
                     for (course, relevance) in newAggregatedSearchResults {
                         help[course] = course.rating
@@ -460,7 +440,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     print(help2)
                         
                     let sortedResults = newAggregatedSearchResults.sorted(by: backward).map { $0.0 }
-                    print(sortedResults)
+                    
                     DispatchQueue.main.async {
                         self.searchResults = sortedResults
                         self.updateCourseVisibility()
