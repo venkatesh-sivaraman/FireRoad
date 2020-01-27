@@ -57,6 +57,12 @@ struct SearchOptions: OptionSet {
     static let conflictsAllowed = SearchOptions(rawValue: 1 << 30)
     static let noLectureConflicts = SearchOptions(rawValue: 1 << 31)
     static let noConflicts = SearchOptions(rawValue: 1 << 32)
+    
+    static let sortByNumber = SearchOptions(rawValue: 1 << 33)
+    static let sortByRating = SearchOptions(rawValue: 1 << 34)
+    static let sortByHours = SearchOptions(rawValue: 1 << 35)
+    static let sortByRelevance = SearchOptions(rawValue: 1 << 36)
+    private static let allSortingFilters: SearchOptions = [.sortByNumber, .sortByRating, .sortByHours, .sortByRelevance]
 
     static let searchAllFields: SearchOptions = [
         .searchID,
@@ -75,7 +81,8 @@ struct SearchOptions: OptionSet {
         .offeredAnySemester,
         .containsSearchTerm,
         .searchAllFields,
-        .conflictsAllowed
+        .conflictsAllowed,
+        .sortByNumber
     ]
     
     var shouldAutoSearch: Bool {
@@ -83,6 +90,21 @@ struct SearchOptions: OptionSet {
             return false
         }
         return true
+    }
+    
+    var whichSort: String {
+        if contains(.sortByNumber) {
+            return "Number"
+        }
+        else if contains(.sortByRating) {
+            return "Rating"
+        }
+        else if contains(.sortByHours) {
+            return "Hours"
+        }
+        else {
+            return "Relevance"
+        }
     }
     
     /// A broader criterion than shouldAutoSearch
@@ -124,6 +146,10 @@ struct SearchOptions: OptionSet {
 
     func filterSearchFields(_ value: SearchOptions) -> SearchOptions {
         return replace(oldValue: .searchAllFields, with: value)
+    }
+    
+    func filterSort(_ value: SearchOptions) -> SearchOptions {
+        return replace(oldValue: .allSortingFilters, with: value)
     }
 
 }

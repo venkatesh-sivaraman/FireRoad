@@ -50,7 +50,7 @@ class CourseManager: NSObject {
      at 7pm eastern.
      */
     //static let urlBaseChangeDate = Date(timeIntervalSinceReferenceDate: 556498800.0)
-    static var urlBase: String = "https://fireroad.mit.edu" /*"https://venkats.scripts.mit.edu/fireroad" {
+    static var urlBase: String = "https://fireroad-dev.mit.edu" /*"https://venkats.scripts.mit.edu/fireroad" {
         if Date().compare(CourseManager.urlBaseChangeDate) == .orderedAscending {
             return "https://venkats.scripts.mit.edu/fireroad_dev" // "http://lvh.me:8000"
         } else {

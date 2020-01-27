@@ -373,6 +373,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     lazy var searchEngine = CourseSearchEngine()
     lazy var updateQueue = DispatchQueue(label: "SearchingUpdateQueue")
     
+    
+    
     func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter, completion: (() -> Void)? = nil) {
         guard CourseManager.shared.isLoaded else {
             return
@@ -393,7 +395,72 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                             newAggregatedSearchResults[course] = relevance + log(max(user.userRelevance(for: course), 2.0))
                         }
                     }
-                    let sortedResults = newAggregatedSearchResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+//                    let sortedResults = newAggregatedSearchResults.sorted { (item1, item2) -> Bool in
+//
+//                    }
+//                    var sortingClosure : ((key: Course, value: Float), (key: Course, value: Float)) -> Bool
+                    
+                    func backward(course1: (key: Course, value: Float), course2: (key: Course, value: Float)) -> Bool {
+                        switch options.whichSort {
+                            case "Number":
+                                let department1 = Int(String((course1.0.subjectID?.split(separator: ".")[0])!)) ?? 999
+                                let department2 = Int(String((course2.0.subjectID?.split(separator: ".")[0])!)) ?? 999
+                                
+                                
+                                return department1 < department2
+                            case "Rating":
+                                return course1.0.rating > course2.0.rating
+                            case "Hours":
+                                let course1hours = course1.0.inClassHours + course1.0.outOfClassHours
+                                let course2hours = course2.0.inClassHours + course2.0.outOfClassHours
+                                if course1hours == 0 && course2hours != 0 {
+                                    return false
+                                }
+                                else if course2hours == 0 && course1hours != 0 {
+                                    return true
+                                }
+                                else {
+                                    return course1hours < course2hours
+                                }
+                                
+                            case "Relevance":
+                                return course1.1 + course1.1 < course2.1 + course2.1
+                            default:
+                                return course1.0.subjectID ?? "ZZZ" < course2.0.subjectID ?? "ZZZ"
+                        }
+                    }
+                    
+                    
+                    
+//                    switch options.whichSort {
+//                        case "Number":
+//                            sortingClosure = {$0.0.subjectID ?? "ZZZ" < $1.0.subjectID ?? "ZZZ"}
+//                        case "Rating":
+//                            sortingClosure =  {$0.0.rating > $1.0.rating}
+//                        case "Hours":
+//
+//                            sortingClosure = {$0.0.inClassHours + $0.0.outOfClassHours < $1.0.inClassHours + $1.0.outOfClassHours}
+//                        case "Relevance":
+//                            sortingClosure = {$0.1 > $1.1}
+//                        default:
+//                            sortingClosure = {$0.0.subjectID ?? "ZZZ" < $1.0.subjectID ?? "ZZZ"}
+//                    }
+                    var help: [Course: Float] = [:]
+                    for (course, relevance) in newAggregatedSearchResults {
+                        help[course] = course.rating
+                    }
+                    print("rating")
+                    print(help)
+
+                    var help2: [Course: Float] = [:]
+                    for (course, relevance) in newAggregatedSearchResults {
+                        help2[course] = course.inClassHours + course.outOfClassHours
+                    }
+                    print("hours")
+                    print(help2)
+                        
+                    let sortedResults = newAggregatedSearchResults.sorted(by: backward).map { $0.0 }
+                    print(sortedResults)
                     DispatchQueue.main.async {
                         self.searchResults = sortedResults
                         self.updateCourseVisibility()

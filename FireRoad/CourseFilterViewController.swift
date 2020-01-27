@@ -84,6 +84,15 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
         FilterTableItem(type: .segmentedControl,
+                        title: "Sort By",
+                        items: [
+                            ("Number", .sortByNumber),
+                            ("Rating", .sortByRating),
+                            ("Hours", .sortByHours),
+                            ("Relevance", .sortByRelevance)],
+                        tintColor: nil,
+                        firstOptionOverridesOthers: false),
+        FilterTableItem(type: .segmentedControl,
                         title: "Search Behavior",
                         items: [
                             ("Contains", .containsSearchTerm),
