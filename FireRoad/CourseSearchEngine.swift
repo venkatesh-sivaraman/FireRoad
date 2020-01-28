@@ -58,11 +58,11 @@ struct SearchOptions: OptionSet {
     static let noLectureConflicts = SearchOptions(rawValue: 1 << 31)
     static let noConflicts = SearchOptions(rawValue: 1 << 32)
     
-    static let sortByRelevance = SearchOptions(rawValue: 1 << 33)
+    static let sortByAutomatic = SearchOptions(rawValue: 1 << 33)
     static let sortByRating = SearchOptions(rawValue: 1 << 34)
     static let sortByHours = SearchOptions(rawValue: 1 << 35)
     static let sortByNumber = SearchOptions(rawValue: 1 << 36)
-    private static let allSortingFilters: SearchOptions = [.sortByRelevance, .sortByRating, .sortByHours, .sortByNumber]
+    private static let allSortingFilters: SearchOptions = [.sortByAutomatic, .sortByRating, .sortByHours, .sortByNumber]
 
     static let searchAllFields: SearchOptions = [
         .searchID,
@@ -82,7 +82,7 @@ struct SearchOptions: OptionSet {
         .containsSearchTerm,
         .searchAllFields,
         .conflictsAllowed,
-        .sortByRelevance
+        .sortByAutomatic
     ]
     
     var shouldAutoSearch: Bool {
@@ -93,8 +93,8 @@ struct SearchOptions: OptionSet {
     }
     
     var whichSort: String {
-        if contains(.sortByRelevance) {
-            return "Relevance"
+        if contains(.sortByAutomatic) {
+            return "Automatic"
         }
         else if contains(.sortByRating) {
             return "Rating"
@@ -159,6 +159,7 @@ class CourseSearchEngine: NSObject {
     var isSearching = false
     var shouldAbortSearch = false
     var showsGenericCourses = true
+    var inputIsNumeric: Bool?
     
     var userSchedules: [Schedule]? {
         didSet {
@@ -345,6 +346,8 @@ class CourseSearchEngine: NSObject {
         let searchTools = comps.map {
             ($0, self.searchRegex(for: $0, options: options))
         }
+        let pattern = try! NSRegularExpression(pattern: "(\\d+|\\S+\\.)(\\.?\\S*)", options: .caseInsensitive)
+        let isNumericSearchTerm = pattern.numberOfMatches(in: searchTerm, options: [], range: NSRange(location: 0, length: searchTerm.count)) > 0
 
         var newResults: [Course: Float] = [:]
         for course in courses {
@@ -360,13 +363,15 @@ class CourseSearchEngine: NSObject {
                 relevance = 1.0
             } else {
 //                 check Regex and if searchID is provided
+
+                if isNumericSearchTerm {
+                    self.inputIsNumeric = true
+                }
+                else {
+                    self.inputIsNumeric = false
+                }
                 
-//
-//                if options.contains(.searchID) {
-//                    searchTools[searchTerm.lowercased()] = pattern
-//                }
-//
-                
+
                 let courseTexts = self.searchText(for: course, options: options)
                 for (comp, regex) in searchTools {
                     var found = false
@@ -406,13 +411,10 @@ class CourseSearchEngine: NSObject {
                 } else {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
                 }
-                let pattern = try! NSRegularExpression(pattern: "(\\d+|\\S+\\.)(\\.?\\S*)", options: .caseInsensitive)
-                if pattern.numberOfMatches(in: searchTerm, options: [], range: NSRange(location: 0, length: searchTerm.count)) > 0 {
+                if isNumericSearchTerm {
                     if course.subjectID?.hasPrefix(searchTerm) ?? true {
                         newResults[course] = relevance
                     }
-//                    print(course.courseID)
-                    
                 }
                 else {
                     newResults[course] = relevance

@@ -33,7 +33,7 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
         FilterTableItem(type: .segmentedControl,
                         title: "Sort By",
                         items: [
-                            ("Relevance", .sortByRelevance),
+                            ("Automatic", .sortByAutomatic),
                             ("Rating", .sortByRating),
                             ("Hours", .sortByHours),
                             ("Number", .sortByNumber)],
@@ -101,17 +101,6 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Ends With", .endsWithSearchTerm)],
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
-        FilterTableItem(type: .checkmark,
-                        title: "Search Fields",
-                        items: [
-                            ("All", .searchAllFields),
-                            ("Subject Number", .searchID),
-                            ("Subject Title", .searchTitle),
-                            ("Prerequisites", .searchPrereqs),
-                            ("Corequisites", .searchCoreqs),
-                            ("Instructors", .searchInstructors)],
-                        tintColor: nil,
-                        firstOptionOverridesOthers: true),
     ]
     
     let buttonCellIdentifier = "ButtonCell"

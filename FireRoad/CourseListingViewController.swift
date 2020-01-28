@@ -345,7 +345,6 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                             }
                         }
                         let sortedResults = newAggregatedSearchResults.sorted(by: sortingFunction).map { $0 }
-                        print(sortedResults)
                         DispatchQueue.main.async {
                             self.updateDisplayAfterSearch(with: sortedResults)
                             completion?()
@@ -389,10 +388,10 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                                     return course1hours < course2hours
                                 }
                                 
-                            case "Relevance":
-                                return course1.1 < course2.1
+                            case "Automatic":
+                                return (course1.0.subjectID ?? "").localizedStandardCompare(course2.0.subjectID ?? "") == .orderedAscending
                             default:
-                                return course1.1 < course2.1
+                                return (course1.0.subjectID ?? "").localizedStandardCompare(course2.0.subjectID ?? "") == .orderedAscending
                         }
                     }
                     let sortedResults = newResults.sorted(by: sortingFunction).map { $0.0 }

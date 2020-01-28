@@ -414,9 +414,13 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                                 else {
                                     return course1hours < course2hours
                                 }
-                                
-                            case "Relevance":
-                                return course1.1 < course2.1
+                            case "Automatic":
+                                if self.searchEngine.inputIsNumeric ?? false {
+                                    return (course1.0.subjectID ?? "").localizedStandardCompare(course2.0.subjectID ?? "") == .orderedAscending
+                                }
+                                else {
+                                    return course1.1 < course2.1
+                                }
                             default:
                                 return course1.1 < course2.1
                         }
