@@ -744,27 +744,29 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             return
         }
         store.requestAccess(to: .event) { (success, error) in
-            if success {
-                let options = UIAlertController(title: "Calendar Options", message: nil, preferredStyle: .alert)
-                options.addAction(UIAlertAction(title: "Save to An Existing Calendar", style: .default, handler: { _ in
-                    let calendarChooser = EKCalendarChooser(selectionStyle: .single, displayStyle: .writableCalendarsOnly, eventStore: store)
-                    calendarChooser.showsCancelButton = true
-                    calendarChooser.showsDoneButton = true
-                    calendarChooser.delegate = self
-                    let nav = UINavigationController(rootViewController: calendarChooser)
-                    calendarChooser.navigationItem.prompt = "Choose a destination calendar for your schedule."
-                    nav.modalPresentationStyle = .formSheet
-                    self.present(nav, animated: true, completion: nil)
-                }))
-                options.addAction(UIAlertAction(title: "Save to Separate Calendars", style: .default, handler: { _ in
-                    self.addScheduleToCalendar(separate: true)
-                }))
-                options.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-                self.present(options, animated: true, completion: nil)
-            } else {
-                let alert = UIAlertController(title: "Could Not Save to Calendar", message: "To give FireRoad calendar access, please go to Settings > Privacy.", preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
-                self.present(alert, animated: true, completion: nil)
+            DispatchQueue.main.async {
+                if success {
+                    let options = UIAlertController(title: "Calendar Options", message: nil, preferredStyle: .alert)
+                    options.addAction(UIAlertAction(title: "Save to An Existing Calendar", style: .default, handler: { _ in
+                        let calendarChooser = EKCalendarChooser(selectionStyle: .single, displayStyle: .writableCalendarsOnly, eventStore: store)
+                        calendarChooser.showsCancelButton = true
+                        calendarChooser.showsDoneButton = true
+                        calendarChooser.delegate = self
+                        let nav = UINavigationController(rootViewController: calendarChooser)
+                        calendarChooser.navigationItem.prompt = "Choose a destination calendar for your schedule."
+                        nav.modalPresentationStyle = .formSheet
+                        self.present(nav, animated: true, completion: nil)
+                    }))
+                    options.addAction(UIAlertAction(title: "Save to Separate Calendars", style: .default, handler: { _ in
+                        self.addScheduleToCalendar(separate: true)
+                    }))
+                    options.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+                    self.present(options, animated: true, completion: nil)
+                } else {
+                    let alert = UIAlertController(title: "Could Not Save to Calendar", message: "To give FireRoad calendar access, please go to Settings > Privacy.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+                    self.present(alert, animated: true, completion: nil)
+                }
             }
         }
     }
