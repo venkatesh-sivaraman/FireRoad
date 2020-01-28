@@ -375,6 +375,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     
     
     
+    
     func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter, completion: (() -> Void)? = nil) {
         guard CourseManager.shared.isLoaded else {
             return
@@ -395,12 +396,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                             newAggregatedSearchResults[course] = relevance + log(max(user.userRelevance(for: course), 2.0))
                         }
                     }
-//                    let sortedResults = newAggregatedSearchResults.sorted { (item1, item2) -> Bool in
-//
-//                    }
-//                    var sortingClosure : ((key: Course, value: Float), (key: Course, value: Float)) -> Bool
-                    
-                    func backward(course1: (key: Course, value: Float), course2: (key: Course, value: Float)) -> Bool {
+                    func sortingFunction(course1: (key: Course, value: Float), course2: (key: Course, value: Float)) -> Bool {
                         switch options.whichSort {
                             case "Number":
                                 return (course1.0.subjectID ?? "").localizedStandardCompare(course2.0.subjectID ?? "") == .orderedAscending
@@ -425,21 +421,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                                 return course1.1 < course2.1
                         }
                     }
-                    var help: [Course: Float] = [:]
-                    for (course, relevance) in newAggregatedSearchResults {
-                        help[course] = course.rating
-                    }
-                    print("rating")
-                    print(help)
-
-                    var help2: [Course: Float] = [:]
-                    for (course, relevance) in newAggregatedSearchResults {
-                        help2[course] = course.inClassHours + course.outOfClassHours
-                    }
-                    print("hours")
-                    print(help2)
                         
-                    let sortedResults = newAggregatedSearchResults.sorted(by: backward).map { $0.0 }
+                    let sortedResults = newAggregatedSearchResults.sorted(by: sortingFunction).map { $0.0 }
                     
                     DispatchQueue.main.async {
                         self.searchResults = sortedResults
@@ -483,6 +466,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         let cell = tableView.dequeueReusableCell(withIdentifier: "CourseCell", for: indexPath) as! CourseBrowserCell
         cell.course = results[indexPath.row]
         cell.delegate = self
+        cell.sort = self.searchOptions.whichSort
         
         return cell
     }

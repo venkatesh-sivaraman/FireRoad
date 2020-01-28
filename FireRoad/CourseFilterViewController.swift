@@ -31,6 +31,15 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
     
     let tableItems = [
         FilterTableItem(type: .segmentedControl,
+                        title: "Sort By",
+                        items: [
+                            ("Relevance", .sortByRelevance),
+                            ("Rating", .sortByRating),
+                            ("Hours", .sortByHours),
+                            ("Number", .sortByNumber)],
+                        tintColor: nil,
+        firstOptionOverridesOthers: false),
+        FilterTableItem(type: .segmentedControl,
                         title: "Offered",
                         items: [
                             ("Any", .offeredAnySemester),
@@ -81,15 +90,6 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Any", .noLevelFilter),
                             ("Undergrad", .undergradOnly),
                             ("Grad", .graduateOnly)],
-                        tintColor: nil,
-                        firstOptionOverridesOthers: false),
-        FilterTableItem(type: .segmentedControl,
-                        title: "Sort By",
-                        items: [
-                            ("Relevance", .sortByRelevance),
-                            ("Rating", .sortByRating),
-                            ("Hours", .sortByHours),
-                            ("Number", .sortByNumber)],
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
         FilterTableItem(type: .segmentedControl,

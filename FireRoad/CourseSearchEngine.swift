@@ -359,6 +359,14 @@ class CourseSearchEngine: NSObject {
             if searchTerm.count == 0 && options != .noFilter {
                 relevance = 1.0
             } else {
+//                 check Regex and if searchID is provided
+                
+//
+//                if options.contains(.searchID) {
+//                    searchTools[searchTerm.lowercased()] = pattern
+//                }
+//
+                
                 let courseTexts = self.searchText(for: course, options: options)
                 for (comp, regex) in searchTools {
                     var found = false
@@ -398,7 +406,18 @@ class CourseSearchEngine: NSObject {
                 } else {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
                 }
-                newResults[course] = relevance
+                let pattern = try! NSRegularExpression(pattern: "(\\d+|\\S+\\.)(\\.?\\S*)", options: .caseInsensitive)
+                if pattern.numberOfMatches(in: searchTerm, options: [], range: NSRange(location: 0, length: searchTerm.count)) > 0 {
+                    if course.subjectID?.hasPrefix(searchTerm) ?? true {
+                        newResults[course] = relevance
+                    }
+//                    print(course.courseID)
+                    
+                }
+                else {
+                    newResults[course] = relevance
+                }
+                
             }
         }
         if self.shouldAbortSearch {

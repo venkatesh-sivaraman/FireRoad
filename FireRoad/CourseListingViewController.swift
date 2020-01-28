@@ -319,7 +319,33 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                     newAggregatedSearchResults.formUnion(Set<Course>(newResults.keys))
                     if !self.searchEngine.isSearching {
                         // It has stopped the search
-                        let sortedResults = newAggregatedSearchResults.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") })
+                        func sortingFunction(course1: (Course), course2: (Course)) -> Bool {
+                            switch self.searchOptions.whichSort {
+                                case "Number":
+                                    return (course1.subjectID ?? "").localizedStandardCompare(course2.subjectID ?? "") == .orderedAscending
+                                case "Rating":
+                                    return course1.rating > course2.rating
+                                case "Hours":
+                                    let course1hours = course1.inClassHours + course1.outOfClassHours
+                                    let course2hours = course2.inClassHours + course2.outOfClassHours
+                                    if course1hours == 0 && course2hours != 0 {
+                                        return false
+                                    }
+                                    else if course2hours == 0 && course1hours != 0 {
+                                        return true
+                                    }
+                                    else {
+                                        return course1hours < course2hours
+                                    }
+                                    
+                                case "Relevance":
+                                    return (course1.subjectID ?? "").localizedStandardCompare(course2.subjectID ?? "") == .orderedAscending
+                                default:
+                                    return (course1.subjectID ?? "").localizedStandardCompare(course2.subjectID ?? "") == .orderedAscending
+                            }
+                        }
+                        let sortedResults = newAggregatedSearchResults.sorted(by: sortingFunction).map { $0 }
+                        print(sortedResults)
                         DispatchQueue.main.async {
                             self.updateDisplayAfterSearch(with: sortedResults)
                             completion?()
@@ -344,7 +370,33 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                     guard newResults.count > 0 else {
                         return
                     }
-                    let sortedResults = newResults.keys.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") })
+                    func sortingFunction(course1: (key: Course, value: Float), course2: (key: Course, value: Float)) -> Bool {
+                        switch self.searchOptions.whichSort {
+                            case "Number":
+                                return (course1.0.subjectID ?? "").localizedStandardCompare(course2.0.subjectID ?? "") == .orderedAscending
+                            case "Rating":
+                                return course1.0.rating > course2.0.rating
+                            case "Hours":
+                                let course1hours = course1.0.inClassHours + course1.0.outOfClassHours
+                                let course2hours = course2.0.inClassHours + course2.0.outOfClassHours
+                                if course1hours == 0 && course2hours != 0 {
+                                    return false
+                                }
+                                else if course2hours == 0 && course1hours != 0 {
+                                    return true
+                                }
+                                else {
+                                    return course1hours < course2hours
+                                }
+                                
+                            case "Relevance":
+                                return course1.1 < course2.1
+                            default:
+                                return course1.1 < course2.1
+                        }
+                    }
+                    let sortedResults = newResults.sorted(by: sortingFunction).map { $0.0 }
+                    print(sortedResults)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         if !updatedAlready {
                             self.updateDisplayAfterSearch(with: sortedResults)
