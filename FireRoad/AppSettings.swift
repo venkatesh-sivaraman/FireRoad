@@ -89,6 +89,16 @@ class AppSettings: NSObject {
     }
     
     private let allowsRecommendationsDefaultsKey = "CourseManager.allowsRecommendations"
+    private var allowsRecommendationsCallbacks: [AnyHashable: [(Bool?) -> Void]] = [:]
+    func addAllowsRecommendationCallback(_ callback: @escaping (Bool?) -> Void, for observer: AnyHashable) {
+        if allowsRecommendationsCallbacks[observer] == nil {
+            allowsRecommendationsCallbacks[observer] = []
+        }
+        allowsRecommendationsCallbacks[observer]?.append(callback)
+    }
+    func removeAllowsRecommendationCallback(for observer: AnyHashable) {
+        allowsRecommendationsCallbacks.removeValue(forKey: observer)
+    }
     
     private var _allowsRecommendations: Bool?
     var allowsRecommendations: Bool? {
@@ -105,12 +115,20 @@ class AppSettings: NSObject {
             }
             return _allowsRecommendations
         } set {
+            let oldValue = _allowsRecommendations
             if let newValue = newValue {
                 UserDefaults.standard.set(newValue ? 2 : 1, forKey: allowsRecommendationsDefaultsKey)
                 _allowsRecommendations = newValue
             } else {
                 UserDefaults.standard.set(0, forKey: allowsRecommendationsDefaultsKey)
                 _allowsRecommendations = newValue
+            }
+            if _allowsRecommendations != oldValue {
+                for (_, callbacks) in allowsRecommendationsCallbacks {
+                    for callback in callbacks {
+                        callback(_allowsRecommendations)
+                    }
+                }
             }
         }
     }
