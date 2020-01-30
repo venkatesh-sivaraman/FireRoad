@@ -23,7 +23,6 @@ protocol RequirementsListDisplay: CourseListCellDelegate, CourseBrowserDelegate,
     func pushViewController(_ viewController: UIViewController, animated: Bool)
     
     // Getting view controllers
-    func showManualProgressViewController(for requirement: RequirementsListStatement, from cell: UICollectionViewCell)
     func childRequirementsViewController() -> RequirementsListViewController?
     func courseBrowserViewController() -> CourseBrowserViewController?
 }

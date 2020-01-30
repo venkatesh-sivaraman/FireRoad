@@ -28,7 +28,6 @@
 		9626B6E81F815692009F6F96 /* RequirementsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */; };
 		9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9626B6E91F815917009F6F96 /* RequirementsList.swift */; };
 		96293C481FEAD21300F1BDFD /* color_checker.py in Resources */ = {isa = PBXBuildFile; fileRef = 96293C471FEAD21300F1BDFD /* color_checker.py */; };
-		962C97652016E6390046C13D /* RequirementsProgressController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C97642016E6390046C13D /* RequirementsProgressController.swift */; };
 		962C9769201BF0FC0046C13D /* UserDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C9768201BF0FC0046C13D /* UserDocument.swift */; };
 		962C976B201CFD520046C13D /* ScheduleItemProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976A201CFD520046C13D /* ScheduleItemProviders.swift */; };
 		962C976D201E46D40046C13D /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 962C976C201E46D30046C13D /* AppSettings.swift */; };
@@ -126,7 +125,6 @@
 		9626B6E71F815692009F6F96 /* RequirementsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListViewController.swift; sourceTree = "<group>"; };
 		9626B6E91F815917009F6F96 /* RequirementsList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsList.swift; sourceTree = "<group>"; };
 		96293C471FEAD21300F1BDFD /* color_checker.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = color_checker.py; sourceTree = "<group>"; };
-		962C97642016E6390046C13D /* RequirementsProgressController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsProgressController.swift; sourceTree = "<group>"; };
 		962C9768201BF0FC0046C13D /* UserDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDocument.swift; sourceTree = "<group>"; };
 		962C976A201CFD520046C13D /* ScheduleItemProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleItemProviders.swift; sourceTree = "<group>"; };
 		962C976C201E46D30046C13D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
@@ -388,7 +386,6 @@
 				96DF60DA1FFBF5DB006F1C6A /* DocumentBrowseViewController.swift */,
 				96DF60DE20002481006F1C6A /* RateIndividualViewController.swift */,
 				96DF60E020002492006F1C6A /* RatingView.swift */,
-				962C97642016E6390046C13D /* RequirementsProgressController.swift */,
 				96C4202821F50AF400603F9D /* CourseCollectionViewController.swift */,
 				96C4202A21F50FA600603F9D /* CustomCoursesViewController.swift */,
 				96C4202C21F51F9B00603F9D /* CustomCourseEditViewController.swift */,
@@ -602,7 +599,6 @@
 				962C9769201BF0FC0046C13D /* UserDocument.swift in Sources */,
 				962C9776202036C10046C13D /* IntroViewController.swift in Sources */,
 				961E498F1EBF97A4002BABB9 /* CourseBrowserCell.swift in Sources */,
-				962C97652016E6390046C13D /* RequirementsProgressController.swift in Sources */,
 				9626B6E81F815692009F6F96 /* RequirementsListViewController.swift in Sources */,
 				9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */,
 				961E4A011EC7A8C5002BABB9 /* PanelViewController.swift in Sources */,

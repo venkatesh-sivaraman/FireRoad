@@ -849,10 +849,6 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     var allowsProgressAssertions: Bool { return false }
     
-    func showManualProgressViewController(for requirement: RequirementsListStatement, from cell: UICollectionViewCell) {
-        // Do nothing - we don't want to show manual progress controls
-    }
-    
     func courseBrowserViewController() -> CourseBrowserViewController? {
         let browser = self.storyboard!.instantiateViewController(withIdentifier: RequirementsConstants.courseListVCIdentifier) as? CourseBrowserViewController
         let bgColor: UIColor

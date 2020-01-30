@@ -23,7 +23,7 @@ protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, RequirementsListDisplay, CourseDetailsDelegate, RequirementsProgressDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider, CourseMultiSelectDelegate {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, RequirementsListDisplay, CourseDetailsDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider, CourseMultiSelectDelegate {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -537,20 +537,6 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     // MARK: - View Controller Transitions
     
-    func showManualProgressViewController(for requirement: RequirementsListStatement, from selectedCell: UICollectionViewCell) {
-        guard showsManualProgressControls,
-            let progressVC = self.storyboard?.instantiateViewController(withIdentifier: RequirementsConstants.requirementsProgressVCIdentifier) as? RequirementsProgressController else {
-            return
-        }
-        progressVC.delegate = self
-        progressVC.requirement = requirement
-        progressVC.modalPresentationStyle = .popover
-        progressVC.popoverPresentationController?.delegate = self
-        progressVC.popoverPresentationController?.sourceRect = selectedCell.bounds
-        progressVC.popoverPresentationController?.sourceView = selectedCell
-        self.present(progressVC, animated: true, completion: nil)
-    }
-    
     func childRequirementsViewController() -> RequirementsListViewController? {
         guard let listVC = self.storyboard!.instantiateViewController(withIdentifier: RequirementsConstants.listVCIdentifier) as? RequirementsListViewController else {
             return nil
@@ -728,10 +714,6 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     // MARK: - Substitutions
-    
-    func requirementsProgressUpdated(_ controller: RequirementsProgressController) {
-        updateRequirementsStatus()
-    }
     
     func courseMultiSelectCanceled(_ controller: CourseMultiSelectViewController) {
         dismiss(animated: true, completion: nil)
