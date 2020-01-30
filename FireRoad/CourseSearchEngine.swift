@@ -408,11 +408,11 @@ class CourseSearchEngine: NSObject {
                 }
                 
                 if isNumericSearchTerm && searchTerm.contains(".") {
-                    if course.subjectID?.hasPrefix(searchTerm) ?? false {
+                    if course.subjectID?.localizedStandardRange(of: searchTerm)?.contains(String.Index(encodedOffset: 0)) ?? false {
                         newResults[course] = relevance
                     }
                 } else if isNumericSearchTerm {
-                    if course.subjectID?.contains(searchTerm) ?? false {
+                    if course.subjectID?.localizedStandardContains(searchTerm) ?? false {
                         newResults[course] = relevance
                     }
                 } else {
