@@ -351,6 +351,8 @@ class CourseSearchEngine: NSObject {
         let searchTools = comps.map {
             ($0, self.searchRegex(for: $0, options: options))
         }
+        
+        let isNumericSearchTerm = self.isNumericSearchTerm(searchTerm: searchTerm)
 
         var newResults: [Course: Float] = [:]
         for course in courses {
@@ -405,11 +407,11 @@ class CourseSearchEngine: NSObject {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
                 }
                 
-                if self.isNumericSearchTerm(searchTerm: searchTerm) && searchTerm.contains(".") {
+                if isNumericSearchTerm && searchTerm.contains(".") {
                     if course.subjectID?.hasPrefix(searchTerm) ?? false {
                         newResults[course] = relevance
                     }
-                } else if self.isNumericSearchTerm(searchTerm: searchTerm) {
+                } else if isNumericSearchTerm {
                     if course.subjectID?.contains(searchTerm) ?? false {
                         newResults[course] = relevance
                     }
@@ -427,7 +429,8 @@ class CourseSearchEngine: NSObject {
     
     func fastSearchResults(within courses: [Course], searchTerm: String) -> [Course: Float]? {
         let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
-
+        let isNumericSearchTerm = self.isNumericSearchTerm(searchTerm: searchTerm)
+        
         var newResults: [Course: Float] = [:]
         for course in courses {
             guard !self.shouldAbortSearch else {
@@ -451,7 +454,17 @@ class CourseSearchEngine: NSObject {
                 } else {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
                 }
-                newResults[course] = relevance
+                if isNumericSearchTerm && searchTerm.contains(".") {
+                    if course.subjectID?.hasPrefix(searchTerm) ?? false {
+                        newResults[course] = relevance
+                    }
+                } else if isNumericSearchTerm {
+                    if course.subjectID?.contains(searchTerm) ?? false {
+                        newResults[course] = relevance
+                    }
+                } else {
+                    newResults[course] = relevance
+                }
             }
         }
         if self.shouldAbortSearch {

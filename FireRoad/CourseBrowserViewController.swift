@@ -343,7 +343,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     guard newResults.count > 0 else {
                         return
                     }
-                    let sortedResults = newResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+                    let sortedResults = newResults.sorted(by: CourseSortHelper(sortType: self.searchOptions.whichSort, automaticType: self.searchEngine.isNumericSearchTerm(searchTerm: searchText) ? AutomaticOption.number : AutomaticOption.relevance).sortingFunction).map { $0.0 }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         if !updatedAlready {
                             self.searchResults = sortedResults
