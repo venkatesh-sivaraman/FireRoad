@@ -92,15 +92,6 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Grad", .graduateOnly)],
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
-        FilterTableItem(type: .segmentedControl,
-                        title: "Search Behavior",
-                        items: [
-                            ("Contains", .containsSearchTerm),
-                            ("Matches", .matchesSearchTerm),
-                            ("Starts With", .startsWithSearchTerm),
-                            ("Ends With", .endsWithSearchTerm)],
-                        tintColor: nil,
-                        firstOptionOverridesOthers: false),
     ]
     
     let buttonCellIdentifier = "ButtonCell"

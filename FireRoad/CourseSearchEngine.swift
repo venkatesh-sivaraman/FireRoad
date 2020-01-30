@@ -92,18 +92,18 @@ struct SearchOptions: OptionSet {
         return true
     }
     
-    var whichSort: String {
+    var whichSort: SortOption {
         if contains(.sortByAutomatic) {
-            return "Automatic"
+            return .automatic
         }
         else if contains(.sortByRating) {
-            return "Rating"
+            return .rating
         }
         else if contains(.sortByHours) {
-            return "Hours"
+            return .hours
         }
         else {
-            return "Number"
+            return .number
         }
     }
     
@@ -341,13 +341,16 @@ class CourseSearchEngine: NSObject {
         }
     }
     
+    func isNumericSearchTerm (searchTerm: String) -> Bool {
+        let pattern = try! NSRegularExpression(pattern: "^(\\d+\\.?|[\\d\\w]+\\.)([\\d\\w]*)$", options: .caseInsensitive)
+        return pattern.numberOfMatches(in: searchTerm, options: [], range: NSRange(location: 0, length: searchTerm.count)) > 0
+    }
+    
     func searchResults(within courses: [Course], searchTerm: String, options: SearchOptions) -> [Course: Float]? {
         let comps = searchTerm.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines)
         let searchTools = comps.map {
             ($0, self.searchRegex(for: $0, options: options))
         }
-        let pattern = try! NSRegularExpression(pattern: "(\\d+|\\S+\\.)(\\.?\\S*)", options: .caseInsensitive)
-        let isNumericSearchTerm = pattern.numberOfMatches(in: searchTerm, options: [], range: NSRange(location: 0, length: searchTerm.count)) > 0
 
         var newResults: [Course: Float] = [:]
         for course in courses {
@@ -362,16 +365,6 @@ class CourseSearchEngine: NSObject {
             if searchTerm.count == 0 && options != .noFilter {
                 relevance = 1.0
             } else {
-//                 check Regex and if searchID is provided
-
-                if isNumericSearchTerm {
-                    self.inputIsNumeric = true
-                }
-                else {
-                    self.inputIsNumeric = false
-                }
-                
-
                 let courseTexts = self.searchText(for: course, options: options)
                 for (comp, regex) in searchTools {
                     var found = false
@@ -411,12 +404,16 @@ class CourseSearchEngine: NSObject {
                 } else {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
                 }
-                if isNumericSearchTerm {
-                    if course.subjectID?.hasPrefix(searchTerm) ?? true {
+                
+                if self.isNumericSearchTerm(searchTerm: searchTerm) && searchTerm.contains(".") {
+                    if course.subjectID?.hasPrefix(searchTerm) ?? false {
                         newResults[course] = relevance
                     }
-                }
-                else {
+                } else if self.isNumericSearchTerm(searchTerm: searchTerm) {
+                    if course.subjectID?.contains(searchTerm) ?? false {
+                        newResults[course] = relevance
+                    }
+                } else {
                     newResults[course] = relevance
                 }
                 

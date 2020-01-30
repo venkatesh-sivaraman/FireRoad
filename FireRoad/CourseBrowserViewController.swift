@@ -396,37 +396,8 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                             newAggregatedSearchResults[course] = relevance + log(max(user.userRelevance(for: course), 2.0))
                         }
                     }
-                    func sortingFunction(course1: (key: Course, value: Float), course2: (key: Course, value: Float)) -> Bool {
-                        switch options.whichSort {
-                            case "Number":
-                                return (course1.0.subjectID ?? "").localizedStandardCompare(course2.0.subjectID ?? "") == .orderedAscending
-                            case "Rating":
-                                return course1.0.rating > course2.0.rating
-                            case "Hours":
-                                let course1hours = course1.0.inClassHours + course1.0.outOfClassHours
-                                let course2hours = course2.0.inClassHours + course2.0.outOfClassHours
-                                if course1hours == 0 && course2hours != 0 {
-                                    return false
-                                }
-                                else if course2hours == 0 && course1hours != 0 {
-                                    return true
-                                }
-                                else {
-                                    return course1hours < course2hours
-                                }
-                            case "Automatic":
-                                if self.searchEngine.inputIsNumeric ?? false {
-                                    return (course1.0.subjectID ?? "").localizedStandardCompare(course2.0.subjectID ?? "") == .orderedAscending
-                                }
-                                else {
-                                    return course1.1 < course2.1
-                                }
-                            default:
-                                return course1.1 < course2.1
-                        }
-                    }
-                        
-                    let sortedResults = newAggregatedSearchResults.sorted(by: sortingFunction).map { $0.0 }
+
+                    let sortedResults = newAggregatedSearchResults.sorted(by: CourseSortHelper(sortType: options.whichSort, automaticType: self.searchEngine.isNumericSearchTerm(searchTerm: searchTerm) ? AutomaticOption.number : AutomaticOption.relevance).sortingFunction).map { $0.0 }
                     
                     DispatchQueue.main.async {
                         self.searchResults = sortedResults
