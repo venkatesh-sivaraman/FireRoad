@@ -17,6 +17,7 @@ protocol CourseThumbnailCellDelegate: class {
     func courseThumbnailCellWantsEdit(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsAdd(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsMark(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsReplace(_ cell: CourseThumbnailCell)
 }
 
 extension CourseThumbnailCellDelegate {
@@ -44,6 +45,9 @@ extension CourseThumbnailCellDelegate {
     func courseThumbnailCellWantsMark(_ cell: CourseThumbnailCell) {
         
     }
+    func courseThumbnailCellWantsReplace(_ cell: CourseThumbnailCell) {
+        
+    }
 }
 
 class CourseThumbnailCell: UICollectionViewCell {
@@ -60,7 +64,8 @@ class CourseThumbnailCell: UICollectionViewCell {
     var showsViewMenuItem = true
     var showsDeleteMenuItem = true
     var showsMarkMenuItem = false
-
+    var showsReplaceMenuItem = true
+    
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
     
@@ -349,6 +354,8 @@ class CourseThumbnailCell: UICollectionViewCell {
             return delegate != nil && showsAddMenuItem
         } else if action == #selector(mark(_:)) {
             return delegate != nil && showsMarkMenuItem
+        } else if action == #selector(replace(_:)) {
+            return delegate != nil && showsMarkMenuItem
         }
         return false
     }
@@ -385,6 +392,9 @@ class CourseThumbnailCell: UICollectionViewCell {
         delegate?.courseThumbnailCellWantsMark(self)
     }
 
+    @objc func replace(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsReplace(self)
+    }
     // MARK: - Requirement Fulfillment
     
     private var fulfillmentIndicators: [CALayer] = []

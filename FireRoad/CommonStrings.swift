@@ -17,4 +17,5 @@ enum MenuItemStrings {
     static let edit = "Edit"
     static let add = "Add"
     static let mark = "Mark"
+    static let replace = "Replace"
 }

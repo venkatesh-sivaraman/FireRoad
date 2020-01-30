@@ -587,6 +587,28 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         present(nav, animated: true, completion: nil)
     }
     
+    func courseThumbnailCellWantsReplace(_ cell: CourseThumbnailCell) {
+        guard let user = currentUser,
+            let course = cell.course,
+            let indexPath = collectionView.indexPath(for: cell),
+            let semester = UserSemester(rawValue: indexPath.section) else {
+                return
+        }
+        let marker = user.subjectMarker(for: course, in: semester)
+        let tableMenu = TableMenuViewController()
+        tableMenu.items = [TableMenuItem(identifier: "none", title: "None")] + SubjectMarker.allMarkers.map({ TableMenuItem(identifier: $0.rawValue, title: $0.readableName(), image: UIImage(named: $0.imageName())) })
+        tableMenu.selectedItemIndex = tableMenu.items.index(where: { $0.identifier == marker?.rawValue ?? "none"}) ?? -1
+        tableMenu.action = { item in
+            user.setSubjectMarker(SubjectMarker(rawValue: item.identifier), for: course, in: semester)
+            self.reloadCollectionView()
+        }
+        tableMenu.modalPresentationStyle = .popover
+        tableMenu.popoverPresentationController?.delegate = self
+        tableMenu.popoverPresentationController?.sourceView = cell
+        tableMenu.popoverPresentationController?.sourceRect = cell.bounds
+        present(tableMenu, animated: true, completion: nil)
+    }
+    
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
         guard let user = currentUser,
             let indexPath = collectionView.indexPath(for: cell),
