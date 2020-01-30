@@ -494,10 +494,20 @@ class RequirementsListStatement: NSObject {
                     }
                 }
             }
-            subjectFulfillmentProgress = (numSatisfied, subs.count)
-            self.isFulfilled = numSatisfied == subs.count
-            unitFulfillmentProgress = (numSatisfied * Threshold.defaultUnitCount, subs.count * Threshold.defaultUnitCount)
-            fulfillmentProgress = subjectFulfillmentProgress
+            if isPlainString, let threshold = threshold {
+                // Plain-string requirements can be substituted with a list of courses that will
+                // be used to satisfy the requirement. Use the provided threshold as a denominator
+                // in this case.
+                subjectFulfillmentProgress = (numSatisfied, threshold.cutoff(for: .subjects))
+                unitFulfillmentProgress = (satisfiedCourses.reduce(0, { $0 + $1.totalUnits }), threshold.cutoff(for: .units))
+                fulfillmentProgress = threshold.criterion == .units ? unitFulfillmentProgress : subjectFulfillmentProgress
+                self.isFulfilled = fulfillmentProgress.0 == fulfillmentProgress.1
+            } else {
+                subjectFulfillmentProgress = (numSatisfied, subs.count)
+                self.isFulfilled = numSatisfied == subs.count
+                unitFulfillmentProgress = (numSatisfied * Threshold.defaultUnitCount, subs.count * Threshold.defaultUnitCount)
+                fulfillmentProgress = subjectFulfillmentProgress
+            }
             return satisfiedCourses
         }
         
