@@ -136,6 +136,7 @@ class CourseListCollectionCell: UICollectionViewCell, CourseListCell {
             cell.detailTextLabel?.attributedText = NSAttributedString(string: title, attributes: [.paragraphStyle: paraStyle])
         }
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
+        cell.requirement = nil
         cell.longPressTarget = longPressTarget
         cell.longPressAction = longPressAction
         thumbnailCellCustomizer?(cell, indexPath.item)

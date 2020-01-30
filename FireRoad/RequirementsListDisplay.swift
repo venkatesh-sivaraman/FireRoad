@@ -69,11 +69,30 @@ extension RequirementsListDisplay {
                 if showMenu {
                     cell.showsProgressAssertionItems = true
                     cell.requirement = requirements[min(requirements.count, position)]
+                    if cell.progressAssertionActive {
+                        if let assertion = cell.requirement?.progressAssertion {
+                            if let subs = assertion.substitutions, subs.count > 0 {
+                                cell.textLabel?.text = "Substituted"
+                                if subs.count == 1 {
+                                    cell.detailTextLabel?.text = "with \(subs[0])"
+                                } else if subs.count == 2 {
+                                    cell.detailTextLabel?.text = "with \(subs[0]) and \(subs[1])"
+                                } else {
+                                    cell.detailTextLabel?.text = "with \(subs[0]) and \(subs.count - 1) others"
+                                }
+                            } else if assertion.ignore {
+                                cell.textLabel?.text = "Ignored"
+                                cell.detailTextLabel?.text = cell.requirement?.shortDescription
+                            }
+                        }
+                    }
                     cell.showsAddMenuItem = true
                     cell.showsViewMenuItem = true
                     cell.showsDeleteMenuItem = false
                     cell.showsRateMenuItem = false
                     cell.delegate = self
+                } else {
+                    cell.requirement = nil
                 }
             }
         }

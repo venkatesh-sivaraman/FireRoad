@@ -724,6 +724,9 @@ class RequirementsListStatement: NSObject {
             let assertion = user.progressAssertion(for: path) else {
                 return nil
         }
+        if (assertion.substitutions == nil || assertion.substitutions?.count == 0), !assertion.ignore {
+            return nil
+        }
         return assertion
     }
 }
