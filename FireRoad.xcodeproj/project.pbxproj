@@ -89,6 +89,7 @@
 		96EBE5681FBF9E2B00FABE1E /* PanelParentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5671FBF9E2B00FABE1E /* PanelParentViewController.swift */; };
 		96EBE56A1FBFDE5600FABE1E /* ScheduleGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE5691FBFDE5600FABE1E /* ScheduleGridViewController.swift */; };
 		96EBE56C1FBFDF0900FABE1E /* ScheduleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EBE56B1FBFDF0900FABE1E /* ScheduleModel.swift */; };
+		DB0DAAD823E2650D000A04AE /* CourseSortHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0DAAD723E2650D000A04AE /* CourseSortHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -196,6 +197,7 @@
 		96EBE56B1FBFDF0900FABE1E /* ScheduleModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleModel.swift; sourceTree = "<group>"; };
 		96F6530B2094F193006F5DAB /* road_file_spec.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = road_file_spec.md; sourceTree = "<group>"; };
 		96F6530C2094F401006F5DAB /* schedule_file_spec.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = schedule_file_spec.md; sourceTree = "<group>"; };
+		DB0DAAD723E2650D000A04AE /* CourseSortHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseSortHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -346,6 +348,7 @@
 				96DD97392005CCB000E45F5F /* ComputeQueue.swift */,
 				960A8A1920350AA600DF7819 /* UIScrollViewExtension.swift */,
 				961DBBDB211D04FB002E516E /* UIAlertControllerExtension.swift */,
+				DB0DAAD723E2650D000A04AE /* CourseSortHelper.swift */,
 			);
 			name = Helpers;
 			sourceTree = "<group>";
@@ -595,6 +598,7 @@
 				96D055251FB80B6700BD18A8 /* CourseFilterViewController.swift in Sources */,
 				9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */,
 				9664153621C42C0500823768 /* RequirementsListDisplay.swift in Sources */,
+				DB0DAAD823E2650D000A04AE /* CourseSortHelper.swift in Sources */,
 				9646CFD51EB921FE005F87CB /* CatalogViewController.swift in Sources */,
 				962C9769201BF0FC0046C13D /* UserDocument.swift in Sources */,
 				962C9776202036C10046C13D /* IntroViewController.swift in Sources */,

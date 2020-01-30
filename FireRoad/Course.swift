@@ -574,6 +574,8 @@ class Course: NSObject {
             return "GIR"
         } else if isGeneric, let index = subjectID?.rangeOfCharacter(from: .whitespaces)?.lowerBound {
             return String(subjectID![subjectID!.startIndex..<index])
+        } else if isGeneric {
+            return String(subjectID!)
         }
 
         return nil

@@ -343,7 +343,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                     guard newResults.count > 0 else {
                         return
                     }
-                    let sortedResults = newResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+                    let sortedResults = newResults.sorted(by: CourseSortHelper(sortType: self.searchOptions.whichSort, automaticType: self.searchEngine.isNumericSearchTerm(searchTerm: searchText) ? AutomaticOption.number : AutomaticOption.relevance).sortingFunction).map { $0.0 }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         if !updatedAlready {
                             self.searchResults = sortedResults
@@ -373,6 +373,9 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     lazy var searchEngine = CourseSearchEngine()
     lazy var updateQueue = DispatchQueue(label: "SearchingUpdateQueue")
     
+    
+    
+    
     func loadSearchResults(withString searchTerm: String, options: SearchOptions = .noFilter, completion: (() -> Void)? = nil) {
         guard CourseManager.shared.isLoaded else {
             return
@@ -393,7 +396,9 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
                             newAggregatedSearchResults[course] = relevance + log(max(user.userRelevance(for: course), 2.0))
                         }
                     }
-                    let sortedResults = newAggregatedSearchResults.sorted(by: { $0.1 > $1.1 }).map { $0.0 }
+
+                    let sortedResults = newAggregatedSearchResults.sorted(by: CourseSortHelper(sortType: options.whichSort, automaticType: self.searchEngine.isNumericSearchTerm(searchTerm: searchTerm) ? AutomaticOption.number : AutomaticOption.relevance).sortingFunction).map { $0.0 }
+                    
                     DispatchQueue.main.async {
                         self.searchResults = sortedResults
                         self.updateCourseVisibility()
@@ -436,6 +441,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         let cell = tableView.dequeueReusableCell(withIdentifier: "CourseCell", for: indexPath) as! CourseBrowserCell
         cell.course = results[indexPath.row]
         cell.delegate = self
+        cell.sort = self.searchOptions.whichSort
         
         return cell
     }

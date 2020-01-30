@@ -209,7 +209,10 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                 infoText += "\(course.totalUnits) units"
             }
             if course.rating > 0.0 {
-                infoText += " • " + String(format: "%.1f/7.0", course.rating) + " ★"
+                infoText += " • " + String(format: "%.1f/7.0", course.rating)
+            }
+            if course.inClassHours + course.outOfClassHours > 0.0 {
+                infoText += " • " + String(format: "%.1f/week", (course.inClassHours + course.outOfClassHours))
             }
             infoLabel.text = infoText
         }
@@ -319,7 +322,7 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                     newAggregatedSearchResults.formUnion(Set<Course>(newResults.keys))
                     if !self.searchEngine.isSearching {
                         // It has stopped the search
-                        let sortedResults = newAggregatedSearchResults.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") })
+                        let sortedResults = newAggregatedSearchResults.sorted(by: CourseSortHelper(sortType: options.whichSort, automaticType: AutomaticOption.number).sortingFunction).map { $0 }
                         DispatchQueue.main.async {
                             self.updateDisplayAfterSearch(with: sortedResults)
                             completion?()
@@ -344,7 +347,7 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
                     guard newResults.count > 0 else {
                         return
                     }
-                    let sortedResults = newResults.keys.sorted(by: { ($0.subjectID ?? "").lexicographicallyPrecedes($1.subjectID ?? "") })
+                    let sortedResults = newResults.sorted(by: CourseSortHelper(sortType: self.searchOptions.whichSort, automaticType: AutomaticOption.number).sortingFunction).map { $0.0 }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         if !updatedAlready {
                             self.updateDisplayAfterSearch(with: sortedResults)
