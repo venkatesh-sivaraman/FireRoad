@@ -6,6 +6,12 @@
 //  Copyright © 2020 Base 12 Innovations. All rights reserved.
 //
 
+/**
+ A helper class for sorting courses by a variety of metrics. Clients can
+ initialize a sort helper using a particular sort field as well as a desired
+ behavior for the "automatic" sort option, then use the helper's sortingFunction
+ method as a binary comparator in an Array sort.
+ */
 class CourseSortHelper {
     var sortType: SortOption
     var automaticType: AutomaticOption
