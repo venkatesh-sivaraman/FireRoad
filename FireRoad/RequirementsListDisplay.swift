@@ -8,7 +8,9 @@
 
 import Foundation
 
-protocol RequirementsListDisplay: CourseListCellDelegate, CourseBrowserDelegate {
+protocol RequirementsListDisplay: CourseListCellDelegate, CourseBrowserDelegate, CourseThumbnailCellDelegate {
+    
+    var allowsProgressAssertions: Bool { get }
     
     func fillCourseListCell(_ courseListCell: CourseListTableCell, with statement: RequirementsListStatement)
     
@@ -21,7 +23,6 @@ protocol RequirementsListDisplay: CourseListCellDelegate, CourseBrowserDelegate 
     func pushViewController(_ viewController: UIViewController, animated: Bool)
     
     // Getting view controllers
-    func showManualProgressViewController(for requirement: RequirementsListStatement, from cell: UICollectionViewCell)
     func childRequirementsViewController() -> RequirementsListViewController?
     func courseBrowserViewController() -> CourseBrowserViewController?
 }
@@ -53,6 +54,47 @@ extension RequirementsListDisplay {
         }
         
         courseListCell.delegate = self
+        if allowsProgressAssertions {
+            let requirements = statement.requirements ?? [statement]
+            courseListCell.thumbnailCellCustomizer = { (cell, position) in
+                var showMenu = false
+                var isPlainString = false
+                if let id = cell.course?.subjectID,
+                    let actualCourse = CourseManager.shared.getCourse(withID: id),
+                    actualCourse == cell.course {
+                    showMenu = true
+                } else if requirements[min(requirements.count, position)].isPlainString {
+                    showMenu = true
+                    isPlainString = true
+                }
+                cell.requirement = requirements[min(requirements.count, position)]
+                if showMenu {
+                    cell.showsProgressAssertionItems = true
+                    if cell.progressAssertionActive {
+                        if let assertion = cell.requirement?.progressAssertion {
+                            if let subs = assertion.substitutions, subs.count > 0 {
+                                cell.textLabel?.text = "Substituted"
+                                if subs.count == 1 {
+                                    cell.detailTextLabel?.text = "with \(subs[0])"
+                                } else if subs.count == 2 {
+                                    cell.detailTextLabel?.text = "with \(subs[0]) and \(subs[1])"
+                                } else {
+                                    cell.detailTextLabel?.text = "with \(subs[0]) and \(subs.count - 1) others"
+                                }
+                            } else if assertion.ignore {
+                                cell.textLabel?.text = "Ignored"
+                                cell.detailTextLabel?.text = cell.requirement?.shortDescription
+                            }
+                        }
+                    }
+                    cell.showsAddMenuItem = !isPlainString
+                    cell.showsViewMenuItem = !isPlainString
+                    cell.showsDeleteMenuItem = false
+                    cell.showsRateMenuItem = false
+                    cell.delegate = self
+                }
+            }
+        }
     }
     
     func handleCourseListCellSelection(_ tableCell: CourseListTableCell, of course: Course, with requirement: RequirementsListStatement?) {
@@ -63,14 +105,16 @@ extension RequirementsListDisplay {
         if let id = course.subjectID,
             let actualCourse = CourseManager.shared.getCourse(withID: id),
             actualCourse == course {
-            viewDetails(for: course, from: selectedCell, showGenericDetails: false)
+            if allowsProgressAssertions {
+                // Show menu
+            } else {
+                viewDetails(for: course, from: selectedCell, showGenericDetails: false)
+            }
         } else if let item = requirement {
             let requirements = item.requirements ?? [item]
             
             if requirements[min(requirements.count, courseIndex)].isPlainString {
-                // Show the progress selector
-                showManualProgressViewController(for: requirements[min(requirements.count, courseIndex)], from: selectedCell)
-                
+                // Show context menu
             } else if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
                 // Configure a browser VC with the appropriate search term and filters to find this
                 // requirement (e.g. "GIR:PHY1" or "HASS-A" or "CI-H")

@@ -23,7 +23,7 @@ protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, RequirementsListDisplay, CourseDetailsDelegate, RequirementsProgressDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, RequirementsListDisplay, CourseDetailsDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider, CourseMultiSelectDelegate {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -54,6 +54,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     var presentationItems: [(title: String, statement: RequirementsListStatement, items: [PresentationItem])] = []
     
     var showsManualProgressControls: Bool = true
+    var allowsProgressAssertions: Bool { return true }
+    var currentSubstitutingRequirement: RequirementsListStatement?
     
     static let fulfillmentIndicatorCornerRadius = CGFloat(6.0)
     
@@ -535,20 +537,6 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     // MARK: - View Controller Transitions
     
-    func showManualProgressViewController(for requirement: RequirementsListStatement, from selectedCell: UICollectionViewCell) {
-        guard showsManualProgressControls,
-            let progressVC = self.storyboard?.instantiateViewController(withIdentifier: RequirementsConstants.requirementsProgressVCIdentifier) as? RequirementsProgressController else {
-            return
-        }
-        progressVC.delegate = self
-        progressVC.requirement = requirement
-        progressVC.modalPresentationStyle = .popover
-        progressVC.popoverPresentationController?.delegate = self
-        progressVC.popoverPresentationController?.sourceRect = selectedCell.bounds
-        progressVC.popoverPresentationController?.sourceView = selectedCell
-        self.present(progressVC, animated: true, completion: nil)
-    }
-    
     func childRequirementsViewController() -> RequirementsListViewController? {
         guard let listVC = self.storyboard!.instantiateViewController(withIdentifier: RequirementsConstants.listVCIdentifier) as? RequirementsListViewController else {
             return nil
@@ -641,10 +629,126 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         return .none
     }
     
-    // MARK: - Manual Progress
+    // MARK: - Course Thumbnail Cell Delegate
     
-    func requirementsProgressUpdated(_ controller: RequirementsProgressController) {
+    func courseThumbnailCellWantsAdd(_ cell: CourseThumbnailCell) {
+        guard let course = cell.course else {
+            return
+        }
+        
+        showAddCoursePopDownMenu(for: course)
+    }
+    
+    func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell) {
+        guard let course = cell.course else {
+            return
+        }
+        viewDetails(for: course, from: cell, showGenericDetails: false)
+    }
+    
+    private func substitutionViewControllerPrompt(from subs: [Course]) -> String {
+        if subs.count > 0 {
+            let numUnits = subs.reduce(0, { $0 + $1.totalUnits })
+            return "\(subs.count) subject\(subs.count != 1 ? "s" : "") (\(numUnits) units) selected."
+        } else {
+            return "Choose subjects to substitute for \(currentSubstitutingRequirement?.shortDescription ?? "the requirement")."
+        }
+    }
+    
+    private func substitutionViewControllerDoneButtonTitle(from subs: [Course]) -> String {
+        if subs.count > 0 {
+            return "Override"
+        } else {
+            return "No Override"
+        }
+    }
+    
+    func courseThumbnailCellWantsSubstitute(_ cell: CourseThumbnailCell) {
+        guard let req = cell.requirement,
+            let user = req.currentUser,
+            let path = req.keyPath,
+            let substitutionVC = storyboard?.instantiateViewController(withIdentifier: "courseMultiSelect") as? CourseMultiSelectViewController else {
+            return
+        }
+        currentSubstitutingRequirement = req
+        substitutionVC.delegate = self
+        substitutionVC.currentUser = user
+        if let assertion = user.progressAssertion(for: path), let subs = assertion.substitutions, subs.count > 0 {
+            substitutionVC.selectedCourses = subs.compactMap({ CourseManager.shared.getCourse(withID: $0) })
+            // Make sure courses that aren't in the road right now are placed in the additional courses section
+            let allCourses = Set<Course>(user.allCourses)
+            substitutionVC.additionalCourses = substitutionVC.selectedCourses.filter({ !allCourses.contains($0) })
+        }
+        let nav = UINavigationController(rootViewController: substitutionVC)
+        let subs = substitutionVC.selectedCourses
+        substitutionVC.navigationItem.title = "Substitutions"
+        substitutionVC.doneButtonTitle = substitutionViewControllerDoneButtonTitle(from: subs)
+        substitutionVC.navigationItem.prompt = substitutionViewControllerPrompt(from: subs)
+        present(nav, animated: true, completion: nil)
+    }
+    
+    func courseThumbnailCellWantsNoSubstitute(_ cell: CourseThumbnailCell) {
+        guard let req = cell.requirement,
+            let user = req.currentUser,
+            let path = req.keyPath else {
+                return
+        }
+        user.setProgressAssertion(for: path, to: nil)
         updateRequirementsStatus()
+    }
+    
+    private static let shownIgnoreInfoAlertDefaultsKey = "RequirementsListViewController.hasShownIgnoreInfoAlert"
+    
+    func courseThumbnailCellWantsIgnore(_ cell: CourseThumbnailCell) {
+        guard let req = cell.requirement,
+            let user = req.currentUser,
+            let path = req.keyPath else {
+                return
+        }
+        var assertion = user.progressAssertion(for: path) ?? ProgressAssertion(substitutions: nil, ignore: false)
+        if !assertion.ignore {
+            assertion.ignore = true
+            user.setProgressAssertion(for: path, to: assertion)
+        } else {
+            user.setProgressAssertion(for: path, to: nil)
+        }
+        updateRequirementsStatus()
+        
+        if !UserDefaults.standard.bool(forKey: RequirementsListViewController.shownIgnoreInfoAlertDefaultsKey) {
+            let alert = UIAlertController(title: "Ignored Requirement", message: "\(req.shortDescription) will no longer count for this part of your requirements. When a subject fulfills two requirements and cannot be double-counted, you can ignore one of them to reflect this.\n\nTap the requirement again to undo this action.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            alert.show()
+            UserDefaults.standard.set(true, forKey: RequirementsListViewController.shownIgnoreInfoAlertDefaultsKey)
+        }
+    }
+    
+    // MARK: - Substitutions
+    
+    func courseMultiSelectCanceled(_ controller: CourseMultiSelectViewController) {
+        dismiss(animated: true, completion: nil)
+        currentSubstitutingRequirement = nil
+    }
+    
+    func courseMultiSelect(_ controller: CourseMultiSelectViewController, finishedWith courses: [Course]) {
+        dismiss(animated: true, completion: nil)
+        guard let req = currentSubstitutingRequirement, let user = req.currentUser,
+            let path = req.keyPath else {
+                return
+        }
+        var assertion = user.progressAssertion(for: path) ?? ProgressAssertion(substitutions: nil, ignore: false)
+        if courses.count == 0 {
+            assertion.substitutions = nil
+        } else {
+            assertion.substitutions = courses.map { $0.subjectID! }
+        }
+        currentSubstitutingRequirement?.currentUser?.setProgressAssertion(for: path, to: assertion)
+        updateRequirementsStatus()
+        currentSubstitutingRequirement = nil
+    }
+    
+    func courseMultiSelect(_ controller: CourseMultiSelectViewController, selectionChanged courses: [Course]) {
+        controller.doneButtonTitle = substitutionViewControllerDoneButtonTitle(from: courses)
+        controller.navigationItem.prompt = substitutionViewControllerPrompt(from: courses)
     }
     
     // MARK: - Pop Down Table Menu
@@ -653,17 +757,25 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
 
     @objc func longPressOnRequirementsCell(_ sender: UILongPressGestureRecognizer) {
         guard sender.state == .began,
-            let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
             let cell = sender.view as? CourseThumbnailCell,
             let id = cell.course?.subjectID,
             id.count > 0,
-            CourseManager.shared.getCourse(withID: id) != nil else {
+            let course = CourseManager.shared.getCourse(withID: id) else {
                 return
         }
+        showAddCoursePopDownMenu(for: course)
+    }
+    
+    func showAddCoursePopDownMenu(for course: Course) {
+        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
+            let id = course.subjectID else {
+                return
+        }
+
         navigationItem.rightBarButtonItem?.isEnabled = false
         popDownOldNavigationTitle = navigationItem.title
         navigationItem.title = "(\(id))"
-        popDown.course = cell.course
+        popDown.course = course
         popDown.delegate = self
         let containingView: UIView = self.view
         containingView.addSubview(popDown.view)

@@ -17,6 +17,9 @@ protocol CourseThumbnailCellDelegate: class {
     func courseThumbnailCellWantsEdit(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsAdd(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsMark(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsSubstitute(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsNoSubstitute(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsIgnore(_ cell: CourseThumbnailCell)
 }
 
 extension CourseThumbnailCellDelegate {
@@ -44,6 +47,15 @@ extension CourseThumbnailCellDelegate {
     func courseThumbnailCellWantsMark(_ cell: CourseThumbnailCell) {
         
     }
+    func courseThumbnailCellWantsSubstitute(_ cell: CourseThumbnailCell) {
+        
+    }
+    func courseThumbnailCellWantsNoSubstitute(_ cell: CourseThumbnailCell) {
+        
+    }
+    func courseThumbnailCellWantsIgnore(_ cell: CourseThumbnailCell) {
+        
+    }
 }
 
 class CourseThumbnailCell: UICollectionViewCell {
@@ -60,6 +72,14 @@ class CourseThumbnailCell: UICollectionViewCell {
     var showsViewMenuItem = true
     var showsDeleteMenuItem = true
     var showsMarkMenuItem = false
+
+    /// If these properties are provided, the cell will support showing progress assertion menu items
+    var showsProgressAssertionItems = false
+    var requirement: RequirementsListStatement? {
+        didSet {
+            updateProgressAssertionBackground()
+        }
+    }
 
     @IBOutlet var textLabel: UILabel?
     @IBOutlet var detailTextLabel: UILabel?
@@ -90,6 +110,24 @@ class CourseThumbnailCell: UICollectionViewCell {
         didSet {
             updateMarkerView()
         }
+    }
+        
+    var progressAssertionActive: Bool {
+        guard let req = requirement,
+            req.progressAssertion != nil || req.descendantHasProgressAssertion else {
+                return false
+        }
+        return true
+    }
+        
+    func updateProgressAssertionBackground() {
+        if progressAssertionActive {
+            backgroundColorLayer?.frame = self.layer.bounds.insetBy(dx: -2.0, dy: -4.0)
+            backgroundColorLayer?.backgroundColor = UIColor.red.withAlphaComponent(0.7).cgColor
+        } else {
+            backgroundColorLayer?.frame = self.layer.bounds
+        }
+        updateShadow()
     }
     
     /// If this is non-null, a menu will *not* be shown and this action will be fired instead.
@@ -147,7 +185,7 @@ class CourseThumbnailCell: UICollectionViewCell {
     }
     
     private func updateShadow() {
-        if shadowEnabled {
+        if shadowEnabled, !progressAssertionActive {
             if #available(iOS 12.0, *), traitCollection.userInterfaceStyle == .dark {
                 self.layer.shadowColor = UIColor.black.cgColor
                 self.layer.shadowOpacity = 0.3
@@ -182,15 +220,18 @@ class CourseThumbnailCell: UICollectionViewCell {
         if self.detailTextLabel == nil {
             self.detailTextLabel = self.viewWithTag(34) as? UILabel
         }
-        let colorLayer = CALayer()
-        colorLayer.frame = self.layer.bounds
-        colorLayer.backgroundColor = backgroundColor?.cgColor
-        colorLayer.cornerRadius = 6.0
-        self.layer.insertSublayer(colorLayer, at: 0)
-        backgroundColorLayer = colorLayer
+        if backgroundColorLayer == nil {
+            let colorLayer = CALayer()
+            colorLayer.frame = self.layer.bounds
+            colorLayer.backgroundColor = backgroundColor?.cgColor
+            colorLayer.cornerRadius = 6.0
+            self.layer.insertSublayer(colorLayer, at: 0)
+            backgroundColorLayer = colorLayer
+        }
         //self.layer.cornerRadius = 6.0
         shadowEnabled = true
         contentView.clipsToBounds = false
+        updateProgressAssertionBackground()
     }
     
     func generateLabels(withDetail: Bool = true) {
@@ -270,7 +311,7 @@ class CourseThumbnailCell: UICollectionViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        backgroundColorLayer?.frame = self.layer.bounds
+        updateProgressAssertionBackground()
         repositionFulfillmentIndicators()
         
         if let marker = markerImageView {
@@ -349,6 +390,38 @@ class CourseThumbnailCell: UICollectionViewCell {
             return delegate != nil && showsAddMenuItem
         } else if action == #selector(mark(_:)) {
             return delegate != nil && showsMarkMenuItem
+        } else if action == #selector(substitute(_:)) {
+            guard delegate != nil, showsProgressAssertionItems, let req = requirement else {
+                return false
+            }
+            if let assertion = req.progressAssertion {
+                return !assertion.ignore
+            }
+            return true
+        } else if action == #selector(noSubstitute(_:)) {
+            guard delegate != nil, showsProgressAssertionItems, let req = requirement else {
+                return false
+            }
+            if let assertion = req.progressAssertion {
+                return !assertion.ignore && (assertion.substitutions ?? []).count > 0
+            }
+            return false
+        } else if action == #selector(ignore(_:)) {
+            guard delegate != nil, showsProgressAssertionItems, let req = requirement else {
+                return false
+            }
+            if let assertion = req.progressAssertion {
+                return !assertion.ignore && (assertion.substitutions ?? []).count == 0
+            }
+            return true
+        } else if action == #selector(noIgnore(_:)) {
+            guard delegate != nil, showsProgressAssertionItems, let req = requirement else {
+                return false
+            }
+            if let assertion = req.progressAssertion {
+                return assertion.ignore && (assertion.substitutions ?? []).count == 0
+            }
+            return false
         }
         return false
     }
@@ -383,6 +456,22 @@ class CourseThumbnailCell: UICollectionViewCell {
 
     @objc func mark(_ sender: AnyObject) {
         delegate?.courseThumbnailCellWantsMark(self)
+    }
+    
+    @objc func substitute(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsSubstitute(self)
+    }
+
+    @objc func noSubstitute(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsNoSubstitute(self)
+    }
+
+    @objc func ignore(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsIgnore(self)
+    }
+
+    @objc func noIgnore(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsIgnore(self)
     }
 
     // MARK: - Requirement Fulfillment

@@ -19,45 +19,42 @@ class CourseBrowserCell: UITableViewCell {
     @IBOutlet var addLabel: UILabel? = nil
     @IBOutlet var colorCoder: UIView? = nil
     
-    var sort: SortOption? = nil {
-        willSet {
-        }
+    var sort: SortOption? {
         didSet {
-            var title = course?.subjectID ?? ""
-            if self.sort == .rating {
-                if course?.rating == 0.0 {
-                    title += " (no rating available)"
-                } else {
-                    title += " (" + String(format: "%.1f/7.0", course?.rating ?? 0.0) + ")"
-                }
-                
-            }
-            else if self.sort == .hours {
-                if Double(course?.inClassHours ?? 0.0) + Double(course?.outOfClassHours ?? 0.0) == 0.0 {
-                    title += " (no hours available)"
-                } else {
-                    title += " (" + String(format: "%.1f/week", (Double(course?.inClassHours ?? 0.0) + Double(course?.outOfClassHours ?? 0.0))) + ")"
-                }
-                
-            }
-            self.titleLabel.text = title
+            updateTitle()
         }
     }
     
-    
+    func updateTitle() {
+        var title = course?.subjectID ?? ""
+        if let level = course?.subjectLevel, level != .undergraduate {
+            title += " (\(level.rawValue))"
+        }
+        if course?.isHistorical == true {
+            title = "⚠︎ " + title
+        }
+        
+        if self.sort == .rating {
+            if course?.rating == 0.0 {
+                title += " (no rating available)"
+            } else {
+                title += " (" + String(format: "%.1f/7.0", course?.rating ?? 0.0) + ")"
+            }
+            
+        }
+        else if self.sort == .hours {
+            if Double(course?.inClassHours ?? 0.0) + Double(course?.outOfClassHours ?? 0.0) == 0.0 {
+                title += " (no hours available)"
+            } else {
+                title += " (" + String(format: "%.1f/week", (Double(course?.inClassHours ?? 0.0) + Double(course?.outOfClassHours ?? 0.0))) + ")"
+            }
+        }
+        self.titleLabel.text = title
+    }
     
     var course: Course? = nil {
         didSet {
-            var title = course?.subjectID ?? ""
-            if let level = course?.subjectLevel, level != .undergraduate {
-                title += " (\(level.rawValue))"
-            }
-            if course?.isHistorical == true {
-                title = "⚠︎ " + title
-            }
-            if course?.subjectTitle == nil || course?.subjectTitle?.count == 0 {
-                print("Subject title nil")
-            }
+            updateTitle()
             self.descriptionLabel.text = course?.subjectTitle
             self.addLabel?.text = ""
             if self.course != nil {
