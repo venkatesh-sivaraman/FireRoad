@@ -114,7 +114,7 @@ class CourseThumbnailCell: UICollectionViewCell {
         
     var progressAssertionActive: Bool {
         guard let req = requirement,
-            req.progressAssertion != nil else {
+            req.progressAssertion != nil || req.descendantHasProgressAssertion else {
                 return false
         }
         return true

@@ -697,6 +697,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         updateRequirementsStatus()
     }
     
+    private static let shownIgnoreInfoAlertDefaultsKey = "RequirementsListViewController.hasShownIgnoreInfoAlert"
+    
     func courseThumbnailCellWantsIgnore(_ cell: CourseThumbnailCell) {
         guard let req = cell.requirement,
             let user = req.currentUser,
@@ -711,6 +713,13 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             user.setProgressAssertion(for: path, to: nil)
         }
         updateRequirementsStatus()
+        
+        if !UserDefaults.standard.bool(forKey: RequirementsListViewController.shownIgnoreInfoAlertDefaultsKey) {
+            let alert = UIAlertController(title: "Ignored Requirement", message: "\(req.shortDescription) will no longer count for this part of your requirements. When a subject fulfills two requirements and cannot be double-counted, you can ignore one of them to reflect this.\n\nTap the requirement again to undo this action.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: nil))
+            alert.show()
+            UserDefaults.standard.set(true, forKey: RequirementsListViewController.shownIgnoreInfoAlertDefaultsKey)
+        }
     }
     
     // MARK: - Substitutions

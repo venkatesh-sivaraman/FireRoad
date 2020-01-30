@@ -729,6 +729,14 @@ class RequirementsListStatement: NSObject {
         }
         return assertion
     }
+    
+    /// Indicates whether any of the descendants of this requirement have an active progress assertion
+    var descendantHasProgressAssertion: Bool {
+        guard let requirements = requirements else {
+            return false
+        }
+        return requirements.contains(where: { $0.progressAssertion != nil || $0.descendantHasProgressAssertion })
+    }
 }
 
 class RequirementsList: RequirementsListStatement {

@@ -67,9 +67,9 @@ extension RequirementsListDisplay {
                     showMenu = true
                     isPlainString = true
                 }
+                cell.requirement = requirements[min(requirements.count, position)]
                 if showMenu {
                     cell.showsProgressAssertionItems = true
-                    cell.requirement = requirements[min(requirements.count, position)]
                     if cell.progressAssertionActive {
                         if let assertion = cell.requirement?.progressAssertion {
                             if let subs = assertion.substitutions, subs.count > 0 {
@@ -92,8 +92,6 @@ extension RequirementsListDisplay {
                     cell.showsDeleteMenuItem = false
                     cell.showsRateMenuItem = false
                     cell.delegate = self
-                } else {
-                    cell.requirement = nil
                 }
             }
         }
