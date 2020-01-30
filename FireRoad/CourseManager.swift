@@ -66,7 +66,7 @@ class CourseManager: NSObject {
     
     private let semesterUpdateURL = urlBase + "/courseupdater/semesters/"
     private let baseUpdateURL = urlBase + "/courseupdater/check/"
-    private let baseStaticURL = "https://fireroad.mit.edu/catalogs/"
+    private let baseStaticURL = urlBase + "/catalogs/"
     
     var isLoaded = false
     var loadingProgress: Float = 0.0

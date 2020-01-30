@@ -31,6 +31,15 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
     
     let tableItems = [
         FilterTableItem(type: .segmentedControl,
+                        title: "Sort By",
+                        items: [
+                            ("Automatic", .sortByAutomatic),
+                            ("Rating", .sortByRating),
+                            ("Hours", .sortByHours),
+                            ("Number", .sortByNumber)],
+                        tintColor: nil,
+        firstOptionOverridesOthers: false),
+        FilterTableItem(type: .segmentedControl,
                         title: "Offered",
                         items: [
                             ("Any", .offeredAnySemester),
@@ -83,26 +92,6 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Grad", .graduateOnly)],
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
-        FilterTableItem(type: .segmentedControl,
-                        title: "Search Behavior",
-                        items: [
-                            ("Contains", .containsSearchTerm),
-                            ("Matches", .matchesSearchTerm),
-                            ("Starts With", .startsWithSearchTerm),
-                            ("Ends With", .endsWithSearchTerm)],
-                        tintColor: nil,
-                        firstOptionOverridesOthers: false),
-        FilterTableItem(type: .checkmark,
-                        title: "Search Fields",
-                        items: [
-                            ("All", .searchAllFields),
-                            ("Subject Number", .searchID),
-                            ("Subject Title", .searchTitle),
-                            ("Prerequisites", .searchPrereqs),
-                            ("Corequisites", .searchCoreqs),
-                            ("Instructors", .searchInstructors)],
-                        tintColor: nil,
-                        firstOptionOverridesOthers: true),
     ]
     
     let buttonCellIdentifier = "ButtonCell"
