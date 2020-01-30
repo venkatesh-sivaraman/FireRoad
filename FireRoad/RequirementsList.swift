@@ -678,7 +678,7 @@ class RequirementsListStatement: NSObject {
     }
     
     var rawPercentageFulfilled: Float {
-        if connectionType == .none {
+        if connectionType == .none, progressAssertion == nil {
             return 0.0
         }
         let fulfilled = fulfillmentProgress
@@ -686,7 +686,7 @@ class RequirementsListStatement: NSObject {
     }
     
     var percentageFulfilled: Float {
-        if connectionType == .none {
+        if connectionType == .none, progressAssertion == nil {
             return 0.0
         }
         let fulfilled = fulfillmentProgress
