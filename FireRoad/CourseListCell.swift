@@ -18,6 +18,7 @@ protocol CourseListCell: UICollectionViewDataSource, UICollectionViewDelegate {
     var delegate: CourseListCellDelegate? { get set }
     var longPressTarget: Any? { get set }
     var longPressAction: Selector? { get set }
+    var thumbnailCellCustomizer: ((CourseThumbnailCell, Int) -> Void)? { get set }
 }
 
 class CourseListTableCell: UITableViewCell, CourseListCell {
@@ -36,6 +37,8 @@ class CourseListTableCell: UITableViewCell, CourseListCell {
     var longPressTarget: Any?
     var longPressAction: Selector?
     
+    var thumbnailCellCustomizer: ((CourseThumbnailCell, Int) -> Void)?
+        
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
@@ -75,6 +78,7 @@ class CourseListTableCell: UITableViewCell, CourseListCell {
         cell.longPressTarget = longPressTarget
         cell.longPressAction = longPressAction
         cell.shadowEnabled = true
+        thumbnailCellCustomizer?(cell, indexPath.item)
         return cell
     }
     
@@ -105,6 +109,8 @@ class CourseListCollectionCell: UICollectionViewCell, CourseListCell {
     var longPressTarget: Any?
     var longPressAction: Selector?
     
+    var thumbnailCellCustomizer: ((CourseThumbnailCell, Int) -> Void)?
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
@@ -132,6 +138,7 @@ class CourseListCollectionCell: UICollectionViewCell, CourseListCell {
         cell.backgroundColor = CourseManager.shared.color(forCourse: course)
         cell.longPressTarget = longPressTarget
         cell.longPressAction = longPressAction
+        thumbnailCellCustomizer?(cell, indexPath.item)
         return cell
         
     }

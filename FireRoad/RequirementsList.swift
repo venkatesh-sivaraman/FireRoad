@@ -539,9 +539,16 @@ class RequirementsListStatement: NSObject {
         var satisfyingPerCategory: [RequirementsListStatement: Set<Course>] = [:]
         var numRequirementsSatisfied = 0
         var numCoursesSatisfied = 0
+        var openRequirements: [RequirementsListStatement] = []
         for req in reqs {
             req.currentUser = currentUser // ensures that children compute manual progresses correctly
             let reqSatisfiedCourses = req.computeRequirementStatus(with: courses)
+            // Only continue if the requirement is not ignored
+            if let assertion = req.progressAssertion, assertion.ignore {
+                continue
+            }
+            openRequirements.append(req)
+            
             if req.isFulfilled, reqSatisfiedCourses.count > 0 {
                 numRequirementsSatisfied += 1
             }
@@ -559,7 +566,7 @@ class RequirementsListStatement: NSObject {
         
         let totalSatisfyingCourses = satisfyingPerCategory.reduce(Set<Course>(), { $0.union($1.value) })
         // Set isFulfilled and fulfillmentProgresses
-        var sortedProgresses = reqs.sorted(by: { $0.rawPercentageFulfilled > $1.rawPercentageFulfilled })
+        var sortedProgresses = openRequirements.sorted(by: { $0.rawPercentageFulfilled > $1.rawPercentageFulfilled })
         if threshold == nil, distinctThreshold == nil {
             // Simple "any" statement
             isFulfilled = (numRequirementsSatisfied > 0)
@@ -618,10 +625,10 @@ class RequirementsListStatement: NSObject {
         }
         if connectionType == .all {
             // "all" statement
-            isFulfilled = isFulfilled && (numRequirementsSatisfied == reqs.count)
-            if subjectFulfillmentProgress.0 == subjectFulfillmentProgress.1, reqs.count > numRequirementsSatisfied {
-                subjectFulfillmentProgress = (subjectFulfillmentProgress.0, subjectFulfillmentProgress.1 + (reqs.count - numRequirementsSatisfied))
-                unitFulfillmentProgress = (unitFulfillmentProgress.0, unitFulfillmentProgress.1 + (reqs.count - numRequirementsSatisfied) * Threshold.defaultUnitCount)
+            isFulfilled = isFulfilled && (numRequirementsSatisfied == openRequirements.count)
+            if subjectFulfillmentProgress.0 == subjectFulfillmentProgress.1, openRequirements.count > numRequirementsSatisfied {
+                subjectFulfillmentProgress = (subjectFulfillmentProgress.0, subjectFulfillmentProgress.1 + (openRequirements.count - numRequirementsSatisfied))
+                unitFulfillmentProgress = (unitFulfillmentProgress.0, unitFulfillmentProgress.1 + (openRequirements.count - numRequirementsSatisfied) * Threshold.defaultUnitCount)
             }
         }
         subjectFulfillmentProgress = ceilingThreshold(subjectFulfillmentProgress)

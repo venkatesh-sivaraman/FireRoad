@@ -15,6 +15,7 @@
 		9611CD811F92851400DE2BDE /* PopDownTableMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */; };
 		9611CD831F9287CE00DE2BDE /* acknowledgements.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9611CD821F9287CE00DE2BDE /* acknowledgements.txt */; };
 		9617256123E2697D00735741 /* ProgressAssertion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9617256023E2697D00735741 /* ProgressAssertion.swift */; };
+		9617256323E2833B00735741 /* CourseMultiSelectViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9617256223E2833B00735741 /* CourseMultiSelectViewController.swift */; };
 		961DBBD8211CDE4F002E516E /* CloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961DBBD7211CDE4F002E516E /* CloudSyncManager.swift */; };
 		961DBBDA211CE650002E516E /* TimeAgo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961DBBD9211CE650002E516E /* TimeAgo.swift */; };
 		961DBBDC211D04FB002E516E /* UIAlertControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961DBBDB211D04FB002E516E /* UIAlertControllerExtension.swift */; };
@@ -110,6 +111,7 @@
 		9611CD801F92851400DE2BDE /* PopDownTableMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopDownTableMenuController.swift; sourceTree = "<group>"; };
 		9611CD821F9287CE00DE2BDE /* acknowledgements.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = acknowledgements.txt; sourceTree = "<group>"; };
 		9617256023E2697D00735741 /* ProgressAssertion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressAssertion.swift; sourceTree = "<group>"; };
+		9617256223E2833B00735741 /* CourseMultiSelectViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseMultiSelectViewController.swift; sourceTree = "<group>"; };
 		961DBBD7211CDE4F002E516E /* CloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncManager.swift; sourceTree = "<group>"; };
 		961DBBD9211CE650002E516E /* TimeAgo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeAgo.swift; sourceTree = "<group>"; };
 		961DBBDB211D04FB002E516E /* UIAlertControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIAlertControllerExtension.swift; sourceTree = "<group>"; };
@@ -391,6 +393,7 @@
 				96C4202A21F50FA600603F9D /* CustomCoursesViewController.swift */,
 				96C4202C21F51F9B00603F9D /* CustomCourseEditViewController.swift */,
 				96AA1BB621FC253C00544C64 /* TableMenuViewController.swift */,
+				9617256223E2833B00735741 /* CourseMultiSelectViewController.swift */,
 			);
 			name = "Useful View Controllers";
 			sourceTree = "<group>";
@@ -582,6 +585,7 @@
 				96C4202F21F5353200603F9D /* CourseColorSelectCell.swift in Sources */,
 				96EBE56C1FBFDF0900FABE1E /* ScheduleModel.swift in Sources */,
 				96DF60DF20002481006F1C6A /* RateIndividualViewController.swift in Sources */,
+				9617256323E2833B00735741 /* CourseMultiSelectViewController.swift in Sources */,
 				96DF60E120002492006F1C6A /* RatingView.swift in Sources */,
 				96AC5F1A200D1F5500D80839 /* CourseSearchEngine.swift in Sources */,
 				96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */,

@@ -370,7 +370,7 @@ class CourseThumbnailCell: UICollectionViewCell {
                 return false
             }
             if let assertion = req.progressAssertion {
-                return !assertion.ignore && (assertion.substitutions ?? []).count == 0
+                return !assertion.ignore
             }
             return true
         } else if action == #selector(noSubstitute(_:)) {

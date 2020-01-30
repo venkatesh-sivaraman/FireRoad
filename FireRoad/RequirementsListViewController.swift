@@ -23,7 +23,7 @@ protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, RequirementsListDisplay, CourseDetailsDelegate, RequirementsProgressDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, RequirementsListDisplay, CourseDetailsDelegate, RequirementsProgressDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider, CourseMultiSelectDelegate {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -55,6 +55,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     var showsManualProgressControls: Bool = true
     var allowsProgressAssertions: Bool { return true }
+    var currentSubstitutingRequirement: RequirementsListStatement?
     
     static let fulfillmentIndicatorCornerRadius = CGFloat(6.0)
     
@@ -659,22 +660,104 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         viewDetails(for: course, from: cell, showGenericDetails: false)
     }
     
+    private func substitutionViewControllerPrompt(from subs: [String]) -> String {
+        if subs.count > 0 {
+            return "\(subs.count) subject\(subs.count != 1 ? "s" : "") selected."
+        } else {
+            return "Choose subjects to substitute for \(currentSubstitutingRequirement?.shortDescription ?? "the requirement")."
+        }
+    }
+    
+    private func substitutionViewControllerDoneButtonTitle(from subs: [String]) -> String {
+        if subs.count > 0 {
+            return "Override"
+        } else {
+            return "No Override"
+        }
+    }
+    
     func courseThumbnailCellWantsSubstitute(_ cell: CourseThumbnailCell) {
-        
+        guard let req = cell.requirement,
+            let user = req.currentUser,
+            let path = req.keyPath,
+            let substitutionVC = storyboard?.instantiateViewController(withIdentifier: "courseMultiSelect") as? CourseMultiSelectViewController else {
+            return
+        }
+        currentSubstitutingRequirement = req
+        substitutionVC.delegate = self
+        substitutionVC.currentUser = user
+        if let assertion = user.progressAssertion(for: path), let subs = assertion.substitutions, subs.count > 0 {
+            substitutionVC.selectedCourses = subs.compactMap({ CourseManager.shared.getCourse(withID: $0) })
+            // Make sure courses that aren't in the road right now are placed in the additional courses section
+            let allCourses = Set<Course>(user.allCourses)
+            substitutionVC.additionalCourses = substitutionVC.selectedCourses.filter({ !allCourses.contains($0) })
+        }
+        let nav = UINavigationController(rootViewController: substitutionVC)
+        let subs = user.progressAssertion(for: path)?.substitutions ?? []
+        substitutionVC.navigationItem.title = "Substitutions"
+        substitutionVC.doneButtonTitle = substitutionViewControllerDoneButtonTitle(from: subs)
+        substitutionVC.navigationItem.prompt = substitutionViewControllerPrompt(from: subs)
+        present(nav, animated: true, completion: nil)
     }
     
     func courseThumbnailCellWantsNoSubstitute(_ cell: CourseThumbnailCell) {
-        
+        guard let req = cell.requirement,
+            let user = req.currentUser,
+            let path = req.keyPath else {
+                return
+        }
+        user.setProgressAssertion(for: path, to: nil)
+        updateRequirementsStatus()
     }
     
     func courseThumbnailCellWantsIgnore(_ cell: CourseThumbnailCell) {
-        
+        guard let req = cell.requirement,
+            let user = req.currentUser,
+            let path = req.keyPath else {
+                return
+        }
+        var assertion = user.progressAssertion(for: path) ?? ProgressAssertion(substitutions: nil, ignore: false)
+        if !assertion.ignore {
+            assertion.ignore = true
+            user.setProgressAssertion(for: path, to: assertion)
+        } else {
+            user.setProgressAssertion(for: path, to: nil)
+        }
+        updateRequirementsStatus()
     }
     
-    // MARK: - Manual Progress
+    // MARK: - Substitutions
     
     func requirementsProgressUpdated(_ controller: RequirementsProgressController) {
         updateRequirementsStatus()
+    }
+    
+    func courseMultiSelectCanceled(_ controller: CourseMultiSelectViewController) {
+        dismiss(animated: true, completion: nil)
+        currentSubstitutingRequirement = nil
+    }
+    
+    func courseMultiSelect(_ controller: CourseMultiSelectViewController, finishedWith courses: [Course]) {
+        dismiss(animated: true, completion: nil)
+        guard let req = currentSubstitutingRequirement, let user = req.currentUser,
+            let path = req.keyPath else {
+                return
+        }
+        var assertion = user.progressAssertion(for: path) ?? ProgressAssertion(substitutions: nil, ignore: false)
+        if courses.count == 0 {
+            assertion.substitutions = nil
+        } else {
+            assertion.substitutions = courses.map { $0.subjectID! }
+        }
+        currentSubstitutingRequirement?.currentUser?.setProgressAssertion(for: path, to: assertion)
+        updateRequirementsStatus()
+        currentSubstitutingRequirement = nil
+    }
+    
+    func courseMultiSelect(_ controller: CourseMultiSelectViewController, selectionChanged courses: [Course]) {
+        let subs = courses.map({ $0.subjectID! })
+        controller.doneButtonTitle = substitutionViewControllerDoneButtonTitle(from: subs)
+        controller.navigationItem.prompt = substitutionViewControllerPrompt(from: subs)
     }
     
     // MARK: - Pop Down Table Menu

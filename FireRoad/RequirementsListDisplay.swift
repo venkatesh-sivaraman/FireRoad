@@ -55,22 +55,27 @@ extension RequirementsListDisplay {
         }
         
         courseListCell.delegate = self
-    }
-    
-    private func showMenu(from selectedCell: CourseThumbnailCell, for course: Course, with requirement: RequirementsListStatement) {
-        selectedCell.showsProgressAssertionItems = true
-        selectedCell.requirement = requirement
-        selectedCell.showsAddMenuItem = true
-        selectedCell.showsViewMenuItem = true
-        selectedCell.showsDeleteMenuItem = false
-        selectedCell.showsRateMenuItem = false
-        selectedCell.delegate = self
-        if UIMenuController.shared.isMenuVisible {
-            UIMenuController.shared.setMenuVisible(false, animated: false)
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            UIMenuController.shared.setTargetRect(selectedCell.bounds, in: selectedCell)
-            UIMenuController.shared.setMenuVisible(true, animated: true)
+        if allowsProgressAssertions {
+            let requirements = statement.requirements ?? [statement]
+            courseListCell.thumbnailCellCustomizer = { (cell, position) in
+                var showMenu = false
+                if let id = cell.course?.subjectID,
+                    let actualCourse = CourseManager.shared.getCourse(withID: id),
+                    actualCourse == cell.course {
+                    showMenu = true
+                } else if requirements[min(requirements.count, position)].isPlainString {
+                    showMenu = true
+                }
+                if showMenu {
+                    cell.showsProgressAssertionItems = true
+                    cell.requirement = requirements[min(requirements.count, position)]
+                    cell.showsAddMenuItem = true
+                    cell.showsViewMenuItem = true
+                    cell.showsDeleteMenuItem = false
+                    cell.showsRateMenuItem = false
+                    cell.delegate = self
+                }
+            }
         }
     }
     
@@ -82,20 +87,16 @@ extension RequirementsListDisplay {
         if let id = course.subjectID,
             let actualCourse = CourseManager.shared.getCourse(withID: id),
             actualCourse == course {
-            if allowsProgressAssertions, let requirement = requirement, let cell = selectedCell as? CourseThumbnailCell {
+            if allowsProgressAssertions {
                 // Show menu
-                let requirements = requirement.requirements ?? [requirement]
-                showMenu(from: cell, for: course, with: requirements[min(requirements.count, courseIndex)])
             } else {
                 viewDetails(for: course, from: selectedCell, showGenericDetails: false)
             }
         } else if let item = requirement {
             let requirements = item.requirements ?? [item]
             
-            if requirements[min(requirements.count, courseIndex)].isPlainString,
-                let cell = selectedCell as? CourseThumbnailCell {
+            if requirements[min(requirements.count, courseIndex)].isPlainString {
                 // Show context menu
-                showMenu(from: cell, for: course, with: requirements[min(requirements.count, courseIndex)])
             } else if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
                 // Configure a browser VC with the appropriate search term and filters to find this
                 // requirement (e.g. "GIR:PHY1" or "HASS-A" or "CI-H")

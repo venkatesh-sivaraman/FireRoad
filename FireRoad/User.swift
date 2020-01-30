@@ -389,7 +389,7 @@ class User: UserDocument {
         return progressAssertions[keyPath]
     }
     
-    func setProgressAssertion(for keyPath: String, to value: ProgressAssertion, save: Bool = true) {
+    func setProgressAssertion(for keyPath: String, to value: ProgressAssertion?, save: Bool = true) {
         progressAssertions[keyPath] = value
         if save {
             setNeedsSave()

@@ -18,7 +18,7 @@ enum MenuItemStrings {
     static let add = "Add"
     static let mark = "Mark"
     static let substitute = "Substitutions"
-    static let noSubstitute = "Remove Substitutions"
+    static let noSubstitute = "Reset"
     static let ignore = "Ignore"
     static let noIgnore = "Don't Ignore"
 }
