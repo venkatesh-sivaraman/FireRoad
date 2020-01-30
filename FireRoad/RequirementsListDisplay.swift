@@ -8,7 +8,9 @@
 
 import Foundation
 
-protocol RequirementsListDisplay: CourseListCellDelegate, CourseBrowserDelegate {
+protocol RequirementsListDisplay: CourseListCellDelegate, CourseBrowserDelegate, CourseThumbnailCellDelegate {
+    
+    var allowsProgressAssertions: Bool { get }
     
     func fillCourseListCell(_ courseListCell: CourseListTableCell, with statement: RequirementsListStatement)
     
@@ -55,6 +57,23 @@ extension RequirementsListDisplay {
         courseListCell.delegate = self
     }
     
+    private func showMenu(from selectedCell: CourseThumbnailCell, for course: Course, with requirement: RequirementsListStatement) {
+        selectedCell.showsProgressAssertionItems = true
+        selectedCell.requirement = requirement
+        selectedCell.showsAddMenuItem = true
+        selectedCell.showsViewMenuItem = true
+        selectedCell.showsDeleteMenuItem = false
+        selectedCell.showsRateMenuItem = false
+        selectedCell.delegate = self
+        if UIMenuController.shared.isMenuVisible {
+            UIMenuController.shared.setMenuVisible(false, animated: false)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            UIMenuController.shared.setTargetRect(selectedCell.bounds, in: selectedCell)
+            UIMenuController.shared.setMenuVisible(true, animated: true)
+        }
+    }
+    
     func handleCourseListCellSelection(_ tableCell: CourseListTableCell, of course: Course, with requirement: RequirementsListStatement?) {
         guard let courseIndex = tableCell.courses.index(of: course),
             let selectedCell = tableCell.collectionView.cellForItem(at: IndexPath(item: courseIndex, section: 0)) else {
@@ -63,14 +82,20 @@ extension RequirementsListDisplay {
         if let id = course.subjectID,
             let actualCourse = CourseManager.shared.getCourse(withID: id),
             actualCourse == course {
-            viewDetails(for: course, from: selectedCell, showGenericDetails: false)
+            if allowsProgressAssertions, let requirement = requirement, let cell = selectedCell as? CourseThumbnailCell {
+                // Show menu
+                let requirements = requirement.requirements ?? [requirement]
+                showMenu(from: cell, for: course, with: requirements[min(requirements.count, courseIndex)])
+            } else {
+                viewDetails(for: course, from: selectedCell, showGenericDetails: false)
+            }
         } else if let item = requirement {
             let requirements = item.requirements ?? [item]
             
-            if requirements[min(requirements.count, courseIndex)].isPlainString {
-                // Show the progress selector
-                showManualProgressViewController(for: requirements[min(requirements.count, courseIndex)], from: selectedCell)
-                
+            if requirements[min(requirements.count, courseIndex)].isPlainString,
+                let cell = selectedCell as? CourseThumbnailCell {
+                // Show context menu
+                showMenu(from: cell, for: course, with: requirements[min(requirements.count, courseIndex)])
             } else if let reqString = requirements[courseIndex].requirement?.replacingOccurrences(of: "GIR:", with: "") {
                 // Configure a browser VC with the appropriate search term and filters to find this
                 // requirement (e.g. "GIR:PHY1" or "HASS-A" or "CI-H")

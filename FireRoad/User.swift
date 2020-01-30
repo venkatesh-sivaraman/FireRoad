@@ -118,9 +118,12 @@ class User: UserDocument {
     var coursesOfStudy: [String] = []
     private var markers: [UserSemester: [Course: SubjectMarker]] = [:]
     
-    /// Dictionary from requirement key paths to manual progress override values
-    private var progressOverrides: [String: Int] = [:]
+    /// Dictionary from requirement key paths to progress assertions
+    private var progressAssertions: [String: ProgressAssertion] = [:]
     
+    /// Old-style dictionary from requirement key paths to manual progress override values (kept for backwards compatibility)
+    private var progressOverrides: [String: Int] = [:]
+
     var allCourses: [Course] {
         var ret: [Course] = []
         for (_, subjects) in selectedSubjects.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
@@ -382,12 +385,12 @@ class User: UserDocument {
     
     // MARK: - Requirement Overrides
     
-    func progressOverride(for keyPath: String) -> Int? {
-        return progressOverrides[keyPath]
+    func progressAssertion(for keyPath: String) -> ProgressAssertion? {
+        return progressAssertions[keyPath]
     }
     
-    func setProgressOverride(for keyPath: String, to value: Int, save: Bool = true) {
-        progressOverrides[keyPath] = value
+    func setProgressAssertion(for keyPath: String, to value: ProgressAssertion, save: Bool = true) {
+        progressAssertions[keyPath] = value
         if save {
             setNeedsSave()
         }
@@ -544,6 +547,7 @@ class User: UserDocument {
         static let units = "units"
         static let overrideWarnings = "overrideWarnings"
         static let marker = "marker"
+        static let progressAssertions = "progressAssertions"
     }
     
     override func setNeedsSave() {
@@ -583,6 +587,7 @@ class User: UserDocument {
         coursesOfStudy = courses
         selectedSubjects = [:]
         overrides = [:]
+        progressAssertions = [:]
         progressOverrides = [:]
         markers = [:]
         
@@ -629,20 +634,30 @@ class User: UserDocument {
             overrides[course] = override
         }
         
-        // Read requirement overrides
+        // Read progress assertions (new)
+        if let assertions = fileDict[RoadFile.progressAssertions] as? [String: Any] {
+            for (keyPath, val) in assertions {
+                guard let assertion = val as? [String: Any] else {
+                    continue
+                }
+                setProgressAssertion(for: keyPath, to: ProgressAssertion.fromJSON(assertion), save: false)
+            }
+        }
+        
+        // Read requirement overrides (old)
         if let reqOverrides = fileDict[RoadFile.progressOverrides] as? [String: Any] {
             for (keyPath, val) in reqOverrides {
                 guard let intVal = val as? Int else {
                     continue
                 }
-                setProgressOverride(for: keyPath, to: intVal, save: false)
+                progressOverrides[keyPath] = intVal
             }
         } else if progressOverrides.count == 0,
             let savedOverrides = CourseManager.shared.getAllProgressOverrides(),
             savedOverrides.count > 0 {
             print("Adding courses from saved defaults")
             for (keyPath, val) in savedOverrides {
-                setProgressOverride(for: keyPath, to: val, save: false)
+                progressOverrides[keyPath] = val
             }
         }
         needsSave = false
@@ -741,10 +756,16 @@ class User: UserDocument {
                 selectedSubjectsJSON.append(json)
             }
         }
+        var assertionsJSON: [String: Any] = [:]
+        for (keyPath, assertion) in progressAssertions {
+            assertionsJSON[keyPath] = assertion.toJSON()
+        }
+        
         let fileJSON: [String: Any] = [
             RoadFile.coursesOfStudy: coursesOfStudy,
             RoadFile.selectedSubjects: selectedSubjectsJSON,
-            RoadFile.progressOverrides: progressOverrides
+            RoadFile.progressOverrides: progressOverrides,
+            RoadFile.progressAssertions: assertionsJSON
         ]
         return fileJSON
     }

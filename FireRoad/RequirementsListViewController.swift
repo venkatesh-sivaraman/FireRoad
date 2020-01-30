@@ -54,6 +54,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     var presentationItems: [(title: String, statement: RequirementsListStatement, items: [PresentationItem])] = []
     
     var showsManualProgressControls: Bool = true
+    var allowsProgressAssertions: Bool { return true }
     
     static let fulfillmentIndicatorCornerRadius = CGFloat(6.0)
     
@@ -641,6 +642,35 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         return .none
     }
     
+    // MARK: - Course Thumbnail Cell Delegate
+    
+    func courseThumbnailCellWantsAdd(_ cell: CourseThumbnailCell) {
+        guard let course = cell.course else {
+            return
+        }
+        
+        showAddCoursePopDownMenu(for: course)
+    }
+    
+    func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell) {
+        guard let course = cell.course else {
+            return
+        }
+        viewDetails(for: course, from: cell, showGenericDetails: false)
+    }
+    
+    func courseThumbnailCellWantsSubstitute(_ cell: CourseThumbnailCell) {
+        
+    }
+    
+    func courseThumbnailCellWantsNoSubstitute(_ cell: CourseThumbnailCell) {
+        
+    }
+    
+    func courseThumbnailCellWantsIgnore(_ cell: CourseThumbnailCell) {
+        
+    }
+    
     // MARK: - Manual Progress
     
     func requirementsProgressUpdated(_ controller: RequirementsProgressController) {
@@ -653,17 +683,25 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
 
     @objc func longPressOnRequirementsCell(_ sender: UILongPressGestureRecognizer) {
         guard sender.state == .began,
-            let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
             let cell = sender.view as? CourseThumbnailCell,
             let id = cell.course?.subjectID,
             id.count > 0,
-            CourseManager.shared.getCourse(withID: id) != nil else {
+            let course = CourseManager.shared.getCourse(withID: id) else {
                 return
         }
+        showAddCoursePopDownMenu(for: course)
+    }
+    
+    func showAddCoursePopDownMenu(for course: Course) {
+        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
+            let id = course.subjectID else {
+                return
+        }
+
         navigationItem.rightBarButtonItem?.isEnabled = false
         popDownOldNavigationTitle = navigationItem.title
         navigationItem.title = "(\(id))"
-        popDown.course = cell.course
+        popDown.course = course
         popDown.delegate = self
         let containingView: UIView = self.view
         containingView.addSubview(popDown.view)

@@ -847,13 +847,25 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         user.evaluateRequirements(for: course)
     }
     
+    var allowsProgressAssertions: Bool { return false }
+    
     func showManualProgressViewController(for requirement: RequirementsListStatement, from cell: UICollectionViewCell) {
         // Do nothing - we don't want to show manual progress controls
     }
     
     func courseBrowserViewController() -> CourseBrowserViewController? {
         let browser = self.storyboard!.instantiateViewController(withIdentifier: RequirementsConstants.courseListVCIdentifier) as? CourseBrowserViewController
-        browser?.view.backgroundColor = UIColor.clear
+        let bgColor: UIColor
+        if displayStandardMode {
+            if #available(iOS 13.0, *) {
+                bgColor = .systemBackground
+            } else {
+                bgColor = .white
+            }
+        } else {
+            bgColor = .clear
+        }
+        browser?.view.backgroundColor = bgColor
         return browser
     }
     

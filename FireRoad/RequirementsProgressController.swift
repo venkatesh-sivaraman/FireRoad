@@ -35,7 +35,7 @@ class RequirementsProgressController: UIViewController {
     }
     
     @IBAction func sliderValueChanged(_ sender: UISlider) {
-        let oldValue = requirement?.manualProgress
+        /*let oldValue = requirement?.manualProgress
         guard let req = requirement, req.threshold != nil else {
             return
         }
@@ -43,21 +43,21 @@ class RequirementsProgressController: UIViewController {
         req.manualProgress = Int(round(sender.value / step) * step)
         if oldValue != requirement?.manualProgress {
             updateSliderAndLabel()
-        }
+        }*/
     }
     
     @IBAction func sliderEditFinished(_ sender: UISlider) {
-        guard let req = requirement, req.threshold != nil else {
+        /*guard let req = requirement, req.threshold != nil else {
             return
         }
         let step: Float = req.threshold!.criterion == .units ? 3.0 : 1.0
         req.manualProgress = Int(round(sender.value / step) * step)
         updateSliderAndLabel()
-        delegate?.requirementsProgressUpdated(self)
+        delegate?.requirementsProgressUpdated(self)*/
     }
     
     func updateSliderAndLabel() {
-        guard let req = requirement, req.threshold != nil else {
+        /*guard let req = requirement, req.threshold != nil else {
             return
         }
         
@@ -74,7 +74,7 @@ class RequirementsProgressController: UIViewController {
         
         slider.minimumValue = 0.0
         slider.maximumValue = Float(req.threshold!.cutoff)
-        slider.value = Float(req.manualProgress ?? 0)
+        slider.value = Float(req.manualProgress ?? 0)*/
     }
 
     /*

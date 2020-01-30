@@ -466,45 +466,67 @@ class RequirementsListStatement: NSObject {
     }
     
     /**
+     If the requirements status has been successfully computed using
+     a progress assertion, returns a non-nil set of courses representing
+     the set that satisfies this requirement. This set may be empty if
+     the requirement has been ignored. If no assertion is present, returns nil.
+     */
+    func computeAssertions(with courses: [Course]) -> Set<Course>? {
+        guard let assertion = progressAssertion else {
+            return nil
+        }
+        
+        if assertion.ignore {
+            self.isFulfilled = false
+            subjectFulfillmentProgress = (0, 0)
+            unitFulfillmentProgress = (0, 0)
+            fulfillmentProgress = (0, 0)
+            return Set<Course>()
+        } else if let subs = assertion.substitutions, subs.count > 0 {
+            var satisfiedCourses = Set<Course>()
+            var numSatisfied = 0
+            for sub in subs {
+                for course in courses {
+                    if course.satisfies(requirement: sub, allCourses: courses) {
+                        numSatisfied += 1
+                        satisfiedCourses.insert(course)
+                        break
+                    }
+                }
+            }
+            subjectFulfillmentProgress = (numSatisfied, subs.count)
+            self.isFulfilled = numSatisfied == subs.count
+            unitFulfillmentProgress = (numSatisfied * Threshold.defaultUnitCount, subs.count * Threshold.defaultUnitCount)
+            fulfillmentProgress = subjectFulfillmentProgress
+            return satisfiedCourses
+        }
+        
+        return nil
+    }
+    
+    /**
      - Parameter autoManual: whether to automatically count plain strings as fulfilled
      - Returns: The set of courses that satisfy this requirement.
      */
     @discardableResult func computeRequirementStatus(with courses: [Course]) -> Set<Course> {
+        // First check for progress assertions
+        if let satisfiedCourses = computeAssertions(with: courses) {
+            return satisfiedCourses
+        }
+        
         if requirement != nil {
             var satisfiedCourses = Set<Course>()
-            if isPlainString, let threshold = threshold,
-                let manual = manualProgress {
-                isFulfilled = manual == threshold.cutoff
-                var subjects = 0
-                var units = 0
-                if threshold.criterion == .units {
-                    units = manual
-                    subjects = manual / 12
-                } else {
-                    subjects = manual
-                    units = manual * 12
-                }
-                subjectFulfillmentProgress = ceilingThreshold((subjects, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
-                unitFulfillmentProgress = ceilingThreshold((units, threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
-
-                // Generate dummy courses to show that this requirement has been fulfilled
-                for _ in 0..<subjectFulfillmentProgress.0 {
-                    let id = arc4random() % UInt32(1e9)
-                    satisfiedCourses.insert(Course(courseID: "generatedCourse\(id)", courseTitle: "generatedCourse\(id)", courseDescription: ""))
-                }
+            let (whole, half) = coursesSatisfyingRequirement(in: courses)
+            satisfiedCourses = Set<Course>(whole + half)
+            if let threshold = threshold {
+                subjectFulfillmentProgress = ceilingThreshold((whole.count + half.count / 2, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
+                unitFulfillmentProgress = ceilingThreshold((satisfiedCourses.reduce(0, { $0 + $1.totalUnits }), threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
+                isFulfilled = number(subjectFulfillmentProgress.0, withUnits: unitFulfillmentProgress.0, satisfies: threshold)
             } else {
-                let (whole, half) = coursesSatisfyingRequirement(in: courses)
-                satisfiedCourses = Set<Course>(whole + half)
-                if let threshold = threshold {
-                    subjectFulfillmentProgress = ceilingThreshold((whole.count + half.count / 2, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
-                    unitFulfillmentProgress = ceilingThreshold((satisfiedCourses.reduce(0, { $0 + $1.totalUnits }), threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
-                    isFulfilled = number(subjectFulfillmentProgress.0, withUnits: unitFulfillmentProgress.0, satisfies: threshold)
-                } else {
-                    let progress = min(satisfiedCourses.count, 1)
-                    isFulfilled = satisfiedCourses.count > 0
-                    subjectFulfillmentProgress = ceilingThreshold((progress, 1))
-                    unitFulfillmentProgress = ceilingThreshold((satisfiedCourses.first?.totalUnits ?? 0, Threshold.defaultUnitCount))
-                }
+                let progress = min(satisfiedCourses.count, 1)
+                isFulfilled = satisfiedCourses.count > 0
+                subjectFulfillmentProgress = ceilingThreshold((progress, 1))
+                unitFulfillmentProgress = ceilingThreshold((satisfiedCourses.first?.totalUnits ?? 0, Threshold.defaultUnitCount))
             }
             fulfillmentProgress = (threshold != nil && threshold?.criterion == .units) ? unitFulfillmentProgress : subjectFulfillmentProgress
             return satisfiedCourses
@@ -649,7 +671,7 @@ class RequirementsListStatement: NSObject {
     }
     
     var rawPercentageFulfilled: Float {
-        if connectionType == .none, manualProgress == nil {
+        if connectionType == .none {
             return 0.0
         }
         let fulfilled = fulfillmentProgress
@@ -657,7 +679,7 @@ class RequirementsListStatement: NSObject {
     }
     
     var percentageFulfilled: Float {
-        if connectionType == .none, manualProgress == nil {
+        if connectionType == .none {
             return 0.0
         }
         let fulfilled = fulfillmentProgress
@@ -690,18 +712,12 @@ class RequirementsListStatement: NSObject {
         return parentPath + ".\(parent.requirements?.index(of: self) ?? 0)"
     }
     
-    var manualProgress: Int? {
-        get {
-            guard let path = keyPath else {
+    var progressAssertion: ProgressAssertion? {
+        guard let user = currentUser, let path = keyPath,
+            let assertion = user.progressAssertion(for: path) else {
                 return nil
-            }
-            return currentUser?.progressOverride(for: path)
-        } set {
-            guard let path = keyPath else {
-                return
-            }
-            currentUser?.setProgressOverride(for: path, to: newValue ?? 0)
         }
+        return assertion
     }
 }
 
