@@ -59,12 +59,14 @@ extension RequirementsListDisplay {
             let requirements = statement.requirements ?? [statement]
             courseListCell.thumbnailCellCustomizer = { (cell, position) in
                 var showMenu = false
+                var isPlainString = false
                 if let id = cell.course?.subjectID,
                     let actualCourse = CourseManager.shared.getCourse(withID: id),
                     actualCourse == cell.course {
                     showMenu = true
                 } else if requirements[min(requirements.count, position)].isPlainString {
                     showMenu = true
+                    isPlainString = true
                 }
                 if showMenu {
                     cell.showsProgressAssertionItems = true
@@ -86,8 +88,8 @@ extension RequirementsListDisplay {
                             }
                         }
                     }
-                    cell.showsAddMenuItem = true
-                    cell.showsViewMenuItem = true
+                    cell.showsAddMenuItem = !isPlainString
+                    cell.showsViewMenuItem = !isPlainString
                     cell.showsDeleteMenuItem = false
                     cell.showsRateMenuItem = false
                     cell.delegate = self

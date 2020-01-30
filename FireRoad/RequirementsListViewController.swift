@@ -660,15 +660,16 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         viewDetails(for: course, from: cell, showGenericDetails: false)
     }
     
-    private func substitutionViewControllerPrompt(from subs: [String]) -> String {
+    private func substitutionViewControllerPrompt(from subs: [Course]) -> String {
         if subs.count > 0 {
-            return "\(subs.count) subject\(subs.count != 1 ? "s" : "") selected."
+            let numUnits = subs.reduce(0, { $0 + $1.totalUnits })
+            return "\(subs.count) subject\(subs.count != 1 ? "s" : "") (\(numUnits) units) selected."
         } else {
             return "Choose subjects to substitute for \(currentSubstitutingRequirement?.shortDescription ?? "the requirement")."
         }
     }
     
-    private func substitutionViewControllerDoneButtonTitle(from subs: [String]) -> String {
+    private func substitutionViewControllerDoneButtonTitle(from subs: [Course]) -> String {
         if subs.count > 0 {
             return "Override"
         } else {
@@ -693,7 +694,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             substitutionVC.additionalCourses = substitutionVC.selectedCourses.filter({ !allCourses.contains($0) })
         }
         let nav = UINavigationController(rootViewController: substitutionVC)
-        let subs = user.progressAssertion(for: path)?.substitutions ?? []
+        let subs = substitutionVC.selectedCourses
         substitutionVC.navigationItem.title = "Substitutions"
         substitutionVC.doneButtonTitle = substitutionViewControllerDoneButtonTitle(from: subs)
         substitutionVC.navigationItem.prompt = substitutionViewControllerPrompt(from: subs)
@@ -755,9 +756,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func courseMultiSelect(_ controller: CourseMultiSelectViewController, selectionChanged courses: [Course]) {
-        let subs = courses.map({ $0.subjectID! })
-        controller.doneButtonTitle = substitutionViewControllerDoneButtonTitle(from: subs)
-        controller.navigationItem.prompt = substitutionViewControllerPrompt(from: subs)
+        controller.doneButtonTitle = substitutionViewControllerDoneButtonTitle(from: courses)
+        controller.navigationItem.prompt = substitutionViewControllerPrompt(from: courses)
     }
     
     // MARK: - Pop Down Table Menu
