@@ -780,7 +780,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         var components = DateComponents()
         if semester.season == CourseManager.SemesterSeason.spring {
             components.month = 2
-            components.weekday = 3
+            components.weekday = 2
             components.weekdayOrdinal = 1
         } else {
             components.month = 9
@@ -812,8 +812,8 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         var components = DateComponents()
         if semester.season == CourseManager.SemesterSeason.spring {
             components.month = 5
-            components.weekday = 5
-            components.weekdayOrdinal = 3
+            components.weekday = 4
+            components.weekdayOrdinal = 2
         } else {
             components.month = 9
             components.weekday = 4
