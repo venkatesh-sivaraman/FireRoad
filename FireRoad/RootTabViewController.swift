@@ -169,15 +169,9 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
                     hud.mode = .determinateHorizontalBar
                     hud.label.text = "Updating subject catalog…"
                     self.courseUpdatingHUD = hud
-                    var effect: UIBlurEffect
-                    if #available(iOS 13.0, *) {
-                        effect = UIBlurEffect(style: .systemMaterial)
-                    } else {
-                        effect = UIBlurEffect(style: .light)
-                    }
                     
                     UIView.animate(withDuration: 0.3, animations: {
-                        blur.effect = effect
+                        blur.effect = UIBlurEffect(style: .light)
                     })
                 case .noUpdatesAvailable:
                     if !CourseManager.shared.isLoaded {
@@ -229,7 +223,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         let ret = courseRoadVC.addCourse(course, to: semester)
         let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
         hud.mode = .customView
-        let imageView = UIImageView(image: UIImage(named: "Checkmark")?.withRenderingMode(.alwaysTemplate))
+        let imageView = UIImageView(image: UIImage(named: "Checkmark"))
         imageView.frame = CGRect(x: 0.0, y: 0.0, width: 72.0, height: 72.0)
         hud.customView = imageView
         hud.label.text = "Added \(course.subjectID!)"
@@ -333,27 +327,32 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         guard cloudSyncTimer == nil else {
             return
         }
-        CloudSyncManager.roadManager.syncAll { (success) in
-            print("Road syncing completed: \(success)")
-            if let recentName = CloudSyncManager.roadManager.recentlyModifiedDocumentName(),
-                self.currentUser == nil || self.currentUser!.allCourses.count == 0 {
-                DispatchQueue.main.async {
-                    self.loadCourseroad(named: recentName)
+        DispatchQueue.global().async {
+            while (!CourseManager.shared.isLoaded) {
+                usleep(100)
+            }
+            CloudSyncManager.roadManager.syncAll { (success) in
+                print("Road syncing completed: \(success)")
+                if let recentName = CloudSyncManager.roadManager.recentlyModifiedDocumentName(),
+                    self.currentUser == nil || self.currentUser!.allCourses.count == 0 {
+                    DispatchQueue.main.async {
+                        self.loadCourseroad(named: recentName)
+                    }
+                }
+                CloudSyncManager.scheduleManager.syncAll { (success) in
+                    print("Schedule syncing completed: \(success)")
                 }
             }
-            CloudSyncManager.scheduleManager.syncAll { (success) in
-                print("Schedule syncing completed: \(success)")
+            CourseManager.shared.syncPreferences()
+            
+            DispatchQueue.main.async {
+                self.cloudSyncTimer = Timer.scheduledTimer(timeInterval: CloudSyncInterval, target: self, selector: #selector(RootTabViewController.autosync), userInfo: nil, repeats: true)
             }
-        }
-        CourseManager.shared.syncPreferences()
-        
-        DispatchQueue.main.async {
-            self.cloudSyncTimer = Timer.scheduledTimer(timeInterval: CloudSyncInterval, target: self, selector: #selector(RootTabViewController.autosync), userInfo: nil, repeats: true)
         }
     }
     
     @objc func autosync() {
-        guard !cloudSyncPaused else {
+        guard !cloudSyncPaused, CourseManager.shared.isLoaded else {
             return
         }
         CloudSyncManager.roadManager.syncAll { (success) in
@@ -458,7 +457,6 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             auth.delegate = self
             auth.request = request
             let nav = UINavigationController(rootViewController: auth)
-            nav.modalPresentationStyle = .fullScreen
             self.present(nav, animated: true, completion: nil)
         }
     }
@@ -593,7 +591,6 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             return
         }
         intro.delegate = self
-        intro.modalPresentationStyle = .fullScreen
         present(intro, animated: true, completion: nil)
     }
     
