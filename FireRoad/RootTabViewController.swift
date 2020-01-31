@@ -54,6 +54,18 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
         
         NotificationCenter.default.addObserver(self, selector: #selector(RootTabViewController.courseManagerLoggedOut(_:)), name: .CourseManagerLoggedOut, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(RootTabViewController.courseManagerLoggedIn(_:)), name: .CourseManagerLoggedIn, object: nil)
+        
+        AppSettings.shared.addAllowsRecommendationCallback({ [weak self] newValue in
+            guard let `self` = self else {
+                return
+            }
+            if let val = newValue, val {
+                self.cloudSyncPaused = false
+                self.setupCloudSync()
+            } else {
+                self.cloudSyncPaused = true
+            }
+        }, for: self)
     }
     
     var showingIntro = false
@@ -92,6 +104,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     }
     
     deinit {
+        AppSettings.shared.removeAllowsRecommendationCallback(for: self)
         if cloudSyncTimer?.isValid == true {
             cloudSyncTimer?.invalidate()
         }
