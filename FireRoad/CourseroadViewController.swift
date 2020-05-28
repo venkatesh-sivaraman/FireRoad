@@ -97,7 +97,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         layout.itemSize = itemSize
         //layout.estimatedItemSize = CGSize(width: 116.0, height: 94.0)
         let top: CGFloat = 84.0 + (collection.horizontalSizeClass == .regular && collection.verticalSizeClass == .regular ? 44.0 : 0.0)
-        collectionView.contentInset = UIEdgeInsets(top: top, left: 0.0, bottom: 0.0, right: 0.0)
+        let bottom: CGFloat = collection.horizontalSizeClass == .regular ? 0.0 : 44.0
+        collectionView.contentInset = UIEdgeInsets(top: top, left: 0.0, bottom: bottom, right: 0.0)
     }
     
     @objc func handleLongGesture(gesture: UILongPressGestureRecognizer) {
@@ -330,28 +331,31 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     // MARK: - Collection View
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return UserSemester.allSemesters.count
+        guard let user = self.currentUser else {
+            return 0
+        }
+        return user.allSemesters.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if self.currentUser == nil {
+        guard let user = currentUser else {
             return 0
         }
-        if self.currentUser!.courses(forSemester: UserSemester(rawValue: section)!).count == 0 {
-            return 1
-        }
-        return self.currentUser!.courses(forSemester: UserSemester(rawValue: section)!).count
+        let semester = user.allSemesters[section]
+        return max(user.courses(forSemester: semester).count, 1)
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CourseCell", for: indexPath) as! CourseThumbnailCell
-        if (self.currentUser?.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count ?? 0) <= indexPath.item {
+        if let user = currentUser,
+            user.courses(forSemester: user.allSemesters[indexPath.section]).count <= indexPath.item {
             cell.alpha = 0.0
             if #available(iOS 13.0, *) {
                 cell.backgroundColor = .systemBackground
             } else {
                 cell.backgroundColor = .white
             }
+            cell.marker = nil
             cell.shadowEnabled = false
             cell.textLabel?.text = ""
             cell.detailTextLabel?.text = ""
@@ -363,7 +367,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         cell.shadowEnabled = true
         cell.delegate = self
-        let semester = UserSemester(rawValue: indexPath.section)!
+        let semester = self.currentUser!.allSemesters[indexPath.section]
         let course = self.currentUser!.courses(forSemester: semester)[indexPath.item]
         cell.course = course
         cell.generateMarkerImageView()
@@ -404,7 +408,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     var indexPathOfMovedCell: IndexPath?
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if self.currentUser?.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
+        if let user = currentUser,
+            user.courses(forSemester: user.allSemesters[indexPath.section]).count == 0 {
             cell.alpha = 0.0
             cell.layer.opacity = 0.0
         } else {
@@ -438,16 +443,21 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SemesterHeader", for: indexPath)
+        var view: UICollectionReusableView
         if kind == UICollectionElementKindSectionHeader {
+            view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SemesterHeader", for: indexPath)
             initializeSectionHeaderView(view, for: indexPath)
+        } else {
+            view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "YearModifier", for: indexPath)
+            updateYearModifier(view)
         }
         return view
     }
     
     func initializeSectionHeaderView(_ view: UIView, for indexPath: IndexPath) {
-        if let titleView = view.viewWithTag(10) as? UILabel {
-            titleView.text = UserSemester(rawValue: indexPath.section)?.toString()
+        if let titleView = view.viewWithTag(10) as? UILabel,
+            let user = currentUser {
+            titleView.text = user.allSemesters[indexPath.section].description
         }
         if let button = view.viewWithTag(20) as? UIButton {
             button.setImage(UIImage(named: "ellipsis")?.withRenderingMode(.alwaysTemplate), for: .normal)
@@ -455,17 +465,32 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             button.addTarget(self, action: #selector(showActionMenuForSection(_:)), for: .touchUpInside)
         }
         if let unitsLabel = view.viewWithTag(30) as? UILabel,
-            let semester = UserSemester(rawValue: indexPath.section),
-            let semesterCourses = currentUser?.courses(forSemester: semester) {
+            let user = currentUser {
+            
+            let semesterCourses = user.courses(forSemester: user.allSemesters[indexPath.section])
+            let semester = user.allSemesters[indexPath.section]
             let totalUnits = semesterCourses.reduce(0, { $0 + $1.totalUnits })
             var unitsText = "\(totalUnits) units"
             var totalHours: Float = 0.0
-            if semester != .PreviousCredit, CourseManager.shared.isLoaded {
+            if !semester.isPriorCredit, CourseManager.shared.isLoaded {
                 totalHours = semesterCourses.reduce(0.0, { $0 + ($1.inClassHours + $1.outOfClassHours) / ($1.quarterOffered != .wholeSemester ? 2.0 : 1.0) })
                 unitsText += " • " + String(format: "%.1f hours", totalHours)
             }
             unitsLabel.text = unitsText
             unitsLabel.isHidden = (totalUnits == 0 && totalHours == 0.0)
+        }
+    }
+    
+    func updateYearModifier(_ view: UIView) {
+        guard let removeYearButton = view.viewWithTag(2) as? UIButton,
+            let user = currentUser else {
+                return
+        }
+        // Check if the user has classes in the last year
+        if user.numYears <= 4 {
+            removeYearButton.isEnabled = false
+        } else {
+            removeYearButton.isEnabled = true
         }
     }
     
@@ -481,6 +506,13 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         return CGSize(width: collectionView.frame.size.width, height: 38.0)
     }
     
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+        if section == (currentUser?.allSemesters.count ?? 1) - 1 {
+            return CGSize(width: collectionView.frame.size.width, height: 86.0)
+        }
+        return .zero
+    }
+    
     var itemSize: CGSize {
         let scaleFactor = CGSize(width: traitCollection.userInterfaceIdiom == .pad ? 1.0 : 0.88, height: traitCollection.userInterfaceIdiom == .pad ? 1.0 : 0.88)
         if isSmallLayoutMode {
@@ -494,29 +526,33 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     }
         
     func collectionView(_ collectionView: UICollectionView, canMoveItemAt indexPath: IndexPath) -> Bool {
-        if self.currentUser?.courses(forSemester: UserSemester(rawValue: indexPath.section)!).count == 0 {
+        if let semester = currentUser?.allSemesters[indexPath.section],
+            currentUser?.courses(forSemester: semester).count == 0 {
             return false
         }
         return true
     }
     
     func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        let originalSemester = UserSemester(rawValue: sourceIndexPath.section)!
-        let destSemester = UserSemester(rawValue: destinationIndexPath.section)!
-        let course = self.currentUser!.courses(forSemester: originalSemester)[sourceIndexPath.item]
+        guard let user = currentUser else {
+            return
+        }
+        let originalSemester = user.allSemesters[sourceIndexPath.section]
+        let destSemester = user.allSemesters[destinationIndexPath.section]
+        let course = user.courses(forSemester: originalSemester)[sourceIndexPath.item]
         if destinationIndexPath != sourceIndexPath {
             indexPathOfMovedCell = destinationIndexPath
         }
-        if originalSemester != destSemester && self.currentUser!.courses(forSemester: destSemester).contains(course) {
+        if originalSemester != destSemester && user.courses(forSemester: destSemester).contains(course) {
             // Don't allow
             self.reloadCollectionView()
         } else {
             self.collectionView.performBatchUpdates({
-                if self.currentUser!.courses(forSemester: UserSemester(rawValue: destinationIndexPath.section)!).count == 0 {
+                if self.currentUser!.courses(forSemester: destSemester).count == 0 {
                     self.collectionView.deleteItems(at: [IndexPath(item: destinationIndexPath.item == 0 ? 1 : 0, section: destinationIndexPath.section)])
                 }
                 self.currentUser!.move(course, fromSemester: originalSemester, toSemester: destSemester, atIndex: destinationIndexPath.item)
-                if self.currentUser!.courses(forSemester: UserSemester(rawValue: sourceIndexPath.section)!).count == 0 {
+                if self.currentUser!.courses(forSemester: originalSemester).count == 0 {
                     self.collectionView.insertItems(at: [IndexPath(item: 0, section: sourceIndexPath.section)])
                 }
             }, completion: { _ in
@@ -552,10 +588,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
 
     func courseThumbnailCellWantsViewDetails(_ cell: CourseThumbnailCell) {
         guard let user = currentUser,
-            let indexPath = collectionView.indexPath(for: cell),
-            let semester = UserSemester(rawValue: indexPath.section) else {
+            let indexPath = collectionView.indexPath(for: cell) else {
                 return
         }
+        let semester = user.allSemesters[indexPath.section]
         let courses = user.courses(forSemester: semester)
         guard indexPath.item < courses.count else {
             return
@@ -565,10 +601,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func courseThumbnailCellWantsEdit(_ cell: CourseThumbnailCell) {
         guard let user = currentUser,
-            let indexPath = collectionView.indexPath(for: cell),
-            let semester = UserSemester(rawValue: indexPath.section) else {
+            let indexPath = collectionView.indexPath(for: cell) else {
                 return
         }
+        let semester = user.allSemesters[indexPath.section]
         let courses = user.courses(forSemester: semester)
         guard indexPath.item < courses.count,
             courses[indexPath.item].creator != nil else {
@@ -589,10 +625,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func courseThumbnailCellWantsDelete(_ cell: CourseThumbnailCell) {
         guard let user = currentUser,
-            let indexPath = collectionView.indexPath(for: cell),
-            let semester = UserSemester(rawValue: indexPath.section) else {
+            let indexPath = collectionView.indexPath(for: cell) else {
                 return
         }
+        let semester = user.allSemesters[indexPath.section]
         let course = user.courses(forSemester: semester)[indexPath.item]
         deleteCourse(course, from: semester)
     }
@@ -616,10 +652,10 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     func courseThumbnailCellWantsMark(_ cell: CourseThumbnailCell) {
         guard let user = currentUser,
             let course = cell.course,
-            let indexPath = collectionView.indexPath(for: cell),
-            let semester = UserSemester(rawValue: indexPath.section) else {
+            let indexPath = collectionView.indexPath(for: cell) else {
                 return
         }
+        let semester = user.allSemesters[indexPath.section]
         let marker = user.subjectMarker(for: course, in: semester)
         let tableMenu = TableMenuViewController()
         tableMenu.items = [TableMenuItem(identifier: "none", title: "None")] + SubjectMarker.allMarkers.map({ TableMenuItem(identifier: $0.rawValue, title: $0.readableName(), image: UIImage(named: $0.imageName())) })
@@ -657,15 +693,15 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         
         guard tappedSection != -1,
-            let semester = UserSemester(rawValue: tappedSection),
             let tabVC = rootParent as? RootTabViewController else {
             return
         }
+        let semester = user.allSemesters[tappedSection]
         
         let actionMenu = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let courses = user.courses(forSemester: semester)
         actionMenu.addAction(UIAlertAction(title: "View Schedule", style: .default, handler: { (action) in
-            tabVC.displaySchedule(with: courses, name: semester.toString())
+            tabVC.displaySchedule(with: courses, name: semester.description)
         }))
         actionMenu.addAction(UIAlertAction(title: "Add Custom Activity", style: .default, handler: { (action) in
             self.showCustomCourseMenu(from: semester)
@@ -688,41 +724,44 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     // MARK: - Model Interaction
         
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
-        guard currentUser != nil else {
+        guard let user = currentUser else {
             return nil
         }
         var selectedSemester: UserSemester? = semester
         if selectedSemester == nil {
-            for sem in UserSemester.allEnrolledSemesters {
+            for sem in user.enrolledSemesters {
                 selectedSemester = sem
-                if self.currentUser!.courses(forSemester: sem).contains(course) {
+                if user.courses(forSemester: sem).contains(course) {
                     break
                 }
-                if self.currentUser!.courses(forSemester: sem).count >= 4 {
+                if user.courses(forSemester: sem).count >= 4 {
                     continue
                 }
-                if (sem.isFall() && course.isOfferedFall) ||
-                    (sem.isSpring() && course.isOfferedSpring) ||
-                    (sem.isIAP() && course.isOfferedIAP) {
+                if let season = sem.season,
+                    (season == .fall && course.isOfferedFall) ||
+                        (season == .spring && course.isOfferedSpring) ||
+                        (season == .iap && course.isOfferedIAP) ||
+                        (season == .summer && course.isOfferedSummer) {
                     break
                 }
             }
         }
-        if selectedSemester != nil {
-            if !self.currentUser!.courses(forSemester: selectedSemester!).contains(course) {
+        if let selectedSemester = selectedSemester {
+            if !user.courses(forSemester: selectedSemester).contains(course) {
                 let reloadWholeView = (currentUser == nil || currentUser?.allCourses.count == 0)
-                self.currentUser?.add(course, toSemester: selectedSemester!)
+                user.add(course, toSemester: selectedSemester)
                 if self.isViewLoaded {
                     if reloadWholeView {
                         self.collectionView.reloadData()
-                    } else {
-                        self.collectionView.reloadSections(IndexSet(integer: selectedSemester!.rawValue))
+                    } else if let index = user.allSemesters.index(of: selectedSemester) {
+                        self.collectionView.reloadSections(IndexSet(integer: index))
                     }
                 }
             }
             if self.isViewLoaded,
-                let courseItem = self.currentUser?.courses(forSemester: selectedSemester!).index(of: course) {
-                self.collectionView.scrollToItem(at: IndexPath(item: courseItem, section: selectedSemester!.rawValue), at: .centeredVertically, animated: true)
+                let courseItem = self.currentUser?.courses(forSemester: selectedSemester).index(of: course),
+                let sectionIndex = user.allSemesters.index(of: selectedSemester) {
+                self.collectionView.scrollToItem(at: IndexPath(item: courseItem, section: sectionIndex), at: .centeredVertically, animated: true)
             }
         }
         self.panelView?.collapseView(to: self.panelView!.collapseHeight)
@@ -732,11 +771,12 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func deleteCourse(_ course: Course, from semester: UserSemester) {
         guard let user = currentUser,
+            let sectionIndex = user.allSemesters.index(of: semester),
             let item = user.courses(forSemester: semester).index(of: course) else {
                 return
         }
         print("Current user is \(user)")
-        let indexPath = IndexPath(item: item, section: semester.rawValue)
+        let indexPath = IndexPath(item: item, section: sectionIndex)
         user.delete(course, fromSemester: semester)
         if let cell = collectionView.cellForItem(at: indexPath) {
             let blurView = UIVisualEffectView(frame: cell.convert(cell.bounds, to: collectionView))
@@ -774,8 +814,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         for indexPath in collectionView.indexPathsForVisibleItems {
             guard let cell = collectionView.cellForItem(at: indexPath) as? CourseThumbnailCell,
-                let semester = UserSemester(rawValue: indexPath.section),
-                let courses = self.currentUser?.courses(forSemester: semester),
+                let semester = currentUser?.allSemesters[indexPath.section],
+                let courses = currentUser?.courses(forSemester: semester),
                 indexPath.item < courses.count else {
                     continue
             }
@@ -803,6 +843,15 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             }
             initializeSectionHeaderView(view, for: indexPath)
         }
+        
+        // Update footer
+        for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: UICollectionElementKindSectionFooter) {
+            guard let view = collectionView.supplementaryView(forElementKind: UICollectionElementKindSectionFooter, at: indexPath) else {
+                continue
+            }
+            updateYearModifier(view)
+        }
+
     }
     
     // MARK: - View
@@ -829,6 +878,45 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         collectionView.collectionViewLayout.invalidateLayout()
         updateLayoutToggleButton()
+    }
+    
+    // MARK: - Modifying Number of Years
+    
+    @IBAction func addYearButtonPressed(_ sender: AnyObject) {
+        guard let user = currentUser else {
+            return
+        }
+        user.updateNumYears(user.numYears + 1)
+        collectionView.reloadData()
+    }
+    
+    @IBAction func removeYearButtonPressed(_ sender: AnyObject) {
+        guard let user = currentUser else {
+            return
+        }
+        let coursesInYear = user.courses(inYear: user.numYears)
+        if coursesInYear.count > 0 {
+            let subjectDesc = coursesInYear.count == 1 ? "1 subject" : "\(coursesInYear.count) subjects"
+            let alert = UIAlertController(title: nil, message: "This will delete \(subjectDesc) in \(UserSemester.descriptionForYear(user.numYears)).", preferredStyle: .actionSheet)
+            alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { ac in
+                for semester in user.allSemesters.filter({ $0.year == user.numYears }) {
+                    for course in user.courses(forSemester: semester) {
+                        user.delete(course, fromSemester: semester)
+                    }
+                }
+                user.updateNumYears(user.numYears - 1, allowReducingYears: true)
+                UIView.transition(with: self.collectionView, duration: 0.2, options: .transitionCrossDissolve, animations: {
+                    self.reloadCollectionView()
+                }, completion: nil)
+            }))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            alert.show()
+        } else {
+            user.updateNumYears(user.numYears - 1, allowReducingYears: true)
+            UIView.transition(with: self.collectionView, duration: 0.2, options: .transitionCrossDissolve, animations: {
+                self.reloadCollectionView()
+            }, completion: nil)
+        }
     }
     
     // MARK: - Loading Different Roads
@@ -1074,7 +1162,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             var warnings: [(Course, [User.CourseWarning], Bool)] = []
             // Make sure there aren't duplicate sets of warnings in the warnings list
             var addedCourses: [Course: Int] = [:]
-            for semester in UserSemester.allEnrolledSemesters {
+            for semester in user.enrolledSemesters {
                 let courses = user.courses(forSemester: semester)
                 for course in courses {
                     let courseWarnings = user.warningsForCourse(course, in: semester)

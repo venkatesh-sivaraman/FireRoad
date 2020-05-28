@@ -34,7 +34,8 @@ struct SearchOptions: OptionSet {
     static let offeredFall = SearchOptions(rawValue: 1 << 14)
     static let offeredSpring = SearchOptions(rawValue: 1 << 15)
     static let offeredIAP = SearchOptions(rawValue: 1 << 16)
-    private static let allOfferedFilters: SearchOptions = [.offeredAnySemester, .offeredFall, .offeredSpring, .offeredIAP]
+    static let offeredSummer = SearchOptions(rawValue: 1 << 37)
+    private static let allOfferedFilters: SearchOptions = [.offeredAnySemester, .offeredFall, .offeredSpring, .offeredIAP, .offeredSummer]
     
     static let noLevelFilter = SearchOptions(rawValue: 1 << 27)
     static let undergradOnly = SearchOptions(rawValue: 1 << 28)
@@ -220,6 +221,8 @@ class CourseSearchEngine: NSObject {
         } else if options.contains(.offeredSpring), course.isOfferedSpring {
             fulfillsOffered = true
         } else if options.contains(.offeredIAP), course.isOfferedIAP {
+            fulfillsOffered = true
+        } else if options.contains(.offeredSummer), course.isOfferedSummer {
             fulfillsOffered = true
         }
         

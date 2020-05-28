@@ -66,6 +66,7 @@
 		96AC5F14200B125700D80839 /* KeychainItemWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AC5F13200B125700D80839 /* KeychainItemWrapper.swift */; };
 		96AC5F1A200D1F5500D80839 /* CourseSearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AC5F19200D1F5500D80839 /* CourseSearchEngine.swift */; };
 		96ACBD312027C299007B4618 /* test.reql in Resources */ = {isa = PBXBuildFile; fileRef = 96ACBD302027C299007B4618 /* test.reql */; };
+		96AD567324523CF100FADF59 /* UserSemester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AD567224523CF100FADF59 /* UserSemester.swift */; };
 		96BBE77521C57C550078D71D /* RequirementsConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96BBE77421C57C550078D71D /* RequirementsConstants.swift */; };
 		96C4202921F50AF400603F9D /* CourseCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C4202821F50AF400603F9D /* CourseCollectionViewController.swift */; };
 		96C4202B21F50FA600603F9D /* CustomCoursesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C4202A21F50FA600603F9D /* CustomCoursesViewController.swift */; };
@@ -171,6 +172,7 @@
 		96AC5F19200D1F5500D80839 /* CourseSearchEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseSearchEngine.swift; sourceTree = "<group>"; };
 		96ACBD302027C299007B4618 /* test.reql */ = {isa = PBXFileReference; lastKnownFileType = text; path = test.reql; sourceTree = "<group>"; };
 		96ACBD322029066B007B4618 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
+		96AD567224523CF100FADF59 /* UserSemester.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSemester.swift; sourceTree = "<group>"; };
 		96BBE77421C57C550078D71D /* RequirementsConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsConstants.swift; sourceTree = "<group>"; };
 		96C4202821F50AF400603F9D /* CourseCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseCollectionViewController.swift; sourceTree = "<group>"; };
 		96C4202A21F50FA600603F9D /* CustomCoursesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCoursesViewController.swift; sourceTree = "<group>"; };
@@ -261,6 +263,7 @@
 				9646CFF41EB922C3005F87CB /* Course.swift */,
 				962C9768201BF0FC0046C13D /* UserDocument.swift */,
 				9646CFF81EB92525005F87CB /* User.swift */,
+				96AD567224523CF100FADF59 /* UserSemester.swift */,
 				96AA1BB421FC216600544C64 /* SubjectMarker.swift */,
 				962DAD651F89A6180011D96F /* RootTabViewController.swift */,
 				960A1F091FDA21A500C53E43 /* CourseDisplayManager.swift */,
@@ -588,6 +591,7 @@
 				9617256323E2833B00735741 /* CourseMultiSelectViewController.swift in Sources */,
 				96DF60E120002492006F1C6A /* RatingView.swift in Sources */,
 				96AC5F1A200D1F5500D80839 /* CourseSearchEngine.swift in Sources */,
+				96AD567324523CF100FADF59 /* UserSemester.swift in Sources */,
 				96897B181EC8F5500011E572 /* CourseListCell.swift in Sources */,
 				96C4202D21F51F9B00603F9D /* CustomCourseEditViewController.swift in Sources */,
 				96C776A11FDF411600157F2D /* WebpageViewController.swift in Sources */,

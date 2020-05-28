@@ -214,12 +214,14 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     @objc func addCourseButtonPressed(sender: AnyObject) {
         //self.delegate?.courseDetails(added: self.course!)
         if showsSemesterDialog {
-            guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
-                print("No pop down table menu in storyboard!")
-                return
+            guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
+                let rootTab = rootParent as? RootTabViewController else {
+                    print("No pop down table menu in storyboard!")
+                    return
             }
             navigationItem.rightBarButtonItem?.isEnabled = false
             popDown.course = self.course
+            popDown.currentUser = rootTab.currentUser
             popDown.delegate = self
             let containingView: UIView = self.view
             containingView.addSubview(popDown.view)
@@ -806,7 +808,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             showsSemesterDialog,
             let cell = sender.view as? CourseThumbnailCell,
             let id = cell.course?.subjectID,
-            CourseManager.shared.getCourse(withID: id) != nil else {
+            CourseManager.shared.getCourse(withID: id) != nil,
+            let rootTab = rootParent as? RootTabViewController else {
             return
         }
         guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
@@ -817,6 +820,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         popDownOldNavigationTitle = navigationItem.title
         navigationItem.title = "(\(id))"
         popDown.course = cell.course
+        popDown.currentUser = rootTab.currentUser
         popDown.delegate = self
         let containingView: UIView = self.view
         containingView.addSubview(popDown.view)

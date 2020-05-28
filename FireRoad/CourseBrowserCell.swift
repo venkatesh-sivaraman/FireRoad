@@ -103,7 +103,7 @@ class CourseBrowserCell: UITableViewCell {
     @IBAction func addCourseButtonPressed(sender: UIButton) {
         if self.course != nil {
             if let semester = self.delegate?.browserCell(added: self.course!) {
-                self.addLabel?.text = "Added to \(semester.toString().lowercased())"
+                self.addLabel?.text = "Added to \(semester.description.lowercased())"
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: { 
                     self.addLabel?.text = ""
                 })

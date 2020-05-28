@@ -156,7 +156,8 @@ class AppSettings: NSObject {
             }
             return UserDefaults.standard.integer(forKey: userCurrentSemesterDefaultsKey)
         } set {
-            if newValue != userCurrentSemester, let sem = UserSemester(rawValue: newValue) {
+            if newValue != userCurrentSemester {
+                let sem = UserSemester(oldValue: newValue)
                 CourseManager.shared.updateUserSemester(sem)
             }
             UserDefaults.standard.set(newValue, forKey: userCurrentSemesterDefaultsKey)
@@ -229,7 +230,7 @@ class AppSettings: NSObject {
         ]}
     
     func yearSettingsItem(with title: String, yearNumber: Int) -> AppSettingsItem {
-        return AppSettingsItem(title: title, type: .checkmark, getter: { UserSemester(rawValue: self.userCurrentSemester)?.yearNumber() == yearNumber }, setter: { newValue in
+        return AppSettingsItem(title: title, type: .checkmark, getter: { UserSemester(oldValue: self.userCurrentSemester).year == yearNumber }, setter: { newValue in
             if (newValue as? Bool) == true {
                 self.userCurrentSemester = CourseManager.shared.inferSemester(from: yearNumber)
             }

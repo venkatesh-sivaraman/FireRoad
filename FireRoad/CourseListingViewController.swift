@@ -453,10 +453,12 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
             let cell = sender.view as? UICollectionViewCell,
             let indexPath = collectionView?.indexPath(for: cell),
             courses[indexPath.item].subjectID != nil,
+            let rootTab = rootParent as? RootTabViewController,
             let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
                 return
         }
         popDown.course = (searchCourses ?? courses)[indexPath.item]
+        popDown.currentUser = rootTab.currentUser
         popDown.delegate = self
         let containingView: UIView = self.view
         containingView.addSubview(popDown.view)

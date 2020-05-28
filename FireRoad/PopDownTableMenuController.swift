@@ -23,6 +23,8 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     var course: Course?
     weak var delegate: PopDownTableMenuDelegate?
     
+    var currentUser: User?
+    
     @IBOutlet var topConstraint: NSLayoutConstraint?
     @IBOutlet var heightConstraint: NSLayoutConstraint?
     
@@ -32,25 +34,26 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
     static let buttonCellIdentifier = "ButtonCell"
     
     // If changing number of headings, the height of the pop down menu may need to be changed in the storyboard
-    let headings = [
+    var headings = [
         "Favorites",
         "Schedule",
-        "Prior Credit",
-        "1st Year",
-        "2nd Year",
-        "3rd Year",
-        "4th Year",
-        "5th Year"
+        "Prior Credit"
     ]
     
     func semester(forButtonAt indexPath: IndexPath, tag: Int) -> UserSemester? {
-        return UserSemester(rawValue: (indexPath.row - 3) * 3 + tag)
+        return UserSemester(season: Season.values[tag - 1], year: indexPath.row - 2)
     }
     
     let cellHeight: CGFloat = 60.0
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Update headings based on semesters present in document
+        if let user = currentUser {
+            headings += (1...user.numYears).map { UserSemester.descriptionForYear($0) }
+        }
+        
         if let height = heightConstraint {
             height.constant = CGFloat(headings.count) * cellHeight
             topConstraint?.constant = -height.constant
@@ -96,7 +99,7 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
                     imageView.image = UIImage(named: "prior-credit")?.withRenderingMode(.alwaysTemplate)
                     if let rootTab = rootParent as? RootTabViewController,
                         let currentCourse = course,
-                        rootTab.currentUser?.courses(forSemester: .PreviousCredit).contains(currentCourse) == true {
+                        rootTab.currentUser?.courses(forSemester: UserSemester.priorCredit()).contains(currentCourse) == true {
                         label.text = "Added to Prior Credit"
                         label.alpha = 0.3
                         imageView.alpha = 0.3
@@ -136,6 +139,9 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
                 case 3:
                     button.alpha = ((course?.isOfferedSpring == true) && !semesterContainsCourse) ? 1.0 : 0.3
                     button.setTitle("Spring", for: .normal)
+                case 4:
+                    button.alpha = ((course?.isOfferedSummer == true) && !semesterContainsCourse) ? 1.0 : 0.3
+                    button.setTitle("Summer", for: .normal)
                 default:
                     button.isEnabled = false
                 }
@@ -158,9 +164,9 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
             delegate?.popDownTableMenu(self, addedCourseToSchedule: course)
         } else if indexPath.row == 2 {
             if let rootTab = rootParent as? RootTabViewController,
-                rootTab.currentUser?.courses(forSemester: .PreviousCredit).contains(course) == true {
+                rootTab.currentUser?.courses(forSemester: UserSemester.priorCredit()).contains(course) == true {
             } else {
-                delegate?.popDownTableMenu(self, addedCourse: course, to: .PreviousCredit)
+                delegate?.popDownTableMenu(self, addedCourse: course, to: UserSemester.priorCredit())
             }
         }
     }
