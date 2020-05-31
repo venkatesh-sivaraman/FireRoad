@@ -528,7 +528,7 @@ class User: UserDocument {
         markers = [:]
         
         // Build semester list
-        updateNumYears((fileDict[RoadFile.numYears] as? Int) ?? 4)
+        updateNumYears((fileDict[RoadFile.numYears] as? Int) ?? 5)
         
         for subjectJSON in selectedSubjectsList {
             guard let subjectID = (subjectJSON[RoadFile.subjectID] ?? subjectJSON[RoadFile.subjectIDAlt]) as? String,

@@ -113,7 +113,12 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: PopDownTableMenuController.buttonCellIdentifier, for: indexPath)
         if let textLabel = cell.viewWithTag(12) as? UILabel {
-            textLabel.text = headings[indexPath.row]
+            var heading = headings[indexPath.row]
+            if tableView.frame.size.width <= 350.0,
+                let space = heading.index(of: " ") {
+                heading = String(heading[heading.startIndex..<space])
+            }
+            textLabel.text = heading
         }
         cell.selectionStyle = .none
         for view in cell.contentView.subviews {
@@ -145,6 +150,8 @@ class PopDownTableMenuController: UIViewController, UITableViewDataSource, UITab
                 default:
                     button.isEnabled = false
                 }
+                button.titleLabel?.minimumScaleFactor = 0.7
+                button.titleLabel?.adjustsFontSizeToFitWidth = true
                 
                 if semesterContainsCourse {
                     button.setTitle("Added", for: .normal)

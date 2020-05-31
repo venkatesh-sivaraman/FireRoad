@@ -106,11 +106,12 @@ class UserSemester: NSObject, Comparable {
             return 0
         }
         
+        // For semesters that weren't present in the old version of FireRoad, return Prior Credit
         guard let year = year, let season = season,
-            season != .summer else {
+            season != .summer, year <= 5 else {
                 return 0
         }
-        return year * 3 + season.rawValue - 2;
+        return year * 3 + season.rawValue - 2
     }
     
     static func < (lhs: UserSemester, rhs: UserSemester) -> Bool {
