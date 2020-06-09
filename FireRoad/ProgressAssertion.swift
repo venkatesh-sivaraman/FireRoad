@@ -19,9 +19,11 @@ import Foundation
 struct ProgressAssertion {
     var substitutions: [String]?
     var ignore: Bool
+    var override = 0
     
     static let substitutionsKey = "substitutions"
     static let ignoreKey = "ignore"
+    static let overrideKey = "override"
     
     func toJSON() -> [String: Any] {
         var result: [String: Any] = [:]
@@ -31,12 +33,16 @@ struct ProgressAssertion {
         if ignore {
             result[ProgressAssertion.ignoreKey] = ignore
         }
+        if override > 0 {
+            result[ProgressAssertion.overrideKey] = override
+        }
         return result
     }
     
     static func fromJSON(_ json: [String: Any]) -> ProgressAssertion {
         let courses = json[ProgressAssertion.substitutionsKey] as? [String]
         let ignore = (json[ProgressAssertion.ignoreKey] as? Bool) ?? false
-        return ProgressAssertion(substitutions: courses, ignore: ignore)
+        let override = (json[ProgressAssertion.overrideKey] as? Int) ?? 0
+        return ProgressAssertion(substitutions: courses, ignore: ignore, override: override)
     }
 }

@@ -50,6 +50,7 @@
 		96500EB11F7C91C500872F82 /* CoreSpotlight.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB01F7C91C400872F82 /* CoreSpotlight.framework */; };
 		96500EB31F7C91CA00872F82 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */; };
 		9659E38B1F89A93F00E55FA2 /* UIViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */; };
+		965F0D71248FE9C700D2DEA2 /* RequirementsProgressController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F0D70248FE9C700D2DEA2 /* RequirementsProgressController.swift */; };
 		965F31C01EBCC6440052C659 /* CourseBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */; };
 		9664153621C42C0500823768 /* RequirementsListDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9664153521C42C0500823768 /* RequirementsListDisplay.swift */; };
 		9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 9669C7C71F90628300E60D89 /* MBProgressHUD.m */; };
@@ -153,6 +154,7 @@
 		96500EB01F7C91C400872F82 /* CoreSpotlight.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreSpotlight.framework; path = System/Library/Frameworks/CoreSpotlight.framework; sourceTree = SDKROOT; };
 		96500EB21F7C91CA00872F82 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		9659E38A1F89A93F00E55FA2 /* UIViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtension.swift; sourceTree = "<group>"; };
+		965F0D70248FE9C700D2DEA2 /* RequirementsProgressController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsProgressController.swift; sourceTree = "<group>"; };
 		965F31BF1EBCC6440052C659 /* CourseBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CourseBrowserViewController.swift; sourceTree = "<group>"; };
 		9664153521C42C0500823768 /* RequirementsListDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequirementsListDisplay.swift; sourceTree = "<group>"; };
 		9669C7C71F90628300E60D89 /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
@@ -394,6 +396,7 @@
 				96C4202C21F51F9B00603F9D /* CustomCourseEditViewController.swift */,
 				96AA1BB621FC253C00544C64 /* TableMenuViewController.swift */,
 				9617256223E2833B00735741 /* CourseMultiSelectViewController.swift */,
+				965F0D70248FE9C700D2DEA2 /* RequirementsProgressController.swift */,
 			);
 			name = "Useful View Controllers";
 			sourceTree = "<group>";
@@ -594,6 +597,7 @@
 				9669C7C91F90628400E60D89 /* MBProgressHUD.m in Sources */,
 				96500EAE1F7A056400872F82 /* RoundedToolbarView.swift in Sources */,
 				96DF60DB1FFBF5DB006F1C6A /* DocumentBrowseViewController.swift in Sources */,
+				965F0D71248FE9C700D2DEA2 /* RequirementsProgressController.swift in Sources */,
 				96C4202B21F50FA600603F9D /* CustomCoursesViewController.swift in Sources */,
 				96D055251FB80B6700BD18A8 /* CourseFilterViewController.swift in Sources */,
 				9626B6EA1F815917009F6F96 /* RequirementsList.swift in Sources */,

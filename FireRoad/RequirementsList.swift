@@ -476,7 +476,32 @@ class RequirementsListStatement: NSObject {
             return nil
         }
         
-        if assertion.ignore {
+        if assertion.override != 0, isPlainString, let threshold = threshold {
+            // Plain-string requirements can be substituted with a list of courses that will
+            // be used to satisfy the requirement. Use the provided threshold as a denominator
+            // in this case.
+            var subjects = 0
+            var units = 0
+            if threshold.criterion == .units {
+                units = assertion.override
+                subjects = assertion.override / Threshold.defaultUnitCount
+            } else {
+                subjects = assertion.override
+                units = assertion.override * Threshold.defaultUnitCount
+            }
+            subjectFulfillmentProgress = ceilingThreshold((subjects, threshold.cutoff / (threshold.criterion == .units ? Threshold.defaultUnitCount : 1)))
+            unitFulfillmentProgress = ceilingThreshold((units, threshold.cutoff * (threshold.criterion == .subjects ? Threshold.defaultUnitCount : 1)))
+            fulfillmentProgress = threshold.criterion == .units ? unitFulfillmentProgress : subjectFulfillmentProgress
+            isFulfilled = fulfillmentProgress.0 == fulfillmentProgress.1
+            
+            // Generate dummy courses to show that this requirement has been fulfilled
+            var satisfiedCourses = Set<Course>()
+            for _ in 0..<subjectFulfillmentProgress.0 {
+                let id = arc4random() % UInt32(1e9)
+                satisfiedCourses.insert(Course(courseID: "generatedCourse\(id)", courseTitle: "generatedCourse\(id)", courseDescription: ""))
+            }
+            return satisfiedCourses
+        } else if assertion.ignore {
             self.isFulfilled = false
             subjectFulfillmentProgress = (0, 0)
             unitFulfillmentProgress = (0, 0)
@@ -734,7 +759,7 @@ class RequirementsListStatement: NSObject {
             let assertion = user.progressAssertion(for: path) else {
                 return nil
         }
-        if (assertion.substitutions == nil || assertion.substitutions?.count == 0), !assertion.ignore {
+        if (assertion.substitutions == nil || assertion.substitutions?.count == 0), !assertion.ignore, assertion.override == 0 {
             return nil
         }
         return assertion
