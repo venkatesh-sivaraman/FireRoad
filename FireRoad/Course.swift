@@ -428,7 +428,10 @@ enum CourseAttribute: String {
     
     case sourceSemester
     case isHistorical
+    
+    case virtualStatus
 
+    
     static let csvHeaders: [String: CourseAttribute] = [
         "Subject Id": .subjectID,
         "Subject Title": .subjectTitle,
@@ -480,7 +483,8 @@ enum CourseAttribute: String {
         "Historical": .isHistorical,
         "Parent": .parent,
         "Children": .children,
-        "Half Class": .isHalfClass
+        "Half Class": .isHalfClass,
+        "Virtual Status": .virtualStatus
     ]
 
     static let jsonKeys: [String: CourseAttribute] = [
@@ -530,7 +534,8 @@ enum CourseAttribute: String {
         "is_historical": .isHistorical,
         "parent": .parent,
         "children": .children,
-        "is_half_class": .isHalfClass
+        "is_half_class": .isHalfClass,
+        "virtual_status": .virtualStatus
     ]
 
     init?(csvHeader: String) {
@@ -763,7 +768,8 @@ class Course: NSObject {
     @objc dynamic var isPublic: Bool = true
     /// If non-null, indicates that this is a custom course
     @objc dynamic var creator: String?
-    
+    @objc dynamic var virtualStatus: String?
+
     static let genericCourses: [String: Course] = {
         var ret: [String: Course] = [:]
         let genericDesc = "Use this generic subject to indicate that you are fulfilling a requirement, but do not yet have a specific subject selected."
@@ -944,6 +950,10 @@ class Course: NSObject {
             case .customColor:
                 if let string = value as? String {
                     self.customColor = string
+                }
+            case .virtualStatus:
+                if let string = value as? String {
+                    self.virtualStatus = string
                 }
             default:
                 if let string = value as? String {
