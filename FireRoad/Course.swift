@@ -371,6 +371,12 @@ enum CourseLevel: String {
     case graduate = "G"
 }
 
+//enum CourseVirtualStatus: String {
+//    case virtual = "Virtual"
+//    case hybrid = "Virtual/In-Person"
+//    case inperson = "In-Person"
+//}
+
 // MARK: - Course Attributes
 
 enum CourseAttribute: String {
@@ -570,6 +576,7 @@ class Course: NSObject {
     @objc dynamic var subjectTitle: String? = nil
     @objc dynamic var subjectShortTitle: String? = nil
     var subjectLevel: CourseLevel? = nil
+   // var virtualStatus: CourseVirtualStatus? = nil
     @objc dynamic var subjectDescription: String? = nil
     var subjectCode: String? {
         if let subject = subjectID,

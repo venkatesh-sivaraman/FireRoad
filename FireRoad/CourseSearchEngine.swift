@@ -41,6 +41,11 @@ struct SearchOptions: OptionSet {
     static let graduateOnly = SearchOptions(rawValue: 1 << 29)
     private static let allLevelFilters: SearchOptions = [.noLevelFilter, .undergradOnly, .graduateOnly]
 
+    static let noVirtualFilter = SearchOptions(rawValue: 1 << 37)
+    static let offeredVirtual = SearchOptions(rawValue: 1 << 38)
+    static let offeredInPerson = SearchOptions(rawValue: 1 << 39)
+    private static let allVirtualFilters : SearchOptions = [.noVirtualFilter, .offeredVirtual, .offeredInPerson]
+    
     static let containsSearchTerm = SearchOptions(rawValue: 1 << 17)
     static let matchesSearchTerm = SearchOptions(rawValue: 1 << 18)
     static let startsWithSearchTerm = SearchOptions(rawValue: 1 << 19)
@@ -78,6 +83,7 @@ struct SearchOptions: OptionSet {
         .noHASSFilter,
         .noCIFilter,
         .noLevelFilter,
+        .noVirtualFilter,
         .offeredAnySemester,
         .containsSearchTerm,
         .searchAllFields,
@@ -232,7 +238,16 @@ class CourseSearchEngine: NSObject {
             fulfillsLevel = true
         }
         
-        return fulfillsGIR && fulfillsHASS && fulfillsCI && fulfillsOffered && fulfillsLevel
+        var fulfillsVirtual = false
+        if options.contains(.noVirtualFilter) {
+            fulfillsVirtual = true
+        } else if options.contains(.offeredVirtual), course.virtualStatus == "Virtual" || course.virtualStatus == "Virtual/In-Person" {
+            fulfillsVirtual = true
+        } else if options.contains(.offeredInPerson), course.virtualStatus == "In-Person" {
+            fulfillsVirtual = true
+        }
+        
+        return fulfillsGIR && fulfillsHASS && fulfillsCI && fulfillsOffered && fulfillsLevel && fulfillsVirtual
     }
     
     private func courseSchedule(_ courseSched: [String: [[CourseScheduleItem]]], satisfies schedule: [ScheduleMask], options: SearchOptions) -> Bool {

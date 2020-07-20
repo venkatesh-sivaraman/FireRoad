@@ -664,6 +664,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         case .virtualStatus:
             textLabel?.text = "Attendance"
             detailTextLabel?.text = self.course!.virtualStatus
+        
         case .schedule:
             textLabel?.text = ""
             detailTextLabel?.text = ""
