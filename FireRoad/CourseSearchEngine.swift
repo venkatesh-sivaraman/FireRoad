@@ -241,9 +241,16 @@ class CourseSearchEngine: NSObject {
         var fulfillsVirtual = false
         if options.contains(.noVirtualFilter) {
             fulfillsVirtual = true
-        } else if options.contains(.offeredVirtual), course.virtualStatus == "Virtual" || course.virtualStatus == "Virtual/In-Person" {
-            fulfillsVirtual = true
-        } else if options.contains(.offeredInPerson), course.virtualStatus == "In-Person" {
+        } else if options.contains(.offeredVirtual) {
+            if course.virtualStatus == "Virtual" || course.virtualStatus == "Virtual/In-Person" {
+                fulfillsVirtual = true
+            }
+        } else if options.contains(.offeredInPerson) {
+            if course.virtualStatus == "In-Person" {
+                fulfillsVirtual = true
+            }
+        } else {
+            // Default - don't filter by virtual
             fulfillsVirtual = true
         }
         
