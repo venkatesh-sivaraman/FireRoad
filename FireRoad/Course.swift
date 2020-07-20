@@ -371,11 +371,11 @@ enum CourseLevel: String {
     case graduate = "G"
 }
 
-//enum CourseVirtualStatus: String {
-//    case virtual = "Virtual"
-//    case hybrid = "Virtual/In-Person"
-//    case inperson = "In-Person"
-//}
+enum CourseVirtualStatus: String {
+    case virtual = "Virtual"
+    case hybrid = "Virtual/In-Person"
+    case inperson = "In-Person"
+}
 
 // MARK: - Course Attributes
 
@@ -775,7 +775,7 @@ class Course: NSObject {
     @objc dynamic var isPublic: Bool = true
     /// If non-null, indicates that this is a custom course
     @objc dynamic var creator: String?
-    @objc dynamic var virtualStatus: String?
+    var virtualStatus: CourseVirtualStatus?
 
     static let genericCourses: [String: Course] = {
         var ret: [String: Course] = [:]
@@ -959,9 +959,12 @@ class Course: NSObject {
                     self.customColor = string
                 }
             case .virtualStatus:
-                if let string = value as? String {
-                    self.virtualStatus = string
+                if let pattern = CourseVirtualStatus(rawValue: ((value as? String) ?? "")) {
+                    self.virtualStatus = pattern
                 }
+//                if let string = value as? String {
+//                    self.virtualStatus = string
+//                }
             default:
                 if let string = value as? String {
                     super.setValue(string.replacingOccurrences(of: "\\n", with: "\n"), forKey: key)

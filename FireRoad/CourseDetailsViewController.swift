@@ -663,7 +663,14 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             detailTextLabel?.text = seasons.joined(separator: ", ") + quarterString + offeredString
         case .virtualStatus:
             textLabel?.text = "Attendance"
-            detailTextLabel?.text = self.course!.virtualStatus
+            if self.course!.virtualStatus == .hybrid {
+                detailTextLabel?.text = CourseVirtualStatus.hybrid.rawValue
+            } else if self.course!.virtualStatus == .virtual {
+                detailTextLabel?.text = CourseVirtualStatus.virtual.rawValue
+            } else if self.course!.virtualStatus == .inperson {
+                detailTextLabel?.text = CourseVirtualStatus.virtual.rawValue
+            }
+            //detailTextLabel?.text = self.course!.virtualStatus.rawValue
         
         case .schedule:
             textLabel?.text = ""

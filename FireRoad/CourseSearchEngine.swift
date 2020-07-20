@@ -242,11 +242,11 @@ class CourseSearchEngine: NSObject {
         if options.contains(.noVirtualFilter) {
             fulfillsVirtual = true
         } else if options.contains(.offeredVirtual) {
-            if course.virtualStatus == "Virtual" || course.virtualStatus == "Virtual/In-Person" {
+            if course.virtualStatus == .virtual  {
                 fulfillsVirtual = true
             }
         } else if options.contains(.offeredInPerson) {
-            if course.virtualStatus == "In-Person" {
+            if course.virtualStatus == .inperson || course.virtualStatus == .hybrid {
                 fulfillsVirtual = true
             }
         } else {
