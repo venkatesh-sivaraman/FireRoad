@@ -186,7 +186,9 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
             thumbnail.isUserInteractionEnabled = false
         }
         if let label = cell.viewWithTag(12) as? UILabel {
-            label.text = (course.subjectTitle ?? "") + (course.subjectLevel == .graduate ? " (G)" : "")
+            label.text = (course.subjectTitle ?? "")
+                + (course.subjectLevel == .graduate ? " (G)" : "")
+               
         }
         if let infoLabel = cell.viewWithTag(34) as? UILabel {
             var seasons: [String] = []
