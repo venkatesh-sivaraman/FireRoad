@@ -63,10 +63,8 @@ class CourseBrowserCell: UITableViewCell {
             updateTitle()
             
             self.descriptionLabel.text = course?.subjectTitle
-            if course?.virtualStatus == .hybrid  {
-                self.descriptionLabel.text = "(In-Person Optional) " +  self.descriptionLabel.text!
-            } else if course?.virtualStatus == .inperson {
-                self.descriptionLabel.text = "(In-Person Required) " +  self.descriptionLabel.text!
+            if course?.virtualStatus == .hybrid ||  course?.virtualStatus == .inperson  {
+                self.descriptionLabel.text = "(In-Person Available) " +  self.descriptionLabel.text!
             }
            
             self.addLabel?.text = ""
