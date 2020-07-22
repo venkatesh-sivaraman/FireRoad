@@ -39,6 +39,16 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Number", .sortByNumber)],
                         tintColor: nil,
         firstOptionOverridesOthers: false),
+        
+        FilterTableItem(type: .segmentedControl,
+                title: "Attendance",
+                items: [
+                    ("Any", .noVirtualFilter),
+                    ("Virtual", .offeredVirtual),
+                    ("In-Person", .offeredInPerson)],
+                tintColor: nil,
+                firstOptionOverridesOthers: false),
+        
         FilterTableItem(type: .segmentedControl,
                         title: "Offered",
                         items: [
@@ -48,6 +58,8 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("IAP", .offeredIAP)],
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
+        
+        
         FilterTableItem(type: .segmentedControl,
                         title: "Schedule Conflicts",
                         items: [
@@ -92,6 +104,8 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Grad", .graduateOnly)],
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
+        
+
     ]
     
     let buttonCellIdentifier = "ButtonCell"

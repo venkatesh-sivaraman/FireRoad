@@ -24,6 +24,7 @@ enum CourseDetailItem {
     case instructors
     case requirements
     case offered
+    case virtualStatus
     case related
     case equivalent
     case joint
@@ -312,25 +313,40 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         
         mapping[IndexPath(row: rowIndex, section: 0)] = .description
         rowIndex += 1
+        
         mapping[IndexPath(row: rowIndex, section: 0)] = .units
         rowIndex += 1
         
-        if course!.enrollmentNumber > 0 {
-            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .enrollment
-            rowIndex += 1
-        }
+
         if course!.communicationRequirement != nil ||
             course!.girAttribute != nil ||
             course?.hassAttribute?.count != 0 {
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .requirements
             rowIndex += 1
         }
+
+        //offered
+        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
+        rowIndex += 1
+        
+        //attendance
+        if course!.virtualStatus != nil {
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .virtualStatus
+            rowIndex += 1
+        }
+
+        //instructors
         if course!.instructors.count > 0 {
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .instructors
             rowIndex += 1
         }
-        mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
-        rowIndex += 1
+        
+        //average enrollment
+        if course!.enrollmentNumber > 0 {
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .enrollment
+            rowIndex += 1
+        }
+        
         if !course!.isGeneric {
             if course!.rating > 0.0 {
                 rowIndex = 0
@@ -459,7 +475,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "TitleCell"
         case .description:
             id = "DescriptionCell"
-        case .units, .instructors, .requirements, .offered, .schedule, .enrollment, .evalRating, .evalHours:
+        case .units, .instructors, .virtualStatus, .requirements, .offered, .schedule, .enrollment, .evalRating, .evalHours:
             id = "MetadataCell"
         case .related, .equivalent, .joint, .prerequisites, .corequisites:
             id = "CourseListCell"
@@ -645,6 +661,12 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 }
             }
             detailTextLabel?.text = seasons.joined(separator: ", ") + quarterString + offeredString
+        case .virtualStatus:
+            textLabel?.text = "Attendance"
+            if let virtualStatus = self.course?.virtualStatus {
+                 detailTextLabel?.text = virtualStatus.rawValue
+            }
+            
         case .schedule:
             textLabel?.text = ""
             detailTextLabel?.text = ""

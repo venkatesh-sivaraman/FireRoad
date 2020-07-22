@@ -55,7 +55,13 @@ class CourseBrowserCell: UITableViewCell {
     var course: Course? = nil {
         didSet {
             updateTitle()
-            self.descriptionLabel.text = course?.subjectTitle
+            
+            var descriptionText = course?.subjectTitle ?? ""
+            if course?.virtualStatus == .hybrid ||  course?.virtualStatus == .inperson  {
+                descriptionText = "(In-Person Available) " + descriptionText
+            }
+            self.descriptionLabel.text = descriptionText
+           
             self.addLabel?.text = ""
             if self.course != nil {
                 self.colorCoder?.backgroundColor = CourseManager.shared.color(forCourse: course!)
