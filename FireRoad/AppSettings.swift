@@ -45,7 +45,7 @@ class AppSettings: NSObject {
     static var shared: AppSettings = AppSettings()
     
     private let versionUpdateDefaultsKey = "AppSettings.versionUpdate"
-    private let recentAlert: (version: Int, message: String)? = (1, "∙ Tap the pencil icon to add custom activities\n∙ Mark subjects as easy, hard, listener, and more")
+    private let recentAlert: (version: Int, message: String)? = (2, "∙ Enter substitutions (a.k.a. petitions) for your majors and minors in the Requirements tab\n∙ Sort search results by rating, hours, or course number")
     
     func versionUpdateMessage() -> String? {
         if allowsRecommendations == nil {
@@ -89,6 +89,16 @@ class AppSettings: NSObject {
     }
     
     private let allowsRecommendationsDefaultsKey = "CourseManager.allowsRecommendations"
+    private var allowsRecommendationsCallbacks: [AnyHashable: [(Bool?) -> Void]] = [:]
+    func addAllowsRecommendationCallback(_ callback: @escaping (Bool?) -> Void, for observer: AnyHashable) {
+        if allowsRecommendationsCallbacks[observer] == nil {
+            allowsRecommendationsCallbacks[observer] = []
+        }
+        allowsRecommendationsCallbacks[observer]?.append(callback)
+    }
+    func removeAllowsRecommendationCallback(for observer: AnyHashable) {
+        allowsRecommendationsCallbacks.removeValue(forKey: observer)
+    }
     
     private var _allowsRecommendations: Bool?
     var allowsRecommendations: Bool? {
@@ -105,12 +115,20 @@ class AppSettings: NSObject {
             }
             return _allowsRecommendations
         } set {
+            let oldValue = _allowsRecommendations
             if let newValue = newValue {
                 UserDefaults.standard.set(newValue ? 2 : 1, forKey: allowsRecommendationsDefaultsKey)
                 _allowsRecommendations = newValue
             } else {
                 UserDefaults.standard.set(0, forKey: allowsRecommendationsDefaultsKey)
                 _allowsRecommendations = newValue
+            }
+            if _allowsRecommendations != oldValue {
+                for (_, callbacks) in allowsRecommendationsCallbacks {
+                    for callback in callbacks {
+                        callback(_allowsRecommendations)
+                    }
+                }
             }
         }
     }
@@ -195,9 +213,9 @@ class AppSettings: NSObject {
                 self.yearSettingsItem(with: "5th Year", yearNumber: 5)
                 ], header: "Class Year", footer: "Choose your current or upcoming school year.", reloadOnSelect: true),
             AppSettingsGroup(items: [
-                AppSettingsItem(title: "Created by Venkatesh Sivaraman. Course evaluation data courtesy of Edward Fan; additional major/minor requirements contributed by Tanya Smith, Maia Hannahs, and Cindy Shi. In-app icons courtesy of icons8.com.\n\nAll subject descriptions, evaluations, and course requirements © Massachusetts Institute of Technology. FireRoad is not intended to be your sole source of course information - please be sure to check your department's website to make sure you have the most up-to-date information.", type: .readOnlyText, getter: nil, setter: nil),
+                AppSettingsItem(title: "Created by Venkatesh Sivaraman. Additional contributors: Kathryn Jin, Shushu Fang. Course evaluation data courtesy of Edward Fan; additional major/minor requirements contributed by Tanya Smith, Maia Hannahs, and Cindy Shi. In-app icons courtesy of icons8.com.\n\nAll subject descriptions, evaluations, and course requirements © Massachusetts Institute of Technology. FireRoad is not intended to be your sole source of course information - please be sure to check your department's website to make sure you have the most up-to-date information.", type: .readOnlyText, getter: nil, setter: nil),
                 AppSettingsItem(title: "Send Feedback", type: .button, getter: nil, setter: { _ in
-                    guard let url = URL(string: "mailto:base12apps@gmail.com?subject=FireRoad%20Feedback") else {
+                    guard let url = URL(string: "mailto:fireroad-dev@mit.edu?subject=FireRoad%20Feedback") else {
                         return
                     }
                     UIApplication.shared.open(url, options: [:], completionHandler: nil)

@@ -9,13 +9,25 @@
 import Foundation
 
 public extension UIAlertController {
+    
+    private static var globalPresentationWindow: UIWindow?
+    
     func show() {
-        let win = UIWindow(frame: UIScreen.main.bounds)
-        let vc = UIViewController()
-        vc.view.backgroundColor = .clear
-        win.rootViewController = vc
-        win.windowLevel = UIWindowLevelAlert + 1
-        win.makeKeyAndVisible()
-        vc.present(self, animated: true, completion: nil)
+        DispatchQueue.main.async {
+            let win = UIWindow(frame: UIScreen.main.bounds)
+            let vc = UIViewController()
+            vc.view.backgroundColor = .clear
+            win.rootViewController = vc
+            win.windowLevel = UIWindowLevelAlert + 1
+            win.makeKeyAndVisible()
+            vc.present(self, animated: true, completion: nil)
+            UIAlertController.globalPresentationWindow = win
+        }
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        UIAlertController.globalPresentationWindow?.isHidden = true
+        UIAlertController.globalPresentationWindow = nil
     }
 }
