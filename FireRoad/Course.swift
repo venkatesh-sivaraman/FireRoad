@@ -576,7 +576,7 @@ class Course: NSObject {
     @objc dynamic var subjectTitle: String? = nil
     @objc dynamic var subjectShortTitle: String? = nil
     var subjectLevel: CourseLevel? = nil
-   // var virtualStatus: CourseVirtualStatus? = nil
+
     @objc dynamic var subjectDescription: String? = nil
     var subjectCode: String? {
         if let subject = subjectID,
@@ -962,9 +962,6 @@ class Course: NSObject {
                 if let pattern = CourseVirtualStatus(rawValue: ((value as? String) ?? "")) {
                     self.virtualStatus = pattern
                 }
-//                if let string = value as? String {
-//                    self.virtualStatus = string
-//                }
             default:
                 if let string = value as? String {
                     super.setValue(string.replacingOccurrences(of: "\\n", with: "\n"), forKey: key)

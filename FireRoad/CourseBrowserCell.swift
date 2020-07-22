@@ -34,12 +34,6 @@ class CourseBrowserCell: UITableViewCell {
             title = "⚠︎ " + title
         }
         
-//        if course?.virtualStatus == .hybrid  {
-//            title += " (In-Person Optional)"
-//        } else if course?.virtualStatus == .inperson {
-//            title += " (In-Person Required)"
-//        }
-//
         if self.sort == .rating {
             if course?.rating == 0.0 {
                 title += " (no rating available)"
@@ -62,10 +56,11 @@ class CourseBrowserCell: UITableViewCell {
         didSet {
             updateTitle()
             
-            self.descriptionLabel.text = course?.subjectTitle
+            var descriptionText = course?.subjectTitle ?? ""
             if course?.virtualStatus == .hybrid ||  course?.virtualStatus == .inperson  {
-                self.descriptionLabel.text = "(In-Person Available) " +  self.descriptionLabel.text!
+                descriptionText = "(In-Person Available) " + descriptionText
             }
+            self.descriptionLabel.text = descriptionText
            
             self.addLabel?.text = ""
             if self.course != nil {
