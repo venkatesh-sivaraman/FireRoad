@@ -429,11 +429,11 @@ class CourseSearchEngine: NSObject {
                     relevance *= log(Float(max(2, course.enrollmentNumber)))
                 }
                 
-                if isNumericSearchTerm && searchTerm.contains(".") {
+                if isNumericSearchTerm, searchTerm.contains("."), options.contains(.searchID) {
                     if course.subjectID?.localizedStandardRange(of: searchTerm)?.contains(String.Index(encodedOffset: 0)) ?? false {
                         newResults[course] = relevance
                     }
-                } else if isNumericSearchTerm {
+                } else if isNumericSearchTerm, options.contains(.searchID) {
                     if course.subjectID?.localizedStandardContains(searchTerm) ?? false {
                         newResults[course] = relevance
                     }

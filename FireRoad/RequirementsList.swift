@@ -710,7 +710,9 @@ class RequirementsListStatement: NSObject {
     
     var requiredCourses: Set<Course> {
         if let req = requirement {
-            if let course = CourseManager.shared.getCourse(withID: req) {
+            // Use generic courses to indicate GIR requirements
+            let noGIRReq = req.replacingOccurrences(of: "GIR:", with: "")
+            if let course = CourseManager.shared.getCourse(withID: req) ?? Course.genericCourses[noGIRReq] {
                 return Set<Course>([course])
             }
         } else if let reqs = requirements {
