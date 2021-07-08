@@ -47,7 +47,9 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
             UIMenuItem(title: MenuItemStrings.substitute, action: #selector(CourseThumbnailCell.substitute(_:))),
             UIMenuItem(title: MenuItemStrings.noSubstitute, action: #selector(CourseThumbnailCell.noSubstitute(_:))),
             UIMenuItem(title: MenuItemStrings.ignore, action: #selector(CourseThumbnailCell.ignore(_:))),
-            UIMenuItem(title: MenuItemStrings.noIgnore, action: #selector(CourseThumbnailCell.noIgnore(_:)))
+            UIMenuItem(title: MenuItemStrings.noIgnore, action: #selector(CourseThumbnailCell.noIgnore(_:))),
+            UIMenuItem(title: MenuItemStrings.override, action: #selector(CourseThumbnailCell.override(_:))),
+            UIMenuItem(title: MenuItemStrings.noOverride, action: #selector(CourseThumbnailCell.noOverride(_:)))
         ]
         
         CloudSyncManager.roadManager.delegate = self

@@ -21,4 +21,6 @@ enum MenuItemStrings {
     static let noSubstitute = "Reset"
     static let ignore = "Ignore"
     static let noIgnore = "Don't Ignore"
+    static let override = "Override"
+    static let noOverride = "Reset"
 }

@@ -23,7 +23,7 @@ protocol RequirementsListViewControllerDelegate: class {
     func requirementsListViewControllerUpdatedFavorites(_ vc: RequirementsListViewController)
 }
 
-class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, RequirementsListDisplay, CourseDetailsDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider, CourseMultiSelectDelegate {
+class RequirementsListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISplitViewControllerDelegate, RequirementsListDisplay, CourseDetailsDelegate, UIPopoverPresentationControllerDelegate, PopDownTableMenuDelegate, CourseViewControllerProvider, CourseMultiSelectDelegate, RequirementsProgressDelegate {
 
     struct PresentationItem {
         var cellType: RequirementsListCellType
@@ -722,6 +722,23 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         }
     }
     
+    func courseThumbnailCellWantsOverride(_ cell: CourseThumbnailCell) {
+        guard let req = cell.requirement else {
+            return
+        }
+        showManualProgressViewController(for: req, from: cell)
+    }
+    
+    func courseThumbnailCellWantsNoOverride(_ cell: CourseThumbnailCell) {
+        guard let req = cell.requirement,
+            let user = req.currentUser,
+            let path = req.keyPath else {
+                return
+        }
+        user.setProgressAssertion(for: path, to: nil)
+        updateRequirementsStatus()
+    }
+    
     // MARK: - Substitutions
     
     func courseMultiSelectCanceled(_ controller: CourseMultiSelectViewController) {
@@ -749,6 +766,33 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     func courseMultiSelect(_ controller: CourseMultiSelectViewController, selectionChanged courses: [Course]) {
         controller.doneButtonTitle = substitutionViewControllerDoneButtonTitle(from: courses)
         controller.navigationItem.prompt = substitutionViewControllerPrompt(from: courses)
+    }
+    
+    func showManualProgressViewController(for requirement: RequirementsListStatement, from selectedCell: UICollectionViewCell) {
+        guard showsManualProgressControls,
+            let progressVC = self.storyboard?.instantiateViewController(withIdentifier: RequirementsConstants.requirementsProgressVCIdentifier) as? RequirementsProgressController else {
+            return
+        }
+        progressVC.delegate = self
+        progressVC.requirement = requirement
+        progressVC.modalPresentationStyle = .popover
+        progressVC.popoverPresentationController?.delegate = self
+        progressVC.popoverPresentationController?.sourceRect = selectedCell.bounds
+        progressVC.popoverPresentationController?.sourceView = selectedCell
+        self.present(progressVC, animated: true, completion: nil)
+    }
+    
+    func requirementsProgressUpdated(_ controller: RequirementsProgressController) {
+        // Set the override with the controller's current value
+        guard let rootTab = rootParent as? RootTabViewController,
+            let user = rootTab.currentUser,
+            let keyPath = controller.requirement?.keyPath else {
+                return
+        }
+        var assertion = controller.requirement?.progressAssertion ?? ProgressAssertion(substitutions: nil, ignore: false, override: 0)
+        assertion.override = controller.currentValue ?? 0
+        user.setProgressAssertion(for: keyPath, to: assertion)
+        updateRequirementsStatus()
     }
     
     // MARK: - Pop Down Table Menu

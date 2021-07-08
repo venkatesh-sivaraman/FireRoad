@@ -20,6 +20,8 @@ protocol CourseThumbnailCellDelegate: class {
     func courseThumbnailCellWantsSubstitute(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsNoSubstitute(_ cell: CourseThumbnailCell)
     func courseThumbnailCellWantsIgnore(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsOverride(_ cell: CourseThumbnailCell)
+    func courseThumbnailCellWantsNoOverride(_ cell: CourseThumbnailCell)
 }
 
 extension CourseThumbnailCellDelegate {
@@ -54,6 +56,12 @@ extension CourseThumbnailCellDelegate {
         
     }
     func courseThumbnailCellWantsIgnore(_ cell: CourseThumbnailCell) {
+        
+    }
+    func courseThumbnailCellWantsOverride(_ cell: CourseThumbnailCell) {
+        
+    }
+    func courseThumbnailCellWantsNoOverride(_ cell: CourseThumbnailCell) {
         
     }
 }
@@ -395,7 +403,7 @@ class CourseThumbnailCell: UICollectionViewCell {
                 return false
             }
             if let assertion = req.progressAssertion {
-                return !assertion.ignore
+                return !assertion.ignore && assertion.override == 0
             }
             return true
         } else if action == #selector(noSubstitute(_:)) {
@@ -403,7 +411,7 @@ class CourseThumbnailCell: UICollectionViewCell {
                 return false
             }
             if let assertion = req.progressAssertion {
-                return !assertion.ignore && (assertion.substitutions ?? []).count > 0
+                return !assertion.ignore && assertion.override == 0 && (assertion.substitutions ?? []).count > 0
             }
             return false
         } else if action == #selector(ignore(_:)) {
@@ -411,7 +419,7 @@ class CourseThumbnailCell: UICollectionViewCell {
                 return false
             }
             if let assertion = req.progressAssertion {
-                return !assertion.ignore && (assertion.substitutions ?? []).count == 0
+                return !assertion.ignore && assertion.override == 0 && (assertion.substitutions ?? []).count == 0
             }
             return true
         } else if action == #selector(noIgnore(_:)) {
@@ -419,7 +427,23 @@ class CourseThumbnailCell: UICollectionViewCell {
                 return false
             }
             if let assertion = req.progressAssertion {
-                return assertion.ignore && (assertion.substitutions ?? []).count == 0
+                return assertion.ignore && assertion.override == 0
+            }
+            return false
+        } else if action == #selector(override(_:)) {
+            guard delegate != nil, showsProgressAssertionItems, let req = requirement, req.isPlainString, req.threshold != nil else {
+                return false
+            }
+            if let assertion = req.progressAssertion {
+                return !assertion.ignore && (assertion.substitutions ?? []).count == 0
+            }
+            return true
+        } else if action == #selector(noOverride(_:)) {
+            guard delegate != nil, showsProgressAssertionItems, let req = requirement, req.isPlainString, req.threshold != nil else {
+                return false
+            }
+            if let assertion = req.progressAssertion {
+                return assertion.override > 0
             }
             return false
         }
@@ -472,6 +496,14 @@ class CourseThumbnailCell: UICollectionViewCell {
 
     @objc func noIgnore(_ sender: AnyObject) {
         delegate?.courseThumbnailCellWantsIgnore(self)
+    }
+
+    @objc func override(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsOverride(self)
+    }
+
+    @objc func noOverride(_ sender: AnyObject) {
+        delegate?.courseThumbnailCellWantsNoOverride(self)
     }
 
     // MARK: - Requirement Fulfillment
