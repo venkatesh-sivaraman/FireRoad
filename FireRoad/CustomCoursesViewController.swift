@@ -108,10 +108,12 @@ class CustomCoursesViewController: CourseCollectionViewController, CourseCollect
     // MARK: - Pop Down Table Menu
     
     func addCourse(_ course: Course) {
-        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
+        guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
+            let rootTab = rootParent as? RootTabViewController else {
             return
         }
         popDown.course = course
+        popDown.currentUser = rootTab.currentUser
         popDown.delegate = self
         let containingView: UIView = self.view
         containingView.addSubview(popDown.view)

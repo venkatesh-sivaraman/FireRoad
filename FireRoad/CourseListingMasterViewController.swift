@@ -448,12 +448,14 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
     @objc func longPressOnListCell(_ sender: UILongPressGestureRecognizer) {
         guard sender.state == .began,
             let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
+            let rootTab = rootParent as? RootTabViewController,
             let cell = sender.view as? CourseThumbnailCell,
             let id = cell.course?.subjectID,
             CourseManager.shared.getCourse(withID: id) != nil else {
                 return
         }
         popDown.course = cell.course
+        popDown.currentUser = rootTab.currentUser
         popDown.delegate = self
         let containingView: UIView = self.view
         containingView.addSubview(popDown.view)

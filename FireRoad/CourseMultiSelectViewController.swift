@@ -75,10 +75,10 @@ class CourseMultiSelectViewController: UITableViewController {
         guard let user = currentUser else {
             return
         }
-        for semester in UserSemester.allSemesters {
+        for semester in user.allSemesters {
             let courses = user.courses(forSemester: semester)
             if courses.count > 0 {
-                coursesBySection.append((semester.toString(), courses))
+                coursesBySection.append((semester.description, courses))
             }
         }
         if additionalCourses.count > 0 {

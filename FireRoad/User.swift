@@ -15,100 +15,23 @@ enum SubjectRating {
     static let none = 0
 }
 
-enum UserSemester: Int {
-    case PreviousCredit = 0
-    case FreshmanFall = 1
-    case FreshmanIAP = 2
-    case FreshmanSpring = 3
-    case SophomoreFall = 4
-    case SophomoreIAP = 5
-    case SophomoreSpring = 6
-    case JuniorFall = 7
-    case JuniorIAP = 8
-    case JuniorSpring = 9
-    case SeniorFall = 10
-    case SeniorIAP = 11
-    case SeniorSpring = 12
-    case SuperSeniorFall = 13
-    case SuperSeniorIAP = 14
-    case SuperSeniorSpring = 15
-
-    func toString() -> String {
-        switch self {
-        case .PreviousCredit: return "Prior Credit"
-        case .FreshmanFall: return "1st Year Fall"
-        case .FreshmanIAP: return "1st Year IAP"
-        case .FreshmanSpring: return "1st Year Spring"
-        case .SophomoreFall: return "2nd Year Fall"
-        case .SophomoreIAP: return "2nd Year IAP"
-        case .SophomoreSpring: return "2nd Year Spring"
-        case .JuniorFall: return "3rd Year Fall"
-        case .JuniorIAP: return "3rd Year IAP"
-        case .JuniorSpring: return "3rd Year Spring"
-        case .SeniorFall: return "4th Year Fall"
-        case .SeniorIAP: return "4th Year IAP"
-        case .SeniorSpring: return "4th Year Spring"
-        case .SuperSeniorFall: return "5th Year Fall"
-        case .SuperSeniorIAP: return "5th Year IAP"
-        case .SuperSeniorSpring: return "5th Year Spring"
-        }
-    }
-    
-    func isIAP() -> Bool {
-        return (self == .FreshmanIAP || self == .SophomoreIAP || self == .JuniorIAP || self == .SeniorIAP || self == .SuperSeniorIAP)
-    }
-    
-    func isFall() -> Bool {
-        return (self == .FreshmanFall || self == .SophomoreFall || self == .JuniorFall || self == .SeniorFall || self == .SuperSeniorFall)
-    }
-    
-    func isSpring() -> Bool {
-        return (self == .FreshmanSpring || self == .SophomoreSpring || self == .JuniorSpring || self == .SeniorSpring || self == .SuperSeniorSpring)
-    }
-    
-    func yearNumber() -> Int {
-        return UserSemester.yearMapping[self] ?? 0
-    }
-    
-    private static let yearMapping: [UserSemester: Int] = [
-        .FreshmanFall: 1,
-        .FreshmanIAP: 1,
-        .FreshmanSpring: 1,
-        .SophomoreFall: 2,
-        .SophomoreIAP: 2,
-        .SophomoreSpring: 2,
-        .JuniorFall: 3,
-        .JuniorIAP: 3,
-        .JuniorSpring: 3,
-        .SeniorFall: 4,
-        .SeniorIAP: 4,
-        .SeniorSpring: 4,
-        .SuperSeniorFall: 5,
-        .SuperSeniorIAP: 5,
-        .SuperSeniorSpring: 5,
-    ]
-    
-    static let allEnrolledSemesters: [UserSemester] = [
-        .FreshmanFall, .FreshmanIAP, .FreshmanSpring,
-        .SophomoreFall, .SophomoreIAP, .SophomoreSpring,
-        .JuniorFall, .JuniorIAP, .JuniorSpring,
-        .SeniorFall, .SeniorIAP, .SeniorSpring,
-        .SuperSeniorFall, .SuperSeniorIAP, .SuperSeniorSpring
-    ]
-    
-    static let allSemesters: [UserSemester] = [
-        .PreviousCredit, .FreshmanFall, .FreshmanIAP, .FreshmanSpring,
-        .SophomoreFall, .SophomoreIAP, .SophomoreSpring,
-        .JuniorFall, .JuniorIAP, .JuniorSpring,
-        .SeniorFall, .SeniorIAP, .SeniorSpring,
-        .SuperSeniorFall, .SuperSeniorIAP, .SuperSeniorSpring
-    ]
-}
-
 class User: UserDocument {
+    
+    override init(contentsOfFile path: String, readOnly: Bool = false) throws {
+        try super.init(contentsOfFile: path, readOnly: readOnly)
+    }
     
     private var selectedSubjects: [UserSemester: [Course]] = [:]
     
+    private(set) var allSemesters: [UserSemester] = []
+    var enrolledSemesters: [UserSemester] {
+        return allSemesters.filter { !$0.isPriorCredit }
+    }
+    
+    var numYears: Int {
+        return allSemesters.max()?.year ?? 0
+    }
+
     override var isEmpty: Bool {
         return allCourses.count == 0
     }
@@ -126,7 +49,7 @@ class User: UserDocument {
 
     var allCourses: [Course] {
         var ret: [Course] = []
-        for (_, subjects) in selectedSubjects.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+        for (_, subjects) in selectedSubjects.sorted(by: { $0.key < $1.key }) {
             ret += subjects
         }
         return ret
@@ -142,6 +65,10 @@ class User: UserDocument {
             return selectedSubjects[semester]!
         }
         return []
+    }
+    
+    func courses(inYear year: Int) -> [Course] {
+        return Season.values.map({ courses(forSemester: UserSemester(season: $0, year: year)) }).reduce([Course](), +)
     }
     
     func delete(_ course: Course, fromSemester semester: UserSemester, removingOverrides: Bool = true) {
@@ -224,6 +151,11 @@ class User: UserDocument {
         overrides = newOverrides
     }
     
+    override init() {
+        super.init()
+        updateNumYears(4)
+    }
+    
     // MARK: - Courses of Study
     
     func addCourseOfStudy(_ listID: String) {
@@ -287,15 +219,15 @@ class User: UserDocument {
      the course in the user's road that is not in Prior Credit.
     */
     func evaluateRequirements(for course: Course, in semester: UserSemester? = nil) {
-        guard let evalSemester = semester ?? UserSemester.allEnrolledSemesters.first(where: { courses(forSemester: $0).contains(course) }) else {
+        guard let evalSemester = semester ?? enrolledSemesters.first(where: { courses(forSemester: $0).contains(course) }) else {
             return
         }
         
         var priorCourses: [Course] = []
         
-        for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= evalSemester.rawValue {
+        for otherSemester in allSemesters where otherSemester <= evalSemester {
             for otherCourse in courses(forSemester: otherSemester) {
-                if otherSemester.rawValue < evalSemester.rawValue || (course.quarterOffered != .beginningOnly && otherCourse.quarterOffered == .beginningOnly) {
+                if otherSemester < evalSemester || (course.quarterOffered != .beginningOnly && otherCourse.quarterOffered == .beginningOnly) {
                     priorCourses.append(otherCourse)
                 }
             }
@@ -305,8 +237,8 @@ class User: UserDocument {
             prereqs.computeRequirementStatus(with: priorCourses)
         }
         
-        for otherSemester in UserSemester.allSemesters where otherSemester.rawValue <= evalSemester.rawValue {
-            for otherSemester in UserSemester.allSemesters where (AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue <= evalSemester.rawValue) || (!AppSettings.shared.allowsCorequisitesTogether && otherSemester.rawValue < evalSemester.rawValue) {
+        for otherSemester in allSemesters where otherSemester <= evalSemester {
+            for otherSemester in allSemesters where (AppSettings.shared.allowsCorequisitesTogether && otherSemester <= evalSemester) || (!AppSettings.shared.allowsCorequisitesTogether && otherSemester < evalSemester) {
                 priorCourses += courses(forSemester: otherSemester)
             }
         }
@@ -317,7 +249,7 @@ class User: UserDocument {
     }
     
     func warningsForCourse(_ course: Course, in semester: UserSemester) -> [CourseWarning] {
-        guard semester != .PreviousCredit else {
+        guard !semester.isPriorCredit, let season = semester.season else {
             return []
         }
         if let warnings = warningsCache[course] {
@@ -335,12 +267,14 @@ class User: UserDocument {
         }
 
         var warnings: [CourseWarning] = []
-        if semester.isFall(), !course.isOfferedFall {
+        if season == .fall, !course.isOfferedFall {
             warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered in the fall."))
-        } else if semester.isIAP(), !course.isOfferedIAP {
+        } else if season == .iap, !course.isOfferedIAP {
             warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered over IAP."))
-        } else if semester.isSpring(), !course.isOfferedSpring {
+        } else if season == .spring, !course.isOfferedSpring {
             warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered in the spring."))
+        } else if season == .summer, !course.isOfferedSummer {
+            warnings.append(CourseWarning(type: .notOffered, message: "According to the course catalog, \(course.subjectID!) is not offered in the summer."))
         }
         if !course.eitherPrereqOrCoreq || (unsatisfiedPrereqs && unsatisfiedCoreqs) {
             if unsatisfiedPrereqs, let prereqs = course.prerequisites {
@@ -543,7 +477,9 @@ class User: UserDocument {
         static let subjectIDAlt = "id"
         static let subjectID = "subject_id"
         static let subjectTitle = "title"
-        static let semesterNumber = "semester"
+        static let semesterNumber = "semester" // The old semester int format
+        static let semesterID = "semesterID" // The new semester string format
+        static let numYears = "numYears" // The number of years added to the document
         static let units = "units"
         static let overrideWarnings = "overrideWarnings"
         static let marker = "marker"
@@ -591,19 +527,31 @@ class User: UserDocument {
         progressOverrides = [:]
         markers = [:]
         
+        // Build semester list
+        updateNumYears((fileDict[RoadFile.numYears] as? Int) ?? 5)
+        
         for subjectJSON in selectedSubjectsList {
             guard let subjectID = (subjectJSON[RoadFile.subjectID] ?? subjectJSON[RoadFile.subjectIDAlt]) as? String,
                 let title = subjectJSON[RoadFile.subjectTitle] as? String,
                 let units = subjectJSON[RoadFile.units] as? Int,
-                let semesterNumber = subjectJSON[RoadFile.semesterNumber] as? Int,
                 let override = subjectJSON[RoadFile.overrideWarnings] as? Bool else {
                     print("Malformed subject entry: \(subjectJSON)")
                     continue
             }
-            guard let semester = UserSemester(rawValue: semesterNumber) else {
-                print("No semester number \(semesterNumber)")
+            
+            // Determine the semester for the course (either using old style or new style)
+            var sem: UserSemester?
+            if let semesterID = subjectJSON[RoadFile.semesterID] as? String {
+                sem = allSemesters.first(where: { $0.semesterID == semesterID })
+            } else if let semesterNumber = subjectJSON[RoadFile.semesterNumber] as? Int {
+                sem = allSemesters.first(where: { $0.oldSemesterID == semesterNumber })
+            }
+            
+            guard let semester = sem else {
+                print("No semester information available for \(subjectID)!")
                 continue
             }
+            
             if subjectJSON[CourseAttribute.creator.jsonKey()] != nil,
                 CourseManager.shared.getCustomCourse(with: subjectID, title: title) == nil {
                 let course = Course(json: subjectJSON)
@@ -680,6 +628,7 @@ class User: UserDocument {
         }
         name = firstLineComps[0].trimmingCharacters(in: .whitespacesAndNewlines)
         coursesOfStudy = firstLineComps[1].components(separatedBy: ",")
+        updateNumYears(4)
         
         // Do nothing with the second line for now
         lines.removeFirst()
@@ -693,7 +642,7 @@ class User: UserDocument {
                 continue
             }
             guard let semesterRaw = Int(comps[0]),
-                let semester = UserSemester(rawValue: semesterRaw),
+                let semester = allSemesters.first(where: { $0.oldSemesterID == semesterRaw }),
                 let units = Int(comps[3]) else {
                     print("Invalid integer format in subject line \(subjectLine)")
                     continue
@@ -745,10 +694,11 @@ class User: UserDocument {
     
     override func writeCoursesToJSON() throws -> Any {
         var selectedSubjectsJSON: [[String: Any]] = []
-        for (semester, subjects) in selectedSubjects.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+        for (semester, subjects) in selectedSubjects.sorted(by: { $0.key < $1.key }) {
             for subject in subjects {
                 var json = subject.toJSON()
-                json[RoadFile.semesterNumber] = semester.rawValue
+                json[RoadFile.semesterNumber] = semester.oldSemesterID
+                json[RoadFile.semesterID] = semester.semesterID
                 json[RoadFile.overrideWarnings] = overridesWarnings(for: subject)
                 if let marker = subjectMarker(for: subject, in: semester) {
                     json[RoadFile.marker] = marker.rawValue
@@ -765,9 +715,27 @@ class User: UserDocument {
             RoadFile.coursesOfStudy: coursesOfStudy,
             RoadFile.selectedSubjects: selectedSubjectsJSON,
             RoadFile.progressOverrides: progressOverrides,
-            RoadFile.progressAssertions: assertionsJSON
+            RoadFile.progressAssertions: assertionsJSON,
+            RoadFile.numYears: numYears
         ]
         return fileJSON
+    }
+    
+    func updateNumYears(_ numYears: Int, allowReducingYears: Bool = false) {
+        if allSemesters.count == 0 {
+            allSemesters.append(UserSemester.priorCredit())
+        }
+        var currentNumYears = (allSemesters.count - 1) / 4
+        while numYears > currentNumYears {
+            for season in Season.values {
+                allSemesters.append(UserSemester(season: season, year: currentNumYears + 1))
+            }
+            currentNumYears += 1
+        }
+        
+        if allowReducingYears {
+            allSemesters.removeAll(where: { $0.year != nil && $0.year! > numYears })
+        }
     }
     
     // MARK: - Thumbnails

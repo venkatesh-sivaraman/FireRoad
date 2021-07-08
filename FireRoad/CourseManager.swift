@@ -1021,7 +1021,7 @@ class CourseManager: NSObject {
         request.httpMethod = "POST"
         
         do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: ["semester": semester.rawValue])
+            request.httpBody = try JSONSerialization.data(withJSONObject: ["semester": semester.oldSemesterID])
         } catch {
             print(error.localizedDescription)
         }
@@ -1042,36 +1042,10 @@ class CourseManager: NSObject {
         let month = calendar.component(.month, from: Date())
         if month >= 5 && month <= 11 {
             print("Fall")
-            switch yearNumber {
-            case 1:
-                return UserSemester.FreshmanFall.rawValue
-            case 2:
-                return UserSemester.SophomoreFall.rawValue
-            case 3:
-                return UserSemester.JuniorFall.rawValue
-            case 4:
-                return UserSemester.SeniorFall.rawValue
-            case 5:
-                return UserSemester.SuperSeniorFall.rawValue
-            default:
-                return UserSemester.FreshmanFall.rawValue
-            }
+            return UserSemester(season: .fall, year: yearNumber).oldSemesterID
         } else {
             print("Spring")
-            switch yearNumber {
-            case 1:
-                return UserSemester.FreshmanSpring.rawValue
-            case 2:
-                return UserSemester.SophomoreSpring.rawValue
-            case 3:
-                return UserSemester.JuniorSpring.rawValue
-            case 4:
-                return UserSemester.SeniorSpring.rawValue
-            case 5:
-                return UserSemester.SuperSeniorSpring.rawValue
-            default:
-                return UserSemester.FreshmanSpring.rawValue
-            }
+            return UserSemester(season: .spring, year: yearNumber).oldSemesterID
         }
     }
     

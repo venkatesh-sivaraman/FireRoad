@@ -500,11 +500,13 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
     func browserCell(added course: Course) -> UserSemester? {
         self.searchBar?.resignFirstResponder()
         if showsSemesterDialog {
-            guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController else {
+            guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
+                let rootTab = rootParent as? RootTabViewController else {
                 print("No pop down table menu in storyboard!")
                 return nil
             }
             popDown.course = course
+            popDown.currentUser = rootTab.currentUser
             popDown.delegate = self
             let containingView: UIView = self.view
             containingView.addSubview(popDown.view)

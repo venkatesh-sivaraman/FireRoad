@@ -768,7 +768,8 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     
     func showAddCoursePopDownMenu(for course: Course) {
         guard let popDown = self.storyboard?.instantiateViewController(withIdentifier: "PopDownTableMenu") as? PopDownTableMenuController,
-            let id = course.subjectID else {
+            let id = course.subjectID,
+            let rootTab = rootParent as? RootTabViewController else {
                 return
         }
 
@@ -776,6 +777,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         popDownOldNavigationTitle = navigationItem.title
         navigationItem.title = "(\(id))"
         popDown.course = course
+        popDown.currentUser = rootTab.currentUser
         popDown.delegate = self
         let containingView: UIView = self.view
         containingView.addSubview(popDown.view)

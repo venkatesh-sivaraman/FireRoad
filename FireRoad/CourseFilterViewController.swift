@@ -55,7 +55,8 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                             ("Any", .offeredAnySemester),
                             ("Fall", .offeredFall),
                             ("Spring", .offeredSpring),
-                            ("IAP", .offeredIAP)],
+                            ("IAP", .offeredIAP),
+                            ("Summer", .offeredSummer)],
                         tintColor: nil,
                         firstOptionOverridesOthers: false),
         
