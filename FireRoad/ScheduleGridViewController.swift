@@ -405,7 +405,7 @@ class ScheduleGridViewController: UIViewController, CourseThumbnailCellDelegate,
         }
         let offsetX = max((scrollView.bounds.width - scrollView.contentSize.width) * 0.5, 0)
         let offsetY = max((scrollView.bounds.height - scrollView.contentSize.height) * 0.5, 0)
-        scrollView.contentInset = UIEdgeInsetsMake(topPadding + offsetY, offsetX, 0, 0)
+        scrollView.contentInset = UIEdgeInsets.init(top: topPadding + offsetY, left: offsetX, bottom: 0, right: 0)
     }
     
     

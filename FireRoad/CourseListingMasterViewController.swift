@@ -24,7 +24,7 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
     // MARK: - Course List Cell Delegate
     
     func courseListCell(_ cell: CourseListCell, selected course: Course) {
-        guard let courseIndex = cell.courses.index(of: course),
+        guard let courseIndex = cell.courses.firstIndex(of: course),
             let selectedCell = cell.collectionView.cellForItem(at: IndexPath(item: courseIndex, section: 0)) else {
                 return
         }
@@ -108,7 +108,7 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
     
     func courseDetailsRequestedOpen(url: URL) {
         guard let webVC = generateURLViewController(for: url) else {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
             return
         }
         webVC.view.backgroundColor = .white
@@ -169,10 +169,10 @@ class CourseListingDisplayController: UICollectionViewController, CourseListCell
             navigationItem.title = oldTitle
         }
         tableMenu.hide(animated: true) {
-            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.willMove(toParent: nil)
             tableMenu.view.removeFromSuperview()
-            tableMenu.removeFromParentViewController()
-            tableMenu.didMove(toParentViewController: nil)
+            tableMenu.removeFromParent()
+            tableMenu.didMove(toParent: nil)
         }
     }
 }
@@ -340,7 +340,7 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         if let label = view.viewWithTag(12) as? UILabel {
             label.text = headings[indexPath.section]
         }
-        view.isHidden = (kind != UICollectionElementKindSectionHeader)
+        view.isHidden = (kind != UICollectionView.elementKindSectionHeader)
         return view
     }
     
@@ -462,9 +462,9 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
         popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
         popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
         popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
-        popDown.willMove(toParentViewController: self)
-        self.addChildViewController(popDown)
-        popDown.didMove(toParentViewController: self)
+        popDown.willMove(toParent: self)
+        self.addChild(popDown)
+        popDown.didMove(toParent: self)
         let generator = UIImpactFeedbackGenerator()
         generator.prepare()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
@@ -494,4 +494,9 @@ class CourseListingMasterViewController: CourseListingDisplayController, UIColle
             CourseManager.shared.loginIfNeeded({ _ in })
         }
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
 }

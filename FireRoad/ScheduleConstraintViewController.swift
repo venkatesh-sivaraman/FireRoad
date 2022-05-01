@@ -178,7 +178,7 @@ class ScheduleConstraintViewController: UIViewController, UITableViewDelegate, U
         } else if let scheduleSet = scheduleItemSet(for: indexPath.section) {
             let itemIndex = scheduleItemIndex(for: indexPath)
             var allowedItems = allowedScheduleItems(for: indexPath.section) ?? [Int](0..<scheduleSet.count)
-            if let index = allowedItems.index(of: itemIndex) {
+            if let index = allowedItems.firstIndex(of: itemIndex) {
                 // Deselect - only do so if at least one in the section is selected
                 if allowedItems.count > 1 {
                     allowedItems.remove(at: index)

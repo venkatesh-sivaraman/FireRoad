@@ -148,8 +148,8 @@ class RatingView: UIView {
                 animation.damping = 4.0
                 animation.stiffness = 30.0
                 animation.mass = 0.5
-                animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
-                animation.fillMode = kCAFillModeForwards
+                animation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+                animation.fillMode = CAMediaTimingFillMode.forwards
                 old.add(animation, forKey: "touch")
             }
             if let new = currentlyHighlightedStar {
@@ -160,8 +160,8 @@ class RatingView: UIView {
                 animation.damping = 4.0
                 animation.stiffness = 30.0
                 animation.mass = 0.5
-                animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
-                animation.fillMode = kCAFillModeForwards
+                animation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+                animation.fillMode = CAMediaTimingFillMode.forwards
                 new.add(animation, forKey: "touch")
             }
         }

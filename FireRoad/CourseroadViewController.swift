@@ -44,7 +44,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     @IBOutlet var toolbarTitleLabel: UILabel?
     
     @IBOutlet var placeholderView: UIView?
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         NotificationCenter.default.addObserver(self, selector: #selector(courseManagerFinishedLoading(_:)), name: .CourseManagerFinishedLoading, object: nil)
@@ -439,7 +439,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SemesterHeader", for: indexPath)
-        if kind == UICollectionElementKindSectionHeader {
+        if kind == UICollectionView.elementKindSectionHeader {
             initializeSectionHeaderView(view, for: indexPath)
         }
         return view
@@ -623,7 +623,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         let marker = user.subjectMarker(for: course, in: semester)
         let tableMenu = TableMenuViewController()
         tableMenu.items = [TableMenuItem(identifier: "none", title: "None")] + SubjectMarker.allMarkers.map({ TableMenuItem(identifier: $0.rawValue, title: $0.readableName(), image: UIImage(named: $0.imageName())) })
-        tableMenu.selectedItemIndex = tableMenu.items.index(where: { $0.identifier == marker?.rawValue ?? "none"}) ?? -1
+        tableMenu.selectedItemIndex = tableMenu.items.firstIndex(where: { $0.identifier == marker?.rawValue ?? "none"}) ?? -1
         tableMenu.action = { item in
             user.setSubjectMarker(SubjectMarker(rawValue: item.identifier), for: course, in: semester)
             self.reloadCollectionView()
@@ -646,8 +646,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
             return
         }
         var tappedSection: Int = -1
-        for ip in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: UICollectionElementKindSectionHeader) {
-            guard let headerView = collectionView.supplementaryView(forElementKind: UICollectionElementKindSectionHeader, at: ip) else {
+        for ip in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader) {
+            guard let headerView = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: ip) else {
                 continue
             }
             if sender.isDescendant(of: headerView) {
@@ -721,7 +721,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                 }
             }
             if self.isViewLoaded,
-                let courseItem = self.currentUser?.courses(forSemester: selectedSemester!).index(of: course) {
+                let courseItem = self.currentUser?.courses(forSemester: selectedSemester!).firstIndex(of: course) {
                 self.collectionView.scrollToItem(at: IndexPath(item: courseItem, section: selectedSemester!.rawValue), at: .centeredVertically, animated: true)
             }
         }
@@ -732,7 +732,7 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
     
     func deleteCourse(_ course: Course, from semester: UserSemester) {
         guard let user = currentUser,
-            let item = user.courses(forSemester: semester).index(of: course) else {
+            let item = user.courses(forSemester: semester).firstIndex(of: course) else {
                 return
         }
         print("Current user is \(user)")
@@ -797,8 +797,8 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
         }
         
         // Update headers
-        for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: UICollectionElementKindSectionHeader) {
-            guard let view = collectionView.supplementaryView(forElementKind: UICollectionElementKindSectionHeader, at: indexPath) else {
+        for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: UICollectionView.elementKindSectionHeader) {
+            guard let view = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: indexPath) else {
                 continue
             }
             initializeSectionHeaderView(view, for: indexPath)

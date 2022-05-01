@@ -209,7 +209,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         shouldMakeSearchBarFirstResponder = false
     }
     
-    func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationControllerOperation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+    func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         if operation == .push {
             return FlatPushAnimator()
         } else if operation == .pop {
@@ -483,7 +483,7 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
         return "Remove"
     }
     
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         guard !isShowingSearchResults, editingStyle == .delete else {
             return
         }
@@ -513,9 +513,9 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
             popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
             popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
-            popDown.willMove(toParentViewController: self)
-            self.addChildViewController(popDown)
-            popDown.didMove(toParentViewController: self)
+            popDown.willMove(toParent: self)
+            self.addChild(popDown)
+            popDown.didMove(toParent: self)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 popDown.show(animated: true)
             }
@@ -571,10 +571,10 @@ class CourseBrowserViewController: UIViewController, UISearchBarDelegate, UITabl
             updateCourseVisibility()
         }
         tableMenu.hide(animated: true) {
-            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.willMove(toParent: nil)
             tableMenu.view.removeFromSuperview()
-            tableMenu.removeFromParentViewController()
-            tableMenu.didMove(toParentViewController: nil)
+            tableMenu.removeFromParent()
+            tableMenu.didMove(toParent: nil)
         }
     }
     

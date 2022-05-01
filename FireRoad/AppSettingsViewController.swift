@@ -78,7 +78,7 @@ class AppSettingsViewController: UITableViewController, AppSettingsDelegate {
         case .boolean, .button, .checkmark:
             return 44.0
         default:
-            return UITableViewAutomaticDimension
+            return UITableView.automaticDimension
         }
     }
     

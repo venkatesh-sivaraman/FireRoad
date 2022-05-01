@@ -459,7 +459,7 @@ class CustomCourseEditViewController: UITableViewController, UITextFieldDelegate
             
             editItems[indexPath.section].items.removeAll(where: { $0[.scheduleItem] as? CourseScheduleItem == currentSched})
             if let firstItems = courseCopy?.schedule?[CourseScheduleType.custom]?.first,
-                let index = firstItems.index(of: currentSched) {
+                let index = firstItems.firstIndex(of: currentSched) {
                 courseCopy?.schedule?[CourseScheduleType.custom]?[0].remove(at: index)
             }
             tableView.reloadSections(IndexSet(integer: scheduleSectionIndex), with: .fade)

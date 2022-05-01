@@ -98,7 +98,7 @@ extension RequirementsListDisplay {
     }
     
     func handleCourseListCellSelection(_ tableCell: CourseListTableCell, of course: Course, with requirement: RequirementsListStatement?) {
-        guard let courseIndex = tableCell.courses.index(of: course),
+        guard let courseIndex = tableCell.courses.firstIndex(of: course),
             let selectedCell = tableCell.collectionView.cellForItem(at: IndexPath(item: courseIndex, section: 0)) else {
                 return
         }

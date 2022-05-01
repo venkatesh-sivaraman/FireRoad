@@ -163,8 +163,8 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             }, completion: { completed in
                 if let selectedList = selectedList {
                     // Find the list in the new organization
-                    guard let section = self.displayedRequirementLists.index(where: { $0.1.contains(selectedList) }),
-                        let row = self.displayedRequirementLists[section].1.index(of: selectedList),
+                    guard let section = self.displayedRequirementLists.firstIndex(where: { $0.1.contains(selectedList) }),
+                        let row = self.displayedRequirementLists[section].1.firstIndex(of: selectedList),
                         row < self.elementDisplayCutoff(for: self.displayedRequirementLists[section].0) else {
                             return
                     }
@@ -229,7 +229,7 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             guard let url = URL(string: CourseManager.urlBase + "/requirements") else {
                 return
             }
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         present(alert, animated: true, completion: nil)
@@ -441,4 +441,9 @@ class RequirementsBrowserViewController: UITableViewController, UISplitViewContr
             }
         }
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
 }

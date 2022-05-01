@@ -470,7 +470,7 @@
 					9646CFCE1EB921FE005F87CB = {
 						CreatedOnToolsVersion = 8.3.1;
 						DevelopmentTeam = PTB6T29SN3;
-						LastSwiftMigration = 0900;
+						LastSwiftMigration = 1220;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.Keychain = {
@@ -484,7 +484,7 @@
 					9646CFE41EB921FF005F87CB = {
 						CreatedOnToolsVersion = 8.3.1;
 						DevelopmentTeam = PTB6T29SN3;
-						LastSwiftMigration = 0900;
+						LastSwiftMigration = 1220;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 9646CFCE1EB921FE005F87CB;
 					};
@@ -492,10 +492,9 @@
 			};
 			buildConfigurationList = 9646CFCA1EB921FE005F87CB /* Build configuration list for PBXProject "FireRoad" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
 				Base,
 			);
@@ -786,7 +785,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "FireRoad/FireRoad-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -809,7 +808,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "FireRoad Distribution";
 				SWIFT_OBJC_BRIDGING_HEADER = "FireRoad/FireRoad-Bridging-Header.h";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -824,7 +823,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.FireRoadTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FireRoad.app/FireRoad";
 			};
 			name = Debug;
@@ -840,7 +839,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.base12innovations.FireRoadTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FireRoad.app/FireRoad";
 			};
 			name = Release;

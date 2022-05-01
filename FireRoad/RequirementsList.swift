@@ -728,7 +728,7 @@ class RequirementsListStatement: NSObject {
             let parentPath = parent.keyPath else {
             return nil
         }
-        return parentPath + ".\(parent.requirements?.index(of: self) ?? 0)"
+        return parentPath + ".\(parent.requirements?.firstIndex(of: self) ?? 0)"
     }
     
     var progressAssertion: ProgressAssertion? {

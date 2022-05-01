@@ -61,7 +61,7 @@ class RequirementsListManager: NSObject {
             }
             for fullPath in contents where fullPath.contains(".reql") {
                 if let reqList = try? RequirementsList(contentsOf: fullPath) {
-                    if let idx = requirementsLists.index(where: { $0.listID == reqList.listID }) {
+                    if let idx = requirementsLists.firstIndex(where: { $0.listID == reqList.listID }) {
                         requirementsLists.remove(at: idx)
                     }
                     requirementsLists.append(reqList)

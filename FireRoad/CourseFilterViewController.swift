@@ -209,7 +209,7 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                     segmentedControl.tintColor = self.view.tintColor
                 }
             }
-            segmentedControl.setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.white], for: .selected)
+            segmentedControl.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.white], for: .selected)
             segmentedControl.removeTarget(nil, action: nil, for: .valueChanged)
             segmentedControl.addTarget(self, action: #selector(segmentedControlValueChanged(_:)), for: .valueChanged)
             return cell

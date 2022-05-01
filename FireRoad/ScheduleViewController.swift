@@ -290,7 +290,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
         loadScheduleOptions {
             // If the schedule document specifies a selected schedule, select it
             if let preload = schedule.preloadSections,
-                let index = self.scheduleOptions.index(where: { (sched) -> Bool in
+                let index = self.scheduleOptions.firstIndex(where: { (sched) -> Bool in
                     for (course, selectedSections) in preload {
                         for (section, index) in selectedSections {
                             if !sched.scheduleItems.contains(where: { $0.course == course && $0.sectionType == section && $0.scheduleItems == course.schedule?[section]?[index] }) {
@@ -549,10 +549,10 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
             vc.setSchedule(scheduleToDisplay, animated: isViewLoaded && view.window != nil)
         } else {
             if let vc = currentScheduleVC {
-                vc.willMove(toParentViewController: nil)
+                vc.willMove(toParent: nil)
                 vc.view.removeFromSuperview()
-                vc.removeFromParentViewController()
-                vc.didMove(toParentViewController: nil)
+                vc.removeFromParent()
+                vc.didMove(toParent: nil)
                 currentScheduleVC = nil
             }
             if let vcToDisplay = scheduleGrid(for: schedule.displayedScheduleIndex) {
@@ -564,15 +564,15 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
                 self.scheduleNumberLabel?.text = "--"
             }
             if let vc = currentScheduleVC {
-                vc.willMove(toParentViewController: self)
+                vc.willMove(toParent: self)
                 vc.view.translatesAutoresizingMaskIntoConstraints = false
                 containerView.addSubview(vc.view)
                 vc.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
                 vc.view.topAnchor.constraint(equalTo: containerView.topAnchor).isActive = true
                 vc.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
                 vc.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor).isActive = true
-                addChildViewController(vc)
-                vc.didMove(toParentViewController: self)
+                addChild(vc)
+                vc.didMove(toParent: self)
             }
         }
         updateNavigationButtons()
@@ -1131,7 +1131,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     
     func cloudSyncManager(_ manager: CloudSyncManager, modifiedFileNamed name: String) {
         if name == currentSchedule?.fileName {
-            try? currentSchedule?.reloadContents()
+            ((try? currentSchedule?.reloadContents()) as ()??)
             updateDisplayedSchedules()
         }
     }
@@ -1139,7 +1139,7 @@ class ScheduleViewController: UIViewController, PanelParentViewController, Sched
     func cloudSyncManager(_ manager: CloudSyncManager, renamedFileNamed name: String, to newName: String) {
         if name == currentSchedule?.fileName {
             currentSchedule?.filePath = manager.urlForUserFile(named: newName)?.path
-            try? currentSchedule?.reloadContents()
+            ((try? currentSchedule?.reloadContents()) as ()??)
             updateDisplayedSchedules()
         }
     }

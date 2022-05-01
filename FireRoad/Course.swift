@@ -166,7 +166,7 @@ struct CourseScheduleDay: OptionSet, CustomDebugStringConvertible, Comparable, H
     ]
     
     static func index(of day: CourseScheduleDay) -> Int {
-        return ordering.index(of: day) ?? 0
+        return ordering.firstIndex(of: day) ?? 0
     }
     
     private static let stringMappings: [Int: String] = [

@@ -287,7 +287,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         
         if let reqList = requirementsList,
             let nav = navigationController,
-            let index = nav.viewControllers.index(of: self),
+            let index = nav.viewControllers.firstIndex(of: self),
             index < nav.viewControllers.count - 1 {
             
             if let nextList = nav.viewControllers[index + 1] as? RequirementsListViewController,
@@ -365,7 +365,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         } else if cellType == .url {
             return 54.0
         }
-        return UITableViewAutomaticDimension
+        return UITableView.automaticDimension
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -451,7 +451,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             return
         }
         tableView.deselectRow(at: indexPath, animated: true)
-        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
     }
     
     func progressInformation(for requirement: RequirementsListStatement?) -> (String, UIColor) {
@@ -506,7 +506,7 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
     }
     
     func courseDetailsRequestedOpen(url: URL) {
-        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
     }
 
     func addCourse(_ course: Course, to semester: UserSemester? = nil) -> UserSemester? {
@@ -784,9 +784,9 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
         popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
         popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
         popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
-        popDown.willMove(toParentViewController: self)
-        self.addChildViewController(popDown)
-        popDown.didMove(toParentViewController: self)
+        popDown.willMove(toParent: self)
+        self.addChild(popDown)
+        popDown.didMove(toParent: self)
         let generator = UIImpactFeedbackGenerator()
         generator.prepare()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
@@ -820,10 +820,15 @@ class RequirementsListViewController: UIViewController, UITableViewDataSource, U
             navigationItem.title = oldTitle
         }
         tableMenu.hide(animated: true) {
-            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.willMove(toParent: nil)
             tableMenu.view.removeFromSuperview()
-            tableMenu.removeFromParentViewController()
-            tableMenu.didMove(toParentViewController: nil)
+            tableMenu.removeFromParent()
+            tableMenu.didMove(toParent: nil)
         }
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
 }

@@ -146,7 +146,7 @@ class User: UserDocument {
     
     func delete(_ course: Course, fromSemester semester: UserSemester, removingOverrides: Bool = true) {
         var semesterCourses = self.courses(forSemester: semester)
-        if let delIdx = semesterCourses.index(of: course) {
+        if let delIdx = semesterCourses.firstIndex(of: course) {
             semesterCourses.remove(at: delIdx)
         }
         self.selectedSubjects[semester] = semesterCourses
@@ -241,7 +241,7 @@ class User: UserDocument {
     }
     
     func removeCourseOfStudy(_ listID: String) {
-        if let index = coursesOfStudy.index(of: listID) {
+        if let index = coursesOfStudy.firstIndex(of: listID) {
             coursesOfStudy.remove(at: index)
             if let reqList = RequirementsListManager.shared.requirementList(withID: listID) {
                 var newRatings: [String: Int] = [:]
