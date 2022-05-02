@@ -56,11 +56,7 @@ class CourseBrowserCell: UITableViewCell {
         didSet {
             updateTitle()
             
-            var descriptionText = course?.subjectTitle ?? ""
-            if course?.virtualStatus == .hybrid ||  course?.virtualStatus == .inperson  {
-                descriptionText = "(In-Person Available) " + descriptionText
-            }
-            self.descriptionLabel.text = descriptionText
+            self.descriptionLabel.text = course?.subjectTitle ?? ""
            
             self.addLabel?.text = ""
             if self.course != nil {

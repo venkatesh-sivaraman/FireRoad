@@ -336,12 +336,6 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
         rowIndex += 1
         
-        //attendance
-        if course!.virtualStatus != nil {
-            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .virtualStatus
-            rowIndex += 1
-        }
-
         //instructors
         if course!.instructors.count > 0 {
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .instructors

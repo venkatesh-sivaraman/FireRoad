@@ -41,15 +41,6 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
         firstOptionOverridesOthers: false),
         
         FilterTableItem(type: .segmentedControl,
-                title: "Attendance",
-                items: [
-                    ("Any", .noVirtualFilter),
-                    ("Virtual", .offeredVirtual),
-                    ("In-Person", .offeredInPerson)],
-                tintColor: nil,
-                firstOptionOverridesOthers: false),
-        
-        FilterTableItem(type: .segmentedControl,
                         title: "Offered",
                         items: [
                             ("Any", .offeredAnySemester),
