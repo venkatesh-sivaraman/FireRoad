@@ -385,6 +385,7 @@ enum CourseAttribute: String {
     case subjectShortTitle
     case subjectDescription
     case subjectCode
+    case oldID
     case department
     case equivalentSubjects
     case jointSubjects
@@ -445,6 +446,7 @@ enum CourseAttribute: String {
         "Subject Level": .subjectLevel,
         "Subject Description": .subjectDescription,
         "Subject Code": .subjectCode,
+        "Old Subject Id": .oldID,
         "Department Name": .department,
         "Equivalent Subjects": .equivalentSubjects,
         "Joint Subjects": .jointSubjects,
@@ -495,6 +497,7 @@ enum CourseAttribute: String {
 
     static let jsonKeys: [String: CourseAttribute] = [
         "subject_id": .subjectID,
+       // "old_id": .oldID,
         "title": .subjectTitle,
         "level": .subjectLevel,
         "description": .subjectDescription,
@@ -593,6 +596,7 @@ class Course: NSObject {
         return nil
     }
     @objc dynamic var department: String?
+    @objc dynamic var oldID: String? = nil
     
     private var _equivalentSubjects: [String] = []
     @objc dynamic var equivalentSubjects: [String] {
@@ -850,7 +854,7 @@ class Course: NSObject {
     
     func readJSON(_ json: [String: Any]) {
         for (key, val) in json {
-            guard let attr = CourseAttribute(jsonKey: key) else {
+            guard let attr = CourseAttribute(jsonKey: key), attr != .subjectID else {
                 continue
             }
             setValue(val, forKey: attr.rawValue)
@@ -961,6 +965,12 @@ class Course: NSObject {
             case .virtualStatus:
                 if let pattern = CourseVirtualStatus(rawValue: ((value as? String) ?? "")) {
                     self.virtualStatus = pattern
+                }
+            case .oldID:
+                if let string = value as? String, string.count > 0 {
+                    self.oldID = string
+                } else {
+                    self.oldID = nil
                 }
             default:
                 if let string = value as? String {
@@ -1094,6 +1104,7 @@ class Course: NSObject {
     func satisfies(requirement: String, allCourses: [Course]? = nil) -> Bool {
         let req = requirement.replacingOccurrences(of: "GIR:", with: "")
         if subjectID == req ||
+            oldID == req ||
             jointSubjects.contains(req) ||
             equivalentSubjects.contains(req) {
             return true

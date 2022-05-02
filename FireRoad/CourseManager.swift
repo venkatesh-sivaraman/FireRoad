@@ -262,6 +262,9 @@ class CourseManager: NSObject {
                                 } else {
                                     course.setValue(trimmed, forKey: key.rawValue)
                                 }
+                                if key == .oldID, trimmed.count > 0 {
+                                    addAlternateSubjectID(trimmed, for: course)
+                                }
                             } else {
                                 print("No subject ID for line \(line)!")
                             }
@@ -420,6 +423,12 @@ class CourseManager: NSObject {
         coursesByID[newValue] = course
     }
     
+    private func addAlternateSubjectID(_ id: String, for course: Course) {
+        courseEditingQueue.sync {
+            coursesByID[id] = course
+        }
+    }
+    
     private func updateSubjectTitle(for course: Course, to newValue: String) {
         courseEditingQueue.sync {
             if let oldTitle = course.subjectTitle, coursesByTitle[oldTitle] == course {
@@ -460,6 +469,9 @@ class CourseManager: NSObject {
             coursesByID[processedID] = course
             if let title = course.subjectTitle {
                 coursesByTitle[title] = course
+            }
+            if let oldID = course.oldID {
+                coursesByID[oldID] = course
             }
             courses.append(course)
         }

@@ -780,6 +780,11 @@ class CourseroadViewController: UIViewController, PanelParentViewController, UIC
                     continue
             }
             let course = courses[indexPath.item]
+            // A subject ID has changed, just reload the entire view
+            if course.subjectID != cell.textLabel?.text {
+                collectionView.reloadData()
+                return
+            }
             if CourseManager.shared.isLoaded,
                 !AppSettings.shared.hidesAllWarnings,
                 (currentUser?.warningsForCourse(course, in: semester).count ?? 0) > 0 {

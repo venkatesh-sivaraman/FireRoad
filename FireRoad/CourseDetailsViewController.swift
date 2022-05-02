@@ -23,6 +23,7 @@ enum CourseDetailItem {
     case units
     case instructors
     case requirements
+    case oldSubjectID
     case offered
     case virtualStatus
     case related
@@ -325,6 +326,12 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             rowIndex += 1
         }
 
+        //old subject ID
+        if course!.oldID != nil {
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .oldSubjectID
+            rowIndex += 1
+        }
+        
         //offered
         mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
         rowIndex += 1
@@ -475,7 +482,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "TitleCell"
         case .description:
             id = "DescriptionCell"
-        case .units, .instructors, .virtualStatus, .requirements, .offered, .schedule, .enrollment, .evalRating, .evalHours:
+        case .units, .instructors, .virtualStatus, .requirements, .offered, .schedule, .enrollment, .evalRating, .evalHours, .oldSubjectID:
             id = "MetadataCell"
         case .related, .equivalent, .joint, .prerequisites, .corequisites:
             id = "CourseListCell"
@@ -606,6 +613,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 message += "\n[P/D/F]"
             }
             detailTextLabel?.text = message
+        case .oldSubjectID:
+            textLabel?.text = "Previously Called"
+            detailTextLabel?.text = course!.oldID ?? ""
         case .enrollment:
             textLabel?.text = "Enrollment"
             detailTextLabel?.text = "\(course!.enrollmentNumber) (average)"
