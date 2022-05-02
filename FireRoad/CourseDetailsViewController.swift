@@ -23,6 +23,7 @@ enum CourseDetailItem {
     case units
     case instructors
     case requirements
+    case oldSubjectID
     case offered
     case virtualStatus
     case related
@@ -141,8 +142,8 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         navigationController?.setNavigationBarHidden(false, animated: true)
         navigationController?.setToolbarHidden(true, animated: true)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardChangedFrame(_:)), name: .UIKeyboardDidChangeFrame, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardWillChangeFrame(_:)), name: .UIKeyboardWillChangeFrame, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardChangedFrame(_:)), name: UIResponder.keyboardDidChangeFrameNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(CourseDetailsViewController.keyboardWillChangeFrame(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         
         hasViewAppeared = true
         loadSubjectsOrDisplay()
@@ -229,9 +230,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
             popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
             popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor, constant: navigationController?.navigationBar.frame.size.height ?? 0.0).isActive = true
-            popDown.willMove(toParentViewController: self)
-            self.addChildViewController(popDown)
-            popDown.didMove(toParentViewController: self)
+            popDown.willMove(toParent: self)
+            self.addChild(popDown)
+            popDown.didMove(toParent: self)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                 popDown.show(animated: true)
             }
@@ -289,10 +290,10 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             navigationItem.title = oldTitle
         }
         tableMenu.hide(animated: true) {
-            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.willMove(toParent: nil)
             tableMenu.view.removeFromSuperview()
-            tableMenu.removeFromParentViewController()
-            tableMenu.didMove(toParentViewController: nil)
+            tableMenu.removeFromParent()
+            tableMenu.didMove(toParent: nil)
         }
     }
     
@@ -325,16 +326,16 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             rowIndex += 1
         }
 
+        //old subject ID
+        if course!.oldID != nil {
+            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .oldSubjectID
+            rowIndex += 1
+        }
+        
         //offered
         mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .offered
         rowIndex += 1
         
-        //attendance
-        if course!.virtualStatus != nil {
-            mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .virtualStatus
-            rowIndex += 1
-        }
-
         //instructors
         if course!.instructors.count > 0 {
             mapping[IndexPath(row: rowIndex, section: sectionIndex)] = .instructors
@@ -475,7 +476,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             id = "TitleCell"
         case .description:
             id = "DescriptionCell"
-        case .units, .instructors, .virtualStatus, .requirements, .offered, .schedule, .enrollment, .evalRating, .evalHours:
+        case .units, .instructors, .virtualStatus, .requirements, .offered, .schedule, .enrollment, .evalRating, .evalHours, .oldSubjectID:
             id = "MetadataCell"
         case .related, .equivalent, .joint, .prerequisites, .corequisites:
             id = "CourseListCell"
@@ -512,7 +513,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         let dataType = self.detailMapping[indexPath]!
         let cellType = self.cellType(for: dataType)
         if cellType == "DescriptionCell" || cellType == "MetadataCell" || cellType == "RateCell" {
-            return UITableViewAutomaticDimension
+            return UITableView.automaticDimension
         } else if cellType == "CourseListCell" {
             return 124.0
         } else if dataType == .header {
@@ -606,6 +607,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
                 message += "\n[P/D/F]"
             }
             detailTextLabel?.text = message
+        case .oldSubjectID:
+            textLabel?.text = "Previously Called"
+            detailTextLabel?.text = course!.oldID ?? ""
         case .enrollment:
             textLabel?.text = "Enrollment"
             detailTextLabel?.text = "\(course!.enrollmentNumber) (average)"
@@ -677,7 +681,7 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
             var scheduleType = ""
             let scheduleRows = detailMapping.filter({ $0.key.section == indexPath.section && $0.value == .schedule })
             let sortedRows = scheduleRows.sorted(by: { $0.key.item < $1.key.item })
-            if let indexOfRow = sortedRows.index(where: { $0.key.item == indexPath.row }),
+            if let indexOfRow = sortedRows.firstIndex(where: { $0.key.item == indexPath.row }),
                 order.count > indexOfRow {
                 scheduleType = order[indexOfRow]
             } else {
@@ -847,9 +851,9 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
         popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
         popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
         popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor, constant: navigationController?.navigationBar.frame.size.height ?? 0.0).isActive = true
-        popDown.willMove(toParentViewController: self)
-        self.addChildViewController(popDown)
-        popDown.didMove(toParentViewController: self)
+        popDown.willMove(toParent: self)
+        self.addChild(popDown)
+        popDown.didMove(toParent: self)
         let generator = UIImpactFeedbackGenerator()
         generator.prepare()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
@@ -942,13 +946,13 @@ class CourseDetailsViewController: UIViewController, UITableViewDataSource, UITa
     
     @objc func keyboardWillChangeFrame(_ sender: Notification) {
         if displayStandardMode {
-            let endY = self.view.convert((sender.userInfo![UIKeyboardFrameEndUserInfoKey]! as! CGRect), from: nil).origin.y
+            let endY = self.view.convert((sender.userInfo![UIResponder.keyboardFrameEndUserInfoKey]! as! CGRect), from: nil).origin.y
 
             if let bottomConstraint = tableViewBottomConstraint {
                 let newConstant: CGFloat = self.view.frame.size.height - endY
-                let curve: UIViewAnimationOptions = UIViewAnimationOptions(rawValue: (sender.userInfo![UIKeyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
+                let curve: UIView.AnimationOptions = UIView.AnimationOptions(rawValue: (sender.userInfo![UIResponder.keyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
                 self.view.setNeedsLayout()
-                UIView.animate(withDuration: sender.userInfo![UIKeyboardAnimationDurationUserInfoKey] as! TimeInterval, delay: 0.0, options: [curve, .beginFromCurrentState], animations: {
+                UIView.animate(withDuration: sender.userInfo![UIResponder.keyboardAnimationDurationUserInfoKey] as! TimeInterval, delay: 0.0, options: [curve, .beginFromCurrentState], animations: {
                     bottomConstraint.constant = newConstant
                     self.view.layoutIfNeeded()
                 }, completion: nil)

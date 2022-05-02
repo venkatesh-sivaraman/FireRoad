@@ -118,7 +118,7 @@ extension CourseViewControllerProvider {
 protocol PanelParentViewController: CourseViewControllerProvider, CourseBrowserDelegate, CourseDetailsDelegate {
     var panelView: PanelViewController? { get set }
     var courseBrowser: CourseBrowserViewController? { get set }
-    var childViewControllers: [UIViewController] { get }
+    var children: [UIViewController] { get }
     var rootParent: UIViewController? { get }
     
     var showsSemesterDialogs: Bool { get }
@@ -130,10 +130,10 @@ protocol PanelParentViewController: CourseViewControllerProvider, CourseBrowserD
 extension PanelParentViewController {
     
     func findPanelChildViewController() {
-        for child in self.childViewControllers {
+        for child in self.children {
             if child is PanelViewController {
                 self.panelView = child as? PanelViewController
-                for subchild in self.panelView!.childViewControllers[0].childViewControllers {
+                for subchild in self.panelView!.children[0].children {
                     if subchild is CourseBrowserViewController {
                         self.courseBrowser = subchild as? CourseBrowserViewController
                         self.courseBrowser?.showsSemesterDialog = self.showsSemesterDialogs
@@ -248,7 +248,7 @@ extension PanelParentViewController {
     
     func courseDetailsRequestedOpen(url: URL) {
         guard let webVC = generateURLViewController(for: url) else {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
             return
         }
         if self.panelView?.isExpanded == false {
@@ -264,4 +264,9 @@ extension PanelParentViewController {
             browser.navigationController?.view.setNeedsLayout()
         }
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
 }

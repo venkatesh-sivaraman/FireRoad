@@ -120,9 +120,9 @@ class CustomCoursesViewController: CourseCollectionViewController, CourseCollect
         popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
         popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
         popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
-        popDown.willMove(toParentViewController: self)
-        self.addChildViewController(popDown)
-        popDown.didMove(toParentViewController: self)
+        popDown.willMove(toParent: self)
+        self.addChild(popDown)
+        popDown.didMove(toParent: self)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
             popDown.show(animated: true)
         }
@@ -159,10 +159,10 @@ class CustomCoursesViewController: CourseCollectionViewController, CourseCollect
         }
         navigationItem.leftBarButtonItem?.isEnabled = true
         tableMenu.hide(animated: true) {
-            tableMenu.willMove(toParentViewController: nil)
+            tableMenu.willMove(toParent: nil)
             tableMenu.view.removeFromSuperview()
-            tableMenu.removeFromParentViewController()
-            tableMenu.didMove(toParentViewController: nil)
+            tableMenu.removeFromParent()
+            tableMenu.didMove(toParent: nil)
         }
     }
 

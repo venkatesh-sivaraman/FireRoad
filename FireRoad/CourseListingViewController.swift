@@ -467,9 +467,9 @@ class CourseListingViewController: CourseListingDisplayController, UISearchResul
         popDown.view.rightAnchor.constraint(equalTo: containingView.rightAnchor).isActive = true
         popDown.view.bottomAnchor.constraint(equalTo: containingView.bottomAnchor).isActive = true
         popDown.view.topAnchor.constraint(equalTo: containingView.topAnchor).isActive = true
-        popDown.willMove(toParentViewController: self)
-        self.addChildViewController(popDown)
-        popDown.didMove(toParentViewController: self)
+        popDown.willMove(toParent: self)
+        self.addChild(popDown)
+        popDown.didMove(toParent: self)
         let generator = UIImpactFeedbackGenerator()
         generator.prepare()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {

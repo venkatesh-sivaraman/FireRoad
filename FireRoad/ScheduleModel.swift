@@ -87,7 +87,7 @@ class Schedule: NSObject {
         for (course, units) in sortedCourses {
             ret += course.subjectID ?? ""
             ret += "\n"
-            let sortedUnits = units.sorted(by: { (CourseScheduleType.ordering.index(of: $0.sectionType) ?? 0) < (CourseScheduleType.ordering.index(of: $1.sectionType) ?? 0) })
+            let sortedUnits = units.sorted(by: { (CourseScheduleType.ordering.firstIndex(of: $0.sectionType) ?? 0) < (CourseScheduleType.ordering.firstIndex(of: $1.sectionType) ?? 0) })
             for unit in sortedUnits {
                 ret += "\t" + unit.sectionType + ": " + unit.scheduleItems.map({ $0.stringEquivalent() }).joined(separator: ", ") + "\n"
             }
@@ -139,7 +139,7 @@ class ScheduleDocument: UserDocument {
     }
     
     func remove(course: Course) {
-        guard let index = courses.index(of: course) else {
+        guard let index = courses.firstIndex(of: course) else {
             return
         }
         courses.remove(at: index)
@@ -312,7 +312,7 @@ class ScheduleDocument: UserDocument {
                 var selectedJSON: [String: Int] = [:]
                 for unit in courseSections {
                     guard let sections = subject.schedule?[unit.sectionType],
-                        let index = sections.index(of: unit.scheduleItems) else {
+                        let index = sections.firstIndex(of: unit.scheduleItems) else {
                             continue
                     }
                     selectedJSON[unit.sectionType] = index

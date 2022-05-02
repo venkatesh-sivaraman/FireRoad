@@ -57,7 +57,7 @@ class DocumentBrowseViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         if let item = itemToHighlight,
-            let index = items.index(of: item) {
+            let index = items.firstIndex(of: item) {
             self.tableView.selectRow(at: IndexPath(row: index, section: 0), animated: false, scrollPosition: .none)
         }
     }
@@ -65,7 +65,7 @@ class DocumentBrowseViewController: UITableViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let item = itemToHighlight,
-            let index = items.index(of: item) {
+            let index = items.firstIndex(of: item) {
             self.tableView.deselectRow(at: IndexPath(row: index, section: 0), animated: true)
             itemToHighlight = nil
         }
@@ -92,7 +92,7 @@ class DocumentBrowseViewController: UITableViewController {
     }
     
     func update(item: Item) {
-        guard let index = items.index(where: { $0.identifier == item.identifier }) else {
+        guard let index = items.firstIndex(where: { $0.identifier == item.identifier }) else {
             return
         }
         let selection = self.tableView.indexPathForSelectedRow
@@ -149,7 +149,7 @@ class DocumentBrowseViewController: UITableViewController {
         return true
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             deleteItem(at: indexPath)
         }

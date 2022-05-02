@@ -63,13 +63,13 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
          self.view.layer.shadowOpacity = 0.4
          self.view.layer.shadowOffset = CGSize(width: 0.0, height: -0.5)*/
         
-        NotificationCenter.default.addObserver(self, selector: #selector(PanelViewController.keyboardWillChangeFrame(sender:)), name: NSNotification.Name.UIKeyboardWillChangeFrame, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(PanelViewController.keyboardWillChangeFrame(sender:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         
         let pan = UIPanGestureRecognizer(target: self, action: #selector(PanelViewController.handlePanGesture(sender:)))
         pan.delegate = self
         self.view.addGestureRecognizer(pan)
         
-        for vc in self.childViewControllers {
+        for vc in self.children {
             if vc is UINavigationController {
                 self.childNavigationController = vc as? UINavigationController
                 break
@@ -248,7 +248,7 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @objc func keyboardWillChangeFrame(sender: Notification) {
         if self.parent != nil, isExpanded || (UIResponder.first as? UIView)?.isDescendant(of: self.view) == true {
-            let deltaY = (sender.userInfo![UIKeyboardFrameBeginUserInfoKey]! as! CGRect).origin.y - (sender.userInfo![UIKeyboardFrameEndUserInfoKey]! as! CGRect).origin.y
+            let deltaY = (sender.userInfo![UIResponder.keyboardFrameBeginUserInfoKey]! as! CGRect).origin.y - (sender.userInfo![UIResponder.keyboardFrameEndUserInfoKey]! as! CGRect).origin.y
             if bottomConstraint == nil, let container = self.view.superview, let sview = container.superview {
                 for constraint in sview.constraints {
                     if (constraint.firstItem as? UIView == container && constraint.firstAttribute == .bottom && constraint.secondItem as? UIView == sview) ||
@@ -272,9 +272,9 @@ class PanelViewController: UIViewController, UIGestureRecognizerDelegate {
                     NotificationCenter.default.post(name: .PanelViewControllerWillExpand, object: self)
                 }
                 
-                let curve: UIViewAnimationOptions = UIViewAnimationOptions(rawValue: (sender.userInfo![UIKeyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
+                let curve: UIView.AnimationOptions = UIView.AnimationOptions(rawValue: (sender.userInfo![UIResponder.keyboardAnimationCurveUserInfoKey] as! NSNumber).uintValue)
                 self.parent!.view.setNeedsLayout()
-                UIView.animate(withDuration: sender.userInfo![UIKeyboardAnimationDurationUserInfoKey] as! TimeInterval, delay: 0.0, options: [curve, .beginFromCurrentState], animations: {
+                UIView.animate(withDuration: sender.userInfo![UIResponder.keyboardAnimationDurationUserInfoKey] as! TimeInterval, delay: 0.0, options: [curve, .beginFromCurrentState], animations: {
                     bottomConstraint.constant = newConstant
                     self.parent!.view.layoutIfNeeded()
                     self.childNavigationController?.view.setNeedsLayout()

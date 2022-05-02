@@ -35,7 +35,7 @@ class CourseroadWarningsViewController: UITableViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let course = focusedCourse,
-            let index = allWarnings.index(where: { $0.course == course }) {
+            let index = allWarnings.firstIndex(where: { $0.course == course }) {
             tableView.scrollToRow(at: IndexPath(row: 0, section: index), at: .middle, animated: true)
         }
     }

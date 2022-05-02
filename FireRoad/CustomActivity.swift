@@ -23,8 +23,8 @@ class CustomActivity: UIActivity {
         super.init()
     }
     
-    override var activityType: UIActivityType? {
-        return UIActivityType(rawValue: customActivityType)
+    override var activityType: UIActivity.ActivityType? {
+        return UIActivity.ActivityType(rawValue: customActivityType)
     }
     
     override var activityTitle: String? {

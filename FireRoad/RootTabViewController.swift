@@ -625,7 +625,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     
     func cloudSyncManager(_ manager: CloudSyncManager, modifiedFileNamed name: String) {
         if name == currentUser?.fileName {
-            try? currentUser?.reloadContents()
+            ((try? currentUser?.reloadContents()) as ()??)
             if let courseroadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController {
                 courseroadVC.reloadCollectionView()
             }
@@ -635,7 +635,7 @@ class RootTabViewController: UITabBarController, AuthenticationViewControllerDel
     func cloudSyncManager(_ manager: CloudSyncManager, renamedFileNamed name: String, to newName: String) {
         if name == currentUser?.fileName {
             currentUser?.filePath = manager.urlForUserFile(named: newName)?.path
-            try? currentUser?.reloadContents()
+            ((try? currentUser?.reloadContents()) as ()??)
             if let courseroadVC = childViewController(where: { $0 is CourseroadViewController }) as? CourseroadViewController {
                 courseroadVC.reloadCollectionView()
             }

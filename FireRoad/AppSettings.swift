@@ -218,13 +218,13 @@ class AppSettings: NSObject {
                     guard let url = URL(string: "mailto:fireroad-dev@mit.edu?subject=FireRoad%20Feedback") else {
                         return
                     }
-                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                    UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
                 }),
                 AppSettingsItem(title: "Requirements Editor", type: .button, getter: nil, setter: { _ in
                     guard let url = URL(string: CourseManager.urlBase + "/requirements") else {
                         return
                     }
-                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                    UIApplication.shared.open(url, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
                 })], header: "About and Contact", footer: "Use the Requirements Editor to request changes to major and minor specifications. For other corrections or feedback, choose Send Feedback.", reloadOnSelect: false)
         ]}
     
@@ -235,4 +235,9 @@ class AppSettings: NSObject {
             }
         })
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
 }

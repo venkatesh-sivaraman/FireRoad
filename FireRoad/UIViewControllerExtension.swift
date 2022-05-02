@@ -22,7 +22,7 @@ extension UIViewController {
     }
     
     func childViewController(where test: ((UIViewController) -> Bool)) -> UIViewController? {
-        for child in childViewControllers {
+        for child in children {
             if test(child) {
                 return child
             } else if let matchedChild = child.childViewController(where: test) {
@@ -44,7 +44,7 @@ extension UIViewController {
     }
     
     func enumerateChildViewControllers(with action: (UIViewController) -> Void) {
-        for child in childViewControllers {
+        for child in children {
             action(child)
             child.enumerateChildViewControllers(with: action)
         }

@@ -41,15 +41,6 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
         firstOptionOverridesOthers: false),
         
         FilterTableItem(type: .segmentedControl,
-                title: "Attendance",
-                items: [
-                    ("Any", .noVirtualFilter),
-                    ("Virtual", .offeredVirtual),
-                    ("In-Person", .offeredInPerson)],
-                tintColor: nil,
-                firstOptionOverridesOthers: false),
-        
-        FilterTableItem(type: .segmentedControl,
                         title: "Offered",
                         items: [
                             ("Any", .offeredAnySemester),
@@ -209,7 +200,7 @@ class CourseFilterViewController: UIViewController, UITableViewDataSource, UITab
                     segmentedControl.tintColor = self.view.tintColor
                 }
             }
-            segmentedControl.setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.white], for: .selected)
+            segmentedControl.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.white], for: .selected)
             segmentedControl.removeTarget(nil, action: nil, for: .valueChanged)
             segmentedControl.addTarget(self, action: #selector(segmentedControlValueChanged(_:)), for: .valueChanged)
             return cell

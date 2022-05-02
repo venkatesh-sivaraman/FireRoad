@@ -120,7 +120,7 @@ class CourseMultiSelectViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let course = coursesBySection[indexPath.section].1[indexPath.row]
-        if let idx = selectedCourses.index(of: course) {
+        if let idx = selectedCourses.firstIndex(of: course) {
             selectedCourses.remove(at: idx)
         } else {
             selectedCourses.append(course)
